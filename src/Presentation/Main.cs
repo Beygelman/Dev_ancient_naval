@@ -14,6 +14,8 @@ using Side = DevAncientNaval.Core.Units.Side;
 
 namespace DevAncientNaval.Presentation;
 
+public enum OrderMode { None, Move, Attack, Build }
+
 public partial class Main : Node2D
 {
     public BoardView BoardView { get; private set; } = null!;
@@ -25,221 +27,198 @@ public partial class Main : Node2D
     public int? SelectedShipId { get; private set; }
     public bool Busy { get; private set; }
     public bool FastChecks { get; set; }
+    public OrderMode Mode { get; private set; }
+    public Task CurrentOrder { get; private set; } = Task.CompletedTask;
     private BattleRules _rules = null!;
-    private GridPosition? _pendingCell;
-    private int? _pendingTarget;
     private ShipClass? _building;
-    private bool _repairPending;
     private ConfirmationDialog _restartDialog = null!;
 
     public override void _Ready()
     {
-        _rules = BattleRules.FromJson(FileAccess.GetFileAsString("res://data/balance.json"));
-        var board = PrototypeBoard.Create();
-        var projection = new IsometricProjection();
-        Battle = SkirmishSetup.Create(board, _rules);
-        BoardView = new BoardView { Name = "Board", Board = board, Projection = projection };
-        AddChild(BoardView);
-        Fleet = new FleetView { Name = "Fleet", Battle = Battle, Projection = projection };
-        AddChild(Fleet);
-        MapCamera = new MapCamera { Name = "MapCamera", MapBounds = projection.BoardBounds(board.Width, board.Height) };
-        AddChild(MapCamera);
+        _rules=BattleRules.FromJson(FileAccess.GetFileAsString("res://data/balance.json"));
+        var board=PrototypeBoard.Create(); var projection=new IsometricProjection();
+        Battle=SkirmishSetup.Create(board,_rules);
+        BoardView=new BoardView { Name="Board",Board=board,Battle=Battle,Projection=projection }; AddChild(BoardView);
+        Fleet=new FleetView { Name="Fleet",Battle=Battle,Projection=projection }; AddChild(Fleet);
+        MapCamera=new MapCamera { Name="MapCamera",MapBounds=projection.BoardBounds(board.Width,board.Height) }; AddChild(MapCamera);
         MapCamera.MakeCurrent(); MapCamera.FitBoard();
-        MapInput = new MapInput { Name = "MapInput", Camera = MapCamera };
-        MapInput.Tapped += SelectAtScreen;
-        AddChild(MapInput);
-        Hud = new DebugHud { Name = "DebugHud" };
-        Hud.ResetRequested += MapCamera.FitBoard;
-        Hud.ZoomRequested += factor => MapCamera.ZoomAt(GetViewportRect().Size / 2, factor);
-        Hud.ConfirmRequested += () => RunSafely(ConfirmOrder);
-        Hud.CancelRequested += CancelOrder;
-        Hud.EndTurnRequested += () => RunSafely(EndPlayerTurn);
-        Hud.RepairRequested += PreviewRepair;
-        Hud.BuildRequested += BeginBuild;
-        Hud.RestartRequested += () => _restartDialog.PopupCentered();
-        AddChild(Hud);
-        _restartDialog = new ConfirmationDialog { Title = "Начать заново?", DialogText = "Текущий бой будет заменён новым.", OkButtonText = "Новый бой", CancelButtonText = "Продолжить бой" };
-        _restartDialog.Confirmed += Restart;
-        AddChild(_restartDialog);
-        GetViewport().SizeChanged += OnViewportResized;
-        Refresh();
-        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--smoke-test"))
-            AddChild(new Tests.Runtime.PrototypeChecks { Game = this });
-        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--battle-test"))
-            AddChild(new Tests.Runtime.BattleChecks { Game = this });
+        MapInput=new MapInput { Name="MapInput",Camera=MapCamera };
+        MapInput.Tapped+=SelectAtScreen; MapInput.Hovered+=PreviewAtScreen; AddChild(MapInput);
+        Hud=new DebugHud { Name="DebugHud" };
+        Hud.MoveRequested+=BeginMove; Hud.AttackRequested+=BeginAttack;
+        Hud.CancelRequested+=CancelOrder; Hud.EndTurnRequested+=()=>RunSafely(EndPlayerTurn);
+        Hud.RepairRequested+=()=>RunSafely(RepairSelected); Hud.BuildRequested+=BeginBuild;
+        Hud.RestartRequested+=()=>_restartDialog.PopupCentered(); AddChild(Hud);
+        _restartDialog=new ConfirmationDialog { Title="Начать заново?",DialogText="Текущий бой будет заменён новым.",
+            OkButtonText="Новый бой",CancelButtonText="Продолжить бой" };
+        _restartDialog.Confirmed+=Restart; AddChild(_restartDialog);
+        GetViewport().SizeChanged+=OnViewportResized;
+        Refresh(); Hud.ShowMessage("Выберите корабль. Значки вокруг него — доступные действия.");
+        if(OS.HasFeature("debug")&&Array.Exists(OS.GetCmdlineUserArgs(),arg=>arg=="--smoke-test"))
+            AddChild(new Tests.Runtime.PrototypeChecks { Game=this });
+        if(OS.HasFeature("debug")&&Array.Exists(OS.GetCmdlineUserArgs(),arg=>arg=="--battle-test"))
+            AddChild(new Tests.Runtime.BattleChecks { Game=this });
     }
 
-    private async void RunSafely(Func<Task> action)
+    private void RunSafely(Func<Task> action)=>CurrentOrder=Guard(action);
+    private async Task Guard(Func<Task> action)
     {
         try { await action(); }
-        catch (Exception e) { GD.PushError(e.ToString()); Busy = false; Hud.ShowMessage("Ошибка действия. Подробности в журнале Godot."); Refresh(); }
+        catch(Exception e) { GD.PushError(e.ToString()); Busy=false; Hud.ShowMessage("Ошибка действия. Подробности в журнале Godot."); Refresh(); }
     }
-
-    private bool CanCommand => !Busy && !Battle.IsOver && Battle.ActiveSide == Side.Player;
+    private bool CanCommand=>!Busy&&!Battle.IsOver&&Battle.ActiveSide==Side.Player;
+    private Ship? Selected=>SelectedShipId is { } id?Battle.FindObserved(Side.Player,id):null;
 
     public void SelectAtScreen(Vector2 screen)
     {
-        if (Busy) return;
-        var local = BoardView.ToLocal(MapCamera.ScreenToWorld(screen));
-        var cell = BoardView.Projection.WorldToGrid(local);
-        SelectCell(cell);
+        if(Busy) return;
+        SelectCell(BoardView.Projection.WorldToGrid(BoardView.ToLocal(MapCamera.ScreenToWorld(screen))));
     }
-
     public void SelectCell(GridPosition cell)
     {
-        if (Busy) return;
-        BoardView.Board.TryGetTile(cell, out var tile);
-        BoardView.Select(tile?.Position);
-        Hud.ShowTile(tile);
-        var hit = Battle.At(cell);
-        var selected = SelectedShipId is { } id ? Battle.Find(id) : null;
-        _repairPending = false;
-        if (tile is null) { ClearPending(); SelectedShipId = null; Refresh(); return; }
-        if (_building is not null && selected is not null && CanCommand)
+        if(Busy) return;
+        if(!Battle.Board.Contains(cell)) { CancelOrder(); return; }
+        BoardView.Select(cell); Hud.ShowTile(Battle,cell);
+        var hit=Battle.ObservedAt(Side.Player,cell); var selected=Selected;
+        if(selected?.Owner==Side.Player&&CanCommand)
         {
-            _pendingCell = Battle.SpawnCells(selected.Id).Contains(cell) ? cell : null;
-            Hud.ShowMessage(_pendingCell is null ? "Нужна зелёная клетка рядом с Mothership." : $"Построить {_building} здесь? Подтвердите приказ.");
-        }
-        else if (selected?.Owner == Side.Player && hit?.Owner == Side.Enemy && CanCommand)
-        {
-            _pendingCell = null;
-            _pendingTarget = Battle.CanAttack(selected.Id, hit.Id) ? hit.Id : null;
-            Hud.ShowMessage(_pendingTarget is null ? "Цель вне дальности или атаки закончились." :
-                $"Атака {hit.Definition.Name}: {Math.Min(hit.Health, Battle.Damage(selected, hit))} урона. Подтвердите приказ.");
-        }
-        else if (hit is not null)
-        {
-            ClearPending(); SelectedShipId = hit.Id;
-            Hud.ShowMessage(hit.Owner == Side.Player ? ProfileHint(hit) : "Коралловый флот — противник. Для атаки сначала выберите свой корабль.");
-        }
-        else if (selected?.Owner == Side.Player && CanCommand)
-        {
-            _pendingTarget = null;
-            var path = Battle.PathTo(selected.Id, cell);
-            _pendingCell = path.Count > 1 ? cell : null;
-            Hud.ShowMessage(_pendingCell is null ? "Сюда нельзя дойти в этом ходу." : $"Маршрут: {path.Count - 1} кл. Подтвердите перемещение.");
-        }
-        else ClearPending();
-        Refresh();
-    }
-
-    private static string ProfileHint(Ship ship) => ship.Definition.ActionProfile switch
-    {
-        ActionProfile.Scout => $"Garrison: движение → атака → движение. Общий запас движения — {ship.Definition.Movement}.",
-        ActionProfile.Heavy => "Kolonel: движение и одна атака либо две атаки с места. Ремонт вместо действий.",
-        _ => ship.Definition.Class == ShipClass.Mothership ? "Mothership: доход и одна постройка за ход. Потеря флагмана означает поражение." :
-            "Invader: движение → атака либо атака → движение. Ремонт вместо действий."
-    };
-
-    public void BeginBuild(ShipClass shipClass)
-    {
-        if (!CanCommand || SelectedShipId is not { } id) return;
-        var reason = Battle.BuildBlockReason(Side.Player, id, shipClass);
-        if (reason is not null) { Hud.ShowMessage(reason); return; }
-        ClearPending(); _building = shipClass;
-        Hud.ShowMessage($"{shipClass}: выберите зелёную клетку для постройки. Цена {_rules.Get(shipClass).Price}.");
-        Refresh();
-    }
-
-    public void PreviewRepair()
-    {
-        if (!CanCommand || SelectedShipId is not { } id || Battle.Find(id)?.CanRepair != true) return;
-        ClearPending(); _repairPending = true;
-        Hud.ShowMessage($"Ремонт до +{_rules.RepairAmount} HP вместо движения и атак. Подтвердите приказ.");
-        Refresh();
-    }
-
-    public async Task ConfirmOrder()
-    {
-        if (!CanCommand || SelectedShipId is not { } id) return;
-        Vector2? targetPosition = _pendingTarget is { } targetId && Battle.Find(targetId) is { } enemy
-            ? BoardView.Projection.GridToWorld(enemy.Position) : null;
-        CommandResult? result = _repairPending ? Battle.Repair(Side.Player, id) :
-            _building is { } kind && _pendingCell is { } spawn ? Battle.Build(Side.Player, id, kind, spawn) :
-            _pendingTarget is { } target ? Battle.Attack(Side.Player, id, target) :
-            _pendingCell is { } destination ? Battle.Move(Side.Player, id, destination) : null;
-        if (result is null) return;
-        ClearPending();
-        if (result.Success)
-        {
-            if (result.Kind == CommandKind.Build) SelectedShipId = result.TargetId;
-            if (SelectedShipId is { } selectedId && Battle.Find(selectedId) is { } current)
+            if(Mode==OrderMode.Build&&_building is { } kind)
             {
-                BoardView.Select(current.Position);
-                Hud.ShowTile(BoardView.Board.GetTile(current.Position));
+                int id=selected.Id; RunSafely(()=>Perform(()=>Battle.Build(Side.Player,id,kind,cell))); return;
+            }
+            if(Mode==OrderMode.Attack)
+            {
+                if(hit?.Owner==Side.Enemy)
+                {
+                    int id=selected.Id,target=hit.Id; RunSafely(()=>Perform(()=>Battle.Attack(Side.Player,id,target))); return;
+                }
+                if(hit is null) { Hud.ShowMessage("Нужна видимая цель. Радарная отметка ещё не позволяет стрелять."); Refresh(); return; }
+            }
+            if(Mode==OrderMode.Move&&hit is null)
+            {
+                int id=selected.Id; RunSafely(()=>Perform(()=>Battle.Move(Side.Player,id,cell))); return;
             }
         }
-        Busy = true; Refresh();
-        Hud.ShowMessage(result.Message);
-        try { if (result.Success && !FastChecks) await Fleet.Animate(result, targetPosition); }
-        finally { Busy = false; Refresh(); }
+        ClearMode(); SelectedShipId=hit?.Id;
+        Hud.ShowMessage(""); Refresh();
+    }
+
+    public void BeginMove()
+    {
+        if(!CanCommand||Selected is not { Owner:Side.Player,CanMove:true }) return;
+        ClearMode(); Mode=OrderMode.Move; Hud.ShowMessage("Выберите клетку для движения"); Refresh();
+    }
+    public void BeginAttack()
+    {
+        if(!CanCommand||Selected is not { Owner:Side.Player,AttacksRemaining:>0 }) return;
+        ClearMode(); Mode=OrderMode.Attack; Hud.ShowMessage("Выберите цель для выстрела"); Refresh();
+    }
+    public void BeginBuild(ShipClass kind)
+    {
+        if(!CanCommand||SelectedShipId is not { } id) return;
+        var reason=Battle.BuildBlockReason(Side.Player,id,kind);
+        if(reason is not null) { Hud.ShowMessage(reason); return; }
+        ClearMode(); _building=kind; Mode=OrderMode.Build;
+        Hud.ShowMessage($"{Battle.Rules.Get(kind).Name} · {Battle.Rules.Get(kind).Price} монет. Выберите зелёную клетку.");
+        Refresh();
+    }
+    public Task RepairSelected()
+    {
+        if(!CanCommand||Selected is not { Owner:Side.Player } selected) return Task.CompletedTask;
+        int id=selected.Id; return Perform(()=>Battle.Repair(Side.Player,id));
+    }
+    private async Task Perform(Func<CommandResult> action)
+    {
+        if(!CanCommand) return;
+        var result=action();
+        if(!result.Success) { Hud.ShowMessage(result.Message); Refresh(); return; }
+        ClearMode();
+        if(result.Kind==CommandKind.Build) SelectedShipId=result.TargetId;
+        if(Selected is { } current) BoardView.Select(current.Position);
+        Busy=true; Refresh(); Hud.ShowMessage(result.Message);
+        try { if(!FastChecks) await Fleet.Animate(result); }
+        finally { Busy=false; Refresh(); }
+    }
+
+    private void PreviewAtScreen(Vector2 screen)
+    {
+        if(!CanCommand||Selected is not { Owner:Side.Player } ship) return;
+        var cell=BoardView.Projection.WorldToGrid(BoardView.ToLocal(MapCamera.ScreenToWorld(screen)));
+        if(Mode==OrderMode.Move)
+        {
+            BoardView.PreviewPath=Battle.PathTo(ship.Id,cell); BoardView.QueueRedraw();
+        }
+        else if(Mode==OrderMode.Attack&&Battle.ObservedAt(Side.Player,cell) is { Owner:Side.Enemy } target&&Battle.CanAttack(ship.Id,target.Id))
+            Hud.ShowMessage($"Урон {Math.Min(target.Health,Battle.Damage(ship,target)):0.##} · Ответ {Math.Min(ship.Health,Battle.PreviewCounterDamage(ship,target)):0.##}");
     }
 
     public async Task EndPlayerTurn()
     {
-        if (!CanCommand) return;
-        var ended = Battle.EndTurn(Side.Player);
-        if (!ended.Success) return;
-        ClearPending(); SelectedShipId = null; Busy = true; Refresh();
-        Hud.ShowMessage("Противник отдаёт приказы…");
+        if(!CanCommand) return;
+        var ended=Battle.EndTurn(Side.Player); if(!ended.Success) return;
+        ClearMode(); SelectedShipId=null; BoardView.Select(null); Busy=true; Refresh();
+        Hud.ShowMessage(""); Hud.ShowOpponentTurn();
         try
         {
-            for (int commands = 0; commands < 256 && Battle.ActiveSide == Side.Enemy && !Battle.IsOver; commands++)
+            if(!FastChecks) await ToSignal(GetTree().CreateTimer(1.25),SceneTreeTimer.SignalName.Timeout);
+            for(int commands=0;commands<256&&Battle.ActiveSide==Side.Enemy&&!Battle.IsOver;commands++)
             {
-                var oldPositions = Battle.Ships.ToDictionary(s => s.Id, s => BoardView.Projection.GridToWorld(s.Position));
-                var result = SimpleOpponent.Step(Battle);
-                if (!result.Success) throw new InvalidOperationException(result.Message);
-                Hud.ShowMessage(result.Message); Refresh();
-                if (!FastChecks)
+                var result=SimpleOpponent.Step(Battle);
+                if(!result.Success) throw new InvalidOperationException(result.Message);
+                if(result.Kind==CommandKind.Attack) Hud.ShowMessage(result.Message);
+                Refresh();
+                if(!FastChecks)
                 {
-                    await Fleet.Animate(result, oldPositions.TryGetValue(result.TargetId, out var point) ? point : null);
-                    await ToSignal(GetTree().CreateTimer(0.08), SceneTreeTimer.SignalName.Timeout);
+                    await Fleet.Animate(result);
+                    await ToSignal(GetTree().CreateTimer(0.08),SceneTreeTimer.SignalName.Timeout);
                 }
             }
-            if (Battle.ActiveSide == Side.Enemy && !Battle.IsOver)
+            if(Battle.ActiveSide==Side.Enemy&&!Battle.IsOver)
             {
-                GD.PushWarning("Opponent command budget reached; ending turn.");
-                Battle.EndTurn(Side.Enemy);
+                GD.PushWarning("Opponent command budget reached; ending turn."); Battle.EndTurn(Side.Enemy);
             }
         }
-        finally { Busy = false; Refresh(); }
-        Hud.ShowMessage(Battle.IsOver ? "Бой окончен. Нажмите «Заново», чтобы сыграть ещё раз." : "Ваш ход. Выберите корабль.");
+        finally { Busy=false; Hud.HideOpponentTurn(); Refresh(); }
     }
 
     public void CancelOrder()
     {
-        if (Busy) return;
-        ClearPending(); SelectedShipId = null; BoardView.Select(null); Hud.ShowTile(null);
-        Hud.ShowMessage("Приказ отменён. Выберите корабль."); Refresh();
+        if(Busy) return;
+        ClearMode(); SelectedShipId=null; BoardView.Select(null); Hud.ShowTile(Battle,null); Hud.ShowMessage(""); Refresh();
     }
-    private void ClearPending() { _pendingCell = null; _pendingTarget = null; _building = null; _repairPending = false; }
-
+    private void ClearMode() { Mode=OrderMode.None; _building=null; BoardView.PreviewPath=Array.Empty<GridPosition>(); }
     public void Restart()
     {
-        if (Busy) return;
-        Battle = SkirmishSetup.Create(BoardView.Board, _rules); Fleet.Battle = Battle;
+        if(Busy) return;
+        LoadScenario(SkirmishSetup.Create(PrototypeBoard.Create(),_rules));
+        Hud.ShowMessage("Исследуйте море и сохраните свой Mothership.");
+    }
+    internal void LoadScenario(BattleState battle)
+    {
+        Battle=battle; Fleet.Battle=battle; BoardView.Battle=battle; BoardView.Board=battle.Board;
+        MapCamera.MapBounds=BoardView.Projection.BoardBounds(battle.Board.Width,battle.Board.Height);
         CancelOrder(); MapInput.CancelGesture(); MapCamera.FitBoard();
-        Hud.ShowMessage("Новый бой. Уничтожьте вражеский Mothership и сохраните свой.");
     }
 
     public void Refresh()
     {
-        var selected = SelectedShipId is { } id ? Battle.Find(id) : null;
-        if (selected is null) SelectedShipId = null;
-        Fleet.SelectedId = SelectedShipId;
-        BoardView.Reachable = CanCommand && selected?.Owner == Side.Player ?
-            (_building is not null ? Battle.SpawnCells(selected.Id).ToArray() : Battle.Reachable(selected.Id).Keys.Where(p => p != selected.Position).ToArray()) : Array.Empty<GridPosition>();
-        BoardView.Targets = CanCommand && selected?.Owner == Side.Player && _building is null ?
-            Battle.Ships.Where(s => Battle.CanAttack(selected.Id, s.Id)).Select(s => s.Position).ToArray() : Array.Empty<GridPosition>();
-        BoardView.Building = _building is not null;
-        BoardView.PreviewPath = selected is not null && _pendingCell is { } cell && _building is null ? Battle.PathTo(selected.Id, cell) : Array.Empty<GridPosition>();
-        string? confirm = _repairPending ? "Ремонт +HP" : _pendingTarget is not null ? "Атаковать" :
-            _pendingCell is not null ? (_building is not null ? "Построить" : "Переместить") : null;
-        Hud.UpdateBattle(Battle, selected, Busy, confirm, SelectedShipId is not null);
+        var selected=Selected;
+        if(selected is null) SelectedShipId=null;
+        Fleet.SelectedId=SelectedShipId; BoardView.SelectedShipId=SelectedShipId;
+        Hud.ShowTile(Battle,BoardView.Selected);
+        BoardView.Reachable=CanCommand&&selected?.Owner==Side.Player
+            ? Mode==OrderMode.Build?Battle.SpawnCells(selected.Id).ToArray()
+              : Mode==OrderMode.Move?Battle.Reachable(selected.Id).Keys.Where(p=>p!=selected.Position).ToArray():Array.Empty<GridPosition>()
+            : Array.Empty<GridPosition>();
+        BoardView.Targets=CanCommand&&selected?.Owner==Side.Player&&Mode==OrderMode.Attack?
+            Battle.ObservedShips(Side.Player).Where(s=>Battle.CanAttack(selected.Id,s.Id)).Select(s=>s.Position).ToArray():Array.Empty<GridPosition>();
+        BoardView.AttackArea=CanCommand&&selected?.Owner==Side.Player&&Mode==OrderMode.Attack?Battle.AttackCells(selected.Id):Array.Empty<GridPosition>();
+        BoardView.Building=Mode==OrderMode.Build;
+        Hud.UpdateBattle(Battle,selected,Busy,Mode); PositionActions();
         BoardView.QueueRedraw(); Fleet.QueueRedraw();
     }
-
-    public override void _Process(double delta) => Hud.ShowZoom(MapCamera.Zoom.X);
+    private void PositionActions()=>Hud.PositionActions(Selected is { } ship?GetViewport().GetCanvasTransform()*BoardView.ToGlobal(BoardView.Projection.GridToWorld(ship.Position)):null);
+    public override void _Process(double delta)=>PositionActions();
     private void OnViewportResized() { MapInput.CancelGesture(); MapCamera.FitBoard(); }
-    public override void _ExitTree() => GetViewport().SizeChanged -= OnViewportResized;
+    public override void _ExitTree()=>GetViewport().SizeChanged-=OnViewportResized;
 }

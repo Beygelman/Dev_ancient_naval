@@ -18,6 +18,7 @@ public partial class MapInput : Node
     private bool _dragged;
     public MapCamera Camera { get; set; } = null!;
     public event Action<Vector2>? Tapped;
+    public event Action<Vector2>? Hovered;
 
     public override void _Input(InputEvent input)
     {
@@ -79,6 +80,9 @@ public partial class MapInput : Node
                 else if (_dragged) Camera.Pan(motion.Position - _lastMouse);
                 _lastMouse = motion.Position;
                 break;
+            case InputEventMouseMotion motion when !_mouseDown && _touches.Count == 0:
+                Hovered?.Invoke(motion.Position);
+                return;
             default: return;
         }
         GetViewport().SetInputAsHandled();

@@ -27,7 +27,7 @@ public partial class PrototypeChecks : Node
             {
                 Game.MapCamera.FitBoard();
                 Game.BoardView.Select(new GridPosition(6, 6));
-                Game.Hud.ShowTile(Game.BoardView.Board.GetTile(new(6, 6)));
+                Game.Hud.ShowTile(Game.Battle, new(6, 6));
                 await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
                 Check(GetViewport().GetTexture().GetImage().SavePng(capture[10..]) == Error.Ok, "Capture saved");
             }
@@ -87,7 +87,7 @@ public partial class PrototypeChecks : Node
         Check(worldAnchor.DistanceTo(camera.ScreenToWorld(anchor)) < 0.01f, "Zoom preserves cursor anchor");
         Tap(new(6, 6));
         Check(Game.BoardView.Selected == new GridPosition(6, 6), "Mouse selection after pan/zoom");
-        Check(Game.Hud.SelectionText.Contains("X: 6") && Game.Hud.SelectionText.Contains("Land"), "HUD terrain and coordinates");
+        Check(Game.Hud.SelectionText.Contains("Остров") && !Game.Hud.SelectionText.Contains("X:"), "HUD known terrain and coordinates");
 
         var start = Screen(new(6, 6));
         var beforePan = camera.Position;
@@ -142,9 +142,9 @@ public partial class PrototypeChecks : Node
             ButtonIndex = MouseButton.Left, Pressed = false }, true);
         Check(Game.BoardView.Selected == new GridPosition(10, 10), "Viewport mouse dispatch");
         var selected = Game.BoardView.Selected;
-        viewport.PushInput(new InputEventMouseButton { Position = new(40, 40), GlobalPosition = new(40, 40),
+        viewport.PushInput(new InputEventMouseButton { Position = new(640, 40), GlobalPosition = new(640, 40),
             ButtonIndex = MouseButton.Left, Pressed = true }, true);
-        viewport.PushInput(new InputEventMouseButton { Position = new(40, 40), GlobalPosition = new(40, 40),
+        viewport.PushInput(new InputEventMouseButton { Position = new(640, 40), GlobalPosition = new(640, 40),
             ButtonIndex = MouseButton.Left, Pressed = false }, true);
         Check(Game.BoardView.Selected == selected, "HUD blocks map click-through");
 
@@ -153,8 +153,8 @@ public partial class PrototypeChecks : Node
         viewport.PushInput(new InputEventScreenTouch { Index = 0, Position = realTap, Pressed = false }, true);
         Check(Game.BoardView.Selected == new GridPosition(9, 9), "Viewport touch dispatch");
         selected = Game.BoardView.Selected;
-        viewport.PushInput(new InputEventScreenTouch { Index = 0, Position = new(40, 40), Pressed = true }, true);
-        viewport.PushInput(new InputEventScreenTouch { Index = 0, Position = new(40, 40), Pressed = false }, true);
+        viewport.PushInput(new InputEventScreenTouch { Index = 0, Position = new(640, 40), Pressed = true }, true);
+        viewport.PushInput(new InputEventScreenTouch { Index = 0, Position = new(640, 40), Pressed = false }, true);
         Check(Game.BoardView.Selected == selected, "HUD blocks touch-through");
         beforeZoom = camera.Zoom.X;
         viewport.PushInput(new InputEventMouseButton { Position = realTap, ButtonIndex = MouseButton.WheelUp,
@@ -164,8 +164,8 @@ public partial class PrototypeChecks : Node
         // Releasing a map drag over the HUD must end the gesture.
         viewport.PushInput(new InputEventMouseButton { Position = realTap, ButtonIndex = MouseButton.Left,
             Pressed = true }, true);
-        viewport.PushInput(new InputEventMouseMotion { Position = new(40, 40), ButtonMask = MouseButtonMask.Left }, true);
-        viewport.PushInput(new InputEventMouseButton { Position = new(40, 40), ButtonIndex = MouseButton.Left,
+        viewport.PushInput(new InputEventMouseMotion { Position = new(640, 40), ButtonMask = MouseButtonMask.Left }, true);
+        viewport.PushInput(new InputEventMouseButton { Position = new(640, 40), ButtonIndex = MouseButton.Left,
             Pressed = false }, true);
         beforePan = camera.Position;
         viewport.PushInput(new InputEventMouseMotion { Position = new(700, 300) }, true);

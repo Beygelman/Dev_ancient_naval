@@ -12,9 +12,9 @@ public partial class MapCamera : Camera2D
     {
         var viewport = GetViewportRect().Size;
         float zoom = Mathf.Clamp(Mathf.Min((viewport.X - 72) / MapBounds.Size.X,
-            (viewport.Y - 320) / MapBounds.Size.Y), MinZoom, MaxZoom);
+            (viewport.Y - 200) / MapBounds.Size.Y), MinZoom, MaxZoom);
         Zoom = Vector2.One * zoom;
-        Position = MapBounds.GetCenter() + new Vector2(0, 36 / zoom);
+        Position = MapBounds.GetCenter() + new Vector2(0, -10 / zoom);
         ForceUpdateScroll();
     }
 

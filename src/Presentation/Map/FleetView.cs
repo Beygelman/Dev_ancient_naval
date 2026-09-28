@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DevAncientNaval.Core.Battle;
@@ -13,33 +14,49 @@ public partial class FleetView : Node2D
     public BattleState Battle { get; set; } = null!;
     public IsometricProjection Projection { get; set; } = null!;
     public int? SelectedId { get; set; }
+    public Vector2? ProjectilePosition { get; private set; }
+    private readonly Dictionary<int, ShipSnapshot> _snapshots = new();
+    private readonly HashSet<int> _suppressed = new();
     private int _movingId;
+    private bool _movingVisible;
     private Vector2 _movingPosition;
-    private Vector2? _shotFrom;
-    private Vector2 _shotTo;
+    private ShipSnapshot? _movingShip;
+    private Vector2? _muzzle, _impact;
+    private float _impactSize;
     private string _feedback = "";
     private Vector2 _feedbackPosition;
 
     public override void _Draw()
     {
-        foreach (var ship in Battle.Ships.OrderBy(s => s.Position.X + s.Position.Y))
+        var drawn = Battle.ObservedShips(Side.Player).Where(s => !_suppressed.Contains(s.Id) && s.Id != _movingId)
+            .Select(ShipSnapshot.From).Where(s => !_snapshots.ContainsKey(s.Id)).Concat(_snapshots.Values);
+        foreach (var ship in drawn.OrderBy(s => s.Position.X + s.Position.Y))
+            DrawShip(ship, Projection.GridToWorld(ship.Position));
+        if (_movingVisible && _movingShip is { } moving) DrawShip(moving, _movingPosition);
+        if (_muzzle is { } muzzle)
         {
-            var center = ship.Id == _movingId ? _movingPosition : Projection.GridToWorld(ship.Position);
-            DrawShip(ship, center);
+            DrawCircle(muzzle, 10, new Color(1, 0.65f, 0.2f, 0.6f));
+            DrawCircle(muzzle, 5, new Color("fff3b0"));
         }
-        if (_shotFrom is { } from)
+        if (ProjectilePosition is { } projectile)
         {
-            DrawLine(from, _shotTo, new Color("ffdc94"), 3, true);
-            DrawCircle(_shotTo, 9, new Color(1, 0.75f, 0.35f, 0.7f));
+            DrawCircle(projectile + new Vector2(-3, -2), 6, new Color(1, 0.7f, 0.3f, 0.3f));
+            DrawCircle(projectile, 3.5f, new Color("ffebae"));
+        }
+        if (_impact is { } impact)
+        {
+            DrawCircle(impact, _impactSize, new Color(1, 0.57f, 0.2f, Math.Max(0, 0.85f - _impactSize / 38)));
+            DrawArc(impact, _impactSize + 4, 0, Mathf.Tau, 24, new Color("ffdb9d"), 2, true);
         }
         if (_feedback.Length > 0)
             DrawString(ThemeDB.FallbackFont, _feedbackPosition + new Vector2(-20, -35), _feedback,
                 fontSize: 23, modulate: new Color("fff0be"));
     }
 
-    private void DrawShip(Ship ship, Vector2 center)
+    private void DrawShip(ShipSnapshot ship, Vector2 center)
     {
-        float size = ship.Definition.Class switch { ShipClass.Mothership => 1.2f, ShipClass.Garrison => 0.75f, ShipClass.Kolonel => 1.05f, _ => 0.9f };
+        float size = ship.Class switch { ShipClass.Mothership => 1.2f, ShipClass.Garrison => 0.75f,
+            ShipClass.Kolonel => 1.05f, ShipClass.Fishing => 0.62f, _ => 0.9f };
         float facing = ship.Owner == Side.Player ? 1 : -1;
         Vector2 Point(float x, float y) => center + new Vector2(x * facing * size, y * size - 5);
         var accent = new Color(ship.Owner == Side.Player ? "67d6e9" : "f48d72");
@@ -50,7 +67,7 @@ public partial class FleetView : Node2D
         if (ship.Id == SelectedId) DrawArc(center, 34 * size, 0, Mathf.Tau, 40, new Color("ffe298"), 2, true);
         DrawColoredPolygon(hull, new Color(ship.Owner == Side.Player ? "285b6b" : "773e38"));
         DrawPolyline(hull.Append(hull[0]).ToArray(), accent, 2, true);
-        if (ship.Definition.Class == ShipClass.Mothership)
+        if (ship.Class == ShipClass.Mothership)
         {
             DrawColoredPolygon(new[] { Point(-15, -4), Point(0, -8), Point(16, 0), Point(0, 5) }, accent.Darkened(0.15f));
             DrawLine(Point(-5, -3), Point(-5, -26), accent, 3, true);
@@ -58,7 +75,7 @@ public partial class FleetView : Node2D
         }
         else
         {
-            int masts = ship.Definition.Class == ShipClass.Kolonel ? 3 : ship.Definition.Class == ShipClass.Invader ? 2 : 1;
+            int masts = ship.Class == ShipClass.Kolonel ? 3 : ship.Class == ShipClass.Invader ? 2 : 1;
             for (int i = 0; i < masts; i++)
             {
                 float x = -10 + i * 10;
@@ -66,49 +83,94 @@ public partial class FleetView : Node2D
                 DrawColoredPolygon(new[] { Point(x + 1, -26), Point(x + 1, -6), Point(x + 14, -8) },
                     new Color(ship.IsExhausted ? "82959b" : "f2e5c5"));
             }
+            if (ship.Class == ShipClass.Fishing)
+            {
+                DrawCircle(Point(13, 3), 7, new Color("c6bf93"));
+                for (int x = 7; x <= 19; x += 4) DrawLine(Point(x, -3), Point(x, 10), new Color("746e54"), 1);
+            }
+        }
+        if (ship.IsVeteran)
+        {
+            DrawLine(Point(-20, 4), Point(20, 10), new Color("ffce59"), 3, true);
+            DrawLine(Point(18, 0), Point(18, -24), new Color("ffce59"), 2, true);
+            DrawColoredPolygon(new[] { Point(18, -24), Point(31, -19), Point(18, -14) }, new Color("ffce59"));
         }
         var hpPosition = center + new Vector2(-22, 20);
         DrawRect(new Rect2(hpPosition, new Vector2(44, 5)), new Color("10212b"));
-        DrawRect(new Rect2(hpPosition, new Vector2(44f * ship.Health / ship.Definition.MaxHealth, 5)), accent);
+        DrawRect(new Rect2(hpPosition, new Vector2(44f * (float)(ship.Health / ship.MaxHealth), 5)),
+            ship.Health / ship.MaxHealth < 0.25 ? new Color("ff795c") : accent);
         if (ship.IsExhausted) DrawCircle(center + new Vector2(28, 14), 4, new Color("c8c4b4"));
     }
 
-    public async Task Animate(CommandResult result, Vector2? targetBefore)
+    private async Task TweenValue(double duration, Action<float> update)
     {
-        var actor = Battle.Find(result.ActorId);
-        if (result.Kind == CommandKind.Move && result.Path is { Count: > 1 } path)
+        var tween = CreateTween();
+        tween.TweenMethod(Callable.From<float>(t => { update(t); QueueRedraw(); }), 0f, 1f, duration);
+        await ToSignal(tween, Tween.SignalName.Finished);
+    }
+
+    public async Task Animate(CommandResult result, Vector2? targetBefore = null)
+    {
+        try
         {
-            _movingId = result.ActorId;
-            _movingPosition = Projection.GridToWorld(path[0]);
-            for (int i = 1; i < path.Count; i++)
+            var actor = Battle.FindObserved(Side.Player, result.ActorId);
+            if (result.Kind == CommandKind.Move && result.Movement is { Count: > 1 } frames)
             {
-                var from = _movingPosition;
-                var to = Projection.GridToWorld(path[i]);
-                var tween = CreateTween();
-                tween.TweenMethod(Callable.From<float>(t => { _movingPosition = from.Lerp(to, t); QueueRedraw(); }), 0f, 1f, 0.09);
-                await ToSignal(tween, Tween.SignalName.Finished);
+                // The model has already resolved the order: replay only its observed segments.
+                var moving = Battle.Find(result.ActorId)!;
+                _movingShip = ShipSnapshot.From(moving); _movingId = moving.Id;
+                _movingPosition = Projection.GridToWorld(frames[0].Position);
+                for (int i = 1; i < frames.Count; i++)
+                {
+                    var from = Projection.GridToWorld(frames[i - 1].Position);
+                    var to = Projection.GridToWorld(frames[i].Position);
+                    _movingVisible = frames[i - 1].VisibleToPlayer && frames[i].VisibleToPlayer;
+                    if (_movingVisible) await TweenValue(0.10, t => _movingPosition = from.Lerp(to, t));
+                    else { _movingPosition = to; QueueRedraw(); }
+                }
+                _movingId = 0; _movingShip = null;
             }
-            _movingId = 0;
+            else if (result.Kind == CommandKind.Attack && result.Shots is { } shots)
+            {
+                // Preserve pre-impact health and ships which the model has already sunk.
+                foreach (var shot in shots)
+                {
+                    _snapshots.TryAdd(shot.Attacker.Id, shot.Attacker);
+                    _snapshots.TryAdd(shot.Target.Id, shot.Target);
+                    _suppressed.Add(shot.Attacker.Id); _suppressed.Add(shot.Target.Id);
+                }
+                foreach (var shot in shots)
+                {
+                    var from = Projection.GridToWorld(shot.Attacker.Position) + new Vector2(0, -14);
+                    var to = Projection.GridToWorld(shot.Target.Position) + new Vector2(0, -6);
+                    _muzzle = from;
+                    await TweenValue(0.10, _ => { });
+                    _muzzle = null;
+                    float height = Math.Clamp(from.DistanceTo(to) * 0.35f, 45, 120);
+                    await TweenValue(0.42, t => ProjectilePosition = from.Lerp(to, t) + new Vector2(0, -4 * height * t * (1 - t)));
+                    ProjectilePosition = null;
+                    if (shot.TargetSunk) _snapshots.Remove(shot.Target.Id);
+                    else _snapshots[shot.Target.Id] = shot.Target with { Health = shot.Target.Health - shot.Damage };
+                    if (shot.Promoted)
+                        _snapshots[shot.Attacker.Id] = shot.Attacker with
+                        { IsVeteran = true, MaxHealth = shot.Attacker.MaxHealth * 1.25, Health = shot.Attacker.MaxHealth * 1.25 };
+                    _impact = to; _feedbackPosition = to;
+                    _feedback = (shot.IsCounterattack ? "Ответ −" : "−") + shot.Damage.ToString("0.##");
+                    await TweenValue(0.24, t => _impactSize = 4 + 26 * t);
+                    _impact = null; _feedback = "";
+                }
+            }
+            else if (result.Kind == CommandKind.Repair && actor is not null)
+            {
+                _feedback = $"+{result.Amount:0.##}"; _feedbackPosition = Projection.GridToWorld(actor.Position);
+                await TweenValue(0.25, _ => { });
+            }
         }
-        else if (result.Kind == CommandKind.Attack && actor is not null && targetBefore is { } target)
+        finally
         {
-            _shotFrom = Projection.GridToWorld(actor.Position) + new Vector2(0, -10);
-            _shotTo = target + new Vector2(0, -10);
-            _feedback = $"−{result.Amount}";
-            _feedbackPosition = target;
+            _movingId = 0; _movingShip = null; _movingVisible = false;
+            _snapshots.Clear(); _suppressed.Clear(); _muzzle = null; _impact = null; ProjectilePosition = null; _feedback = "";
             QueueRedraw();
-            await ToSignal(GetTree().CreateTimer(0.28), SceneTreeTimer.SignalName.Timeout);
-            _shotFrom = null;
-            _feedback = "";
         }
-        else if (result.Kind == CommandKind.Repair && actor is not null)
-        {
-            _feedback = $"+{result.Amount}";
-            _feedbackPosition = Projection.GridToWorld(actor.Position);
-            QueueRedraw();
-            await ToSignal(GetTree().CreateTimer(0.25), SceneTreeTimer.SignalName.Timeout);
-            _feedback = "";
-        }
-        QueueRedraw();
     }
 }
