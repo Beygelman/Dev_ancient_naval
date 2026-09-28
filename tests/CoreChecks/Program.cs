@@ -35,3 +35,4 @@ Reject(() => new GameBoard(1, 1, _ => (TerrainType)42), "Invalid terrain");
 Check(typeof(GameBoard).Assembly.GetReferencedAssemblies().All(a => !a.Name!.StartsWith("Godot")),
     "Core must not reference Godot");
 Console.WriteLine($"PASS: {checks} core checks");
+BattleScenarios.Run();
