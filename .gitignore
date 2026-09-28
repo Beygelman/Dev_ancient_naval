@@ -1,0 +1,22 @@
+# Godot imports, C# outputs and local editor state
+.godot/
+**/bin/
+**/obj/
+.vs/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# Generated Android project, local signing credentials, exports
+/android/
+/builds/
+/exports/
+*.keystore
+*.jks
+export_credentials.cfg
+
+# Local validation / environment files
+.local/
+NuGet.local.config
+NuGet.Config
