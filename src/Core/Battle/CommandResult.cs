@@ -18,7 +18,10 @@ public sealed record ShipSnapshot(int Id, Side Owner, ShipClass Class, GridPosit
     public static ShipSnapshot From(Ship ship) => new(ship.Id, ship.Owner, ship.Definition.Class,
         ship.Position, ship.Health, ship.MaxHealth, ship.IsVeteran, ship.IsExhausted,
         ship.IsMothership ? ship.Level == 4 ? 4 : ship.Resources : Math.Min(ship.Kills, 3), ship.IsMothership ? ship.Level == 4 ? 4 : ship.ResourcesRequired : ship.IsArmed ? 3 : 0, ship.Level,ship.HasMortar);
+        ship.IsMothership ? ship.Level == 5 ? 5 : ship.Resources : Math.Min(ship.Kills, 3), ship.IsMothership ? ship.Level == 5 ? 5 : ship.ResourcesRequired : ship.IsArmed ? 3 : 0, ship.Level,ship.HasMortar);
 }
 public sealed record CombatShot(ShipSnapshot Attacker, ShipSnapshot Target, double Damage,
     bool IsCounterattack, bool TargetSunk, bool Promoted, bool IsMortar = false);
+    bool IsCounterattack, bool TargetSunk, bool Promoted, bool IsMortar = false,
+    bool AttackerVisibleToPlayer = true, bool TargetVisibleToPlayer = true);
 public sealed record MovementFrame(GridPosition Position, bool VisibleToPlayer, bool ContactToPlayer);

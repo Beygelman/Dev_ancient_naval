@@ -5,12 +5,16 @@ namespace DevAncientNaval.Core.World;
 public sealed class GameBoard
 {
     private readonly Tile[] _tiles;
+    private readonly bool[] _playable;
+    public IReadOnlyList<System.Numerics.Vector2> Boundary { get; }
     public int Seed { get; }
     public int Width { get; }
     public int Height { get; }
     public IReadOnlyList<Tile> Tiles { get; }
 
     public GameBoard(int width, int height, Func<GridPosition, TerrainType> terrainAt, int seed = 0)
+    public GameBoard(int width, int height, Func<GridPosition, TerrainType> terrainAt, int seed = 0,
+        Func<GridPosition, bool>? playable = null, IReadOnlyList<System.Numerics.Vector2>? boundary = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
@@ -18,6 +22,10 @@ public sealed class GameBoard
         Seed = seed; Width = width;
         Height = height;
         _tiles = new Tile[checked(width * height)];
+        _playable = new bool[_tiles.Length];
+        Boundary = boundary?.ToArray() ?? Array.Empty<System.Numerics.Vector2>();
+        for (int y = 0; y < height; y++) for (int x = 0; x < width; x++)
+            _playable[y * width + x] = playable?.Invoke(new(x,y)) ?? true;
         for (int y = 0; y < height; y++)
         for (int x = 0; x < width; x++)
         {
@@ -33,14 +41,24 @@ public sealed class GameBoard
         {
             var p = new GridPosition(x, y);
             if (_tiles[y * width + x].Terrain == TerrainType.Water &&
+            if (Contains(p) && _tiles[y * width + x].Terrain == TerrainType.Water &&
                 GetSurrounding(p).Any(n => _tiles[n.Y * width + n.X].Terrain == TerrainType.Land))
                 _tiles[y * width + x] = new Tile(p, TerrainType.Coast);
         }
         Tiles = Array.AsReadOnly(_tiles);
+        Tiles = Array.AsReadOnly(_tiles.Where(t => Contains(t.Position)).ToArray());
     }
 
     public bool Contains(GridPosition position) =>
         position.X >= 0 && position.Y >= 0 && position.X < Width && position.Y < Height;
+        position.X >= 0 && position.Y >= 0 && position.X < Width && position.Y < Height && _playable[position.Y * Width + position.X];
+
+    public GridPosition FleetAnchor(bool right)
+    {
+        int y = Height / 2;
+        var row = Tiles.Where(t => t.Position.Y == y).Select(t => t.Position.X).ToArray();
+        return new(right ? row.Max() - 3 : row.Min() + 3, y);
+    }
 
     public Tile GetTile(GridPosition position) => Contains(position)
         ? _tiles[position.Y * Width + position.X]

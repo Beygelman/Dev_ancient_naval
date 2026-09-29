@@ -246,18 +246,20 @@ public sealed partial class BattleState
         if (error is not null) return CommandResult.Rejected(error);
         if (!CanAttack(id, targetId)) return CommandResult.Rejected("Нужна видимая цель в пределах дальности и доступная атака.");
         var target = Find(targetId)!;
-        Vision.RevealCombat(target.Owner, ship!.Position);
-        Vision.RevealCombat(ship.Owner, target.Position);
-        ship.AttacksUsed++;
+        // A gunshot is not optical reconnaissance. Radar never reveals a ship's identity.
+        ship!.AttacksUsed++;
         if (ship.Definition.ActionProfile == ActionProfile.Standard && ship.HasMoved) ship.MovementLocked = true;
         var shots = new List<CombatShot> { Fire(ship, target, false) };
         // One reply to each incoming attack; replies never recursively trigger replies.
         if (!IsOver && CanCounterattack(target, ship)) shots.Add(Fire(target, ship, true));
         UpdateVision();
-        string message = $"{ship.Definition.Name}: {shots[0].Damage:0.##} урона";
-        if (shots.Count > 1) message += $" · ответ: {shots[1].Damage:0.##}";
-        if (shots.Any(s => s.Promoted)) message += " · ВЕТЕРАН!";
-        if (shots.Any(s => s.TargetSunk)) message += " · корабль потоплен";
+        var first = shots[0];
+        string message = first.TargetVisibleToPlayer
+            ? $"{(first.AttackerVisibleToPlayer ? ship.Definition.Name : "Неизвестный корабль")}: {first.Damage:0} урона"
+            : "Выстрел по радарной отметке · результат не виден";
+        if (shots.Count > 1 && shots[1].TargetVisibleToPlayer) message += $" · ответ: {shots[1].Damage:0}";
+        if (shots.Any(s => s.Promoted && s.AttackerVisibleToPlayer)) message += " · ВЕТЕРАН!";
+        if (shots.Any(s => s.TargetSunk && s.TargetVisibleToPlayer)) message += " · корабль потоплен";
         return new(true, message, CommandKind.Attack, id, targetId, shots[0].Damage, Shots: shots);
     }
     private CombatShot Fire(Ship attacker, Ship target, bool counter)
@@ -276,7 +278,9 @@ public sealed partial class BattleState
             }
             if (target.Definition.Class == ShipClass.Mothership) Winner = attacker.Owner;
         }
-        return new(from, to, damage, counter, sunk, promoted, !counter && UsesMortar(attacker,target.Position));
+        return new(from, to, damage, counter, sunk, promoted, !counter && UsesMortar(attacker,target.Position),
+            attacker.Owner == Side.Player || Vision.IsVisible(Side.Player, attacker.Position),
+            target.Owner == Side.Player || Vision.IsVisible(Side.Player, target.Position));
     }
 
     public CommandResult Repair(Side requester, int id)
@@ -295,12 +299,14 @@ public sealed partial class BattleState
         return ship is null || ship.Definition.Class != ShipClass.Mothership ? Array.Empty<GridPosition>() :
             Board.GetNeighbors(ship.Position).Where(IsFreeWater).ToArray();
     }
+    public static int RequiredLevel(ShipClass kind) => kind switch { ShipClass.FishingDock => 2, ShipClass.Invader => 3, ShipClass.Kolonel => 4, ShipClass.Togus => 5, _ => 1 };
     public string? BuildBlockReason(Side requester, int mothershipId, ShipClass shipClass)
     {
         var error = ValidateActor(requester, mothershipId, out var mother);
         if (error is not null) return error;
         if (!Enum.IsDefined(shipClass) || shipClass is ShipClass.Mothership or ShipClass.Balloon or ShipClass.FishingDock) return "Этот класс нельзя построить.";
         if (mother!.Definition.Class != ShipClass.Mothership) return "Корабли строит Mothership.";
+        if (mother.Level < RequiredLevel(shipClass)) return $"Открывается на {RequiredLevel(shipClass)}-м уровне Mothership.";
         if (mother.HasProduced) return "Этот Mothership уже построил корабль в этом ходу.";
         if (_ships.Count(s => s.Owner == requester && !s.IsAirborne && !s.IsStructure) >= Rules.FleetLimit) return $"Лимит флота: {Rules.FleetLimit}.";
         if (Credits(requester) < BuildPrice(requester,shipClass)) return "Недостаточно средств.";

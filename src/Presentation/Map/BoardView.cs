@@ -22,6 +22,7 @@ public partial class BoardView : Node2D
     public IReadOnlyList<GridPosition> PreviewPath { get; set; } = System.Array.Empty<GridPosition>();
     public bool Building { get; set; }
     public IReadOnlyCollection<GridPosition> Collection { get; set; } = System.Array.Empty<GridPosition>();
+    public IReadOnlyCollection<GridPosition> DockSites { get; set; } = System.Array.Empty<GridPosition>();
 
     public void Select(GridPosition? position)
     {
@@ -35,6 +36,7 @@ public partial class BoardView : Node2D
         {
             var vertices = Projection.Diamond(tile.Position);
             bool alternate = (tile.Position.X + tile.Position.Y) % 2 == 0;
+            bool alternate = (tile.Position.X * 13 + tile.Position.Y * 7) % 5 < 2;
             var terrain = Battle.Vision.KnownTerrain(Side.Player, tile.Position);
             var color = terrain switch
             {
@@ -42,16 +44,22 @@ public partial class BoardView : Node2D
                 TerrainType.Coast => new Color(alternate ? "4b9c9c" : "499696"),
                 TerrainType.Water => new Color(alternate ? "206779" : "226b7c"),
                 _ => new Color(alternate ? "101e30" : "112033")
+                TerrainType.Land => new Color(alternate ? "b2ac83" : "a5a581"),
+                TerrainType.Coast => new Color(alternate ? "568d8d" : "528888"),
+                TerrainType.Water => new Color(alternate ? "305769" : "2d5365"),
+                _ => new Color(alternate ? "172431" : "182633")
             };
             if (terrain is not null && !Battle.Vision.IsVisible(Side.Player, tile.Position)) color = color.Darkened(0.57f);
             DrawColoredPolygon(vertices, color);
             DrawPolyline(vertices.Append(vertices[0]).ToArray(),
                 new Color("123f50"), 1, true);
+                new Color(0.09f,0.20f,0.25f,0.6f), 1, true);
         }
         foreach (var cell in Reachable)
             DrawColoredPolygon(Projection.Diamond(cell), Building ? new Color(0.5f, 1, 0.7f, 0.4f) : new Color(0.35f, 0.85f, 1, 0.22f));
         foreach (var cell in AttackArea)
             DrawColoredPolygon(Projection.Diamond(cell), new Color(1, 0.4f, 0.25f, 0.23f));
+        DrawContour(Reachable, Building ? new Color(0.6f,1,0.8f,0.8f) : new Color(0.64f,0.82f,1,0.72f));
         foreach (var cell in Targets)
         {
             var v = Projection.Diamond(cell);
@@ -79,6 +87,8 @@ public partial class BoardView : Node2D
             }
         }
         foreach (var cell in Collection) DrawColoredPolygon(Projection.Diamond(cell), new Color(1,0.85f,0.2f,0.28f));
+        foreach (var cell in Collection) DrawContour(new[] { cell },new Color("f0d98e"));
+        foreach (var cell in DockSites) DrawContour(new[] { cell },new Color("96e5cb"));
         foreach (var contact in Battle.Vision.Contacts(Side.Player))
         {
             var point = Projection.GridToWorld(contact);
@@ -111,5 +121,8 @@ public partial class BoardView : Node2D
             for (int edge=0;edge<4;edge++)
                 if (!cells.Contains(outside[edge])) DrawPolyline(Projection.Edge(cell,edge),color,2,true);
         }
+        DrawContour(Board.Tiles.Where(t => BattleVision.InRadius(origin,t.Position,radius)).Select(t => t.Position),color);
     }
+    private void DrawContour(IEnumerable<GridPosition> cells,Color color)
+    { foreach(var edge in Projection.BoundaryEdges(cells)) DrawPolyline(edge,color,2,true); }
 }

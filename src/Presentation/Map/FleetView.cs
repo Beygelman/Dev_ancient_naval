@@ -25,6 +25,8 @@ public partial class FleetView : Node2D
     private float _impactSize;
     private string _feedback = "";
     private Vector2 _feedbackPosition;
+    internal IReadOnlyCollection<int> AnimatedShipIds => _snapshots.Keys;
+    internal string CombatFeedback => _feedback;
 
     public override void _Draw()
     {
@@ -175,6 +177,8 @@ public partial class FleetView : Node2D
                 {
                     _snapshots.TryAdd(shot.Attacker.Id, shot.Attacker);
                     _snapshots.TryAdd(shot.Target.Id, shot.Target);
+                    if (shot.AttackerVisibleToPlayer) _snapshots.TryAdd(shot.Attacker.Id, shot.Attacker);
+                    if (shot.TargetVisibleToPlayer) _snapshots.TryAdd(shot.Target.Id, shot.Target);
                     _suppressed.Add(shot.Attacker.Id); _suppressed.Add(shot.Target.Id);
                 }
                 foreach (var shot in shots)
@@ -182,6 +186,8 @@ public partial class FleetView : Node2D
                     var from = Projection.GridToWorld(shot.Attacker.Position) + new Vector2(0, -14);
                     var to = Projection.GridToWorld(shot.Target.Position) + new Vector2(0, -6);
                     _muzzle = from;
+                    if (!shot.AttackerVisibleToPlayer && !shot.TargetVisibleToPlayer) continue;
+                    _muzzle = shot.AttackerVisibleToPlayer ? from : null;
                     await TweenValue(0.10, _ => { });
                     _muzzle = null;
                     float height = shot.IsMortar?Math.Clamp(from.DistanceTo(to)*.65f,110,240):Math.Clamp(from.DistanceTo(to)*.35f,45,120);
@@ -190,10 +196,14 @@ public partial class FleetView : Node2D
                     if (shot.TargetSunk) _snapshots.Remove(shot.Target.Id);
                     else _snapshots[shot.Target.Id] = shot.Target with { Health = shot.Target.Health - shot.Damage };
                     if (shot.Promoted)
+                    else if (shot.TargetVisibleToPlayer) _snapshots[shot.Target.Id] = shot.Target with { Health = shot.Target.Health - shot.Damage };
+                    if (shot.Promoted && shot.AttackerVisibleToPlayer)
                         _snapshots[shot.Attacker.Id] = shot.Attacker with
                         { IsVeteran = true, MaxHealth = Ship.Whole(shot.Attacker.MaxHealth * 1.25), Health = Ship.Whole(shot.Attacker.MaxHealth * 1.25), Progress = 3 };
                     _impact = to; _feedbackPosition = to;
                     _feedback = (shot.IsCounterattack ? "Ответ −" : "−") + shot.Damage.ToString("0.##");
+                    _impact = shot.TargetVisibleToPlayer ? to : null; _feedbackPosition = to;
+                    _feedback = shot.TargetVisibleToPlayer ? (shot.IsCounterattack ? "Ответ −" : "−") + shot.Damage.ToString("0") : "";
                     await TweenValue(0.24, t => _impactSize = 4 + 26 * t);
                     _impact = null; _feedback = "";
                 }

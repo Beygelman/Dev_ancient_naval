@@ -30,6 +30,7 @@ public sealed partial class BattleState
         var candidates=Board.Tiles.Where(t=>t.Terrain!=TerrainType.Land && At(t.Position) is null).Select(t=>t.Position).ToList();
         for(int i=candidates.Count-1;i>0;i--) { int j=random.Next(i+1); (candidates[i],candidates[j])=(candidates[j],candidates[i]); }
         foreach(var cell in candidates.Where(p=>!_shoals.Contains(p)).Take(Math.Min(24,candidates.Count))) _fish.Add(cell);
+        foreach(var cell in candidates.Where(p=>!_shoals.Contains(p)).Take(Math.Min(16,candidates.Count))) _fish.Add(cell);
         // Every starting fleet can demonstrate collection without relying on a lucky seed.
         foreach(var mother in Ships.Where(s=>s.IsMothership))
             foreach(var cell in candidates.Where(p=>!_shoals.Contains(p)&&BattleVision.InRadius(p,mother.Position,mother.Definition.CollectionRange)).Take(2)) _fish.Add(cell);
@@ -57,6 +58,7 @@ public sealed partial class BattleState
         var ship=Find(id);
         if(ship is null || ship.Definition.CollectionRange<=0 || IsOver || ship.Owner!=ActiveSide ||
             PendingUpgrade(ship.Owner) is not null || Mothership(ship.Owner) is not { Level:<4 }) return Array.Empty<GridPosition>();
+            PendingUpgrade(ship.Owner) is not null || Mothership(ship.Owner) is not { Level:<5 }) return Array.Empty<GridPosition>();
         return _fish.Where(p=>Vision.IsVisible(ship.Owner,p) && BattleVision.InRadius(p,ship.Position,ship.Definition.CollectionRange)).ToArray();
     }
     public CommandResult Collect(Side requester,int id,GridPosition cell)

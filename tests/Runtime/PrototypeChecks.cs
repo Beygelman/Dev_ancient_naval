@@ -74,10 +74,12 @@ public partial class PrototypeChecks : Node
             var quad=projection.Diamond(tile.Position);
             var right=projection.Edge(new(tile.Position.X+1,tile.Position.Y),3);
             Check(projection.Edge(tile.Position,1).SequenceEqual(right.Reverse()),"Shared curved edge has no crack");
+            Check(projection.CornerCount(tile.Position)>=3,"Actual polygon has at least three corners");
             Check(Geometry2D.TriangulatePolygon(quad).Length==(quad.Length-2)*3,"Curved tile is a valid simple polygon");
             Check(projection.WorldToGrid(center) == tile.Position, "Center round trip");
             foreach (var corner in projection.Diamond(tile.Position))
                 Check(projection.WorldToGrid(center.Lerp(corner, 0.98f)) == tile.Position, "Inside diamond");
+                Check(projection.WorldToGrid(center.Lerp(corner, 0.98f)) == tile.Position, $"Inside polygon {tile.Position} seed {Game.Battle.Board.Seed}");
             Game.CancelOrder();
             Game.SelectAtScreen(Screen(tile.Position));
             Check(Game.BoardView.Selected == tile.Position, "Selection through canvas transform");

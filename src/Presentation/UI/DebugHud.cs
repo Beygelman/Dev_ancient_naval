@@ -14,10 +14,12 @@ namespace DevAncientNaval.Presentation.UI;
 public partial class DebugHud : CanvasLayer
 {
     private Control _root=null!, _radial=null!, _upgradeOverlay=null!;
+    private Control _root=null!, _radial=null!, _upgradeOverlay=null!, _resourceRoot=null!;
     private HBoxContainer _metrics=null!;
     private PanelContainer _shipCard=null!, _notice=null!, _upgradePanel=null!;
     private Label _coins=null!, _coinCaption=null!, _turn=null!, _ship=null!, _details=null!, _message=null!, _banner=null!, _upgradeTitle=null!;
     private SectorButton _repair=null!, _yard=null!, _collect=null!, _radar=null!, _mortar=null!, _dock=null!;
+    private SectorButton _repair=null!, _yard=null!, _radar=null!, _mortar=null!, _resource=null!;
     private Button _end=null!, _restart=null!;
     private readonly Dictionary<ShipClass,SectorButton> _build=new();
     private readonly Dictionary<SectorButton,Label> _badges=new();
@@ -34,6 +36,7 @@ public partial class DebugHud : CanvasLayer
     public Vector2 MenuPosition => _radial.Position;
     public bool UpgradeVisible => _upgradeOverlay.Visible;
     public event Action? EndTurnRequested,RepairRequested,RestartRequested,CollectRequested,RadarRequested,MortarRequested,DockRequested;
+    public event Action? EndTurnRequested,RepairRequested,RestartRequested,ResourceRequested,RadarRequested,MortarRequested;
     public event Action<ShipClass>? BuildRequested;
     public event Action<UpgradeChoice>? UpgradeRequested;
 
@@ -67,6 +70,10 @@ public partial class DebugHud : CanvasLayer
             (ShipClass.Invader,ActionSymbol.Standard),(ShipClass.Kolonel,ActionSymbol.Heavy),(ShipClass.Togus,ActionSymbol.Mortar) })
             _build[kind]=IconButton("Build"+kind,symbol,kind.ToString(),()=>BuildRequested?.Invoke(kind));
 
+        _resourceRoot=new Control { MouseFilter=Control.MouseFilterEnum.Ignore,Size=new(136,136) }; _root.AddChild(_resourceRoot);
+        _resource=IconButton("TileResource",ActionSymbol.Fishing,"",()=>ResourceRequested?.Invoke(),_resourceRoot);
+        _resource.SetSector(0,1); _resource.GetChild<ActionGlyph>(0).Position=_resource.IconCenter-new Vector2(14,14);
+        _badges[_resource].Position=new Vector2(48,-14); _resourceRoot.Hide();
         _upgradeOverlay=new Control { MouseFilter=Control.MouseFilterEnum.Stop }; _root.AddChild(_upgradeOverlay);
         _upgradeOverlay.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         var shade=new ColorRect { Color=new Color(0.01f,0.035f,0.05f,0.5f),MouseFilter=Control.MouseFilterEnum.Stop };
@@ -88,6 +95,7 @@ public partial class DebugHud : CanvasLayer
     public void UpdateBattle(BattleState battle,Ship? selected,bool busy,OrderMode mode)
     {
         if(_selectedId!=selected?.Id||busy||mode!=OrderMode.None) _productionOpen=false;
+        if(_selectedId!=selected?.Id||busy||MenuVisible) _resourceRoot.Hide();
         _selectedId=selected?.Id; _mode=mode;
         _coinCaption.Text=$"{(battle.Credits(Side.Player)==1?"Thor":"Thors")} (+{battle.Income(Side.Player)})";
         _coins.Text=battle.Credits(Side.Player).ToString(); _turn.Text=battle.Round.ToString();
@@ -123,6 +131,7 @@ public partial class DebugHud : CanvasLayer
         _mortar.TooltipText=selected?.HasMortar==true?"Мортира установлена · мёртвая зона 3":$"Мортира · 10 Thors · { (selected is null?"":battle.MortarBlockReason(Side.Player,selected.Id)) }";
         _dock.TooltipText=$"Рыбный док · {battle.DockPrice(Side.Player)} Thors · +2 ресурса, +1 доход";
         _mortar.SetMeta("applicable",selected?.IsMothership==true); _dock.SetMeta("applicable",selected?.Definition.CollectionRange>0);
+        _mortar.SetMeta("applicable",selected?.IsMothership==true);
         _repair.TooltipText=$"Ремонт: до +{battle.Rules.RepairAmount} HP";
         _radar.TooltipText=selected?.HasRadar==true?$"Радар установлен · радиус {selected.RadarRange}":"Купить радар · 2 Thors";
         _collect.TooltipText=$"Собрать рыбную клетку · {battle.CollectionCost(Side.Player)} Thors → 1 ресурс Mothership";
@@ -138,10 +147,25 @@ public partial class DebugHud : CanvasLayer
         UpdateCreativeLabel(battle.Creative); ApplyMenuVisibility(); Layout();
     }
     public void CloseMenus() { _productionOpen=false; }
+    public void CloseMenus() { _productionOpen=false; _resourceRoot.Hide(); }
+    public void HideResource()=>_resourceRoot.Hide();
+    public void ShowResource(bool dock,int price,bool affordable)
+    {
+        _productionOpen=false;
+        var glyph=_resource.GetChild<ActionGlyph>(0); glyph.Symbol=dock?ActionSymbol.Dock:ActionSymbol.Fishing; glyph.QueueRedraw();
+        _resource.TooltipText=(dock?"Рыбный док · +2 ресурса, +1 доход":"Собрать рыбу · +1 ресурс")+$" · {price} Thors"+(affordable?"":" · недостаточно Thors");
+        Availability(_resource,affordable,price.ToString()); _resourceRoot.Show();
+    }
+    public void PositionResource(Vector2? tileScreen)
+    {
+        if(tileScreen is not { } point) { _resourceRoot.Hide(); return; }
+        _resourceRoot.Position=point-SectorButton.Center;
+    }
     private void ApplyMenuVisibility()
     {
         _repair.Visible=_hasRadial&&!_productionOpen&&_mode==OrderMode.None;
         foreach(var button in new[] { _yard,_collect,_radar,_mortar,_dock })
+        foreach(var button in new[] { _yard,_radar,_mortar })
             button.Visible=_hasRadial&&!_productionOpen&&_mode==OrderMode.None&&button.GetMeta("applicable",false).AsBool();
         foreach(var button in _build.Values) button.Visible=_hasRadial&&_productionOpen;
         var sectors=_radial.GetChildren().OfType<SectorButton>().Where(b=>b.Visible).ToArray();
@@ -188,12 +212,14 @@ public partial class DebugHud : CanvasLayer
         if(_menuPanel is not null) _menuPanel.Position=(size-_menuPanel.Size)/2;
     }
     private SectorButton IconButton(string name,ActionSymbol symbol,string hint,Action pressed)
+    private SectorButton IconButton(string name,ActionSymbol symbol,string hint,Action pressed,Control? parent=null)
     {
         var b=new SectorButton { Name=name,Size=new(136,136),FocusMode=Control.FocusModeEnum.None,TooltipText=hint };
         foreach(var state in new[] { "normal","hover","pressed","disabled","focus" }) b.AddThemeStyleboxOverride(state,new StyleBoxEmpty());
         var glyph=new ActionGlyph { Symbol=symbol,Size=new(28,28),MouseFilter=Control.MouseFilterEnum.Ignore }; b.AddChild(glyph);
         var badge=Label("",12,true); badge.Size=new(40,15); b.AddChild(badge); _badges[b]=badge;
         b.Pressed+=pressed; _radial.AddChild(b); return b;
+        b.Pressed+=pressed; (parent??_radial).AddChild(b); return b;
     }
     private void Availability(SectorButton b,bool enabled,string badge)
     {

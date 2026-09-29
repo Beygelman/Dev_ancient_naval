@@ -20,22 +20,27 @@ public sealed partial class BattleState
             if(near.Length>0) _shoals.Add(near[0]);
         }
         foreach(var p in water) { if(_shoals.Count>=10) break; if(_shoals.All(q=>!BattleVision.InRadius(p,q,2))) _shoals.Add(p); }
+        foreach(var p in water) { if(_shoals.Count>=8) break; if(_shoals.All(q=>!BattleVision.InRadius(p,q,2))) _shoals.Add(p); }
     }
     private void GrantResources(Ship mother,int amount)
     {
         if(mother.Level>=4) return;
+        if(mother.Level>=5) return;
         mother.Resources+=amount;
         if(mother.Resources<mother.ResourcesRequired) return;
         int needed=mother.ResourcesRequired; double oldMax=mother.MaxHealth;
         mother.Resources-=needed; mother.Level++; mother.Health+=mother.MaxHealth-oldMax;
         mother.PendingUpgradeLevel=mother.Level;
         if(mother.Level==4) mother.Resources=0;
+        mother.PendingUpgradeLevel=mother.Level < 5 ? mother.Level : 0;
+        if(mother.Level==5) mother.Resources=0;
         RegisterShipIncome(mother);
     }
     public string? MortarBlockReason(Side requester,int id)
     {
         var error=ValidateActor(requester,id,out var ship); if(error is not null) return error;
         if(!ship!.IsMothership) return "Мортиру можно установить на Mothership.";
+        if(ship.Level<5) return "Мортира открывается на 5-м уровне Mothership.";
         if(ship.HasMortar) return "Мортира установлена.";
         if(!ship.HasRadar) return "Сначала установите радар.";
         if(Credits(requester)<MortarPrice) return "Для мортиры нужно 10 Thors.";
@@ -52,6 +57,7 @@ public sealed partial class BattleState
     {
         var ship=Find(id);
         if(ship is null||IsOver||ship.Owner!=ActiveSide||ship.Definition.CollectionRange==0||PendingUpgrade(ship.Owner) is not null) return Array.Empty<GridPosition>();
+        if(ship is null||IsOver||ship.Owner!=ActiveSide||ship.Definition.CollectionRange==0||Mothership(ship.Owner) is not { Level:>=2 }||PendingUpgrade(ship.Owner) is not null) return Array.Empty<GridPosition>();
         return _shoals.Where(p=>Vision.IsVisible(ship.Owner,p)&&At(p) is null&&BattleVision.InRadius(p,ship.Position,ship.Definition.CollectionRange)).ToArray();
     }
     public CommandResult BuildDock(Side requester,int id,GridPosition cell)

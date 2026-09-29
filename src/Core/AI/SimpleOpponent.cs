@@ -68,6 +68,7 @@ public static class SimpleOpponent
             if (!ship.IsArmed)
             {
                 if (battle.Mothership(side) is { Level: < 4 })
+                if (battle.Mothership(side) is { Level: < 5 })
                 {
                     var resourceRoute = battle.KnownFish(side).Select(p => battle.RouteToward(ship.Id, p, ship.Definition.CollectionRange))
                         .Where(p => p.Count > 1).OrderBy(p => p.Count).FirstOrDefault();
