@@ -2,7 +2,7 @@ using Godot;
 
 namespace DevAncientNaval.Presentation.UI;
 
-public enum ActionSymbol { Move, Attack, Repair, Build, Close, Fishing, Scout, Standard, Heavy }
+public enum ActionSymbol { Move, Attack, Repair, Build, Close, Fishing, Scout, Standard, Heavy, Radar }
 
 /// <summary>Small vector icons drawn at screen resolution; no external art required.</summary>
 public partial class ActionGlyph : Control
@@ -24,8 +24,12 @@ public partial class ActionGlyph : Control
                 Line(-14,0,-5,0); Line(5,0,14,0); Line(0,-14,0,-5); Line(0,5,0,14);
                 DrawCircle(center,2,ink); break;
             case ActionSymbol.Repair:
-                Line(-10,11,5,-4); Line(-7,13,8,-2);
-                DrawPolyline(new[] { P(8,-2),P(13,-7),P(13,-13),P(7,-7),P(3,-11),P(8,-16),P(2,-15),P(-2,-10),P(-1,-5),P(5,-4) },ink,2,true); break;
+                DrawRect(new Rect2(P(-3,-12),new Vector2(6,24)),ink);
+                DrawRect(new Rect2(P(-12,-3),new Vector2(24,6)),ink); break;
+            case ActionSymbol.Radar:
+                DrawArc(center,12,0,Mathf.Tau,32,ink,2,true);
+                DrawArc(center,6,0,Mathf.Tau,24,ink,1,true);
+                Line(0,0,9,-9); DrawCircle(P(-5,4),2,ink); break;
             case ActionSymbol.Build:
                 Line(-9,12,6,-6);
                 DrawColoredPolygon(new[] { P(-1,-12),P(4,-16),P(15,-5),P(11,-1) },ink);

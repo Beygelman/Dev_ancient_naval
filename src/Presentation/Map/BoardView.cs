@@ -4,6 +4,7 @@ using DevAncientNaval.Core.Battle;
 using DevAncientNaval.Core.Vision;
 using Side = DevAncientNaval.Core.Units.Side;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace DevAncientNaval.Presentation.Map;
@@ -20,6 +21,7 @@ public partial class BoardView : Node2D
     public int? SelectedShipId { get; set; }
     public IReadOnlyList<GridPosition> PreviewPath { get; set; } = System.Array.Empty<GridPosition>();
     public bool Building { get; set; }
+    public IReadOnlyCollection<GridPosition> Collection { get; set; } = System.Array.Empty<GridPosition>();
 
     public void Select(GridPosition? position)
     {
@@ -58,10 +60,15 @@ public partial class BoardView : Node2D
         }
         if (SelectedShipId is { } id && Battle.FindObserved(Side.Player, id) is { Owner: Side.Player } ship)
         {
-            DrawRange(ship.Position, ship.Definition.VisualRange, new Color(0.6f, 0.95f, 1, 0.7f));
-            if (ship.Definition.RadarRange > 0) DrawRange(ship.Position, ship.Definition.RadarRange, new Color(0.5f, 1, 0.65f, 0.6f));
-            if (AttackArea.Count > 0) DrawRange(ship.Position, ship.Definition.AttackRange, new Color(1, 0.55f, 0.35f, 0.8f));
+            if (ship.RadarRange > 0) DrawTileContour(ship.Position, ship.RadarRange, new Color(0.5f, 1, 0.65f, 0.38f));
         }
+        foreach (var cell in Battle.KnownFish(Side.Player))
+        {
+            var p = Projection.GridToWorld(cell);
+            DrawColoredPolygon(new[] { p+new Vector2(-9,0),p+new Vector2(-3,-5),p+new Vector2(6,-4),p+new Vector2(10,0),p+new Vector2(6,4),p+new Vector2(-3,5) }, new Color("d6d39a"));
+            DrawColoredPolygon(new[] { p+new Vector2(-8,0),p+new Vector2(-15,-5),p+new Vector2(-15,5) }, new Color("d6d39a"));
+        }
+        foreach (var cell in Collection) DrawColoredPolygon(Projection.Diamond(cell), new Color(1,0.85f,0.2f,0.28f));
         foreach (var contact in Battle.Vision.Contacts(Side.Player))
         {
             var point = Projection.GridToWorld(contact);
@@ -84,16 +91,15 @@ public partial class BoardView : Node2D
         }
     }
 
-    private void DrawRange(GridPosition origin, int radius, Color color)
+    private void DrawTileContour(GridPosition origin, int radius, Color color)
     {
-        var points = new Vector2[97];
-        var center = Projection.GridToWorld(origin);
-        for (int i = 0; i < points.Length; i++)
+        var cells = Board.Tiles.Where(t => BattleVision.InRadius(origin,t.Position,radius)).Select(t => t.Position).ToHashSet();
+        foreach (var cell in cells)
         {
-            float angle = i * Mathf.Tau / (points.Length - 1);
-            float x = Mathf.Cos(angle) * radius, y = Mathf.Sin(angle) * radius;
-            points[i] = center + new Vector2((x - y) * Projection.TileWidth / 2, (x + y) * Projection.TileHeight / 2);
+            var v = Projection.Diamond(cell);
+            var outside = new[] { new GridPosition(cell.X,cell.Y-1),new GridPosition(cell.X+1,cell.Y),new GridPosition(cell.X,cell.Y+1),new GridPosition(cell.X-1,cell.Y) };
+            for (int edge=0;edge<4;edge++)
+                if (!cells.Contains(outside[edge])) DrawLine(v[edge],v[(edge+1)%4],color,2,true);
         }
-        DrawPolyline(points, color, 1.5f, true);
     }
 }

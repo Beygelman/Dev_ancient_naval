@@ -11,11 +11,9 @@ internal static class SkirmishSetup
         new (Side, ShipClass, GridPosition)[] {
             (Side.Player, ShipClass.Mothership, new(2, 9)),
             (Side.Player, ShipClass.Garrison, new(4, 9)),
-            (Side.Player, ShipClass.Invader, new(3, 11)),
-            (Side.Player, ShipClass.Kolonel, new(2, 7)),
+            (Side.Player, ShipClass.Fishing, new(3, 11)),
             (Side.Enemy, ShipClass.Mothership, new(17, 9)),
             (Side.Enemy, ShipClass.Garrison, new(15, 9)),
-            (Side.Enemy, ShipClass.Invader, new(16, 7)),
-            (Side.Enemy, ShipClass.Kolonel, new(17, 11))
-        });
+            (Side.Enemy, ShipClass.Fishing, new(16, 7))
+        }, resourceSeed: System.Random.Shared.Next());
 }

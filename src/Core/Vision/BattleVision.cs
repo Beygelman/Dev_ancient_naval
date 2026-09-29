@@ -43,13 +43,13 @@ public sealed class BattleVision
             _visible[index].Clear(); _radar[index].Clear(); _contacts[index].Clear();
             foreach (var ship in ships.Where(s => s.Owner == side))
             {
-                FillCircle(_visible[index], ship.Position, ship.Definition.VisualRange);
-                if (ship.Definition.RadarRange > 0) FillCircle(_radar[index], ship.Position, ship.Definition.RadarRange);
+                FillCircle(_visible[index], ship.Position, ship.VisualRange);
+                if (ship.RadarRange > 0) FillCircle(_radar[index], ship.Position, ship.RadarRange);
             }
             _visible[index].UnionWith(_flashes[index]);
             _explored[index].UnionWith(_visible[index]);
             foreach (var cell in _visible[index]) _lastSeen[index][cell] = stamp;
-            foreach (var enemy in ships.Where(s => s.Owner != side))
+            foreach (var enemy in ships.Where(s => s.Owner != side && !s.IsAirborne))
                 if (_radar[index].Contains(enemy.Position) && !_visible[index].Contains(enemy.Position))
                     _contacts[index].Add(enemy.Position);
         }

@@ -55,6 +55,19 @@ public partial class FleetView : Node2D
 
     private void DrawShip(ShipSnapshot ship, Vector2 center)
     {
+        if (ship.Class == ShipClass.Balloon)
+        {
+            var balloon = center + new Vector2(0,-62);
+            var color = new Color(ship.Owner == Side.Player ? "85dce5" : "eaa58d");
+            DrawCircle(center,12,new Color(0,0,0,0.2f));
+            DrawLine(balloon+new Vector2(-12,10),balloon+new Vector2(-6,32),color,2,true);
+            DrawLine(balloon+new Vector2(12,10),balloon+new Vector2(6,32),color,2,true);
+            DrawCircle(balloon,20,color); DrawArc(balloon,20,0,Mathf.Tau,32,new Color("f8ecc7"),2,true);
+            DrawLine(balloon+new Vector2(0,-19),balloon+new Vector2(0,18),new Color("e2f6dd"),4,true);
+            DrawRect(new Rect2(balloon+new Vector2(-7,29),new Vector2(14,9)),new Color("baa478"));
+            if (ship.Id == SelectedId) DrawArc(balloon,25,0,Mathf.Tau,32,new Color("ffe298"),2,true);
+            return;
+        }
         float size = ship.Class switch { ShipClass.Mothership => 1.2f, ShipClass.Garrison => 0.75f,
             ShipClass.Kolonel => 1.05f, ShipClass.Fishing => 0.62f, _ => 0.9f };
         float facing = ship.Owner == Side.Player ? 1 : -1;
@@ -99,6 +112,16 @@ public partial class FleetView : Node2D
         DrawRect(new Rect2(hpPosition, new Vector2(44, 5)), new Color("10212b"));
         DrawRect(new Rect2(hpPosition, new Vector2(44f * (float)(ship.Health / ship.MaxHealth), 5)),
             ship.Health / ship.MaxHealth < 0.25 ? new Color("ff795c") : accent);
+        var hpText = ship.Health.ToString("0");
+        var hpAt = center + new Vector2(24,-22);
+        DrawRect(new Rect2(hpAt+new Vector2(-3,-17),new Vector2(hpText.Length*13+6,23)),new Color(0.02f,0.07f,0.1f,0.62f));
+        DrawString(ThemeDB.FallbackFont,hpAt,hpText,fontSize:22,modulate:new Color("ffffff"));
+        for (int slot=0;slot<ship.ProgressGoal;slot++)
+        {
+            var rect = new Rect2(center + new Vector2(-ship.ProgressGoal*6+slot*12,30),new Vector2(9,6));
+            DrawRect(rect,slot<ship.Progress ? new Color(ship.Class==ShipClass.Mothership?"83e9ba":"ffd66e") : new Color(0.03f,0.09f,0.12f,0.7f));
+            DrawRect(rect,new Color(0.65f,0.82f,0.86f,0.8f),false,1);
+        }
         if (ship.IsExhausted) DrawCircle(center + new Vector2(28, 14), 4, new Color("c8c4b4"));
     }
 
@@ -153,7 +176,7 @@ public partial class FleetView : Node2D
                     else _snapshots[shot.Target.Id] = shot.Target with { Health = shot.Target.Health - shot.Damage };
                     if (shot.Promoted)
                         _snapshots[shot.Attacker.Id] = shot.Attacker with
-                        { IsVeteran = true, MaxHealth = shot.Attacker.MaxHealth * 1.25, Health = shot.Attacker.MaxHealth * 1.25 };
+                        { IsVeteran = true, MaxHealth = Ship.Whole(shot.Attacker.MaxHealth * 1.25), Health = Ship.Whole(shot.Attacker.MaxHealth * 1.25), Progress = 3 };
                     _impact = to; _feedbackPosition = to;
                     _feedback = (shot.IsCounterattack ? "Ответ −" : "−") + shot.Damage.ToString("0.##");
                     await TweenValue(0.24, t => _impactSize = 4 + 26 * t);

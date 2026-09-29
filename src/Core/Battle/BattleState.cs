@@ -6,7 +6,7 @@ using DevAncientNaval.Core.Vision;
 
 namespace DevAncientNaval.Core.Battle;
 
-public sealed class BattleState
+public sealed partial class BattleState
 {
     private readonly List<Ship> _ships = new();
     private readonly int[] _credits;
@@ -23,14 +23,15 @@ public sealed class BattleState
     public int Round { get; private set; } = 1;
     public bool IsOver => Winner is not null;
 
-    public BattleState(GameBoard board, BattleRules rules, IEnumerable<(Side Owner, ShipClass Class, GridPosition Position)> setup)
+    public BattleState(GameBoard board, BattleRules rules, IEnumerable<(Side Owner, ShipClass Class, GridPosition Position)> setup,
+        IEnumerable<GridPosition>? fishSpots = null, int resourceSeed = 1729)
     {
         Board = board; Rules = rules; Vision = new BattleVision(board);
         _credits = new[] { rules.StartingCredits, rules.StartingCredits };
         Ships = _ships.AsReadOnly(); IncomeSources = _incomeSources.AsReadOnly();
         foreach (var item in setup)
         {
-            if (!Enum.IsDefined(item.Owner) || !IsFreeWater(item.Position) ||
+            if (!Enum.IsDefined(item.Owner) || (item.Class == ShipClass.Balloon ? !Board.Contains(item.Position) : !IsFreeWater(item.Position)) ||
                 (item.Class == ShipClass.Mothership && board.IsNarrowPassage(item.Position)))
                 throw new ArgumentException("Invalid fleet deployment.");
             var ship = new Ship(_nextId++, item.Owner, rules.Get(item.Class), item.Position);
@@ -38,20 +39,21 @@ public sealed class BattleState
         }
         foreach (var side in Enum.GetValues<Side>())
             if (_ships.Count(s => s.Owner == side && s.Definition.Class == ShipClass.Mothership) != 1 ||
-                _ships.Count(s => s.Owner == side) > rules.FleetLimit)
+                _ships.Count(s => s.Owner == side && !s.IsAirborne) > rules.FleetLimit)
                 throw new ArgumentException("Each side needs one Mothership and must respect the fleet limit.");
         UpdateVision();
+        InitializeFishing(fishSpots, resourceSeed);
     }
 
     public int Credits(Side side) => _credits[(int)side];
     public Ship? Find(int id) => _ships.FirstOrDefault(s => s.Id == id);
-    public Ship? At(GridPosition cell) => _ships.FirstOrDefault(s => s.Position == cell);
+    public Ship? At(GridPosition cell) => _ships.FirstOrDefault(s => !s.IsAirborne && s.Position == cell);
     public IEnumerable<Ship> OwnShips(Side side) => _ships.Where(s => s.Owner == side);
     public IEnumerable<Ship> ObservedShips(Side side) => _ships.Where(s => s.Owner == side || Vision.IsVisible(side, s.Position));
-    public Ship? ObservedAt(Side side, GridPosition cell) => ObservedShips(side).FirstOrDefault(s => s.Position == cell);
+    public Ship? ObservedAt(Side side, GridPosition cell) => ObservedShips(side).Where(s => s.Position == cell).OrderBy(s => s.IsAirborne).FirstOrDefault();
     public Ship? FindObserved(Side side, int id) => ObservedShips(side).FirstOrDefault(s => s.Id == id);
     public static double Distance(GridPosition a, GridPosition b) => Math.Sqrt((double)(a.X - b.X) * (a.X - b.X) + (double)(a.Y - b.Y) * (a.Y - b.Y));
-    public double Damage(Ship attacker, Ship target) => attacker.IsArmed ? Math.Round(Math.Max(1, attacker.CurrentDamage - target.Definition.Armor), 2) : 0;
+    public double Damage(Ship attacker, Ship target) => attacker.IsArmed && !target.IsAirborne ? Ship.Whole(Math.Max(1, attacker.CurrentDamage - target.Definition.Armor)) : 0;
     public bool IsFreeWater(GridPosition cell) => Board.TryGetTile(cell, out var tile) && tile!.Terrain != TerrainType.Land && At(cell) is null;
     private void UpdateVision() => Vision.Recompute(Ships, Round * 2 + (int)ActiveSide);
 
@@ -61,10 +63,11 @@ public sealed class BattleState
         if (IsOver) return "Бой завершён.";
         if (requester != ActiveSide) return "Сейчас ход другой стороны.";
         if (ship is null || ship.Owner != requester) return "Выберите свой корабль.";
+        if (PendingUpgrade(requester) is not null) return "Сначала выберите улучшение Mothership.";
         return null;
     }
 
-    private bool KnownOccupied(Side side, GridPosition cell) => ObservedAt(side, cell) is not null || Vision.State(side, cell) == VisibilityState.RadarContact;
+    private bool KnownOccupied(Side side, GridPosition cell) => ObservedShips(side).Any(s => !s.IsAirborne && s.Position == cell) || Vision.State(side, cell) == VisibilityState.RadarContact;
     private TerrainType Terrain(Ship ship, GridPosition cell, bool knowledge) => knowledge
         ? Vision.KnownTerrain(ship.Owner, cell) ?? TerrainType.Water : Board.GetTile(cell).Terrain;
     private bool Narrow(Ship ship, GridPosition cell, bool knowledge) => GameBoard.IsNarrowPassage(cell,
@@ -121,12 +124,14 @@ public sealed class BattleState
     public IReadOnlyDictionary<GridPosition, int> Reachable(int id)
     {
         var ship = Find(id);
-        return ship is null || IsOver || ship.Owner != ActiveSide || !ship.CanMove ? new Dictionary<GridPosition, int>() : Flood(ship, ship.MovementRemainingUnits).Costs;
+        return ship is null || IsOver || ship.Owner != ActiveSide || !ship.CanMove ? new Dictionary<GridPosition, int>() :
+            ship.IsAirborne ? Board.Tiles.ToDictionary(t => t.Position, _ => 10) : Flood(ship, ship.MovementRemainingUnits).Costs;
     }
     public IReadOnlyList<GridPosition> PathTo(int id, GridPosition destination)
     {
         var ship = Find(id);
         if (ship is null || IsOver || ship.Owner != ActiveSide || !ship.CanMove) return Array.Empty<GridPosition>();
+        if (ship.IsAirborne) return Board.Contains(destination) && destination != ship.Position ? new[] { ship.Position, destination } : Array.Empty<GridPosition>();
         var flood = Flood(ship, ship.MovementRemainingUnits);
         return flood.Costs.ContainsKey(destination) ? Reconstruct(ship.Position, destination, flood.Previous) : Array.Empty<GridPosition>();
     }
@@ -170,6 +175,7 @@ public sealed class BattleState
     {
         var error = ValidateActor(requester, id, out var ship);
         if (error is not null) return CommandResult.Rejected(error);
+        if (ship!.IsAirborne) return Fly(ship, destination);
         var planned = PathTo(id, destination);
         if (planned.Count < 2) return CommandResult.Rejected("Нет доступного пути или закончились очки движения.");
         var actual = new List<GridPosition> { ship!.Position };
@@ -183,7 +189,7 @@ public sealed class BattleState
             ship.HasMoved = true; actual.Add(next); UpdateVision(); frames.Add(MovementFrame(ship));
         }
         if (actual.Count < 2) return CommandResult.Rejected("Проход недоступен. Выберите другой маршрут.");
-        return new(true, $"{ship.Definition.Name}: движение {spent / 10.0:0.#}." +
+        return new(true, $"{ship.Definition.Name}: перемещение." +
             (ship.Position != destination ? " Маршрут остановлен после разведки." : ""), CommandKind.Move, id, Path: actual, Movement: frames);
     }
     private MovementFrame MovementFrame(Ship ship) => new(ship.Position,
@@ -193,7 +199,7 @@ public sealed class BattleState
     {
         var ship = Find(id);
         var target = ship is null ? null : FindObserved(ship.Owner, targetId);
-        return !IsOver && ship is not null && target is not null && ship.Owner == ActiveSide && ship.Owner != target.Owner &&
+        return !IsOver && ship is not null && target is not null && !target.IsAirborne && ship.Owner == ActiveSide && ship.Owner != target.Owner &&
             ship.AttacksRemaining > 0 && BattleVision.InRadius(ship.Position, target.Position, ship.Definition.AttackRange);
     }
     public IReadOnlyCollection<GridPosition> AttackCells(int id)
@@ -209,7 +215,7 @@ public sealed class BattleState
     {
         double remaining = Math.Max(0, defender.Health - Damage(attacker, defender));
         return remaining == 0 || !CanCounterattack(defender, attacker) ? 0 :
-            Math.Round(Math.Max(1, defender.FullDamage * (0.5 + 0.5 * remaining / defender.MaxHealth) - attacker.Definition.Armor), 2);
+            Math.Max(1, Ship.Whole(defender.FullDamage * (0.5 + 0.5 * remaining / defender.MaxHealth)) - attacker.Definition.Armor);
     }
     public CommandResult Attack(Side requester, int id, int targetId)
     {
@@ -235,13 +241,13 @@ public sealed class BattleState
     {
         var from = ShipSnapshot.From(attacker); var to = ShipSnapshot.From(target);
         double damage = Math.Min(target.Health, Damage(attacker, target));
-        target.Health = Math.Round(target.Health - damage, 2);
+        target.Health = Ship.Whole(target.Health - damage);
         bool sunk = target.Health <= 0, promoted = false;
         if (sunk)
         {
             _ships.Remove(target); RemoveIncomeSource($"ship:{target.Id}");
-            attacker.Kills++;
-            if (!attacker.IsVeteran && attacker.Kills >= 3)
+            if (!attacker.IsMothership) attacker.Kills++;
+            if (!attacker.IsMothership && !attacker.IsVeteran && attacker.Kills >= 3)
             {
                 attacker.IsVeteran = true; attacker.Health = attacker.MaxHealth; promoted = true;
             }
@@ -256,7 +262,7 @@ public sealed class BattleState
         if (error is not null) return CommandResult.Rejected(error);
         if (!ship!.CanRepair) return CommandResult.Rejected("Ремонт доступен повреждённому кораблю до других действий.");
         double amount = Math.Min(Rules.RepairAmount, ship.MaxHealth - ship.Health);
-        ship.Health = Math.Round(ship.Health + amount, 2); ship.IsExhausted = true;
+        ship.Health = Ship.Whole(ship.Health + amount); ship.IsExhausted = true;
         return new(true, $"{ship.Definition.Name}: ремонт +{amount:0.##} HP", CommandKind.Repair, id, Amount: amount);
     }
 
@@ -270,10 +276,10 @@ public sealed class BattleState
     {
         var error = ValidateActor(requester, mothershipId, out var mother);
         if (error is not null) return error;
-        if (!Enum.IsDefined(shipClass) || shipClass == ShipClass.Mothership) return "Этот класс нельзя построить.";
+        if (!Enum.IsDefined(shipClass) || shipClass is ShipClass.Mothership or ShipClass.Balloon) return "Этот класс нельзя построить.";
         if (mother!.Definition.Class != ShipClass.Mothership) return "Корабли строит Mothership.";
         if (mother.HasProduced) return "Этот Mothership уже построил корабль в этом ходу.";
-        if (_ships.Count(s => s.Owner == requester) >= Rules.FleetLimit) return $"Лимит флота: {Rules.FleetLimit}.";
+        if (_ships.Count(s => s.Owner == requester && !s.IsAirborne) >= Rules.FleetLimit) return $"Лимит флота: {Rules.FleetLimit}.";
         if (Credits(requester) < Rules.Get(shipClass).Price) return "Недостаточно средств.";
         if (SpawnCells(mothershipId).Count == 0) return "Нет свободной соседней клетки воды.";
         return null;
@@ -295,7 +301,7 @@ public sealed class BattleState
     }
     public CommandResult EndTurn(Side requester)
     {
-        if (IsOver || requester != ActiveSide) return CommandResult.Rejected("Нельзя завершить этот ход.");
+        if (IsOver || requester != ActiveSide || PendingUpgrade(requester) is not null) return CommandResult.Rejected("Нельзя завершить ход до выбора улучшения.");
         ActiveSide = ActiveSide == Side.Player ? Side.Enemy : Side.Player;
         if (ActiveSide == Side.Player) Round++;
         Vision.ClearCombatFlashes();
@@ -305,7 +311,7 @@ public sealed class BattleState
     }
     private void RegisterShipIncome(Ship ship)
     {
-        int income = ship.Definition.Class == ShipClass.Mothership ? Rules.IncomePerMothership : ship.Definition.IncomePerTurn;
+        int income = ship.IsMothership ? Rules.IncomePerMothership + 2 * (ship.Level - 1) + (ship.IncomeUpgrade ? 1 : 0) : ship.Definition.IncomePerTurn;
         if (income > 0) SetIncomeSource(new IncomeSource($"ship:{ship.Id}", ship.Owner, income, ship.Id));
     }
     public int Income(Side side) => _incomeSources.Where(s => s.Owner == side && (s.BoundShipId is null || Find(s.BoundShipId.Value) is not null)).Sum(s => s.Amount);

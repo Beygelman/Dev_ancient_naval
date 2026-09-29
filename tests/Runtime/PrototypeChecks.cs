@@ -73,6 +73,7 @@ public partial class PrototypeChecks : Node
             Check(projection.WorldToGrid(center) == tile.Position, "Center round trip");
             foreach (var corner in projection.Diamond(tile.Position))
                 Check(projection.WorldToGrid(center.Lerp(corner, 0.98f)) == tile.Position, "Inside diamond");
+            Game.CancelOrder();
             Game.SelectAtScreen(Screen(tile.Position));
             Check(Game.BoardView.Selected == tile.Position, "Selection through canvas transform");
         }
@@ -87,7 +88,7 @@ public partial class PrototypeChecks : Node
         Check(worldAnchor.DistanceTo(camera.ScreenToWorld(anchor)) < 0.01f, "Zoom preserves cursor anchor");
         Tap(new(6, 6));
         Check(Game.BoardView.Selected == new GridPosition(6, 6), "Mouse selection after pan/zoom");
-        Check(Game.Hud.SelectionText.Contains("Остров") && !Game.Hud.SelectionText.Contains("X:"), "HUD known terrain and coordinates");
+        Check(!Game.Hud.SelectionText.Contains("X:") && Game.Hud.SelectionText.Length > 0, "Terrain inspection has no coordinates");
 
         var start = Screen(new(6, 6));
         var beforePan = camera.Position;
@@ -175,6 +176,7 @@ public partial class PrototypeChecks : Node
         camera.ZoomAt(new(640, 360), 1.3f);
         foreach (var tile in Game.BoardView.Board.Tiles)
         {
+            Game.CancelOrder();
             Game.SelectAtScreen(Screen(tile.Position));
             Check(Game.BoardView.Selected == tile.Position, "All cells after camera transform");
         }

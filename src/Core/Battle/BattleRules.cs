@@ -28,9 +28,10 @@ public sealed class BattleRules
             if (!Enum.IsDefined(ship.Class) || !Enum.IsDefined(ship.ActionProfile) || string.IsNullOrWhiteSpace(ship.Name) ||
                 ship.MaxHealth <= 0 || ship.Movement <= 0 || ship.Damage < 0 || ship.Armor < 0 || ship.AttackRange < 0 ||
                 ship.CoastMovementCost < 1 || ship.NarrowMovementCost < 1 || ship.IncomePerTurn < 0 ||
-                ship.VisualRange < 1 || ship.RadarRange < 0 || ship.Price < 0 || (ship.Class != ShipClass.Mothership && ship.Price == 0) ||
-                (ship.Class == ShipClass.Fishing && (ship.Damage != 0 || ship.AttackRange != 0 || ship.RadarRange != 0)) ||
-                (ship.Class != ShipClass.Fishing && (ship.Damage == 0 || ship.AttackRange == 0)))
+                ship.VisualRange < 1 || ship.RadarRange < 0 || ship.RadarPrice < 0 || ship.CollectionRange < 0 || ship.Price < 0 ||
+                (ship.Class is not (ShipClass.Mothership or ShipClass.Balloon) && ship.Price == 0) ||
+                (ship.Class is ShipClass.Fishing or ShipClass.Balloon && (ship.Damage != 0 || ship.AttackRange != 0 || ship.RadarRange != 0)) ||
+                (ship.Class is not (ShipClass.Fishing or ShipClass.Balloon) && (ship.Damage == 0 || ship.AttackRange == 0)))
                 throw new ArgumentException($"Invalid ship definition: {ship.Name}.");
         return rules;
     }

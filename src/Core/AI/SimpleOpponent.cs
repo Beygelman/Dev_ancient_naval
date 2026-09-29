@@ -13,8 +13,10 @@ public static class SimpleOpponent
     {
         if (battle.IsOver) return CommandResult.Rejected("Бой завершён.");
         var side = battle.ActiveSide;
+        if (battle.PendingUpgrade(side) is { } upgrading)
+            return battle.ChooseUpgrade(side, upgrading.Id, upgrading.PendingUpgradeLevel == 2 ? UpgradeChoice.Income : UpgradeChoice.SecondAttack);
         var allies = battle.OwnShips(side).ToArray();
-        var enemies = battle.ObservedShips(side).Where(s => s.Owner != side).ToArray();
+        var enemies = battle.ObservedShips(side).Where(s => s.Owner != side && !s.IsAirborne).ToArray();
         foreach (var ship in allies)
         {
             var target = enemies.Where(t => battle.CanAttack(ship.Id, t.Id))
@@ -24,6 +26,11 @@ public static class SimpleOpponent
         }
         foreach (var ship in allies)
             if (ship.CanRepair && ship.HealthRatio <= 0.5) return battle.Repair(side, ship.Id);
+        foreach (var collector in allies.Where(s => s.Definition.CollectionRange > 0))
+            if (battle.Credits(side) >= BattleState.CollectionPrice && battle.CollectionCells(collector.Id).FirstOrDefault() is var fish && battle.CollectionCells(collector.Id).Contains(fish))
+                return battle.Collect(side, collector.Id, fish);
+        foreach (var ship in allies.Where(s => s.Definition.RadarPrice > 0))
+            if (battle.Credits(side) >= 8 && battle.RadarBlockReason(side, ship.Id) is null) return battle.BuyRadar(side, ship.Id);
         foreach (var mother in allies.Where(s => s.Definition.Class == ShipClass.Mothership))
         {
             var preferred = allies.Count(s => s.Definition.Class == ShipClass.Fishing) < 2 && enemies.Length == 0
@@ -41,8 +48,24 @@ public static class SimpleOpponent
         {
             // One movement order per ship per turn prevents oscillation when a route is blocked.
             if (!ship.CanMove || ship.HasMoved) continue;
+            if (ship.IsAirborne)
+            {
+                var destination = battle.Board.Tiles.OrderBy(t => battle.Vision.LastSeen(side, t.Position)).First().Position;
+                if (destination != ship.Position) return battle.Move(side, ship.Id, destination);
+                continue;
+            }
             if (!ship.IsArmed)
             {
+                if (battle.Mothership(side) is { Level: < 4 })
+                {
+                    var resourceRoute = battle.KnownFish(side).Select(p => battle.RouteToward(ship.Id, p, ship.Definition.CollectionRange))
+                        .Where(p => p.Count > 1).OrderBy(p => p.Count).FirstOrDefault();
+                    if (resourceRoute is not null)
+                    {
+                        var destination = battle.AffordableDestination(ship.Id, resourceRoute);
+                        if (destination != ship.Position) return battle.Move(side, ship.Id, destination);
+                    }
+                }
                 var mother = allies.First(s => s.Definition.Class == ShipClass.Mothership);
                 if (BattleState.Distance(ship.Position, mother.Position) > 2) continue;
                 var safe = battle.Reachable(ship.Id).Keys.Where(p => p != ship.Position)
