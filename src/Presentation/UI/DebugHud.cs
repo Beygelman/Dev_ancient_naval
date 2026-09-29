@@ -45,17 +45,18 @@ public partial class DebugHud : CanvasLayer
         _metrics.AddThemeConstantOverride("separation",62); _root.AddChild(_metrics);
         var money=new VBoxContainer(); money.AddThemeConstantOverride("separation",1); _metrics.AddChild(money);
         _coinCaption=Label("Thors (+4)",15,true); money.AddChild(_coinCaption);
-        _coins=Label("30",32,true); money.AddChild(_coins);
+        _coins=Label("5",32,true); money.AddChild(_coins);
         var turns=new VBoxContainer(); turns.AddThemeConstantOverride("separation",1); _metrics.AddChild(turns);
         turns.AddChild(Label("Ход",15,true)); _turn=Label("1",32,true); turns.AddChild(_turn);
-        _restart=TextButton("Заново",()=>RestartRequested?.Invoke()); _restart.Name="Restart"; _root.AddChild(_restart);
+        _restart=TextButton("",()=>SetMenuVisible(true)); _restart.Name="Menu"; _restart.TooltipText="Меню"; _restart.CustomMinimumSize=new(48,48); _restart.Size=new(48,48); _root.AddChild(_restart);
+        _restart.AddChild(new ActionGlyph { Symbol=ActionSymbol.Menu,Position=new(10,10),Size=new(28,28),MouseFilter=Control.MouseFilterEnum.Ignore });
         _end=TextButton("Завершить ход  →",()=>EndTurnRequested?.Invoke()); _end.Name="EndTurn"; _root.AddChild(_end);
         _banner=Label("",24,true); _root.AddChild(_banner); _banner.Hide();
         _shipCard=Panel(_root); var stats=new VBoxContainer(); stats.AddThemeConstantOverride("separation",4); _shipCard.AddChild(stats);
         _ship=Label("",18); stats.AddChild(_ship); _details=Label("",14); stats.AddChild(_details);
         _notice=Panel(_root); _notice.MouseFilter=Control.MouseFilterEnum.Ignore;
         _message=Label("",16,true); _notice.AddChild(_message); _notice.Hide();
-        _radial=new Control { MouseFilter=Control.MouseFilterEnum.Ignore,Size=new(176,176) }; _root.AddChild(_radial);
+        _radial=new Control { MouseFilter=Control.MouseFilterEnum.Ignore,Size=new(136,136) }; _root.AddChild(_radial);
         _repair=IconButton("ActionRepair",ActionSymbol.Repair,"Ремонт",()=>RepairRequested?.Invoke());
         _collect=IconButton("ActionCollect",ActionSymbol.Fishing,"Собрать рыбу за 2 Thors",()=>CollectRequested?.Invoke());
         _radar=IconButton("ActionRadar",ActionSymbol.Radar,"Купить радар",()=>RadarRequested?.Invoke());
@@ -74,11 +75,11 @@ public partial class DebugHud : CanvasLayer
         column.AddChild(Label("Выберите одно улучшение",17,true));
         foreach(var (choice,text) in new[] {
             (UpgradeChoice.Income,"+1 Thor к доходу за ход"),(UpgradeChoice.Mobility,"+1 клетка движения"),
-            (UpgradeChoice.SecondAttack,"Вторая атака Mothership"),(UpgradeChoice.Balloon,"Воздушный шар · обзор 6 · свободный перелёт") })
+            (UpgradeChoice.SecondAttack,"Вторая атака Mothership"),(UpgradeChoice.Balloon,"Воздушный шар · обзор 4 · движение 3") })
         {
             var button=TextButton(text,()=>UpgradeRequested?.Invoke(choice)); button.Name="Upgrade"+choice; column.AddChild(button); _choices[choice]=button;
         }
-        _upgradeOverlay.Hide(); _radial.Hide(); _shipCard.Hide(); Layout();
+        BuildGameMenu(); _upgradeOverlay.Hide(); _radial.Hide(); _shipCard.Hide(); Layout();
     }
 
     public void UpdateBattle(BattleState battle,Ship? selected,bool busy,OrderMode mode)
@@ -97,33 +98,33 @@ public partial class DebugHud : CanvasLayer
             _upgradeTitle.Text=$"Mothership · уровень {pending.Level}";
             foreach(var (choice,button) in _choices) { button.Visible=battle.UpgradeOptions(pending.Id).Contains(choice); button.Disabled=busy; }
         }
-        bool canAct=!busy&&!battle.IsOver&&battle.ActiveSide==Side.Player&&pending is null;
+        bool canAct=!busy&&!battle.IsOver&&battle.ActiveSide==Side.Player&&pending is null&&!MenuVisible;
         _end.Disabled=!canAct; _restart.Disabled=busy;
         _shipCard.Visible=selected is not null;
         if(selected is not null)
         {
             _ship.Text=selected.IsAirborne?"Воздушный шар":$"{selected.Definition.Name}{(selected.IsMothership?$" · ур. {selected.Level}":selected.IsVeteran?" ★ ВЕТЕРАН":"")}   {selected.Health:0}/{selected.MaxHealth:0} HP";
-            _details.Text=selected.IsAirborne?"Обзор 6 · неуязвим · любая клетка":$"Урон {selected.CurrentDamage:0} · Броня {selected.Definition.Armor} · Обзор {selected.VisualRange} · Радар {selected.RadarRange}";
+            _details.Text=selected.IsAirborne?$"Обзор {selected.VisualRange} · Ход {selected.MovementRemaining:0}/{selected.MovementAllowance} · неуязвим":$"Урон {selected.CurrentDamage:0} · Огонь {selected.AttackRange} · Обзор {selected.VisualRange} · Радар {selected.RadarRange}";
             _shipCard.TooltipText=selected.IsMothership?$"Ресурсы: {selected.Resources}/{selected.ResourcesRequired}":$"Потоплено: {selected.Kills}/3";
         }
         _hasRadial=canAct&&selected?.Owner==Side.Player&&!selected.IsAirborne;
-        Availability(_repair,_hasRadial&&selected!.CanRepair,"+");
+        Availability(_repair,_hasRadial&&selected!.CanRepair,"");
         Availability(_yard,_hasRadial&&selected!.IsMothership&&!selected.HasProduced,"");
-        Availability(_collect,_hasRadial&&battle.CollectionCells(selected!.Id).Count>0&&battle.Credits(Side.Player)>=2,"2");
+        Availability(_collect,_hasRadial&&battle.CollectionCells(selected!.Id).Count>0&&battle.Credits(Side.Player)>=battle.CollectionCost(Side.Player),battle.CollectionCost(Side.Player).ToString());
         Availability(_radar,_hasRadial&&battle.RadarBlockReason(Side.Player,selected!.Id) is null,selected?.HasRadar==true?"✓":"2");
         _repair.TooltipText=$"Ремонт: до +{battle.Rules.RepairAmount} HP";
         _radar.TooltipText=selected?.HasRadar==true?$"Радар установлен · радиус {selected.RadarRange}":"Купить радар · 2 Thors";
-        _collect.TooltipText="Собрать рыбную клетку · 2 Thors → 1 ресурс Mothership";
+        _collect.TooltipText=$"Собрать рыбную клетку · {battle.CollectionCost(Side.Player)} Thors → 1 ресурс Mothership";
         _yard.SetMeta("applicable",selected?.IsMothership==true);
         _collect.SetMeta("applicable",selected?.Definition.CollectionRange>0);
         _radar.SetMeta("applicable",selected?.Definition.Class is ShipClass.Mothership or ShipClass.Kolonel);
         foreach(var (kind,button) in _build)
         {
             var definition=battle.Rules.Get(kind); var reason=selected is null?"Выберите Mothership":battle.BuildBlockReason(Side.Player,selected.Id,kind);
-            Availability(button,_hasRadial&&reason is null,definition.Price.ToString());
-            button.TooltipText=$"{definition.Name} · {definition.Price} Thors"+(reason is null?"":$" · {reason}");
+            Availability(button,_hasRadial&&reason is null,battle.BuildPrice(Side.Player,kind).ToString());
+            button.TooltipText=$"{definition.Name} · {battle.BuildPrice(Side.Player,kind)} Thors"+(reason is null?"":$" · {reason}");
         }
-        ApplyMenuVisibility(); Layout();
+        UpdateCreativeLabel(battle.Creative); ApplyMenuVisibility(); Layout();
     }
     public void CloseMenus() { _productionOpen=false; }
     private void ApplyMenuVisibility()
@@ -136,8 +137,8 @@ public partial class DebugHud : CanvasLayer
         for(int i=0;i<sectors.Length;i++)
         {
             var b=sectors[i]; b.SetSector(i,sectors.Length);
-            b.GetChild<ActionGlyph>(0).Position=b.IconCenter-new Vector2(14,18);
-            _badges[b].Position=b.IconCenter+new Vector2(-20,10);
+            b.GetChild<ActionGlyph>(0).Position=b.IconCenter-new Vector2(14,14);
+            _badges[b].Position=SectorButton.Center+Vector2.FromAngle(b.CenterAngle)*73+new Vector2(-20,-7);
         }
         _radial.Visible=sectors.Length>0;
     }
@@ -146,7 +147,7 @@ public partial class DebugHud : CanvasLayer
         if(!_hasRadial||shipScreen is not { } point||_mode!=OrderMode.None) { _radial.Hide(); return; }
         var size=GetViewport().GetVisibleRect().Size;
         _radial.Visible=new Rect2(-20,-20,size.X+40,size.Y+40).HasPoint(point);
-        var center=new Vector2(Math.Clamp(point.X,94,size.X-94),Math.Clamp(point.Y,176,size.Y-128));
+        var center=new Vector2(Math.Clamp(point.X,78,size.X-78),Math.Clamp(point.Y,152,size.Y-116));
         _radial.Position=center-SectorButton.Center;
     }
     public void ShowOpponentTurn() { _banner.Text="Ходит: Капитан Анат"; _bannerTime=2.4f; _banner.Show(); Layout(); }
@@ -173,10 +174,11 @@ public partial class DebugHud : CanvasLayer
         _banner.Position=new((size.X-_banner.Size.X)/2,98); _shipCard.Position=new(18,size.Y-_shipCard.Size.Y-18);
         _notice.Position=new((size.X-_notice.Size.X)/2,size.Y-_notice.Size.Y-106);
         if(_upgradePanel is not null) _upgradePanel.Position=(size-_upgradePanel.Size)/2;
+        if(_menuPanel is not null) _menuPanel.Position=(size-_menuPanel.Size)/2;
     }
     private SectorButton IconButton(string name,ActionSymbol symbol,string hint,Action pressed)
     {
-        var b=new SectorButton { Name=name,Size=new(176,176),FocusMode=Control.FocusModeEnum.None,TooltipText=hint };
+        var b=new SectorButton { Name=name,Size=new(136,136),FocusMode=Control.FocusModeEnum.None,TooltipText=hint };
         foreach(var state in new[] { "normal","hover","pressed","disabled","focus" }) b.AddThemeStyleboxOverride(state,new StyleBoxEmpty());
         var glyph=new ActionGlyph { Symbol=symbol,Size=new(28,28),MouseFilter=Control.MouseFilterEnum.Ignore }; b.AddChild(glyph);
         var badge=Label("",12,true); badge.Size=new(40,15); b.AddChild(badge); _badges[b]=badge;

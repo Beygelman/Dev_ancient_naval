@@ -48,6 +48,9 @@ public partial class BattleChecks : Node
             await Frame(); await Run();
             Game.Restart(); Game.SelectCell(new(2,9)); await Game.BuyRadar(); Game.Hud.ShowMessage("");
             Game.MapCamera.ZoomAt(Screen(new(2,9)),1.2f); await Frame(); await Capture("");
+            foreach(var tile in Game.Battle.Board.Tiles) Game.Battle.Vision.RevealCombat(Side.Player,tile.Position);
+            Game.Battle.Vision.Recompute(Game.Battle.Ships,1); Game.CancelOrder(); Game.MapCamera.FitBoard(); Game.Refresh();
+            await Capture("-archipelago");
             GD.Print($"PASS: {_checks} Thor runtime checks (direct input, sectors, collection, upgrades, radar, balloon).");
             GetTree().Quit();
         }
@@ -55,10 +58,19 @@ public partial class BattleChecks : Node
     }
     private async Task Run()
     {
-        var rules=Game.Battle.Rules;
+        var defaults=Game.Battle.Rules;
+        var rules=new BattleRules { StartingCredits=30,IncomePerMothership=defaults.IncomePerMothership,RepairAmount=defaults.RepairAmount,FleetLimit=defaults.FleetLimit,Ships=defaults.Ships };
+        Click(Button("Menu")); await Frame();
+        Check(Game.Hud.MenuVisible&&Button("NewGame").IsVisibleInTree()&&Button("ExitGame").IsVisibleInTree(),"Menu exposes new game and exit");
+        var beforeSelection=Game.SelectedShipId; Tap(new Vector2(40,180));
+        Check(Game.SelectedShipId==beforeSelection&&Game.Hud.MenuVisible,"Menu blocks map input");
+        Click(Button("Creative")); Check(Game.Battle.Creative&&Game.Battle.BuildPrice(Side.Player,ShipClass.Kolonel)==0,"Creative menu toggle applies");
+        await Capture("-menu");
+        Click(Button("Creative")); Check(!Game.Battle.Creative,"Creative toggle off");
+        Click(Button("CloseMenu")); Check(!Game.Hud.MenuVisible,"Return closes menu");
         Check(Game.Battle.Ships.Count==6&&Game.Battle.OwnShips(Side.Player).Count()==3,"Three starting ships per side");
         Check(Game.Battle.OwnShips(Side.Player).All(s=>s.Definition.Class is ShipClass.Mothership or ShipClass.Garrison or ShipClass.Fishing),"Correct starting classes");
-        Check(Game.Battle.Credits(Side.Player)==30&&Game.Battle.Income(Side.Player)==4,"New starting economy");
+        Check(Game.Battle.Credits(Side.Player)==5&&Game.Battle.Income(Side.Player)==4,"New starting economy");
         Check(!Descendants(Game.Hud).OfType<Button>().Any(b=>b.Name=="ActionMove"||b.Name=="ActionAttack"||b.Name=="ActionClose"),"No movement/attack/cancel buttons");
         Game.SelectCell(new(4,9)); await Frame();
         var before=Game.Hud.MenuPosition; Game.MapCamera.Pan(new(40,12)); await Frame();
@@ -70,7 +82,7 @@ public partial class BattleChecks : Node
         Game.SelectCell(new(19,0)); Check(Game.SelectedShipId is null,"Invalid distant tile deselects");
         Game.FastChecks=true; Game.SelectCell(new(2,9)); await Frame();
         var sectors=Descendants(Game.Hud).OfType<SectorButton>().Where(s=>s.IsVisibleInTree()).ToArray();
-        Check(sectors.Length==4&&sectors.All(s=>Mathf.IsEqualApprox(s.Sweep,Mathf.Pi/2)),"Mother menu has four equal sectors");
+        Check(sectors.Length==4&&sectors.All(s=>Mathf.IsEqualApprox(s.Sweep,Mathf.Pi/4)),"Mother menu has four compact eighth sectors");
         Check(sectors.All(s=>!s._HasPoint(SectorButton.Center)),"Sector hole passes map input");
         int money=Game.Battle.Credits(Side.Player);
         Click(Button("ActionRadar")); await Game.CurrentOrder;
@@ -83,7 +95,7 @@ public partial class BattleChecks : Node
         Check(!Game.Battle.Find(1)!.CanMove,"Mother movement locked after building");
 
         var fish=new[] { new GridPosition(6,5),new GridPosition(5,6),new GridPosition(4,5),new GridPosition(5,4),new GridPosition(6,6),new GridPosition(4,4),new GridPosition(4,6),new GridPosition(6,4),new GridPosition(7,5) };
-        Game.LoadScenario(new BattleState(new GameBoard(20,20,p=>p==new GridPosition(12,12)?TerrainType.Land:TerrainType.Water),rules,new (Side,ShipClass,GridPosition)[] {
+        Game.LoadScenario(new BattleState(new GameBoard(20,20,p=>p==new GridPosition(7,7)?TerrainType.Land:TerrainType.Water),rules,new (Side,ShipClass,GridPosition)[] {
             (Side.Player,ShipClass.Mothership,new(5,5)),(Side.Enemy,ShipClass.Mothership,new(18,18)),(Side.Player,ShipClass.Fishing,new(8,8)) },fish));
         Game.SelectCell(new(5,5)); await Frame();
         if(DisplayServer.GetName()!="headless")
@@ -114,8 +126,8 @@ public partial class BattleChecks : Node
         var air=Game.Battle.OwnShips(Side.Player).Single(s=>s.IsAirborne);
         var balloonPoint=GetViewport().GetCanvasTransform()*(Game.BoardView.Projection.GridToWorld(air.Position)+new Vector2(0,-62));
         Game.SelectAtScreen(balloonPoint); Check(Game.SelectedShipId==air.Id,"Airborne model can be selected above sea tile");
-        Game.SelectCell(new(12,12)); await Game.CurrentOrder;
-        Check(air.Position==new GridPosition(12,12)&&Game.Battle.Board.GetTile(air.Position).Terrain==TerrainType.Land,"Balloon flies over land by direct tile click");
+        Game.SelectCell(new(7,7)); await Game.CurrentOrder;
+        Check(air.Position==new GridPosition(7,7)&&Game.Battle.Board.GetTile(air.Position).Terrain==TerrainType.Land,"Balloon flies over land by direct tile click");
         await Capture("-balloon");
         Game.Battle.EndTurn(Side.Player); Game.Battle.EndTurn(Side.Enemy); Game.Refresh();
         Game.SelectCell(new(5,5)); await Game.CurrentOrder;
@@ -137,8 +149,14 @@ public partial class BattleChecks : Node
         Game.Battle.EndTurn(Side.Player); Game.Battle.EndTurn(Side.Enemy); Game.Refresh(); await Frame();
         double hp=Game.Battle.Find(3)!.Health; Click(Button("ActionRepair")); await Game.CurrentOrder;
         Check(Game.Battle.Find(3)!.Health>hp&&Game.Battle.Find(3)!.Health%1==0,"Plus repair sector heals integer HP");
-        Game.FastChecks=true; await Game.EndPlayerTurn();
+        Game.LoadScenario(new BattleState(new GameBoard(20,20,_=>TerrainType.Water),rules,new (Side,ShipClass,GridPosition)[] {
+            (Side.Player,ShipClass.Mothership,new(5,5)),(Side.Enemy,ShipClass.Mothership,new(18,18)),(Side.Enemy,ShipClass.Kolonel,new(10,5)) },Array.Empty<GridPosition>()));
+        Game.FastChecks=true; Game.SelectCell(new(5,5)); await Game.BuyRadar();
+        Check(Game.Battle.FindObserved(Side.Player,3) is null&&Game.BoardView.Targets.Contains(new GridPosition(10,5)),"Radar marks target without optical identity");
+        Game.SelectCell(new(10,5)); await Game.CurrentOrder;
+        Check(Game.Battle.Find(3)!.Health<30,"Direct contact click fires radar attack");
+        await Game.EndPlayerTurn();
         Check(Game.Battle.ActiveSide==Side.Player&&!Game.Busy,"AI returns control with new economy");
-        Game.Restart(); Check(Game.Battle.Ships.Count==6&&Game.Battle.Credits(Side.Player)==30,"Restart restores new setup");
+        Game.Restart(); Check(Game.Battle.Ships.Count==6&&Game.Battle.Credits(Side.Player)==5,"Restart restores new setup");
     }
 }

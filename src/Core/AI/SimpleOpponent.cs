@@ -24,6 +24,9 @@ public static class SimpleOpponent
                 .ThenBy(t => t.Definition.Class == ShipClass.Mothership ? 0 : 1).ThenBy(t => t.Health).FirstOrDefault();
             if (target is not null) return battle.Attack(side, ship.Id, target.Id);
         }
+        foreach (var ship in allies.Where(s => s.HasRadar))
+            foreach (var contact in battle.Vision.Contacts(side))
+                if (battle.TargetCells(ship.Id).Contains(contact)) return battle.AttackAt(side, ship.Id, contact);
         foreach (var ship in allies)
             if (ship.CanRepair && ship.HealthRatio <= 0.5) return battle.Repair(side, ship.Id);
         foreach (var collector in allies.Where(s => s.Definition.CollectionRange > 0))
@@ -33,6 +36,9 @@ public static class SimpleOpponent
             if (battle.Credits(side) >= 8 && battle.RadarBlockReason(side, ship.Id) is null) return battle.BuyRadar(side, ship.Id);
         foreach (var mother in allies.Where(s => s.Definition.Class == ShipClass.Mothership))
         {
+            // Building locks movement. Reserve regular turns for advancing the flagship,
+            // otherwise low-cost replacements can keep both fleets anchored indefinitely.
+            if (battle.Round % 3 == 0 && mother.CanMove) continue;
             var preferred = allies.Count(s => s.Definition.Class == ShipClass.Fishing) < 2 && enemies.Length == 0
                 ? ShipClass.Fishing : allies.Length % 3 == 0 ? ShipClass.Kolonel : ShipClass.Invader;
             foreach (var type in new[] { preferred, ShipClass.Garrison }.Distinct())
@@ -50,7 +56,7 @@ public static class SimpleOpponent
             if (!ship.CanMove || ship.HasMoved) continue;
             if (ship.IsAirborne)
             {
-                var destination = battle.Board.Tiles.OrderBy(t => battle.Vision.LastSeen(side, t.Position)).First().Position;
+                var destination = battle.Reachable(ship.Id).Keys.Where(p=>p!=ship.Position).OrderBy(p => battle.Vision.LastSeen(side,p)).FirstOrDefault(ship.Position);
                 if (destination != ship.Position) return battle.Move(side, ship.Id, destination);
                 continue;
             }

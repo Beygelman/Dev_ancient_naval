@@ -2,7 +2,7 @@ using Godot;
 
 namespace DevAncientNaval.Presentation.UI;
 
-public enum ActionSymbol { Move, Attack, Repair, Build, Close, Fishing, Scout, Standard, Heavy, Radar }
+public enum ActionSymbol { Move, Attack, Repair, Build, Close, Fishing, Scout, Standard, Heavy, Radar, Menu }
 
 /// <summary>Small vector icons drawn at screen resolution; no external art required.</summary>
 public partial class ActionGlyph : Control
@@ -16,6 +16,8 @@ public partial class ActionGlyph : Control
         void Line(float x1, float y1, float x2, float y2) => DrawLine(P(x1,y1),P(x2,y2),ink,2.2f,true);
         switch(Symbol)
         {
+            case ActionSymbol.Menu:
+                Line(-10,-7,10,-7); Line(-10,0,10,0); Line(-10,7,10,7); break;
             case ActionSymbol.Move:
                 Line(-10,9,10,-11); Line(-1,-11,10,-11); Line(10,-11,10,0);
                 DrawCircle(P(-10,9),2.5f,ink); break;

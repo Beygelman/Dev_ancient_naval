@@ -70,6 +70,10 @@ public partial class PrototypeChecks : Node
         foreach (var tile in Game.BoardView.Board.Tiles)
         {
             var center = projection.GridToWorld(tile.Position);
+            var quad=projection.Diamond(tile.Position);
+            var right=projection.Diamond(new(tile.Position.X+1,tile.Position.Y));
+            Check(quad[1]==right[0]&&quad[2]==right[3],"Shared deformed edge has no crack");
+            Check(Enumerable.Range(0,4).All(i=>(quad[(i+1)%4]-quad[i]).Cross(quad[(i+2)%4]-quad[(i+1)%4])>0),"Quad remains convex");
             Check(projection.WorldToGrid(center) == tile.Position, "Center round trip");
             foreach (var corner in projection.Diamond(tile.Position))
                 Check(projection.WorldToGrid(center.Lerp(corner, 0.98f)) == tile.Position, "Inside diamond");
@@ -77,7 +81,7 @@ public partial class PrototypeChecks : Node
             Game.SelectAtScreen(Screen(tile.Position));
             Check(Game.BoardView.Selected == tile.Position, "Selection through canvas transform");
         }
-        Check(projection.WorldToGrid(new(-25, -12)) == new GridPosition(-1, 0), "Negative boundary");
+        Check(projection.WorldToGrid(projection.GridToWorld(new(-1,0))) == new GridPosition(-1, 0), "Negative warped cell");
         Game.SelectAtScreen(viewport.GetCanvasTransform() * projection.GridToWorld(new(-1, 0)));
         Check(Game.BoardView.Selected is null, "Off-board selection clears");
 

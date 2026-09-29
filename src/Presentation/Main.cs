@@ -49,6 +49,9 @@ public partial class Main : Node2D
         Hud.RepairRequested+=()=>RunSafely(RepairSelected); Hud.BuildRequested+=BeginBuild;
         Hud.CollectRequested+=BeginCollect; Hud.RadarRequested+=()=>RunSafely(BuyRadar);
         Hud.UpgradeRequested+=choice=>RunSafely(()=>ChooseUpgrade(choice));
+        Hud.CreativeRequested+=()=> { Battle.SetCreative(!Battle.Creative); Refresh(); };
+        Hud.MenuChanged+=()=> { MapInput.CancelGesture(); Refresh(); };
+        Hud.ExitRequested+=()=>GetTree().Quit();
         Hud.RestartRequested+=()=>_restartDialog.PopupCentered(); AddChild(Hud);
         _restartDialog=new ConfirmationDialog { Title="Начать заново?",DialogText="Текущий бой будет заменён новым.",
             OkButtonText="Новый бой",CancelButtonText="Продолжить бой" };
@@ -67,12 +70,12 @@ public partial class Main : Node2D
         try { await action(); }
         catch(Exception e) { GD.PushError(e.ToString()); Busy=false; Hud.ShowMessage("Ошибка действия. Подробности в журнале Godot."); Refresh(); }
     }
-    private bool CanCommand=>!Busy&&!Battle.IsOver&&Battle.ActiveSide==Side.Player;
+    private bool CanCommand=>!Busy&&!Hud.MenuVisible&&!Battle.IsOver&&Battle.ActiveSide==Side.Player;
     private Ship? Selected=>SelectedShipId is { } id?Battle.FindObserved(Side.Player,id):null;
 
     public void SelectAtScreen(Vector2 screen)
     {
-        if(Busy || Battle.PendingUpgrade(Side.Player) is not null) return;
+        if(Busy || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player) is not null) return;
         var air=Battle.ObservedShips(Side.Player).Where(s=>s.IsAirborne).FirstOrDefault(s=>
             (GetViewport().GetCanvasTransform()*(BoardView.Projection.GridToWorld(s.Position)+new Vector2(0,-62))).DistanceTo(screen)<24*MapCamera.Zoom.X);
         if(air is not null) { ClearMode(); SelectedShipId=air.Id; BoardView.Select(air.Position); Refresh(); return; }
@@ -80,7 +83,7 @@ public partial class Main : Node2D
     }
     public void SelectCell(GridPosition cell)
     {
-        if(Busy || Battle.PendingUpgrade(Side.Player) is not null) return;
+        if(Busy || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player) is not null) return;
         if(!Battle.Board.Contains(cell)) { CancelOrder(); return; }
         BoardView.Select(cell); Hud.ShowTile(Battle,cell);
         var hit=Battle.ObservedAt(Side.Player,cell); var selected=Selected;
@@ -96,8 +99,8 @@ public partial class Main : Node2D
                 if(Battle.CollectionCells(selected.Id).Contains(cell)) { int id=selected.Id; RunSafely(()=>Perform(()=>Battle.Collect(Side.Player,id,cell))); return; }
                 CancelOrder(); return;
             }
-            if(hit?.Owner==Side.Enemy&&Battle.CanAttack(selected.Id,hit.Id))
-            { int id=selected.Id,target=hit.Id; RunSafely(()=>Perform(()=>Battle.Attack(Side.Player,id,target))); return; }
+            if(Battle.TargetCells(selected.Id).Contains(cell))
+            { int id=selected.Id; RunSafely(()=>Perform(()=>Battle.AttackAt(Side.Player,id,cell))); return; }
             if((hit is null||hit.IsAirborne||selected.IsAirborne)&&Battle.PathTo(selected.Id,cell).Count>1)
             {
                 int id=selected.Id; RunSafely(()=>Perform(()=>Battle.Move(Side.Player,id,cell))); return;
@@ -123,13 +126,13 @@ public partial class Main : Node2D
         var reason=Battle.BuildBlockReason(Side.Player,id,kind);
         if(reason is not null) { Hud.ShowMessage(reason); return; }
         ClearMode(); _building=kind; Mode=OrderMode.Build;
-        Hud.ShowMessage($"{Battle.Rules.Get(kind).Name} · {Battle.Rules.Get(kind).Price} Thors. Выберите зелёную клетку.");
+        Hud.ShowMessage($"{Battle.Rules.Get(kind).Name} · {Battle.BuildPrice(Side.Player,kind)} Thors. Выберите зелёную клетку.");
         Refresh();
     }
     public void BeginCollect()
     {
         if(!CanCommand||Selected is not { Owner:Side.Player } selected||Battle.CollectionCells(selected.Id).Count==0) return;
-        ClearMode(); Mode=OrderMode.Collect; Hud.ShowMessage("Выберите рыбу в зоне сбора · 2 Thors → 1 ресурс"); Refresh();
+        ClearMode(); Mode=OrderMode.Collect; Hud.ShowMessage($"Выберите рыбу в зоне сбора · {Battle.CollectionCost(Side.Player)} Thors → 1 ресурс"); Refresh();
     }
     public Task BuyRadar()=>!CanCommand||SelectedShipId is not { } id?Task.CompletedTask:Perform(()=>Battle.BuyRadar(Side.Player,id));
     public Task ChooseUpgrade(UpgradeChoice choice)=>!CanCommand||Battle.PendingUpgrade(Side.Player) is not { } ship?Task.CompletedTask:Perform(()=>Battle.ChooseUpgrade(Side.Player,ship.Id,choice));
@@ -201,7 +204,7 @@ public partial class Main : Node2D
     public void Restart()
     {
         if(Busy) return;
-        LoadScenario(SkirmishSetup.Create(PrototypeBoard.Create(),_rules));
+        bool creative=Battle.Creative; LoadScenario(SkirmishSetup.Create(PrototypeBoard.Create(),_rules)); Battle.SetCreative(creative); Refresh();
         Hud.ShowMessage("Исследуйте море и сохраните свой Mothership.");
     }
     internal void LoadScenario(BattleState battle)
@@ -222,7 +225,7 @@ public partial class Main : Node2D
               : Mode==OrderMode.None?Battle.Reachable(selected.Id).Keys.Where(p=>p!=selected.Position).ToArray():Array.Empty<GridPosition>()
             : Array.Empty<GridPosition>();
         BoardView.Targets=CanCommand&&selected?.Owner==Side.Player&&Mode==OrderMode.None?
-            Battle.ObservedShips(Side.Player).Where(s=>Battle.CanAttack(selected.Id,s.Id)).Select(s=>s.Position).ToArray():Array.Empty<GridPosition>();
+            Battle.TargetCells(selected.Id):Array.Empty<GridPosition>();
         BoardView.AttackArea=CanCommand&&selected?.Owner==Side.Player&&Mode==OrderMode.None?Battle.AttackCells(selected.Id):Array.Empty<GridPosition>();
         BoardView.Collection=CanCommand&&selected?.Owner==Side.Player&&Mode==OrderMode.Collect?Battle.CollectionCells(selected.Id):Array.Empty<GridPosition>();
         BoardView.Building=Mode==OrderMode.Build;

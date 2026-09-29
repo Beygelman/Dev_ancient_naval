@@ -45,6 +45,10 @@ public sealed partial class BattleState
         InitializeFishing(fishSpots, resourceSeed);
     }
 
+    public bool Creative { get; private set; }
+    public void SetCreative(bool enabled) => Creative = enabled;
+    public int BuildPrice(Side side, ShipClass kind) => Creative && side == Side.Player ? 0 : Rules.Get(kind).Price;
+    public int CollectionCost(Side side) => Creative && side == Side.Player ? 0 : CollectionPrice;
     public int Credits(Side side) => _credits[(int)side];
     public Ship? Find(int id) => _ships.FirstOrDefault(s => s.Id == id);
     public Ship? At(GridPosition cell) => _ships.FirstOrDefault(s => !s.IsAirborne && s.Position == cell);
@@ -80,7 +84,8 @@ public sealed partial class BattleState
     }
 
     /// <summary>Integer tenths: orthogonal 10, diagonal 14. Unknown cells are
-    /// estimated as open water, so route previews cannot reveal terrain or hidden ships.</summary>
+    /// estimated as open water, so route previews cannot reveal terrain or hidden ships.
+    /// A four-tenth tolerance rounds the total route down to the nearest whole move point.</summary>
     public int? StepCost(int id, GridPosition from, GridPosition to, bool knowledge = true)
     {
         var ship = Find(id);
@@ -125,14 +130,14 @@ public sealed partial class BattleState
     {
         var ship = Find(id);
         return ship is null || IsOver || ship.Owner != ActiveSide || !ship.CanMove ? new Dictionary<GridPosition, int>() :
-            ship.IsAirborne ? Board.Tiles.ToDictionary(t => t.Position, _ => 10) : Flood(ship, ship.MovementRemainingUnits).Costs;
+            ship.IsAirborne ? Board.Tiles.Where(t => FlightCost(ship.Position,t.Position) <= ship.MovementRemainingUnits).ToDictionary(t => t.Position, t => FlightCost(ship.Position,t.Position)) : Flood(ship, ship.MovementRemainingUnits + 4).Costs;
     }
     public IReadOnlyList<GridPosition> PathTo(int id, GridPosition destination)
     {
         var ship = Find(id);
         if (ship is null || IsOver || ship.Owner != ActiveSide || !ship.CanMove) return Array.Empty<GridPosition>();
-        if (ship.IsAirborne) return Board.Contains(destination) && destination != ship.Position ? new[] { ship.Position, destination } : Array.Empty<GridPosition>();
-        var flood = Flood(ship, ship.MovementRemainingUnits);
+        if (ship.IsAirborne) return Board.Contains(destination) && destination != ship.Position && FlightCost(ship.Position,destination) <= ship.MovementRemainingUnits ? new[] { ship.Position, destination } : Array.Empty<GridPosition>();
+        var flood = Flood(ship, ship.MovementRemainingUnits + 4);
         return flood.Costs.ContainsKey(destination) ? Reconstruct(ship.Position, destination, flood.Previous) : Array.Empty<GridPosition>();
     }
     public double PathCost(int id, IReadOnlyList<GridPosition> path)
@@ -155,7 +160,7 @@ public sealed partial class BattleState
         var ship = Find(id);
         var target = ship is null ? null : FindObserved(ship.Owner, targetId);
         return ship is null || !ship.IsArmed || target is null || target.Owner == ship.Owner ? Array.Empty<GridPosition>() :
-            RouteToward(id, target.Position, ship.Definition.AttackRange);
+            RouteToward(id, target.Position, ship.AttackRange);
     }
     public GridPosition AffordableDestination(int id, IReadOnlyList<GridPosition> path)
     {
@@ -165,7 +170,7 @@ public sealed partial class BattleState
         for (int i = 1; i < path.Count; i++)
         {
             int? step = StepCost(id, path[i - 1], path[i]);
-            if (step is null || spent + step > ship.MovementRemainingUnits) break;
+            if (step is null || spent + step > ship.MovementRemainingUnits + 4) break;
             spent += step.Value; destination = path[i];
         }
         return destination;
@@ -184,7 +189,7 @@ public sealed partial class BattleState
         foreach (var next in planned.Skip(1))
         {
             var step = StepCost(id, ship.Position, next, false);
-            if (step is null || step > ship.MovementRemainingUnits) break;
+            if (step is null || step > ship.MovementRemainingUnits + 4) break;
             ship.Position = next; ship.MovementSpentUnits += step.Value; spent += step.Value;
             ship.HasMoved = true; actual.Add(next); UpdateVision(); frames.Add(MovementFrame(ship));
         }
@@ -198,24 +203,34 @@ public sealed partial class BattleState
     public bool CanAttack(int id, int targetId)
     {
         var ship = Find(id);
-        var target = ship is null ? null : FindObserved(ship.Owner, targetId);
-        return !IsOver && ship is not null && target is not null && !target.IsAirborne && ship.Owner == ActiveSide && ship.Owner != target.Owner &&
-            ship.AttacksRemaining > 0 && BattleVision.InRadius(ship.Position, target.Position, ship.Definition.AttackRange);
+        var target = ship is null ? null : Find(targetId);
+        return !IsOver && ship is not null && target is not null && !target.IsAirborne && ship.Owner == ActiveSide && ship.Owner != target.Owner && (Vision.IsVisible(ship.Owner,target.Position) || ship.HasRadar && Vision.Contacts(ship.Owner).Contains(target.Position)) &&
+            ship.AttacksRemaining > 0 && BattleVision.InRadius(ship.Position, target.Position, ship.AttackRange);
     }
     public IReadOnlyCollection<GridPosition> AttackCells(int id)
     {
         var ship = Find(id);
         if (ship is null || !ship.IsArmed || IsOver || ship.Owner != ActiveSide || ship.AttacksRemaining == 0) return Array.Empty<GridPosition>();
-        return Board.Tiles.Where(t => Vision.IsVisible(ship.Owner, t.Position) && BattleVision.InRadius(ship.Position, t.Position, ship.Definition.AttackRange))
+        return Board.Tiles.Where(t => (Vision.IsVisible(ship.Owner, t.Position) || ship.HasRadar) && BattleVision.InRadius(ship.Position, t.Position, ship.AttackRange))
             .Select(t => t.Position).ToArray();
     }
     public bool CanCounterattack(Ship defender, Ship attacker) => defender.Health > 0 && defender.IsArmed &&
-        BattleVision.InRadius(defender.Position, attacker.Position, defender.Definition.AttackRange);
+        BattleVision.InRadius(defender.Position, attacker.Position, defender.AttackRange);
     public double PreviewCounterDamage(Ship attacker, Ship defender)
     {
         double remaining = Math.Max(0, defender.Health - Damage(attacker, defender));
         return remaining == 0 || !CanCounterattack(defender, attacker) ? 0 :
             Math.Max(1, Ship.Whole(defender.FullDamage * (0.5 + 0.5 * remaining / defender.MaxHealth)) - attacker.Definition.Armor);
+    }
+    public CommandResult AttackAt(Side requester, int id, GridPosition cell)
+    {
+        var target=At(cell);
+        return target is null ? CommandResult.Rejected("Здесь нет доступной цели.") : Attack(requester,id,target.Id);
+    }
+    public IReadOnlyCollection<GridPosition> TargetCells(int id)
+    {
+        var ship=Find(id);
+        return ship is null ? Array.Empty<GridPosition>() : _ships.Where(t=>CanAttack(id,t.Id)).Select(t=>t.Position).ToArray();
     }
     public CommandResult Attack(Side requester, int id, int targetId)
     {
@@ -280,7 +295,7 @@ public sealed partial class BattleState
         if (mother!.Definition.Class != ShipClass.Mothership) return "Корабли строит Mothership.";
         if (mother.HasProduced) return "Этот Mothership уже построил корабль в этом ходу.";
         if (_ships.Count(s => s.Owner == requester && !s.IsAirborne) >= Rules.FleetLimit) return $"Лимит флота: {Rules.FleetLimit}.";
-        if (Credits(requester) < Rules.Get(shipClass).Price) return "Недостаточно средств.";
+        if (Credits(requester) < BuildPrice(requester,shipClass)) return "Недостаточно средств.";
         if (SpawnCells(mothershipId).Count == 0) return "Нет свободной соседней клетки воды.";
         return null;
     }
@@ -294,7 +309,7 @@ public sealed partial class BattleState
         bool first = !_everProduced[(int)requester];
         ship.IsExhausted = !first;
         _ships.Add(ship); RegisterShipIncome(ship);
-        _credits[(int)requester] -= definition.Price; _everProduced[(int)requester] = true;
+        _credits[(int)requester] -= BuildPrice(requester,shipClass); _everProduced[(int)requester] = true;
         var mother = Find(mothershipId)!; mother.HasProduced = true; mother.MovementLocked = true;
         UpdateVision();
         return new(true, $"{definition.Name} построен. " + (first ? "Может действовать сразу." : "Готов к следующему ходу."), CommandKind.Build, mothershipId, ship.Id);

@@ -23,6 +23,7 @@ public sealed class Ship
     public bool HasRadar { get; internal set; }
     public int RadarRange => HasRadar ? Definition.RadarRange : 0;
     public int VisualRange => Definition.VisualRange;
+    public int AttackRange => IsArmed ? Math.Max(VisualRange, RadarRange) : 0;
     public static int Whole(double value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);
     public double MaxHealth => Whole((Definition.MaxHealth + (IsMothership ? (Level - 1) * 10 : 0)) * (IsVeteran ? 1.25 : 1));
     public double HealthRatio => Math.Clamp(Health / MaxHealth, 0, 1);
@@ -39,7 +40,7 @@ public sealed class Ship
     public bool HasProduced { get; internal set; }
     public bool MovementLocked { get; internal set; }
 
-    public bool CanMove => IsAirborne ? !IsExhausted && !HasMoved : !IsExhausted && !MovementLocked && MovementRemainingUnits >= 10 &&
+    public bool CanMove => IsAirborne ? !IsExhausted && MovementRemainingUnits >= 10 : !IsExhausted && !MovementLocked && MovementRemainingUnits >= 6 &&
         (Definition.ActionProfile switch
         {
             ActionProfile.Scout => true,

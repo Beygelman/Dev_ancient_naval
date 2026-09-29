@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/Presentation/PrototypeBoard.cs" Link="PrototypeBoard.cs" />
     <ProjectReference Include="../../src/Core/DevAncientNaval.Core.csproj" />
     <None Include="../../data/balance.json" Link="balance.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

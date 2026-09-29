@@ -63,9 +63,9 @@ public sealed partial class BattleState
         var error=ValidateActor(requester,id,out var ship);
         if(error is not null) return CommandResult.Rejected(error);
         if(!CollectionCells(id).Contains(cell)) return CommandResult.Rejected("Рыба должна быть видна и находиться в радиусе сбора.");
-        if(Credits(requester)<CollectionPrice) return CommandResult.Rejected("Для сбора нужно 2 Thors.");
+        if(Credits(requester)<CollectionCost(requester)) return CommandResult.Rejected("Для сбора нужно 2 Thors.");
         var mother=Mothership(requester)!;
-        _credits[(int)requester]-=CollectionPrice; _fish.Remove(cell); mother.Resources++;
+        _credits[(int)requester]-=CollectionCost(requester); _fish.Remove(cell); mother.Resources++;
         bool advanced=mother.Resources>=mother.ResourcesRequired;
         if(advanced)
         {
@@ -74,7 +74,7 @@ public sealed partial class BattleState
             mother.PendingUpgradeLevel=mother.Level is 2 or 3?mother.Level:0;
             RegisterShipIncome(mother);
         }
-        return new(true,advanced?$"Mothership: уровень {mother.Level}!":"+1 ресурс Mothership · −2 Thors",CommandKind.Collect,id,mother.Id,1);
+        return new(true,advanced?$"Mothership: уровень {mother.Level}!":$"+1 ресурс Mothership · −{CollectionCost(requester)} Thors",CommandKind.Collect,id,mother.Id,1);
     }
     public IReadOnlyList<UpgradeChoice> UpgradeOptions(int motherId) => Find(motherId)?.PendingUpgradeLevel switch
     {
@@ -100,17 +100,22 @@ public sealed partial class BattleState
         return new(true,"Улучшение установлено.",CommandKind.Upgrade,id);
     }
 
+    private static int FlightCost(GridPosition from,GridPosition to)
+    {
+        long dx=from.X-to.X,dy=from.Y-to.Y;
+        return (int)Math.Ceiling(Math.Sqrt(.25+dx*dx+dy*dy)-.5)*10;
+    }
     private CommandResult Fly(Ship ship,GridPosition destination)
     {
-        if(!ship.CanMove || !Board.Contains(destination) || destination==ship.Position) return CommandResult.Rejected("Выберите другую клетку для перелёта.");
-        var start=ship.Position; int steps=Math.Max(Math.Abs(destination.X-start.X),Math.Abs(destination.Y-start.Y));
+        if(!ship.CanMove || !Board.Contains(destination) || destination==ship.Position || FlightCost(ship.Position,destination)>ship.MovementRemainingUnits) return CommandResult.Rejected("Выберите другую клетку для перелёта.");
+        int cost=FlightCost(ship.Position,destination); var start=ship.Position; int steps=Math.Max(Math.Abs(destination.X-start.X),Math.Abs(destination.Y-start.Y));
         var path=new List<GridPosition> { start }; var frames=new List<MovementFrame> { MovementFrame(ship) };
         for(int i=1;i<=steps;i++)
         {
             var cell=new GridPosition(Ship.Whole(start.X+(destination.X-start.X)*i/(double)steps),Ship.Whole(start.Y+(destination.Y-start.Y)*i/(double)steps));
             ship.Position=cell; UpdateVision(); path.Add(cell); frames.Add(MovementFrame(ship));
         }
-        ship.HasMoved=true; ship.MovementSpentUnits=10;
+        ship.HasMoved=true; ship.MovementSpentUnits+=cost;
         return new(true,"Воздушный шар: перелёт завершён.",CommandKind.Move,ship.Id,Path:path,Movement:frames);
     }
 }

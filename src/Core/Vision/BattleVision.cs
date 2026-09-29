@@ -22,7 +22,7 @@ public sealed class BattleVision
     public static bool InRadius(GridPosition a, GridPosition b, int radius)
     {
         long dx = a.X - b.X, dy = a.Y - b.Y;
-        return dx * dx + dy * dy <= (long)radius * radius;
+        return dx * dx + dy * dy <= (long)radius * (radius + 1);
     }
     public bool IsVisible(Side side, GridPosition cell) => _visible[(int)side].Contains(cell);
     public bool IsExplored(Side side, GridPosition cell) => _explored[(int)side].Contains(cell);

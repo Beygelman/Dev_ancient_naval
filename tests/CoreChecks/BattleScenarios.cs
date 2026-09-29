@@ -9,22 +9,23 @@ internal static class BattleScenarios
 {
     private static int _checks;
     private static readonly BattleRules Rules=BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"balance.json")));
+    private static readonly BattleRules Funded=new() { StartingCredits=30,IncomePerMothership=Rules.IncomePerMothership,RepairAmount=Rules.RepairAmount,FleetLimit=Rules.FleetLimit,Ships=Rules.Ships };
     private static void Check(bool ok,string name) { if(!ok) throw new Exception("FAIL: "+name); _checks++; }
     private static readonly GridPosition[] Resources={ new(6,5),new(5,6),new(4,5),new(5,4),new(6,6),new(4,4),new(4,6),new(6,4),new(7,5) };
     private static BattleState Fixture(ShipClass kind=ShipClass.Garrison,ShipClass enemy=ShipClass.Kolonel,
         GridPosition? target=null,IEnumerable<GridPosition>? fish=null,Func<GridPosition,TerrainType>? terrain=null)=>new(
-        new GameBoard(20,20,terrain??(_=>TerrainType.Water)),Rules,new (Side,ShipClass,GridPosition)[] {
+        new GameBoard(20,20,terrain??(_=>TerrainType.Water)),Funded,new (Side,ShipClass,GridPosition)[] {
             (Side.Player,ShipClass.Mothership,new(5,5)),(Side.Enemy,ShipClass.Mothership,new(18,18)),
             (Side.Player,kind,new(8,8)),(Side.Enemy,enemy,target??new(10,8)) },fish??Array.Empty<GridPosition>());
     private static void Round(BattleState b) { Check(b.EndTurn(Side.Player).Success,"End player"); Check(b.EndTurn(Side.Enemy).Success,"End enemy"); }
     public static void Run()
     {
-        Balance(); Combat(); Radar(); Progression(); Navigation(); Opponent();
+        Balance(); Combat(); Radar(); Progression(); Navigation(); OrganicRules(); Opponent();
         Console.WriteLine($"PASS: {_checks} Thor/progression/combat checks; 8 complete AI matches.");
     }
     private static void Balance()
     {
-        Check(Rules.StartingCredits==30&&Rules.IncomePerMothership==2,"Quartered starting funds and base income");
+        Check(Rules.StartingCredits==5&&Rules.IncomePerMothership==2,"Five starting Thors and base income");
         foreach(var d in Rules.Ships) Check(d.MaxHealth%5==0&&d.Damage%5==0,"Base HP and damage multiples of five");
         Check(Rules.Get(ShipClass.Garrison).Price==2&&Rules.Get(ShipClass.Invader).Price==4&&Rules.Get(ShipClass.Kolonel).Price==8&&Rules.Get(ShipClass.Fishing).Price==3,"Explicit ship prices");
         Check(Rules.Get(ShipClass.Fishing).IncomePerTurn==2&&Rules.Get(ShipClass.Fishing).VisualRange==1,"Fishing income and minimum sight");
@@ -60,7 +61,7 @@ internal static class BattleScenarios
         Check(b.Ships.All(s=>s.Health==Math.Floor(s.Health)),"Integer health after combat");
         b=Fixture(ShipClass.Invader,ShipClass.Fishing); Check(b.Attack(Side.Player,3,4).Shots!.Count==1,"No fish reply");
         b=Fixture(ShipClass.Fishing); Check(!b.Attack(Side.Player,3,4).Success,"No fish attack");
-        b=Fixture(ShipClass.Kolonel,ShipClass.Garrison,new(11,8));
+        b=Fixture(ShipClass.Invader,ShipClass.Kolonel,new(11,8));
         // Allied mother does not spot this cell; move defender one cell closer to the heavy's sight for range test.
         b.Vision.RevealCombat(Side.Player,new(11,8)); b.Vision.Recompute(b.Ships,1);
         Check(b.Attack(Side.Player,3,4).Shots!.Count==1,"Out-of-range reply forbidden");
@@ -123,15 +124,16 @@ internal static class BattleScenarios
         Check(mother.Level==3&&mother.ResourcesRequired==4&&mother.MaxHealth==60&&b.Income(Side.Player)==7,"Level three stats and threshold");
         Check(b.ChooseUpgrade(Side.Player,1,UpgradeChoice.Balloon).Success,"Choose balloon");
         var air=b.OwnShips(Side.Player).Single(s=>s.IsAirborne);
-        Check(air.VisualRange==6&&b.At(mother.Position)==mother,"Air and water layers separate");
+        Check(air.VisualRange==4&&b.At(mother.Position)==mother,"Air and water layers separate");
         foreach(var cell in Resources.Skip(5)) Check(b.Collect(Side.Player,1,cell).Success,"Collect level four progress");
         Check(mother.Level==4&&mother.Resources==0&&mother.MaxHealth==70&&mother.FullDamage==25&&b.Income(Side.Player)==9,"Level four base eight plus income bonus");
         Check(b.PendingUpgrade(Side.Player) is null&&b.UpgradeOptions(1).Count==0&&b.CollectionCells(1).Count==0,"Level four cap without choice");
         Check(b.Credits(Side.Player)==12,"Nine resources cost exactly eighteen");
-        Check(b.Move(Side.Player,air.Id,new(19,0)).Success&&air.Position==new GridPosition(19,0),"Balloon crosses entire map");
+        Check(!b.Move(Side.Player,air.Id,new(19,0)).Success,"Balloon cannot cross entire map");
+        Check(b.Move(Side.Player,air.Id,new(8,5)).Success&&air.MovementRemainingUnits==0,"Flight consumes three-point budget");
         Check(!b.Move(Side.Player,air.Id,new(0,19)).Success,"One free flight per own turn");
         Check(!b.Attack(Side.Player,air.Id,2).Success&&!b.Repair(Side.Player,air.Id).Success,"Balloon can only move");
-        Round(b); Check(b.Move(Side.Player,air.Id,new(18,18)).Success&&b.At(new(18,18))!.Id==2,"Balloon can overlap enemy ship");
+        Round(b); b.Find(2)!.Position=new(8,6); Check(b.Move(Side.Player,air.Id,new(8,6)).Success&&b.At(new(8,6))!.Id==2,"Balloon can overlap enemy ship");
         b.EndTurn(Side.Player);
         Check(!b.CanAttack(2,air.Id)&&!b.Attack(Side.Enemy,2,air.Id).Success,"Balloon cannot be attacked");
 
@@ -153,7 +155,7 @@ internal static class BattleScenarios
         Check(!b.BuyRadar(Side.Player,1).Success&&b.Credits(Side.Player)==1,"Failed radar is atomic");
         var map=new GameBoard(20,20,p=>p==new GridPosition(10,10)?TerrainType.Land:TerrainType.Water);
         b=new BattleState(map,Rules,new (Side,ShipClass,GridPosition)[] {
-            (Side.Player,ShipClass.Mothership,new(1,1)),(Side.Enemy,ShipClass.Mothership,new(18,18)),(Side.Player,ShipClass.Balloon,new(1,1)) });
+            (Side.Player,ShipClass.Mothership,new(1,1)),(Side.Enemy,ShipClass.Mothership,new(18,18)),(Side.Player,ShipClass.Balloon,new(8,8)) });
         Check(b.Move(Side.Player,3,new(10,10)).Success,"Balloon ignores land/coastal penalties");
         Check(b.FishSpots.All(p=>map.GetTile(p).Terrain!=TerrainType.Land),"Fish only on sea");
     }
@@ -173,12 +175,44 @@ internal static class BattleScenarios
             new (Side,ShipClass,GridPosition)[] { (Side.Player,ShipClass.Mothership,new(5,5)),(Side.Enemy,ShipClass.Mothership,new(18,18)) },Array.Empty<GridPosition>());
         Check(b.StepCost(1,new(5,5),new(5,6)) is null,"Mother cannot pass one-cell strait");
     }
+    private static void OrganicRules()
+    {
+        var center=new GridPosition(5,5);
+        foreach(int range in new[] {1,2})
+        {
+            var navigationRules=new BattleRules { StartingCredits=5,IncomePerMothership=2,RepairAmount=5,FleetLimit=12,
+                Ships=Rules.Ships.Select(s=>s.Class==ShipClass.Garrison?s with { Movement=range }:s).ToArray() };
+            var navigation=new BattleState(new GameBoard(20,20,_=>TerrainType.Water),navigationRules,new (Side,ShipClass,GridPosition)[] {
+                (Side.Player,ShipClass.Mothership,new(0,0)),(Side.Enemy,ShipClass.Mothership,new(19,19)),(Side.Player,ShipClass.Garrison,center) });
+            Check(navigation.Reachable(3).Count==(range==1?9:21),"Movement matches illustrated rounded rings");
+            Check(navigation.Move(Side.Player,3,range==1?new(6,6):new(7,6)).Success,"Diagonal ring destinations are executable");
+        }
+        Check(Enumerable.Range(3,5).Sum(x=>Enumerable.Range(3,5).Count(y=>BattleVision.InRadius(center,new(x,y),1)))==9,"Radius one includes eight neighbors");
+        Check(Enumerable.Range(3,5).Sum(x=>Enumerable.Range(3,5).Count(y=>BattleVision.InRadius(center,new(x,y),2)))==21,"Radius two excludes exactly four corners");
+        var b=Fixture(ShipClass.Fishing,target:new(10,5),fish:Resources);
+        Check(!b.CanAttack(1,4),"Unseen target outside sight cannot be attacked");
+        b.BuyRadar(Side.Player,1);
+        Check(b.FindObserved(Side.Player,4) is null&&b.TargetCells(1).Contains(new(10,5)),"Radar targeting exposes location only");
+        Check(b.AttackAt(Side.Player,1,new(10,5)).Success,"Radar contact can be fired on within installed radar range");
+        Check(!b.CanAttack(3,4),"Unarmed collector never gains an attack");
+        b=new BattleState(new GameBoard(20,20,_=>TerrainType.Water),Rules,new (Side,ShipClass,GridPosition)[] {
+            (Side.Player,ShipClass.Mothership,new(5,5)),(Side.Enemy,ShipClass.Mothership,new(18,18)) },Resources);
+        Check(b.Credits(Side.Player)==5&&!b.Build(Side.Player,1,ShipClass.Kolonel,new(6,5)).Success,"Five starting Thors cannot buy heavy");
+        b.SetCreative(true);
+        Check(b.Build(Side.Player,1,ShipClass.Kolonel,new(6,5)).Success&&b.Credits(Side.Player)==5,"Creative build free");
+        Check(b.Collect(Side.Player,1,Resources[0]).Success&&b.Credits(Side.Player)==5&&b.Find(1)!.Resources==1,"Creative collection free but progresses");
+        Check(b.BuildPrice(Side.Enemy,ShipClass.Kolonel)==8&&b.CollectionCost(Side.Enemy)==2,"Creative affects player only");
+        Check(b.BuyRadar(Side.Player,1).Success&&b.Credits(Side.Player)==3,"Creative preserves radar cost");
+        b.SetCreative(false);
+        Check(b.CollectionCost(Side.Player)==2&&b.BuildPrice(Side.Player,ShipClass.Kolonel)==8,"Turning creative off restores prices");
+
+    }
     private static void Opponent()
     {
         for(int scenario=0;scenario<8;scenario++)
         {
             int seed=scenario;
-            var map=new GameBoard(20,20,p=>p.X>=8&&p.X<=10&&p.Y>=4+seed&&p.Y<=6+seed?TerrainType.Land:TerrainType.Water);
+            var map=scenario>=6?DevAncientNaval.Presentation.PrototypeBoard.Create():new GameBoard(20,20,p=>p.X>=8&&p.X<=10&&p.Y>=4+seed&&p.Y<=6+seed?TerrainType.Land:TerrainType.Water);
             var b=new BattleState(map,Rules,new (Side,ShipClass,GridPosition)[] {
                 (Side.Player,ShipClass.Mothership,new(2,9)),(Side.Player,ShipClass.Garrison,new(4,9)),(Side.Player,ShipClass.Fishing,new(3,11)),
                 (Side.Enemy,ShipClass.Mothership,new(17,9)),(Side.Enemy,ShipClass.Garrison,new(15,9)),(Side.Enemy,ShipClass.Fishing,new(16,7)) },resourceSeed:seed);
@@ -192,6 +226,7 @@ internal static class BattleScenarios
                 Check(b.Ships.All(s=>s.IsAirborne||map.GetTile(s.Position).Terrain!=TerrainType.Land),"Sea movement legal");
                 if(side!=b.ActiveSide) perTurn=0; else Check(++perTurn<256,"AI finishes turn");
             }
+            if(!b.IsOver) foreach(var ship in b.Ships) Console.WriteLine($"STALL {ship.Owner} {ship.Definition.Class} at {ship.Position} HP {ship.Health} level {ship.Level} radar {ship.HasRadar} resources {ship.Resources}");
             Check(b.IsOver,$"AI scenario {scenario} completes");
             Console.WriteLine($"AI {scenario}: {b.Winner}, round {b.Round}, actions {actions}");
         }

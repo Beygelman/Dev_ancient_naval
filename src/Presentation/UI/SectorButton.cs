@@ -7,15 +7,15 @@ namespace DevAncientNaval.Presentation.UI;
 public partial class SectorButton : Button
 {
     public float CenterAngle { get; private set; }
-    public float Sweep { get; private set; } = Mathf.Tau;
-    public const float Inner = 43, Outer = 84;
-    public static readonly Vector2 Center = new(88,88);
+    public float Sweep { get; private set; } = Mathf.Pi/4;
+    public const float Inner = 29, Outer = 65;
+    public static readonly Vector2 Center = new(68,68);
     public void SetSector(int index,int count)
     {
-        Sweep=Mathf.Tau/count; CenterAngle=-Mathf.Pi/2+index*Sweep;
+        Sweep=Mathf.Pi/4; CenterAngle=(count==2?0:-Mathf.Pi/2)+index*Mathf.Tau/count;
         QueueRedraw();
     }
-    public Vector2 IconCenter => Center + Vector2.FromAngle(CenterAngle)*63;
+    public Vector2 IconCenter => Center + Vector2.FromAngle(CenterAngle)*47;
     public override bool _HasPoint(Vector2 point)
     {
         var offset=point-Center; float radius=offset.Length();
