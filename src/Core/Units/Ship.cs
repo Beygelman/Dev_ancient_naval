@@ -16,7 +16,6 @@ public sealed class Ship
     public bool IsAirborne => Definition.Class == ShipClass.Balloon;
     public int Level { get; internal set; } = 1;
     public int Resources { get; internal set; }
-    public int ResourcesRequired => IsMothership && Level < 4 ? Level + 1 : 0;
     public int ResourcesRequired => IsMothership && Level < 5 ? Level + 1 : 0;
     public int PendingUpgradeLevel { get; internal set; }
     public bool IncomeUpgrade { get; internal set; }
@@ -29,14 +28,11 @@ public sealed class Ship
     public int RadarRange => HasRadar ? Definition.RadarRange : 0;
     public int VisualRange => Definition.VisualRange;
     public int AttackRange => IsArmed ? Math.Max(Definition.AttackRange, HasMortar ? MortarRange : 0) : 0;
-    public int MortarRange => HasMortar ? (HasRadar ? RadarRange : VisualRange) : 0;
-    public double CurrentMortarDamage => Whole((IsMothership ? 15 + (Level-1)*3 : FullDamage) * (0.5 + 0.5*HealthRatio));
     public int MortarRange => HasMortar ? 5 : 0;
     public double CurrentMortarDamage => Whole((8 * (IsVeteran ? 1.25 : 1)) * (0.5 + 0.5*HealthRatio));
     public static int Whole(double value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);
     public double MaxHealth => Whole((Definition.MaxHealth + (IsMothership ? (Level - 1) * 10 : 0) + (FortificationUpgrade ? 5 : 0)) * (IsVeteran ? 1.25 : 1));
     public double HealthRatio => Math.Clamp(Health / MaxHealth, 0, 1);
-    public double FullDamage => Whole((Definition.Damage + (IsMothership ? (Level - 1) * 3 : 0)) * (IsVeteran ? 1.25 : 1));
     public double FullDamage => Whole(Definition.Damage * (IsVeteran ? 1.25 : 1));
     public double CurrentDamage => Whole(FullDamage * (0.5 + 0.5 * HealthRatio));
     public bool IsArmed => Definition.Damage > 0 && Definition.AttackRange > 0;
@@ -59,7 +55,6 @@ public sealed class Ship
             _ => false
         });
     public int AttacksRemaining => IsExhausted || !IsArmed ? 0 : Math.Max(0,
-        (SecondAttackUpgrade || Definition.ActionProfile == ActionProfile.Heavy && !HasMoved ? 2 : 1) - AttacksUsed);
         (SecondAttackUpgrade || Definition.ActionProfile == ActionProfile.Heavy ? 2 : 1) - AttacksUsed);
     public bool CanRepair => !IsAirborne && !IsStructure && !IsExhausted && !HasMoved && AttacksUsed == 0 && Health < MaxHealth;
 

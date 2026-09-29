@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using DevAncientNaval.Core.Grid;
 using DevAncientNaval.Presentation;
@@ -72,13 +73,10 @@ public partial class PrototypeChecks : Node
         {
             var center = projection.GridToWorld(tile.Position);
             var quad=projection.Diamond(tile.Position);
-            var right=projection.Edge(new(tile.Position.X+1,tile.Position.Y),3);
-            Check(projection.Edge(tile.Position,1).SequenceEqual(right.Reverse()),"Shared curved edge has no crack");
             Check(projection.CornerCount(tile.Position)>=3,"Actual polygon has at least three corners");
             Check(Geometry2D.TriangulatePolygon(quad).Length==(quad.Length-2)*3,"Curved tile is a valid simple polygon");
             Check(projection.WorldToGrid(center) == tile.Position, "Center round trip");
             foreach (var corner in projection.Diamond(tile.Position))
-                Check(projection.WorldToGrid(center.Lerp(corner, 0.98f)) == tile.Position, "Inside diamond");
                 Check(projection.WorldToGrid(center.Lerp(corner, 0.98f)) == tile.Position, $"Inside polygon {tile.Position} seed {Game.Battle.Board.Seed}");
             Game.CancelOrder();
             Game.SelectAtScreen(Screen(tile.Position));
@@ -87,6 +85,13 @@ public partial class PrototypeChecks : Node
         Check(projection.WorldToGrid(projection.GridToWorld(new(-1,0))) == new GridPosition(-1, 0), "Negative warped cell");
         Game.SelectAtScreen(viewport.GetCanvasTransform() * projection.GridToWorld(new(-1, 0)));
         Check(Game.BoardView.Selected is null, "Off-board selection clears");
+
+        // Fixed input coordinates exercise gestures on a rectangular test arena;
+        // the generated pentagon and every actual mesh cell were checked above.
+        Game.LoadScenario(new DevAncientNaval.Core.Battle.BattleState(new DevAncientNaval.Core.World.GameBoard(20,20,_=>DevAncientNaval.Core.World.TerrainType.Water),Game.Battle.Rules,
+            new[] { (DevAncientNaval.Core.Units.Side.Player,DevAncientNaval.Core.Units.ShipClass.Mothership,new GridPosition(0,0)),
+                (DevAncientNaval.Core.Units.Side.Enemy,DevAncientNaval.Core.Units.ShipClass.Mothership,new GridPosition(19,19)) }));
+        projection=Game.BoardView.Projection;
 
         camera.Pan(new Vector2(140, -70));
         var anchor = new Vector2(750, 420);
@@ -193,12 +198,32 @@ public partial class PrototypeChecks : Node
         {
             var mesh=new DevAncientNaval.Presentation.Map.IsometricProjection(seed:seed);
             Check(mesh.TriangleCount>=2,"Each mesh seed contains triangles");
+            Check(mesh.PentagonCount>=2,"Each mesh seed contains pentagons");
             for(int y=0;y<20;y++) for(int x=0;x<20;x++)
             {
                 var p=new GridPosition(x,y); var outline=mesh.Diamond(p);
                 Check(Geometry2D.TriangulatePolygon(outline).Length==(outline.Length-2)*3,"Seeded curved topology has no self intersection");
                 Check(mesh.WorldToGrid(mesh.GridToWorld(p))==p,"Seeded mesh picking matches centers");
             }
+        }
+        for(int seed=0;seed<8;seed++)
+        {
+            var board=DevAncientNaval.Core.World.ArchipelagoGenerator.Create(seed);
+            var mesh=new DevAncientNaval.Presentation.Map.IsometricProjection(seed:seed,width:board.Width,height:board.Height);
+            var edges=new System.Collections.Generic.Dictionary<(Vector2,Vector2),int>();
+            foreach(var tile in board.Tiles)
+            {
+                var p=tile.Position; var outline=mesh.Diamond(p); var center=mesh.GridToWorld(p);
+                Check(Geometry2D.TriangulatePolygon(outline).Length==(outline.Length-2)*3,"Pentagon map polygons triangulate");
+                foreach(var v in outline) Check(mesh.WorldToGrid(center.Lerp(v,.98f))==p,"Pentagon edge picking");
+                foreach(var edge in mesh.CellEdges(p))
+                {
+                    var a=edge[0]; var b=edge[^1]; var key=a.X<b.X||a.X==b.X&&a.Y<b.Y?(a,b):(b,a);
+                    edges[key]=edges.GetValueOrDefault(key)+1;
+                }
+            }
+            Check(edges.Values.All(n=>n is 1 or 2),"Mesh seams have one or two incident cells");
+            Check(mesh.BoundaryEdges(board.Tiles.Select(t=>t.Position)).Count()==edges.Values.Count(n=>n==1),"Contours exclude all interior seams");
         }
         camera.ZoomAt(anchor, 10000);
         Check(Mathf.IsEqualApprox(camera.Zoom.X, MapCamera.MaxZoom), "Maximum zoom");

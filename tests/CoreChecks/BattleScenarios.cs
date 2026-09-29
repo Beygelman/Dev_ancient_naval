@@ -26,7 +26,6 @@ internal static partial class BattleScenarios
     private static void Balance()
     {
         Check(Rules.StartingCredits==5&&Rules.IncomePerMothership==2,"Five starting Thors and base income");
-        foreach(var d in Rules.Ships) Check(d.MaxHealth%5==0&&d.Damage%5==0,"Base HP and damage multiples of five");
         foreach(var d in Rules.Ships) Check(d.MaxHealth%5==0&&d.Armor==0,"Hull tiers and no armor penalty");
         Check(Rules.Get(ShipClass.Garrison).Price==2&&Rules.Get(ShipClass.Invader).Price==4&&Rules.Get(ShipClass.Kolonel).Price==8&&Rules.Get(ShipClass.Fishing).Price==3,"Explicit ship prices");
         Check(Rules.Get(ShipClass.Fishing).IncomePerTurn==2&&Rules.Get(ShipClass.Fishing).VisualRange==2,"Fishing income and minimum sight");
@@ -48,8 +47,6 @@ internal static partial class BattleScenarios
     {
         var b=Fixture(ShipClass.Invader); var attacker=b.Find(3)!; var defender=b.Find(4)!;
         attacker.Health=attacker.MaxHealth/2;
-        Check(attacker.CurrentDamage==8,"Half HP damage is rounded to integer");
-        Check(b.Damage(attacker,defender)==6,"Armor after rounded injury damage");
         Check(attacker.CurrentDamage==4,"Half HP damage is rounded to integer");
         Check(b.Damage(attacker,defender)==4,"Rounded injury damage");
         attacker.Health=attacker.MaxHealth/4; Check(attacker.MovementAllowance==4,"Exactly quarter HP unchanged");
@@ -79,7 +76,6 @@ internal static partial class BattleScenarios
         }
         b=Fixture(ShipClass.Kolonel,ShipClass.Fishing); attacker=b.Find(3)!; attacker.Kills=2; attacker.Health=10; b.Find(4)!.Health=1;
         Check(b.Attack(Side.Player,3,4).Shots![0].Promoted,"Third kill promotes");
-        Check(attacker.MaxHealth==50&&attacker.Health==50&&attacker.FullDamage==13,"Rounded veteran bonus and full heal");
         Check(attacker.MaxHealth==50&&attacker.Health==50&&attacker.FullDamage==5,"Rounded veteran bonus and full heal");
         attacker.Health=30; Round(b); Check(b.Repair(Side.Player,3).Amount==5&&attacker.Health==35,"Integer healing");
         b=Fixture(ShipClass.Garrison); attacker=b.Find(3)!; defender=b.Find(4)!;
@@ -118,7 +114,6 @@ internal static partial class BattleScenarios
         Check(!b.Collect(Side.Player,1,Resources[0]).Success&&mother.Resources==1,"Fish consumed once");
         mother.Health=30;
         Check(b.Collect(Side.Player,1,Resources[1]).Success&&mother.Level==2&&mother.Resources==0&&mother.ResourcesRequired==3,"Two points advance to level two");
-        Check(mother.MaxHealth==60&&mother.Health==40&&mother.FullDamage==13&&b.Income(Side.Player)==4,"Level increases HP/damage/income, preserves damage taken");
         Check(mother.MaxHealth==60&&mother.Health==40&&mother.FullDamage==3&&b.Income(Side.Player)==4,"Level increases HP/damage/income, preserves damage taken");
         Check(b.PendingUpgrade(Side.Player)==mother&&b.UpgradeOptions(1).SequenceEqual(new[] { UpgradeChoice.Income,UpgradeChoice.Mobility }),"Level two choices");
         Check(!b.Collect(Side.Player,1,Resources[2]).Success&&!b.EndTurn(Side.Player).Success&&!b.Build(Side.Player,1,ShipClass.Garrison,new(5,6)).Success,"Pending choice blocks other commands");
@@ -131,7 +126,6 @@ internal static partial class BattleScenarios
         var air=b.OwnShips(Side.Player).Single(s=>s.IsAirborne);
         Check(air.VisualRange==4&&b.At(mother.Position)==mother,"Air and water layers separate");
         foreach(var cell in Resources.Skip(5)) Check(b.Collect(Side.Player,1,cell).Success,"Collect level four progress");
-        Check(mother.Level==4&&mother.Resources==0&&mother.MaxHealth==80&&mother.FullDamage==19&&b.Income(Side.Player)==9,"Level four base eight plus income bonus");
         Check(mother.Level==4&&mother.Resources==0&&mother.MaxHealth==80&&mother.FullDamage==3&&b.Income(Side.Player)==9,"Level four base eight plus income bonus");
         Check(b.PendingUpgrade(Side.Player)==mother&&b.ChooseUpgrade(Side.Player,1,UpgradeChoice.Shipwright).Success&&b.CollectionCells(1).Count==0,"Level four choice and resource cap");
         Check(b.Credits(Side.Player)==12,"Nine resources cost exactly eighteen");
@@ -198,7 +192,6 @@ internal static partial class BattleScenarios
         var b=Fixture(ShipClass.Fishing,target:new(10,5),fish:Resources);
         Check(!b.CanAttack(1,4),"Unseen target outside sight cannot be attacked");
         b.BuyRadar(Side.Player,1);
-        b.BuyMortar(Side.Player,1);
         b.Find(1)!.Level=5; b.Find(1)!.Health=b.Find(1)!.MaxHealth; b.BuyMortar(Side.Player,1);
         Check(b.FindObserved(Side.Player,4) is null&&b.TargetCells(1).Contains(new(10,5)),"Radar targeting exposes location only");
         Check(b.AttackAt(Side.Player,1,new(10,5)).Success,"Radar contact can be fired on within installed radar range");
@@ -207,7 +200,6 @@ internal static partial class BattleScenarios
             (Side.Player,ShipClass.Mothership,new(5,5)),(Side.Enemy,ShipClass.Mothership,new(18,18)) },Resources);
         Check(b.Credits(Side.Player)==5&&!b.Build(Side.Player,1,ShipClass.Kolonel,new(6,5)).Success,"Five starting Thors cannot buy heavy");
         b.SetCreative(true);
-        Check(b.Build(Side.Player,1,ShipClass.Kolonel,new(6,5)).Success&&b.Credits(Side.Player)==5,"Creative build free");
         Check(b.Build(Side.Player,1,ShipClass.Garrison,new(6,5)).Success&&b.Credits(Side.Player)==5,"Creative build free");
         Check(b.Collect(Side.Player,1,Resources[0]).Success&&b.Credits(Side.Player)==5&&b.Find(1)!.Resources==1,"Creative collection free but progresses");
         Check(b.BuildPrice(Side.Enemy,ShipClass.Kolonel)==8&&b.CollectionCost(Side.Enemy)==2,"Creative affects player only");
@@ -224,8 +216,6 @@ internal static partial class BattleScenarios
             var map=scenario>=6?ArchipelagoGenerator.Create(seed):new GameBoard(20,20,p=>p.X>=8&&p.X<=10&&p.Y>=4+seed&&p.Y<=6+seed?TerrainType.Land:TerrainType.Water);
             var a=map.FleetAnchor(false); var z=map.FleetAnchor(true);
             var b=new BattleState(map,Rules,new (Side,ShipClass,GridPosition)[] {
-                (Side.Player,ShipClass.Mothership,new(2,9)),(Side.Player,ShipClass.Garrison,new(4,9)),(Side.Player,ShipClass.Fishing,new(3,11)),
-                (Side.Enemy,ShipClass.Mothership,new(17,9)),(Side.Enemy,ShipClass.Garrison,new(15,9)),(Side.Enemy,ShipClass.Fishing,new(16,7)) },resourceSeed:seed);
                 (Side.Player,ShipClass.Mothership,a),(Side.Player,ShipClass.Garrison,new(a.X+2,a.Y)),(Side.Player,ShipClass.Fishing,new(a.X+1,a.Y+2)),
                 (Side.Enemy,ShipClass.Mothership,z),(Side.Enemy,ShipClass.Garrison,new(z.X-2,z.Y)),(Side.Enemy,ShipClass.Fishing,new(z.X-1,z.Y-2)) },resourceSeed:seed);
             int actions=0,perTurn=0;

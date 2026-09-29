@@ -12,7 +12,6 @@ public sealed class GameBoard
     public int Height { get; }
     public IReadOnlyList<Tile> Tiles { get; }
 
-    public GameBoard(int width, int height, Func<GridPosition, TerrainType> terrainAt, int seed = 0)
     public GameBoard(int width, int height, Func<GridPosition, TerrainType> terrainAt, int seed = 0,
         Func<GridPosition, bool>? playable = null, IReadOnlyList<System.Numerics.Vector2>? boundary = null)
     {
@@ -40,17 +39,14 @@ public sealed class GameBoard
         for (int x = 0; x < width; x++)
         {
             var p = new GridPosition(x, y);
-            if (_tiles[y * width + x].Terrain == TerrainType.Water &&
             if (Contains(p) && _tiles[y * width + x].Terrain == TerrainType.Water &&
                 GetSurrounding(p).Any(n => _tiles[n.Y * width + n.X].Terrain == TerrainType.Land))
                 _tiles[y * width + x] = new Tile(p, TerrainType.Coast);
         }
-        Tiles = Array.AsReadOnly(_tiles);
         Tiles = Array.AsReadOnly(_tiles.Where(t => Contains(t.Position)).ToArray());
     }
 
     public bool Contains(GridPosition position) =>
-        position.X >= 0 && position.Y >= 0 && position.X < Width && position.Y < Height;
         position.X >= 0 && position.Y >= 0 && position.X < Width && position.Y < Height && _playable[position.Y * Width + position.X];
 
     public GridPosition FleetAnchor(bool right)

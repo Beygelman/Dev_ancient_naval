@@ -13,25 +13,21 @@ public sealed partial class BattleState
     private void InitializeShoals(int seed)
     {
         var random=new Random(seed^0x5367);
-        var water=Board.Tiles.Where(t=>t.Terrain!=TerrainType.Land && At(t.Position) is null).Select(t=>t.Position).OrderBy(_=>random.Next()).ToArray();
+        var water=Board.Tiles.Where(t=>t.Terrain!=TerrainType.Land && At(t.Position) is null && !_fish.Contains(t.Position)).Select(t=>t.Position).OrderBy(_=>random.Next()).ToArray();
         foreach(var mother in Ships.Where(s=>s.IsMothership))
         {
             var near=water.Where(p=>BattleVision.InRadius(p,mother.Position,2)).ToArray();
             if(near.Length>0) _shoals.Add(near[0]);
         }
-        foreach(var p in water) { if(_shoals.Count>=10) break; if(_shoals.All(q=>!BattleVision.InRadius(p,q,2))) _shoals.Add(p); }
         foreach(var p in water) { if(_shoals.Count>=8) break; if(_shoals.All(q=>!BattleVision.InRadius(p,q,2))) _shoals.Add(p); }
     }
     private void GrantResources(Ship mother,int amount)
     {
-        if(mother.Level>=4) return;
         if(mother.Level>=5) return;
         mother.Resources+=amount;
         if(mother.Resources<mother.ResourcesRequired) return;
         int needed=mother.ResourcesRequired; double oldMax=mother.MaxHealth;
         mother.Resources-=needed; mother.Level++; mother.Health+=mother.MaxHealth-oldMax;
-        mother.PendingUpgradeLevel=mother.Level;
-        if(mother.Level==4) mother.Resources=0;
         mother.PendingUpgradeLevel=mother.Level < 5 ? mother.Level : 0;
         if(mother.Level==5) mother.Resources=0;
         RegisterShipIncome(mother);
@@ -56,7 +52,6 @@ public sealed partial class BattleState
     public IReadOnlyCollection<GridPosition> DockCells(int id)
     {
         var ship=Find(id);
-        if(ship is null||IsOver||ship.Owner!=ActiveSide||ship.Definition.CollectionRange==0||PendingUpgrade(ship.Owner) is not null) return Array.Empty<GridPosition>();
         if(ship is null||IsOver||ship.Owner!=ActiveSide||ship.Definition.CollectionRange==0||Mothership(ship.Owner) is not { Level:>=2 }||PendingUpgrade(ship.Owner) is not null) return Array.Empty<GridPosition>();
         return _shoals.Where(p=>Vision.IsVisible(ship.Owner,p)&&At(p) is null&&BattleVision.InRadius(p,ship.Position,ship.Definition.CollectionRange)).ToArray();
     }

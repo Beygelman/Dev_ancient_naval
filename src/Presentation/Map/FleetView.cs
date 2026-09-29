@@ -175,8 +175,6 @@ public partial class FleetView : Node2D
                 // Preserve pre-impact health and ships which the model has already sunk.
                 foreach (var shot in shots)
                 {
-                    _snapshots.TryAdd(shot.Attacker.Id, shot.Attacker);
-                    _snapshots.TryAdd(shot.Target.Id, shot.Target);
                     if (shot.AttackerVisibleToPlayer) _snapshots.TryAdd(shot.Attacker.Id, shot.Attacker);
                     if (shot.TargetVisibleToPlayer) _snapshots.TryAdd(shot.Target.Id, shot.Target);
                     _suppressed.Add(shot.Attacker.Id); _suppressed.Add(shot.Target.Id);
@@ -185,7 +183,6 @@ public partial class FleetView : Node2D
                 {
                     var from = Projection.GridToWorld(shot.Attacker.Position) + new Vector2(0, -14);
                     var to = Projection.GridToWorld(shot.Target.Position) + new Vector2(0, -6);
-                    _muzzle = from;
                     if (!shot.AttackerVisibleToPlayer && !shot.TargetVisibleToPlayer) continue;
                     _muzzle = shot.AttackerVisibleToPlayer ? from : null;
                     await TweenValue(0.10, _ => { });
@@ -194,14 +191,10 @@ public partial class FleetView : Node2D
                     await TweenValue(shot.IsMortar?0.7:0.42, t => ProjectilePosition = from.Lerp(to, t) + new Vector2(0, -4 * height * t * (1 - t)));
                     ProjectilePosition = null;
                     if (shot.TargetSunk) _snapshots.Remove(shot.Target.Id);
-                    else _snapshots[shot.Target.Id] = shot.Target with { Health = shot.Target.Health - shot.Damage };
-                    if (shot.Promoted)
                     else if (shot.TargetVisibleToPlayer) _snapshots[shot.Target.Id] = shot.Target with { Health = shot.Target.Health - shot.Damage };
                     if (shot.Promoted && shot.AttackerVisibleToPlayer)
                         _snapshots[shot.Attacker.Id] = shot.Attacker with
                         { IsVeteran = true, MaxHealth = Ship.Whole(shot.Attacker.MaxHealth * 1.25), Health = Ship.Whole(shot.Attacker.MaxHealth * 1.25), Progress = 3 };
-                    _impact = to; _feedbackPosition = to;
-                    _feedback = (shot.IsCounterattack ? "Ответ −" : "−") + shot.Damage.ToString("0.##");
                     _impact = shot.TargetVisibleToPlayer ? to : null; _feedbackPosition = to;
                     _feedback = shot.TargetVisibleToPlayer ? (shot.IsCounterattack ? "Ответ −" : "−") + shot.Damage.ToString("0") : "";
                     await TweenValue(0.24, t => _impactSize = 4 + 26 * t);

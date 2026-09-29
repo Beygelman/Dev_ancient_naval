@@ -61,7 +61,6 @@ public sealed class BattleVision
     {
         for (int y = Math.Max(0, origin.Y - radius); y <= Math.Min(_board.Height - 1, origin.Y + radius); y++)
         for (int x = Math.Max(0, origin.X - radius); x <= Math.Min(_board.Width - 1, origin.X + radius); x++)
-            if (InRadius(origin, new(x, y), radius)) target.Add(new(x, y));
             if (_board.Contains(new(x,y)) && InRadius(origin, new(x, y), radius)) target.Add(new(x, y));
     }
 }
