@@ -43,7 +43,9 @@ public sealed class BattleVision
             _visible[index].Clear(); _radar[index].Clear(); _contacts[index].Clear();
             foreach (var ship in ships.Where(s => s.Owner == side))
             {
-                FillCircle(_visible[index], ship.Position, ship.VisualRange);
+                if(ship.Definition.Class == ShipClass.Fishing)
+                    foreach(var tile in _board.Tiles.Where(t=>Math.Max(Math.Abs(t.Position.X-ship.Position.X),Math.Abs(t.Position.Y-ship.Position.Y))<=ship.VisualRange)) _visible[index].Add(tile.Position);
+                else FillCircle(_visible[index], ship.Position, ship.VisualRange);
                 if (ship.RadarRange > 0) FillCircle(_radar[index], ship.Position, ship.RadarRange);
             }
             _visible[index].UnionWith(_flashes[index]);

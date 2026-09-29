@@ -45,7 +45,7 @@ public partial class BoardView : Node2D
             };
             if (terrain is not null && !Battle.Vision.IsVisible(Side.Player, tile.Position)) color = color.Darkened(0.57f);
             DrawColoredPolygon(vertices, color);
-            DrawPolyline(new[] { vertices[0], vertices[1], vertices[2], vertices[3], vertices[0] },
+            DrawPolyline(vertices.Append(vertices[0]).ToArray(),
                 new Color("123f50"), 1, true);
         }
         foreach (var cell in Reachable)
@@ -56,7 +56,7 @@ public partial class BoardView : Node2D
         {
             var v = Projection.Diamond(cell);
             DrawColoredPolygon(v, new Color(1, 0.3f, 0.2f, 0.32f));
-            DrawPolyline(new[] { v[0], v[1], v[2], v[3], v[0] }, new Color("ff9678"), 2, true);
+            DrawPolyline(v.Append(v[0]).ToArray(), new Color("ff9678"), 2, true);
         }
         if (SelectedShipId is { } id && Battle.FindObserved(Side.Player, id) is { Owner: Side.Player } ship)
         {
@@ -67,6 +67,16 @@ public partial class BoardView : Node2D
             var p = Projection.GridToWorld(cell);
             DrawColoredPolygon(new[] { p+new Vector2(-9,0),p+new Vector2(-3,-5),p+new Vector2(6,-4),p+new Vector2(10,0),p+new Vector2(6,4),p+new Vector2(-3,5) }, new Color("d6d39a"));
             DrawColoredPolygon(new[] { p+new Vector2(-8,0),p+new Vector2(-15,-5),p+new Vector2(-15,5) }, new Color("d6d39a"));
+        }
+        foreach (var cell in Battle.KnownShoals(Side.Player))
+        {
+            var p=Projection.GridToWorld(cell);
+            for(int i=0;i<3;i++)
+            {
+                var q=p+new Vector2((i-1)*13,i==1?-6:3);
+                DrawColoredPolygon(new[] {q+new Vector2(-7,0),q+new Vector2(0,-4),q+new Vector2(8,0),q+new Vector2(0,4)},new Color("f4df89"));
+                DrawLine(q+new Vector2(-7,0),q+new Vector2(-11,-4),new Color("f4df89"),2,true);
+            }
         }
         foreach (var cell in Collection) DrawColoredPolygon(Projection.Diamond(cell), new Color(1,0.85f,0.2f,0.28f));
         foreach (var contact in Battle.Vision.Contacts(Side.Player))
@@ -86,7 +96,7 @@ public partial class BoardView : Node2D
         {
             var vertices = Projection.Diamond(selected);
             DrawColoredPolygon(vertices, new Color(1, 0.85f, 0.35f, 0.25f));
-            DrawPolyline(new[] { vertices[0], vertices[1], vertices[2], vertices[3], vertices[0] },
+            DrawPolyline(vertices.Append(vertices[0]).ToArray(),
                 new Color("ffe298"), 3, true);
         }
     }
@@ -99,7 +109,7 @@ public partial class BoardView : Node2D
             var v = Projection.Diamond(cell);
             var outside = new[] { new GridPosition(cell.X,cell.Y-1),new GridPosition(cell.X+1,cell.Y),new GridPosition(cell.X,cell.Y+1),new GridPosition(cell.X-1,cell.Y) };
             for (int edge=0;edge<4;edge++)
-                if (!cells.Contains(outside[edge])) DrawLine(v[edge],v[(edge+1)%4],color,2,true);
+                if (!cells.Contains(outside[edge])) DrawPolyline(Projection.Edge(cell,edge),color,2,true);
         }
     }
 }

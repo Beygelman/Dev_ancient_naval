@@ -14,7 +14,7 @@ public static class SimpleOpponent
         if (battle.IsOver) return CommandResult.Rejected("Бой завершён.");
         var side = battle.ActiveSide;
         if (battle.PendingUpgrade(side) is { } upgrading)
-            return battle.ChooseUpgrade(side, upgrading.Id, upgrading.PendingUpgradeLevel == 2 ? UpgradeChoice.Income : UpgradeChoice.SecondAttack);
+            return battle.ChooseUpgrade(side, upgrading.Id, upgrading.PendingUpgradeLevel switch { 2=>UpgradeChoice.Income,3=>UpgradeChoice.SecondAttack,_=>UpgradeChoice.Fortification });
         var allies = battle.OwnShips(side).ToArray();
         var enemies = battle.ObservedShips(side).Where(s => s.Owner != side && !s.IsAirborne).ToArray();
         foreach (var ship in allies)
@@ -29,6 +29,11 @@ public static class SimpleOpponent
                 if (battle.TargetCells(ship.Id).Contains(contact)) return battle.AttackAt(side, ship.Id, contact);
         foreach (var ship in allies)
             if (ship.CanRepair && ship.HealthRatio <= 0.5) return battle.Repair(side, ship.Id);
+        foreach(var mother in allies.Where(s=>s.IsMothership&&s.HasRadar))
+            if(battle.Credits(side)>=14&&battle.MortarBlockReason(side,mother.Id) is null) return battle.BuyMortar(side,mother.Id);
+        foreach(var collector in allies.Where(s=>s.Definition.CollectionRange>0))
+            if(battle.Credits(side)>=battle.DockPrice(side)&&battle.DockCells(collector.Id).FirstOrDefault() is var site&&battle.DockCells(collector.Id).Contains(site))
+                return battle.BuildDock(side,collector.Id,site);
         foreach (var collector in allies.Where(s => s.Definition.CollectionRange > 0))
             if (battle.Credits(side) >= BattleState.CollectionPrice && battle.CollectionCells(collector.Id).FirstOrDefault() is var fish && battle.CollectionCells(collector.Id).Contains(fish))
                 return battle.Collect(side, collector.Id, fish);
@@ -40,7 +45,7 @@ public static class SimpleOpponent
             // otherwise low-cost replacements can keep both fleets anchored indefinitely.
             if (battle.Round % 3 == 0 && mother.CanMove) continue;
             var preferred = allies.Count(s => s.Definition.Class == ShipClass.Fishing) < 2 && enemies.Length == 0
-                ? ShipClass.Fishing : allies.Length % 3 == 0 ? ShipClass.Kolonel : ShipClass.Invader;
+                ? ShipClass.Fishing : battle.Round % 4 == 0 ? ShipClass.Togus : allies.Length % 3 == 0 ? ShipClass.Kolonel : ShipClass.Invader;
             foreach (var type in new[] { preferred, ShipClass.Garrison }.Distinct())
             {
                 if (battle.BuildBlockReason(side, mother.Id, type) is not null) continue;

@@ -11,6 +11,7 @@ public sealed class Ship
     public double Health { get; internal set; }
     public int Kills { get; internal set; }
     public bool IsVeteran { get; internal set; }
+    public bool IsStructure => Definition.Class == ShipClass.FishingDock;
     public bool IsMothership => Definition.Class == ShipClass.Mothership;
     public bool IsAirborne => Definition.Class == ShipClass.Balloon;
     public int Level { get; internal set; } = 1;
@@ -20,14 +21,19 @@ public sealed class Ship
     public bool IncomeUpgrade { get; internal set; }
     public bool MobilityUpgrade { get; internal set; }
     public bool SecondAttackUpgrade { get; internal set; }
+    public bool HasMortar { get; internal set; }
+    public bool FortificationUpgrade { get; internal set; }
+    public bool ShipwrightUpgrade { get; internal set; }
     public bool HasRadar { get; internal set; }
     public int RadarRange => HasRadar ? Definition.RadarRange : 0;
     public int VisualRange => Definition.VisualRange;
-    public int AttackRange => IsArmed ? Math.Max(VisualRange, RadarRange) : 0;
+    public int AttackRange => IsArmed ? Math.Max(Definition.AttackRange, HasMortar ? MortarRange : 0) : 0;
+    public int MortarRange => HasMortar ? (HasRadar ? RadarRange : VisualRange) : 0;
+    public double CurrentMortarDamage => Whole((IsMothership ? 15 + (Level-1)*3 : FullDamage) * (0.5 + 0.5*HealthRatio));
     public static int Whole(double value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);
-    public double MaxHealth => Whole((Definition.MaxHealth + (IsMothership ? (Level - 1) * 10 : 0)) * (IsVeteran ? 1.25 : 1));
+    public double MaxHealth => Whole((Definition.MaxHealth + (IsMothership ? (Level - 1) * 10 : 0) + (FortificationUpgrade ? 5 : 0)) * (IsVeteran ? 1.25 : 1));
     public double HealthRatio => Math.Clamp(Health / MaxHealth, 0, 1);
-    public double FullDamage => Whole((Definition.Damage + (IsMothership ? (Level - 1) * 5 : 0)) * (IsVeteran ? 1.25 : 1));
+    public double FullDamage => Whole((Definition.Damage + (IsMothership ? (Level - 1) * 3 : 0)) * (IsVeteran ? 1.25 : 1));
     public double CurrentDamage => Whole(FullDamage * (0.5 + 0.5 * HealthRatio));
     public bool IsArmed => Definition.Damage > 0 && Definition.AttackRange > 0;
     public int MovementAllowance => Math.Max(0, Definition.Movement + (MobilityUpgrade ? 1 : 0) - (HealthRatio < 0.25 ? 1 : 0));
@@ -40,7 +46,7 @@ public sealed class Ship
     public bool HasProduced { get; internal set; }
     public bool MovementLocked { get; internal set; }
 
-    public bool CanMove => IsAirborne ? !IsExhausted && MovementRemainingUnits >= 10 : !IsExhausted && !MovementLocked && MovementRemainingUnits >= 6 &&
+    public bool CanMove => IsAirborne ? !IsExhausted && MovementRemainingUnits >= 10 : !IsStructure && !IsExhausted && !MovementLocked && MovementRemainingUnits >= 6 &&
         (Definition.ActionProfile switch
         {
             ActionProfile.Scout => true,
@@ -50,7 +56,7 @@ public sealed class Ship
         });
     public int AttacksRemaining => IsExhausted || !IsArmed ? 0 : Math.Max(0,
         (SecondAttackUpgrade || Definition.ActionProfile == ActionProfile.Heavy && !HasMoved ? 2 : 1) - AttacksUsed);
-    public bool CanRepair => !IsAirborne && !IsExhausted && !HasMoved && AttacksUsed == 0 && Health < MaxHealth;
+    public bool CanRepair => !IsAirborne && !IsStructure && !IsExhausted && !HasMoved && AttacksUsed == 0 && Health < MaxHealth;
 
     internal Ship(int id, Side owner, ShipDefinition definition, GridPosition position)
     {
@@ -59,6 +65,7 @@ public sealed class Ship
         Definition = definition;
         Position = position;
         Health = definition.MaxHealth;
+        HasMortar = definition.Class == ShipClass.Togus; HasRadar = definition.Class == ShipClass.Togus;
         ResetTurn();
     }
 

@@ -5,16 +5,17 @@ namespace DevAncientNaval.Core.World;
 public sealed class GameBoard
 {
     private readonly Tile[] _tiles;
+    public int Seed { get; }
     public int Width { get; }
     public int Height { get; }
     public IReadOnlyList<Tile> Tiles { get; }
 
-    public GameBoard(int width, int height, Func<GridPosition, TerrainType> terrainAt)
+    public GameBoard(int width, int height, Func<GridPosition, TerrainType> terrainAt, int seed = 0)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
         ArgumentNullException.ThrowIfNull(terrainAt);
-        Width = width;
+        Seed = seed; Width = width;
         Height = height;
         _tiles = new Tile[checked(width * height)];
         for (int y = 0; y < height; y++)

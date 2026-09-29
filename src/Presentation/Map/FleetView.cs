@@ -69,7 +69,7 @@ public partial class FleetView : Node2D
             return;
         }
         float size = ship.Class switch { ShipClass.Mothership => 1.2f, ShipClass.Garrison => 0.75f,
-            ShipClass.Kolonel => 1.05f, ShipClass.Fishing => 0.62f, _ => 0.9f };
+            ShipClass.Kolonel => 1.05f, ShipClass.Togus => 0.7f, ShipClass.Fishing => 0.62f, _ => 0.9f };
         float facing = ship.Owner == Side.Player ? 1 : -1;
         Vector2 Point(float x, float y) => center + new Vector2(x * facing * size, y * size - 5);
         var accent = new Color(ship.Owner == Side.Player ? "67d6e9" : "f48d72");
@@ -80,7 +80,18 @@ public partial class FleetView : Node2D
         if (ship.Id == SelectedId) DrawArc(center, 34 * size, 0, Mathf.Tau, 40, new Color("ffe298"), 2, true);
         DrawColoredPolygon(hull, new Color(ship.Owner == Side.Player ? "285b6b" : "773e38"));
         DrawPolyline(hull.Append(hull[0]).ToArray(), accent, 2, true);
-        if (ship.Class == ShipClass.Mothership)
+        if (ship.Class == ShipClass.FishingDock)
+        {
+            DrawColoredPolygon(new[] {Point(-22,-14),Point(23,-9),Point(23,12),Point(-22,7)},new Color("a58a63"));
+            for(int x=-20;x<=20;x+=8) DrawLine(Point(x,-12),Point(x,9),new Color("e9d8a9"),2,true);
+            DrawLine(Point(-17,5),Point(-17,-25),accent,3,true); DrawLine(Point(17,9),Point(17,-21),accent,3,true);
+        }
+        else if (ship.Class == ShipClass.Togus)
+        {
+            DrawCircle(Point(0,0),8,accent); DrawLine(Point(-3,-2),Point(7,-23),new Color("d1c7a8"),8,true);
+            DrawCircle(Point(7,-23),4,new Color("182c33"));
+        }
+        else if (ship.Class == ShipClass.Mothership)
         {
             DrawColoredPolygon(new[] { Point(-15, -4), Point(0, -8), Point(16, 0), Point(0, 5) }, accent.Darkened(0.15f));
             DrawLine(Point(-5, -3), Point(-5, -26), accent, 3, true);
@@ -101,6 +112,10 @@ public partial class FleetView : Node2D
                 DrawCircle(Point(13, 3), 7, new Color("c6bf93"));
                 for (int x = 7; x <= 19; x += 4) DrawLine(Point(x, -3), Point(x, 10), new Color("746e54"), 1);
             }
+        }
+        if(ship.Class==ShipClass.Mothership&&ship.HasMortar)
+        {
+            DrawCircle(Point(10,0),6,new Color("cfc3a0")); DrawLine(Point(10,0),Point(18,-17),new Color("dfd3b1"),6,true);
         }
         if (ship.IsVeteran)
         {
@@ -169,8 +184,8 @@ public partial class FleetView : Node2D
                     _muzzle = from;
                     await TweenValue(0.10, _ => { });
                     _muzzle = null;
-                    float height = Math.Clamp(from.DistanceTo(to) * 0.35f, 45, 120);
-                    await TweenValue(0.42, t => ProjectilePosition = from.Lerp(to, t) + new Vector2(0, -4 * height * t * (1 - t)));
+                    float height = shot.IsMortar?Math.Clamp(from.DistanceTo(to)*.65f,110,240):Math.Clamp(from.DistanceTo(to)*.35f,45,120);
+                    await TweenValue(shot.IsMortar?0.7:0.42, t => ProjectilePosition = from.Lerp(to, t) + new Vector2(0, -4 * height * t * (1 - t)));
                     ProjectilePosition = null;
                     if (shot.TargetSunk) _snapshots.Remove(shot.Target.Id);
                     else _snapshots[shot.Target.Id] = shot.Target with { Health = shot.Target.Health - shot.Damage };

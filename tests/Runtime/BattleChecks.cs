@@ -82,7 +82,7 @@ public partial class BattleChecks : Node
         Game.SelectCell(new(19,0)); Check(Game.SelectedShipId is null,"Invalid distant tile deselects");
         Game.FastChecks=true; Game.SelectCell(new(2,9)); await Frame();
         var sectors=Descendants(Game.Hud).OfType<SectorButton>().Where(s=>s.IsVisibleInTree()).ToArray();
-        Check(sectors.Length==4&&sectors.All(s=>Mathf.IsEqualApprox(s.Sweep,Mathf.Pi/4)),"Mother menu has four compact eighth sectors");
+        Check(sectors.Length==6&&sectors.All(s=>Mathf.IsEqualApprox(s.Sweep,Mathf.Pi/4)),"Mother menu has six compact eighth sectors");
         Check(sectors.All(s=>!s._HasPoint(SectorButton.Center)),"Sector hole passes map input");
         int money=Game.Battle.Credits(Side.Player);
         Click(Button("ActionRadar")); await Game.CurrentOrder;
@@ -134,7 +134,9 @@ public partial class BattleChecks : Node
         Check(air.Position==new GridPosition(5,5),"Balloon can fly above a friendly ship");
         Game.SelectCell(new(5,5));
         foreach(var cell in fish.Skip(5)) { Game.BeginCollect(); Game.SelectCell(cell); await Game.CurrentOrder; }
-        Check(Game.Battle.Find(1)!.Level==4&&!Game.Hud.UpgradeVisible&&Game.Battle.Find(1)!.MaxHealth==70,"Fourth level has stats only");
+                Check(Game.Battle.Find(1)!.Level==4&&Game.Hud.UpgradeVisible&&Game.Battle.Find(1)!.MaxHealth==80,"Fourth level offers new bonus");
+        await Frame(); Click(Button("UpgradeFortification")); await Game.CurrentOrder;
+        Check(Game.Battle.Find(1)!.MaxHealth==85&&!Game.Hud.UpgradeVisible,"Fortification applies through modal");
 
         Game.LoadScenario(new BattleState(new GameBoard(20,20,_=>TerrainType.Water),rules,new (Side,ShipClass,GridPosition)[] {
             (Side.Player,ShipClass.Mothership,new(0,0)),(Side.Enemy,ShipClass.Mothership,new(19,19)),
@@ -145,18 +147,46 @@ public partial class BattleChecks : Node
         await ToSignal(GetTree().CreateTimer(0.25),SceneTreeTimer.SignalName.Timeout);
         Check(Game.Fleet.ProjectilePosition is not null,"Direct attack launches projectile");
         await task;
-        Check(Game.Battle.Find(3)!.Health<30&&Game.Battle.Find(4)!.Health<30,"Counterattack preserved");
+        Check(Game.Battle.Find(3)!.Health<40&&Game.Battle.Find(4)!.Health<40,"Counterattack preserved");
         Game.Battle.EndTurn(Side.Player); Game.Battle.EndTurn(Side.Enemy); Game.Refresh(); await Frame();
         double hp=Game.Battle.Find(3)!.Health; Click(Button("ActionRepair")); await Game.CurrentOrder;
         Check(Game.Battle.Find(3)!.Health>hp&&Game.Battle.Find(3)!.Health%1==0,"Plus repair sector heals integer HP");
         Game.LoadScenario(new BattleState(new GameBoard(20,20,_=>TerrainType.Water),rules,new (Side,ShipClass,GridPosition)[] {
             (Side.Player,ShipClass.Mothership,new(5,5)),(Side.Enemy,ShipClass.Mothership,new(18,18)),(Side.Enemy,ShipClass.Kolonel,new(10,5)) },Array.Empty<GridPosition>()));
         Game.FastChecks=true; Game.SelectCell(new(5,5)); await Game.BuyRadar();
+        await Game.BuyMortar();
         Check(Game.Battle.FindObserved(Side.Player,3) is null&&Game.BoardView.Targets.Contains(new GridPosition(10,5)),"Radar marks target without optical identity");
         Game.SelectCell(new(10,5)); await Game.CurrentOrder;
-        Check(Game.Battle.Find(3)!.Health<30,"Direct contact click fires radar attack");
+        Check(Game.Battle.Find(3)!.Health<40,"Direct contact click fires radar attack");
         await Game.EndPlayerTurn();
         Check(Game.Battle.ActiveSide==Side.Player&&!Game.Busy,"AI returns control with new economy");
-        Game.Restart(); Check(Game.Battle.Ships.Count==6&&Game.Battle.Credits(Side.Player)==5,"Restart restores new setup");
+        await CheckMortarsAndDocks(rules);
+        int priorSeed=Game.Battle.Board.Seed; Game.Restart(); Check(Game.Battle.Board.Seed!=priorSeed,"New game rolls a new map seed");
+        Check(Game.Battle.Ships.Count==6&&Game.Battle.Credits(Side.Player)==5,"Restart restores new setup");
+    }
+    private async Task CheckMortarsAndDocks(BattleRules rules)
+    {
+        Game.LoadScenario(new BattleState(new GameBoard(20,20,_=>TerrainType.Water),rules,new (Side,ShipClass,GridPosition)[] {
+            (Side.Player,ShipClass.Mothership,new(5,5)),(Side.Enemy,ShipClass.Mothership,new(18,18)),
+            (Side.Enemy,ShipClass.Kolonel,new(10,5)),(Side.Player,ShipClass.Fishing,new(7,7)) },Array.Empty<GridPosition>()));
+        Game.FastChecks=true; Game.SelectCell(new(5,5)); await Frame();
+        Click(Button("ActionRadar")); await Game.CurrentOrder; await Frame();
+        Check(!Button("ActionMortar").Disabled,"Installed radar enables mortar upgrade");
+        Click(Button("ActionMortar")); await Game.CurrentOrder;
+        Check(Game.Battle.Find(1)!.HasMortar&&Game.Battle.Credits(Side.Player)==18,"Mortar action spends exactly ten");
+        Game.FastChecks=false; Game.SelectCell(new(10,5)); var shot=Game.CurrentOrder;
+        await ToSignal(GetTree().CreateTimer(.35),SceneTreeTimer.SignalName.Timeout);
+        Check(Game.Fleet.ProjectilePosition is not null,"Mortar shot has animated high trajectory"); await Capture("-mortar"); await shot;
+        Game.FastChecks=true; await Frame();
+        var site=Game.Battle.DockCells(1).First(); Click(Button("ActionDock"));
+        Check(Game.Mode==OrderMode.Dock&&Game.BoardView.Collection.Contains(site),"Dock action highlights eligible shoals");
+        Game.SelectCell(site); await Game.CurrentOrder; await Frame();
+        Check(Game.Battle.At(site) is { IsStructure:true }&&Game.Battle.Find(1)!.Level==2&&Game.Hud.UpgradeVisible,"Buying dock grants two points and level choice");
+        Click(Button("UpgradeIncome")); await Game.CurrentOrder; Game.CancelOrder(); await Frame(); await Capture("-dock");
+        Game.SelectCell(new(5,5)); await Frame(); Click(Button("ActionBuild")); await Frame();
+        Check(Button("BuildTogus").IsVisibleInTree(),"Togus available in shipyard");
+        Click(Button("BuildTogus")); var spawn=Game.Battle.SpawnCells(1).First(); Game.SelectCell(spawn); await Game.CurrentOrder;
+        Check(Game.Battle.At(spawn) is { HasMortar:true,HasRadar:true }&&Game.Battle.At(spawn)!.Definition.Class==ShipClass.Togus,"Togus produced with mortar and radar");
+        await Frame(); await Capture("-togus");
     }
 }

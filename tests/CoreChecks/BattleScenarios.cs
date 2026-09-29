@@ -5,7 +5,7 @@ using DevAncientNaval.Core.Units;
 using DevAncientNaval.Core.World;
 using DevAncientNaval.Core.Vision;
 
-internal static class BattleScenarios
+internal static partial class BattleScenarios
 {
     private static int _checks;
     private static readonly BattleRules Rules=BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"balance.json")));
@@ -20,7 +20,7 @@ internal static class BattleScenarios
     private static void Round(BattleState b) { Check(b.EndTurn(Side.Player).Success,"End player"); Check(b.EndTurn(Side.Enemy).Success,"End enemy"); }
     public static void Run()
     {
-        Balance(); Combat(); Radar(); Progression(); Navigation(); OrganicRules(); Opponent();
+        Balance(); Combat(); Radar(); Progression(); Navigation(); OrganicRules(); MortarsDocksMaps(); Opponent();
         Console.WriteLine($"PASS: {_checks} Thor/progression/combat checks; 8 complete AI matches.");
     }
     private static void Balance()
@@ -28,7 +28,7 @@ internal static class BattleScenarios
         Check(Rules.StartingCredits==5&&Rules.IncomePerMothership==2,"Five starting Thors and base income");
         foreach(var d in Rules.Ships) Check(d.MaxHealth%5==0&&d.Damage%5==0,"Base HP and damage multiples of five");
         Check(Rules.Get(ShipClass.Garrison).Price==2&&Rules.Get(ShipClass.Invader).Price==4&&Rules.Get(ShipClass.Kolonel).Price==8&&Rules.Get(ShipClass.Fishing).Price==3,"Explicit ship prices");
-        Check(Rules.Get(ShipClass.Fishing).IncomePerTurn==2&&Rules.Get(ShipClass.Fishing).VisualRange==1,"Fishing income and minimum sight");
+        Check(Rules.Get(ShipClass.Fishing).IncomePerTurn==2&&Rules.Get(ShipClass.Fishing).VisualRange==2,"Fishing income and minimum sight");
         Check(Rules.Get(ShipClass.Mothership).VisualRange>Rules.Ships.Where(s=>s.Class is not (ShipClass.Mothership or ShipClass.Balloon)).Max(s=>s.VisualRange),"Mother has largest ship sight");
         var b=Fixture(ShipClass.Fishing); Check(b.Income(Side.Player)==4,"Starting mother plus fisher income");
         var made=b.Build(Side.Player,1,ShipClass.Fishing,new(5,6));
@@ -47,8 +47,8 @@ internal static class BattleScenarios
     {
         var b=Fixture(ShipClass.Invader); var attacker=b.Find(3)!; var defender=b.Find(4)!;
         attacker.Health=attacker.MaxHealth/2;
-        Check(attacker.CurrentDamage==4,"Half HP damage is rounded to integer");
-        Check(b.Damage(attacker,defender)==2,"Armor after rounded injury damage");
+        Check(attacker.CurrentDamage==8,"Half HP damage is rounded to integer");
+        Check(b.Damage(attacker,defender)==6,"Armor after rounded injury damage");
         attacker.Health=attacker.MaxHealth/4; Check(attacker.MovementAllowance==4,"Exactly quarter HP unchanged");
         attacker.Health=4; attacker.MovementSpentUnits=20;
         Check(attacker.MovementAllowance==3&&attacker.MovementRemainingUnits==10,"Below quarter reduces shared movement budget");
@@ -61,7 +61,7 @@ internal static class BattleScenarios
         Check(b.Ships.All(s=>s.Health==Math.Floor(s.Health)),"Integer health after combat");
         b=Fixture(ShipClass.Invader,ShipClass.Fishing); Check(b.Attack(Side.Player,3,4).Shots!.Count==1,"No fish reply");
         b=Fixture(ShipClass.Fishing); Check(!b.Attack(Side.Player,3,4).Success,"No fish attack");
-        b=Fixture(ShipClass.Invader,ShipClass.Kolonel,new(11,8));
+        b=Fixture(ShipClass.Invader,ShipClass.Garrison,new(11,8));
         // Allied mother does not spot this cell; move defender one cell closer to the heavy's sight for range test.
         b.Vision.RevealCombat(Side.Player,new(11,8)); b.Vision.Recompute(b.Ships,1);
         Check(b.Attack(Side.Player,3,4).Shots!.Count==1,"Out-of-range reply forbidden");
@@ -76,7 +76,7 @@ internal static class BattleScenarios
         }
         b=Fixture(ShipClass.Kolonel,ShipClass.Fishing); attacker=b.Find(3)!; attacker.Kills=2; attacker.Health=10; b.Find(4)!.Health=1;
         Check(b.Attack(Side.Player,3,4).Shots![0].Promoted,"Third kill promotes");
-        Check(attacker.MaxHealth==38&&attacker.Health==38&&attacker.FullDamage==13,"Rounded veteran bonus and full heal");
+        Check(attacker.MaxHealth==50&&attacker.Health==50&&attacker.FullDamage==13,"Rounded veteran bonus and full heal");
         attacker.Health=30; Round(b); Check(b.Repair(Side.Player,3).Amount==5&&attacker.Health==35,"Integer healing");
         b=Fixture(ShipClass.Garrison); attacker=b.Find(3)!; defender=b.Find(4)!;
         attacker.Health=1; defender.Kills=2; defender.Health=10;
@@ -84,7 +84,7 @@ internal static class BattleScenarios
         b=new BattleState(new GameBoard(20,20,_=>TerrainType.Water),Rules,new (Side,ShipClass,GridPosition)[] {
             (Side.Player,ShipClass.Mothership,new(5,5)),(Side.Enemy,ShipClass.Mothership,new(18,18)),(Side.Enemy,ShipClass.Fishing,new(6,5)) },Array.Empty<GridPosition>());
         b.Find(1)!.Kills=2; b.Find(3)!.Health=1; b.Attack(Side.Player,1,3);
-        Check(!b.Find(1)!.IsVeteran&&b.Find(1)!.Level==1&&b.Find(1)!.MaxHealth==40,"Mother never becomes veteran");
+        Check(!b.Find(1)!.IsVeteran&&b.Find(1)!.Level==1&&b.Find(1)!.MaxHealth==50,"Mother never becomes veteran");
     }
     private static void Radar()
     {
@@ -99,10 +99,10 @@ internal static class BattleScenarios
         {
             b=Fixture(type); Check(!b.BuyRadar(Side.Player,3).Success&&!b.Find(3)!.HasRadar,"Other classes cannot purchase radar");
         }
-        b=Fixture(ShipClass.Kolonel); Check(b.BuyRadar(Side.Player,3).Success&&b.Find(3)!.RadarRange==4,"Heavy radar four");
+        b=Fixture(ShipClass.Kolonel); Check(b.BuyRadar(Side.Player,3).Success&&b.Find(3)!.RadarRange==5,"Heavy radar four");
         Check(b.Find(1)!.RadarRange==0,"Radar purchase independent per ship");
         var second=Fixture(ShipClass.Fishing, target:new(11,8));
-        Check(!second.Vision.IsVisible(Side.Player,new(10,8))&&second.Find(3)!.VisualRange==1,"Fisher shortest sight");
+        Check(!second.Vision.IsVisible(Side.Player,new(11,8))&&second.Find(3)!.VisualRange==2,"Fisher shortest sight");
         b=Fixture(); var old=new GridPosition(5,2); Check(b.Vision.IsVisible(Side.Player,old),"Starting sight");
         b.Find(1)!.Position=new(1,10); b.Vision.Recompute(b.Ships,5);
         Check(b.Vision.IsExplored(Side.Player,old)&&!b.Vision.IsVisible(Side.Player,old),"Terrain memory");
@@ -114,20 +114,20 @@ internal static class BattleScenarios
         Check(!b.Collect(Side.Player,1,Resources[0]).Success&&mother.Resources==1,"Fish consumed once");
         mother.Health=30;
         Check(b.Collect(Side.Player,1,Resources[1]).Success&&mother.Level==2&&mother.Resources==0&&mother.ResourcesRequired==3,"Two points advance to level two");
-        Check(mother.MaxHealth==50&&mother.Health==40&&mother.FullDamage==15&&b.Income(Side.Player)==4,"Level increases HP/damage/income, preserves damage taken");
+        Check(mother.MaxHealth==60&&mother.Health==40&&mother.FullDamage==13&&b.Income(Side.Player)==4,"Level increases HP/damage/income, preserves damage taken");
         Check(b.PendingUpgrade(Side.Player)==mother&&b.UpgradeOptions(1).SequenceEqual(new[] { UpgradeChoice.Income,UpgradeChoice.Mobility }),"Level two choices");
         Check(!b.Collect(Side.Player,1,Resources[2]).Success&&!b.EndTurn(Side.Player).Success&&!b.Build(Side.Player,1,ShipClass.Garrison,new(5,6)).Success,"Pending choice blocks other commands");
         Check(!b.ChooseUpgrade(Side.Enemy,1,UpgradeChoice.Income).Success&&!b.ChooseUpgrade(Side.Player,1,UpgradeChoice.Balloon).Success,"Choice ownership/level enforced");
         Check(b.ChooseUpgrade(Side.Player,1,UpgradeChoice.Income).Success&&b.Income(Side.Player)==5,"Income bonus one");
         Check(!b.ChooseUpgrade(Side.Player,1,UpgradeChoice.Mobility).Success,"Cannot take both choices");
         foreach(var cell in Resources.Skip(2).Take(3)) Check(b.Collect(Side.Player,1,cell).Success,"Collect level three progress");
-        Check(mother.Level==3&&mother.ResourcesRequired==4&&mother.MaxHealth==60&&b.Income(Side.Player)==7,"Level three stats and threshold");
+        Check(mother.Level==3&&mother.ResourcesRequired==4&&mother.MaxHealth==70&&b.Income(Side.Player)==7,"Level three stats and threshold");
         Check(b.ChooseUpgrade(Side.Player,1,UpgradeChoice.Balloon).Success,"Choose balloon");
         var air=b.OwnShips(Side.Player).Single(s=>s.IsAirborne);
         Check(air.VisualRange==4&&b.At(mother.Position)==mother,"Air and water layers separate");
         foreach(var cell in Resources.Skip(5)) Check(b.Collect(Side.Player,1,cell).Success,"Collect level four progress");
-        Check(mother.Level==4&&mother.Resources==0&&mother.MaxHealth==70&&mother.FullDamage==25&&b.Income(Side.Player)==9,"Level four base eight plus income bonus");
-        Check(b.PendingUpgrade(Side.Player) is null&&b.UpgradeOptions(1).Count==0&&b.CollectionCells(1).Count==0,"Level four cap without choice");
+        Check(mother.Level==4&&mother.Resources==0&&mother.MaxHealth==80&&mother.FullDamage==19&&b.Income(Side.Player)==9,"Level four base eight plus income bonus");
+        Check(b.PendingUpgrade(Side.Player)==mother&&b.ChooseUpgrade(Side.Player,1,UpgradeChoice.Shipwright).Success&&b.CollectionCells(1).Count==0,"Level four choice and resource cap");
         Check(b.Credits(Side.Player)==12,"Nine resources cost exactly eighteen");
         Check(!b.Move(Side.Player,air.Id,new(19,0)).Success,"Balloon cannot cross entire map");
         Check(b.Move(Side.Player,air.Id,new(8,5)).Success&&air.MovementRemainingUnits==0,"Flight consumes three-point budget");
@@ -164,7 +164,7 @@ internal static class BattleScenarios
         var b=Fixture(target:new(18,16));
         Check(b.StepCost(3,new(8,8),new(9,9))==14&&b.PathTo(3,new(11,11)).Count>1,"Rounded eight-way movement");
         Check(b.Move(Side.Player,3,new(11,11)).Success&&b.Find(3)!.MovementRemainingUnits==8,"Weighted shared budget");
-        foreach(var (kind,cost) in new[] { (ShipClass.Garrison,10),(ShipClass.Invader,20),(ShipClass.Kolonel,30),(ShipClass.Fishing,10) })
+        foreach(var (kind,cost) in new[] { (ShipClass.Garrison,10),(ShipClass.Invader,13),(ShipClass.Kolonel,15),(ShipClass.Fishing,10) })
         {
             b=Fixture(kind,target:new(18,16),terrain:p=>p==new GridPosition(9,7)?TerrainType.Land:TerrainType.Water);
             Check(b.StepCost(3,new(8,8),new(9,8))==cost,"Coastal class penalty");
@@ -192,6 +192,7 @@ internal static class BattleScenarios
         var b=Fixture(ShipClass.Fishing,target:new(10,5),fish:Resources);
         Check(!b.CanAttack(1,4),"Unseen target outside sight cannot be attacked");
         b.BuyRadar(Side.Player,1);
+        b.BuyMortar(Side.Player,1);
         Check(b.FindObserved(Side.Player,4) is null&&b.TargetCells(1).Contains(new(10,5)),"Radar targeting exposes location only");
         Check(b.AttackAt(Side.Player,1,new(10,5)).Success,"Radar contact can be fired on within installed radar range");
         Check(!b.CanAttack(3,4),"Unarmed collector never gains an attack");
@@ -212,7 +213,7 @@ internal static class BattleScenarios
         for(int scenario=0;scenario<8;scenario++)
         {
             int seed=scenario;
-            var map=scenario>=6?DevAncientNaval.Presentation.PrototypeBoard.Create():new GameBoard(20,20,p=>p.X>=8&&p.X<=10&&p.Y>=4+seed&&p.Y<=6+seed?TerrainType.Land:TerrainType.Water);
+            var map=scenario>=6?ArchipelagoGenerator.Create(seed):new GameBoard(20,20,p=>p.X>=8&&p.X<=10&&p.Y>=4+seed&&p.Y<=6+seed?TerrainType.Land:TerrainType.Water);
             var b=new BattleState(map,Rules,new (Side,ShipClass,GridPosition)[] {
                 (Side.Player,ShipClass.Mothership,new(2,9)),(Side.Player,ShipClass.Garrison,new(4,9)),(Side.Player,ShipClass.Fishing,new(3,11)),
                 (Side.Enemy,ShipClass.Mothership,new(17,9)),(Side.Enemy,ShipClass.Garrison,new(15,9)),(Side.Enemy,ShipClass.Fishing,new(16,7)) },resourceSeed:seed);

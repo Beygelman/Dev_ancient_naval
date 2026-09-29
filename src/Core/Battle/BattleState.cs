@@ -39,7 +39,7 @@ public sealed partial class BattleState
         }
         foreach (var side in Enum.GetValues<Side>())
             if (_ships.Count(s => s.Owner == side && s.Definition.Class == ShipClass.Mothership) != 1 ||
-                _ships.Count(s => s.Owner == side && !s.IsAirborne) > rules.FleetLimit)
+                _ships.Count(s => s.Owner == side && !s.IsAirborne && !s.IsStructure) > rules.FleetLimit)
                 throw new ArgumentException("Each side needs one Mothership and must respect the fleet limit.");
         UpdateVision();
         InitializeFishing(fishSpots, resourceSeed);
@@ -47,7 +47,7 @@ public sealed partial class BattleState
 
     public bool Creative { get; private set; }
     public void SetCreative(bool enabled) => Creative = enabled;
-    public int BuildPrice(Side side, ShipClass kind) => Creative && side == Side.Player ? 0 : Rules.Get(kind).Price;
+    public int BuildPrice(Side side, ShipClass kind) => Creative && side == Side.Player ? 0 : Math.Max(1, (int)Math.Floor(Rules.Get(kind).Price * (Mothership(side)?.ShipwrightUpgrade == true ? .75 : 1)));
     public int CollectionCost(Side side) => Creative && side == Side.Player ? 0 : CollectionPrice;
     public int Credits(Side side) => _credits[(int)side];
     public Ship? Find(int id) => _ships.FirstOrDefault(s => s.Id == id);
@@ -57,7 +57,13 @@ public sealed partial class BattleState
     public Ship? ObservedAt(Side side, GridPosition cell) => ObservedShips(side).Where(s => s.Position == cell).OrderBy(s => s.IsAirborne).FirstOrDefault();
     public Ship? FindObserved(Side side, int id) => ObservedShips(side).FirstOrDefault(s => s.Id == id);
     public static double Distance(GridPosition a, GridPosition b) => Math.Sqrt((double)(a.X - b.X) * (a.X - b.X) + (double)(a.Y - b.Y) * (a.Y - b.Y));
-    public double Damage(Ship attacker, Ship target) => attacker.IsArmed && !target.IsAirborne ? Ship.Whole(Math.Max(1, attacker.CurrentDamage - target.Definition.Armor)) : 0;
+    public static bool UsesMortar(Ship ship, GridPosition cell) => ship.HasMortar && !BattleVision.InRadius(ship.Position,cell,3);
+    private static bool WeaponCoversFrom(Ship ship,GridPosition origin,GridPosition cell,bool counter=false) =>
+        ship.IsArmed && (ship.Definition.Class!=ShipClass.Togus && BattleVision.InRadius(origin,cell,ship.Definition.AttackRange) ||
+        !counter && ship.HasMortar && !BattleVision.InRadius(origin,cell,3) && BattleVision.InRadius(origin,cell,ship.MortarRange));
+    public bool WeaponCovers(Ship ship,GridPosition cell,bool counter=false) => WeaponCoversFrom(ship,ship.Position,cell,counter);
+    public double Damage(Ship attacker, Ship target, bool counter=false) => attacker.IsArmed && !target.IsAirborne ?
+        Ship.Whole(Math.Max(1, (UsesMortar(attacker,target.Position)&&!counter?attacker.CurrentMortarDamage:attacker.CurrentDamage) + (counter&&attacker.FortificationUpgrade?3:0) - target.Definition.Armor)) : 0;
     public bool IsFreeWater(GridPosition cell) => Board.TryGetTile(cell, out var tile) && tile!.Terrain != TerrainType.Land && At(cell) is null;
     private void UpdateVision() => Vision.Recompute(Ships, Round * 2 + (int)ActiveSide);
 
@@ -92,9 +98,9 @@ public sealed partial class BattleState
         if (ship is null || from == to || Math.Abs(from.X - to.X) > 1 || Math.Abs(from.Y - to.Y) > 1 || !Passable(ship, to, knowledge)) return null;
         bool diagonal = from.X != to.X && from.Y != to.Y;
         if (diagonal && (!Passable(ship, new(from.X, to.Y), knowledge) || !Passable(ship, new(to.X, from.Y), knowledge))) return null;
-        int multiplier = Narrow(ship, to, knowledge) ? ship.Definition.NarrowMovementCost :
+        double multiplier = Narrow(ship, to, knowledge) ? ship.Definition.NarrowMovementCost :
             Terrain(ship, to, knowledge) == TerrainType.Coast ? ship.Definition.CoastMovementCost : 1;
-        return (diagonal ? 14 : 10) * multiplier;
+        return Ship.Whole((diagonal ? 14 : 10) * multiplier);
     }
 
     private (Dictionary<GridPosition, int> Costs, Dictionary<GridPosition, GridPosition> Previous) Flood(Ship ship, int budget)
@@ -159,8 +165,10 @@ public sealed partial class BattleState
     {
         var ship = Find(id);
         var target = ship is null ? null : FindObserved(ship.Owner, targetId);
-        return ship is null || !ship.IsArmed || target is null || target.Owner == ship.Owner ? Array.Empty<GridPosition>() :
-            RouteToward(id, target.Position, ship.AttackRange);
+        if(ship is null || !ship.IsArmed || target is null || target.Owner==ship.Owner) return Array.Empty<GridPosition>();
+        var flood=Flood(ship,Board.Width*Board.Height*60);
+        var goal=flood.Costs.Where(p=>WeaponCoversFrom(ship,p.Key,target.Position)).OrderBy(p=>p.Value).Select(p=>(GridPosition?)p.Key).FirstOrDefault();
+        return goal is { } cell ? Reconstruct(ship.Position,cell,flood.Previous) : Array.Empty<GridPosition>();
     }
     public GridPosition AffordableDestination(int id, IReadOnlyList<GridPosition> path)
     {
@@ -205,22 +213,22 @@ public sealed partial class BattleState
         var ship = Find(id);
         var target = ship is null ? null : Find(targetId);
         return !IsOver && ship is not null && target is not null && !target.IsAirborne && ship.Owner == ActiveSide && ship.Owner != target.Owner && (Vision.IsVisible(ship.Owner,target.Position) || ship.HasRadar && Vision.Contacts(ship.Owner).Contains(target.Position)) &&
-            ship.AttacksRemaining > 0 && BattleVision.InRadius(ship.Position, target.Position, ship.AttackRange);
+            ship.AttacksRemaining > 0 && WeaponCovers(ship,target.Position);
     }
     public IReadOnlyCollection<GridPosition> AttackCells(int id)
     {
         var ship = Find(id);
         if (ship is null || !ship.IsArmed || IsOver || ship.Owner != ActiveSide || ship.AttacksRemaining == 0) return Array.Empty<GridPosition>();
-        return Board.Tiles.Where(t => (Vision.IsVisible(ship.Owner, t.Position) || ship.HasRadar) && BattleVision.InRadius(ship.Position, t.Position, ship.AttackRange))
+        return Board.Tiles.Where(t => (Vision.IsVisible(ship.Owner, t.Position) || ship.HasRadar) && WeaponCovers(ship,t.Position))
             .Select(t => t.Position).ToArray();
     }
     public bool CanCounterattack(Ship defender, Ship attacker) => defender.Health > 0 && defender.IsArmed &&
-        BattleVision.InRadius(defender.Position, attacker.Position, defender.AttackRange);
+        WeaponCovers(defender,attacker.Position,true);
     public double PreviewCounterDamage(Ship attacker, Ship defender)
     {
         double remaining = Math.Max(0, defender.Health - Damage(attacker, defender));
         return remaining == 0 || !CanCounterattack(defender, attacker) ? 0 :
-            Math.Max(1, Ship.Whole(defender.FullDamage * (0.5 + 0.5 * remaining / defender.MaxHealth)) - attacker.Definition.Armor);
+            Math.Max(1, Ship.Whole(defender.FullDamage * (0.5 + 0.5 * remaining / defender.MaxHealth)) + (defender.FortificationUpgrade?3:0) - attacker.Definition.Armor);
     }
     public CommandResult AttackAt(Side requester, int id, GridPosition cell)
     {
@@ -255,20 +263,20 @@ public sealed partial class BattleState
     private CombatShot Fire(Ship attacker, Ship target, bool counter)
     {
         var from = ShipSnapshot.From(attacker); var to = ShipSnapshot.From(target);
-        double damage = Math.Min(target.Health, Damage(attacker, target));
+        double damage = Math.Min(target.Health, Damage(attacker, target, counter));
         target.Health = Ship.Whole(target.Health - damage);
         bool sunk = target.Health <= 0, promoted = false;
         if (sunk)
         {
             _ships.Remove(target); RemoveIncomeSource($"ship:{target.Id}");
-            if (!attacker.IsMothership) attacker.Kills++;
+            if (!attacker.IsMothership && !target.IsStructure) attacker.Kills++;
             if (!attacker.IsMothership && !attacker.IsVeteran && attacker.Kills >= 3)
             {
                 attacker.IsVeteran = true; attacker.Health = attacker.MaxHealth; promoted = true;
             }
             if (target.Definition.Class == ShipClass.Mothership) Winner = attacker.Owner;
         }
-        return new(from, to, damage, counter, sunk, promoted);
+        return new(from, to, damage, counter, sunk, promoted, !counter && UsesMortar(attacker,target.Position));
     }
 
     public CommandResult Repair(Side requester, int id)
@@ -291,10 +299,10 @@ public sealed partial class BattleState
     {
         var error = ValidateActor(requester, mothershipId, out var mother);
         if (error is not null) return error;
-        if (!Enum.IsDefined(shipClass) || shipClass is ShipClass.Mothership or ShipClass.Balloon) return "Этот класс нельзя построить.";
+        if (!Enum.IsDefined(shipClass) || shipClass is ShipClass.Mothership or ShipClass.Balloon or ShipClass.FishingDock) return "Этот класс нельзя построить.";
         if (mother!.Definition.Class != ShipClass.Mothership) return "Корабли строит Mothership.";
         if (mother.HasProduced) return "Этот Mothership уже построил корабль в этом ходу.";
-        if (_ships.Count(s => s.Owner == requester && !s.IsAirborne) >= Rules.FleetLimit) return $"Лимит флота: {Rules.FleetLimit}.";
+        if (_ships.Count(s => s.Owner == requester && !s.IsAirborne && !s.IsStructure) >= Rules.FleetLimit) return $"Лимит флота: {Rules.FleetLimit}.";
         if (Credits(requester) < BuildPrice(requester,shipClass)) return "Недостаточно средств.";
         if (SpawnCells(mothershipId).Count == 0) return "Нет свободной соседней клетки воды.";
         return null;

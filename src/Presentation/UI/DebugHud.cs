@@ -17,7 +17,7 @@ public partial class DebugHud : CanvasLayer
     private HBoxContainer _metrics=null!;
     private PanelContainer _shipCard=null!, _notice=null!, _upgradePanel=null!;
     private Label _coins=null!, _coinCaption=null!, _turn=null!, _ship=null!, _details=null!, _message=null!, _banner=null!, _upgradeTitle=null!;
-    private SectorButton _repair=null!, _yard=null!, _collect=null!, _radar=null!;
+    private SectorButton _repair=null!, _yard=null!, _collect=null!, _radar=null!, _mortar=null!, _dock=null!;
     private Button _end=null!, _restart=null!;
     private readonly Dictionary<ShipClass,SectorButton> _build=new();
     private readonly Dictionary<SectorButton,Label> _badges=new();
@@ -33,7 +33,7 @@ public partial class DebugHud : CanvasLayer
     public string BannerText => _banner.Visible?_banner.Text:"";
     public Vector2 MenuPosition => _radial.Position;
     public bool UpgradeVisible => _upgradeOverlay.Visible;
-    public event Action? EndTurnRequested,RepairRequested,RestartRequested,CollectRequested,RadarRequested;
+    public event Action? EndTurnRequested,RepairRequested,RestartRequested,CollectRequested,RadarRequested,MortarRequested,DockRequested;
     public event Action<ShipClass>? BuildRequested;
     public event Action<UpgradeChoice>? UpgradeRequested;
 
@@ -60,9 +60,11 @@ public partial class DebugHud : CanvasLayer
         _repair=IconButton("ActionRepair",ActionSymbol.Repair,"Ремонт",()=>RepairRequested?.Invoke());
         _collect=IconButton("ActionCollect",ActionSymbol.Fishing,"Собрать рыбу за 2 Thors",()=>CollectRequested?.Invoke());
         _radar=IconButton("ActionRadar",ActionSymbol.Radar,"Купить радар",()=>RadarRequested?.Invoke());
+        _mortar=IconButton("ActionMortar",ActionSymbol.Mortar,"Мортира",()=>MortarRequested?.Invoke());
+        _dock=IconButton("ActionDock",ActionSymbol.Dock,"Рыбный док",()=>DockRequested?.Invoke());
         _yard=IconButton("ActionBuild",ActionSymbol.Build,"Верфь",()=> { _productionOpen=true; ApplyMenuVisibility(); });
         foreach(var (kind,symbol) in new[] { (ShipClass.Fishing,ActionSymbol.Fishing),(ShipClass.Garrison,ActionSymbol.Scout),
-            (ShipClass.Invader,ActionSymbol.Standard),(ShipClass.Kolonel,ActionSymbol.Heavy) })
+            (ShipClass.Invader,ActionSymbol.Standard),(ShipClass.Kolonel,ActionSymbol.Heavy),(ShipClass.Togus,ActionSymbol.Mortar) })
             _build[kind]=IconButton("Build"+kind,symbol,kind.ToString(),()=>BuildRequested?.Invoke(kind));
 
         _upgradeOverlay=new Control { MouseFilter=Control.MouseFilterEnum.Stop }; _root.AddChild(_upgradeOverlay);
@@ -75,7 +77,8 @@ public partial class DebugHud : CanvasLayer
         column.AddChild(Label("Выберите одно улучшение",17,true));
         foreach(var (choice,text) in new[] {
             (UpgradeChoice.Income,"+1 Thor к доходу за ход"),(UpgradeChoice.Mobility,"+1 клетка движения"),
-            (UpgradeChoice.SecondAttack,"Вторая атака Mothership"),(UpgradeChoice.Balloon,"Воздушный шар · обзор 4 · движение 3") })
+            (UpgradeChoice.SecondAttack,"Вторая атака Mothership"),(UpgradeChoice.Balloon,"Воздушный шар · обзор 4 · движение 3"),
+            (UpgradeChoice.Fortification,"+5 HP и +3 к урону контратаки"),(UpgradeChoice.Shipwright,"−25% стоимости кораблей") })
         {
             var button=TextButton(text,()=>UpgradeRequested?.Invoke(choice)); button.Name="Upgrade"+choice; column.AddChild(button); _choices[choice]=button;
         }
@@ -97,6 +100,7 @@ public partial class DebugHud : CanvasLayer
         {
             _upgradeTitle.Text=$"Mothership · уровень {pending.Level}";
             foreach(var (choice,button) in _choices) { button.Visible=battle.UpgradeOptions(pending.Id).Contains(choice); button.Disabled=busy; }
+            _upgradePanel.ResetSize();
         }
         bool canAct=!busy&&!battle.IsOver&&battle.ActiveSide==Side.Player&&pending is null&&!MenuVisible;
         _end.Disabled=!canAct; _restart.Disabled=busy;
@@ -104,14 +108,21 @@ public partial class DebugHud : CanvasLayer
         if(selected is not null)
         {
             _ship.Text=selected.IsAirborne?"Воздушный шар":$"{selected.Definition.Name}{(selected.IsMothership?$" · ур. {selected.Level}":selected.IsVeteran?" ★ ВЕТЕРАН":"")}   {selected.Health:0}/{selected.MaxHealth:0} HP";
-            _details.Text=selected.IsAirborne?$"Обзор {selected.VisualRange} · Ход {selected.MovementRemaining:0}/{selected.MovementAllowance} · неуязвим":$"Урон {selected.CurrentDamage:0} · Огонь {selected.AttackRange} · Обзор {selected.VisualRange} · Радар {selected.RadarRange}";
+            _details.Text=selected.IsAirborne?$"Обзор {selected.VisualRange} · Ход {selected.MovementRemaining:0}/{selected.MovementAllowance} · неуязвим":$"Урон {selected.CurrentDamage:0} · Огонь {selected.Definition.AttackRange} · Обзор {selected.VisualRange} · Радар {selected.RadarRange}";
+            if(selected.HasMortar) _details.Text+=$" · Мортира 4–{selected.MortarRange}: {selected.CurrentMortarDamage:0}";
+            if(selected.IsStructure) _details.Text="Доход +1 · неподвижный рыбный док";
             _shipCard.TooltipText=selected.IsMothership?$"Ресурсы: {selected.Resources}/{selected.ResourcesRequired}":$"Потоплено: {selected.Kills}/3";
         }
-        _hasRadial=canAct&&selected?.Owner==Side.Player&&!selected.IsAirborne;
+        _hasRadial=canAct&&selected?.Owner==Side.Player&&!selected.IsAirborne&&!selected.IsStructure;
         Availability(_repair,_hasRadial&&selected!.CanRepair,"");
         Availability(_yard,_hasRadial&&selected!.IsMothership&&!selected.HasProduced,"");
         Availability(_collect,_hasRadial&&battle.CollectionCells(selected!.Id).Count>0&&battle.Credits(Side.Player)>=battle.CollectionCost(Side.Player),battle.CollectionCost(Side.Player).ToString());
         Availability(_radar,_hasRadial&&battle.RadarBlockReason(Side.Player,selected!.Id) is null,selected?.HasRadar==true?"✓":"2");
+        Availability(_mortar,_hasRadial&&battle.MortarBlockReason(Side.Player,selected!.Id) is null,selected?.HasMortar==true?"✓":"10");
+        Availability(_dock,_hasRadial&&battle.DockCells(selected!.Id).Count>0&&battle.Credits(Side.Player)>=battle.DockPrice(Side.Player),battle.DockPrice(Side.Player).ToString());
+        _mortar.TooltipText=selected?.HasMortar==true?"Мортира установлена · мёртвая зона 3":$"Мортира · 10 Thors · { (selected is null?"":battle.MortarBlockReason(Side.Player,selected.Id)) }";
+        _dock.TooltipText=$"Рыбный док · {battle.DockPrice(Side.Player)} Thors · +2 ресурса, +1 доход";
+        _mortar.SetMeta("applicable",selected?.IsMothership==true); _dock.SetMeta("applicable",selected?.Definition.CollectionRange>0);
         _repair.TooltipText=$"Ремонт: до +{battle.Rules.RepairAmount} HP";
         _radar.TooltipText=selected?.HasRadar==true?$"Радар установлен · радиус {selected.RadarRange}":"Купить радар · 2 Thors";
         _collect.TooltipText=$"Собрать рыбную клетку · {battle.CollectionCost(Side.Player)} Thors → 1 ресурс Mothership";
@@ -130,7 +141,7 @@ public partial class DebugHud : CanvasLayer
     private void ApplyMenuVisibility()
     {
         _repair.Visible=_hasRadial&&!_productionOpen&&_mode==OrderMode.None;
-        foreach(var button in new[] { _yard,_collect,_radar })
+        foreach(var button in new[] { _yard,_collect,_radar,_mortar,_dock })
             button.Visible=_hasRadial&&!_productionOpen&&_mode==OrderMode.None&&button.GetMeta("applicable",false).AsBool();
         foreach(var button in _build.Values) button.Visible=_hasRadial&&_productionOpen;
         var sectors=_radial.GetChildren().OfType<SectorButton>().Where(b=>b.Visible).ToArray();

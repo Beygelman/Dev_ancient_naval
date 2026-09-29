@@ -16,6 +16,7 @@ public sealed partial class BattleState
 
     private void InitializeFishing(IEnumerable<GridPosition>? supplied, int seed)
     {
+        InitializeShoals(seed);
         if(supplied is not null)
         {
             foreach(var cell in supplied)
@@ -28,10 +29,10 @@ public sealed partial class BattleState
         var random=new Random(seed);
         var candidates=Board.Tiles.Where(t=>t.Terrain!=TerrainType.Land && At(t.Position) is null).Select(t=>t.Position).ToList();
         for(int i=candidates.Count-1;i>0;i--) { int j=random.Next(i+1); (candidates[i],candidates[j])=(candidates[j],candidates[i]); }
-        foreach(var cell in candidates.Take(Math.Min(32,candidates.Count))) _fish.Add(cell);
+        foreach(var cell in candidates.Where(p=>!_shoals.Contains(p)).Take(Math.Min(24,candidates.Count))) _fish.Add(cell);
         // Every starting fleet can demonstrate collection without relying on a lucky seed.
         foreach(var mother in Ships.Where(s=>s.IsMothership))
-            foreach(var cell in candidates.Where(p=>BattleVision.InRadius(p,mother.Position,mother.Definition.CollectionRange)).Take(2)) _fish.Add(cell);
+            foreach(var cell in candidates.Where(p=>!_shoals.Contains(p)&&BattleVision.InRadius(p,mother.Position,mother.Definition.CollectionRange)).Take(2)) _fish.Add(cell);
     }
 
     public string? RadarBlockReason(Side requester,int id)
@@ -65,21 +66,16 @@ public sealed partial class BattleState
         if(!CollectionCells(id).Contains(cell)) return CommandResult.Rejected("Рыба должна быть видна и находиться в радиусе сбора.");
         if(Credits(requester)<CollectionCost(requester)) return CommandResult.Rejected("Для сбора нужно 2 Thors.");
         var mother=Mothership(requester)!;
-        _credits[(int)requester]-=CollectionCost(requester); _fish.Remove(cell); mother.Resources++;
-        bool advanced=mother.Resources>=mother.ResourcesRequired;
-        if(advanced)
-        {
-            double previousMax=mother.MaxHealth;
-            mother.Resources=0; mother.Level++; mother.Health+=mother.MaxHealth-previousMax;
-            mother.PendingUpgradeLevel=mother.Level is 2 or 3?mother.Level:0;
-            RegisterShipIncome(mother);
-        }
+        _credits[(int)requester]-=CollectionCost(requester); _fish.Remove(cell);
+        int oldLevel=mother.Level; GrantResources(mother,1);
+        bool advanced=mother.Level>oldLevel;
         return new(true,advanced?$"Mothership: уровень {mother.Level}!":$"+1 ресурс Mothership · −{CollectionCost(requester)} Thors",CommandKind.Collect,id,mother.Id,1);
     }
     public IReadOnlyList<UpgradeChoice> UpgradeOptions(int motherId) => Find(motherId)?.PendingUpgradeLevel switch
     {
         2 => new[] { UpgradeChoice.Income,UpgradeChoice.Mobility },
         3 => new[] { UpgradeChoice.SecondAttack,UpgradeChoice.Balloon },
+        4 => new[] { UpgradeChoice.Fortification,UpgradeChoice.Shipwright },
         _ => Array.Empty<UpgradeChoice>()
     };
     public CommandResult ChooseUpgrade(Side requester,int id,UpgradeChoice choice)
@@ -89,6 +85,8 @@ public sealed partial class BattleState
             return CommandResult.Rejected("Это улучшение сейчас недоступно.");
         switch(choice)
         {
+            case UpgradeChoice.Fortification: mother.FortificationUpgrade=true; mother.Health+=5; break;
+            case UpgradeChoice.Shipwright: mother.ShipwrightUpgrade=true; break;
             case UpgradeChoice.Income: mother.IncomeUpgrade=true; RegisterShipIncome(mother); break;
             case UpgradeChoice.Mobility: mother.MobilityUpgrade=true; break;
             case UpgradeChoice.SecondAttack: mother.SecondAttackUpgrade=true; break;

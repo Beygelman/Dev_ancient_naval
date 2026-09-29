@@ -67,13 +67,14 @@ public partial class PrototypeChecks : Node
             Mouse(screen, false);
         }
 
+        Check(projection.TriangleCount>0,"Topology includes true triangular tiles");
         foreach (var tile in Game.BoardView.Board.Tiles)
         {
             var center = projection.GridToWorld(tile.Position);
             var quad=projection.Diamond(tile.Position);
-            var right=projection.Diamond(new(tile.Position.X+1,tile.Position.Y));
-            Check(quad[1]==right[0]&&quad[2]==right[3],"Shared deformed edge has no crack");
-            Check(Enumerable.Range(0,4).All(i=>(quad[(i+1)%4]-quad[i]).Cross(quad[(i+2)%4]-quad[(i+1)%4])>0),"Quad remains convex");
+            var right=projection.Edge(new(tile.Position.X+1,tile.Position.Y),3);
+            Check(projection.Edge(tile.Position,1).SequenceEqual(right.Reverse()),"Shared curved edge has no crack");
+            Check(Geometry2D.TriangulatePolygon(quad).Length==(quad.Length-2)*3,"Curved tile is a valid simple polygon");
             Check(projection.WorldToGrid(center) == tile.Position, "Center round trip");
             foreach (var corner in projection.Diamond(tile.Position))
                 Check(projection.WorldToGrid(center.Lerp(corner, 0.98f)) == tile.Position, "Inside diamond");
@@ -178,6 +179,7 @@ public partial class PrototypeChecks : Node
         camera.FitBoard();
         camera.Pan(new(55, -30));
         camera.ZoomAt(new(640, 360), 1.3f);
+        Check(projection.TriangleCount>0,"Topology includes true triangular tiles");
         foreach (var tile in Game.BoardView.Board.Tiles)
         {
             Game.CancelOrder();
@@ -185,6 +187,17 @@ public partial class PrototypeChecks : Node
             Check(Game.BoardView.Selected == tile.Position, "All cells after camera transform");
         }
 
+        for(int seed=0;seed<16;seed++)
+        {
+            var mesh=new DevAncientNaval.Presentation.Map.IsometricProjection(seed:seed);
+            Check(mesh.TriangleCount>=2,"Each mesh seed contains triangles");
+            for(int y=0;y<20;y++) for(int x=0;x<20;x++)
+            {
+                var p=new GridPosition(x,y); var outline=mesh.Diamond(p);
+                Check(Geometry2D.TriangulatePolygon(outline).Length==(outline.Length-2)*3,"Seeded curved topology has no self intersection");
+                Check(mesh.WorldToGrid(mesh.GridToWorld(p))==p,"Seeded mesh picking matches centers");
+            }
+        }
         camera.ZoomAt(anchor, 10000);
         Check(Mathf.IsEqualApprox(camera.Zoom.X, MapCamera.MaxZoom), "Maximum zoom");
         camera.ZoomAt(anchor, 0.00001f);

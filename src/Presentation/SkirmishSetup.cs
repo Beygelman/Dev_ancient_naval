@@ -15,5 +15,5 @@ internal static class SkirmishSetup
             (Side.Enemy, ShipClass.Mothership, new(17, 9)),
             (Side.Enemy, ShipClass.Garrison, new(15, 9)),
             (Side.Enemy, ShipClass.Fishing, new(16, 7))
-        }, resourceSeed: System.Random.Shared.Next());
+        }, resourceSeed: board.Seed);
 }
