@@ -6,7 +6,17 @@ addition to the external `outputs` directory. Sources are edited directly in
 the repository's `src`, `assets`, `data`, `scenes` and `tests` folders; the root
 `README.md` describes the current version.
 
-## Current version: 0.19
+## Current version: 0.20
+
+- [Windows ZIP](0.20/Ancient_Naval_0.20_Windows.zip)
+- [Source checkpoint ZIP](0.20/Ancient_Naval_0.20_Source.zip)
+- [Russian release notes](0.20/Ancient_Naval_0.20_Notes_RU.md)
+- [Checksums](SHA256-0.20.txt)
+- [Setup](0.20/Ancient_Naval_0.20_setup.png), [Pangaea](0.20/Ancient_Naval_0.20_pangaea.png), [red fleet](0.20/Ancient_Naval_0.20_red-fleet.png), [claim scroll](0.20/Ancient_Naval_0.20_claim.png)
+
+Local launch: `0.20/playable/Ancient Naval.exe`. Keep the whole runtime folder together.
+
+## Previous version: 0.19
 
 - [Windows ZIP](0.19/Ancient_Naval_0.19_Windows.zip)
 - [Source checkpoint ZIP](0.19/Ancient_Naval_0.19_Source.zip)
@@ -25,7 +35,7 @@ than GitHub's 100 MiB limit. The complete ZIP is tracked instead.
 Package and verify the new version first, then run from the repository root:
 
 ```powershell
-./tools/Sync-Release.ps1 -Version '0.19' -OutputsPath 'C:/Users/User/Documents/Codex/2026-09-29/x20/outputs'
+./tools/Sync-Release.ps1 -Version '0.20' -OutputsPath 'C:/Users/User/Documents/Codex/2026-09-29/x20/outputs'
 ```
 
 The tool copies all matching artifacts and every unpacked runtime file,

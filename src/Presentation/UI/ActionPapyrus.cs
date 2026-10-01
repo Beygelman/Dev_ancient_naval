@@ -66,7 +66,7 @@ public partial class ActionPapyrus : Control
     }
     public override void _GuiInput(InputEvent input)
     {
-        if (!IsConsuming && input is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true })
+        if (!IsConsuming && input is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } or InputEventScreenTouch { Pressed: true })
         {
             AcceptEvent();
             Pressed?.Invoke();

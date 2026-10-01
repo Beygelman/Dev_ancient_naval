@@ -75,6 +75,7 @@ public partial class Refinement020ArtChecks : Node
                 var origin=GetViewport().GetCanvasTransform()*Game.BoardView.ToGlobal(Game.BoardView.Projection.GridToWorld(new(12,12)));
                 Check((fan.Position+SectorButton.Center-origin-new Vector2(0,36)).Length()<1,"fan follows the hull at "+color);
                 var before=fan.Position;
+                Check(Nodes(Game.Hud).OfType<SectorButton>().Single(n=>n.Name=="ActionMortar").Cost==battle.MortarPrice,"mortar badge keeps its real equipment price in Creative");
                 Game.MapCamera.Pan(new(40,20));
                 await Frame();
                 Check(fan.Position.DistanceTo(before)>5,"fan responds to camera movement");

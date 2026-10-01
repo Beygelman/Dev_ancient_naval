@@ -18,6 +18,22 @@ Delivered 1 October 2026. The authoritative source project remains `C:/__Beygelm
 
 Validation includes the pure-.NET regression suite and 79 new checks for all hulls in narrow rivers, actual movement vs previews, Kolonel AA, old-rule defaults, red saves and twelve Pangaea seeds. Native graphical checks exercise six fleet models, all town levels, ports, world-anchored fans, price badges, all four world policies, real pointer clicks on the claim/treasury scrolls, atomic animation/commit boundaries, fog privacy and save/reload. Screenshot evidence is in `diagnostics/0.20/`.
 
+| Executed check | Result |
+|---|---|
+| Source build | 0 errors, 0 warnings |
+| Core regression / save / worlds / statistics / new 0.20 scenarios | 1,203,254 checks; eight complete AI matches |
+| Six-fleet art and world anchors | 48 checks |
+| Claim/treasury ceremony and clay transitions | 44 checks; actual pointer events |
+| Full-circle fleet art and radar privacy | 666 checks |
+| Native menu / independent process Continue | 142 / 120 checks |
+| All four world policies, saves and renderer | 110 checks |
+| Ports / battle input / sea discoveries | 12 / 82 / 108 checks |
+| Mouse/touch/camera smoke | 248,659 checks |
+| Effects / income / victory / retained renderer | 116 / 6 / 105 / 11 checks |
+| Standalone exported title and map | Exit 0; no error/exception logs |
+
+One fully revealed Pangaea profile used 1,371 tiles and four rivals on the local RTX 4060 Laptop GPU: camera-pan p95 27.4 ms, hover-handler p95 0.167 ms and approximately 3,773 draw calls at p95. These describe this measured scenario, not an FPS guarantee for other maps or hardware. The 0.19 scenery atlas/fog reuse remains intact.
+
 ## Scope
 
 This is a playable local prototype with procedural vector models, not a claim of final art or competitive balance. New terrain and rule changes are seen by starting a new voyage; Continue keeps the existing voyage's saved rules. The organic six-sided cell mesh, fleet progression, economy and existing victory system remain in place.

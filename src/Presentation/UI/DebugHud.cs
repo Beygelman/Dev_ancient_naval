@@ -320,7 +320,7 @@ public partial class DebugHud : CanvasLayer
         Availability(_loot, ownShip && battle.CanLootTreasury(Side.Player, selected!.Id), ownShip && battle.CanLootTreasury(Side.Player, selected!.Id) ? "Loot" : "Wait");
         _loot.TooltipText = $"Remain here until next turn. Discoveries: tower {battle.Rules.Treasury.AncientGunWeight}%, {battle.Rules.Treasury.CurrencyReward} Thors {battle.Rules.Treasury.CurrencyWeight}%, ancient Balloon {battle.Rules.Treasury.AncientBalloonWeight}%, {battle.Rules.Treasury.ResourceReward} resources {battle.Rules.Treasury.ResourcesWeight}%, deadly whirlpool {battle.Rules.Treasury.WhirlpoolWeight}%.";
         _radar.Cost = selected?.HasRadar == true ? null : selected?.Definition.RadarPrice;
-        _mortar.Cost = selected?.HasMortar == true ? null : battle.Creative ? 0 : battle.MortarPrice;
+        _mortar.Cost = selected?.HasMortar == true ? null : battle.MortarPrice;
         UpdateVillage(battle, village, canAct);
         UpdateInformation(battle, selected, village);
         foreach (var(kind, button)in _build)

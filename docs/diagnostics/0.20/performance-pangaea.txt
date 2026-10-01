@@ -1,0 +1,88 @@
+PAN frames=119, p50_ms=20,922, p95_ms=27,413, max_ms=28,154
+INTERACTION world=Pangaea, wide_view=True, tiles=1371, opponents=4, live_fog=False, hover_calls=64, hover_p50_ms=0,056, hover_p95_ms=0,167, hover_max_ms=0,639, frame_p95_ms=29,581, frame_max_ms=60,332, process_p95_ms=191,352, draw_calls_p95=3773, movement_elapsed_ms=1565,797
+{
+  "Fleet.Draw": {
+    "Calls": 352,
+    "TotalMs": 29.851499999999987,
+    "MaxMs": 1.263,
+    "Bytes": 743864
+  },
+  "Ambience.Waves": {
+    "Calls": 139,
+    "TotalMs": 301.8891999999999,
+    "MaxMs": 4.2366,
+    "Bytes": 0
+  },
+  "Ambience.Fish": {
+    "Calls": 139,
+    "TotalMs": 112.62219999999999,
+    "MaxMs": 1.4214,
+    "Bytes": 22236664
+  },
+  "Ambience.Draw": {
+    "Calls": 139,
+    "TotalMs": 438.11019999999985,
+    "MaxMs": 5.3195,
+    "Bytes": 22240096
+  },
+  "Hull.Draw": {
+    "Calls": 344,
+    "TotalMs": 148.22510000000003,
+    "MaxMs": 1.9011,
+    "Bytes": 914080
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 3.817,
+    "MaxMs": 0.3951,
+    "Bytes": 93920
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 84.94900000000004,
+    "MaxMs": 8.6102,
+    "Bytes": 6746032
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 4.3171,
+    "MaxMs": 4.3171,
+    "Bytes": 183712
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 0.9862,
+    "MaxMs": 0.9862,
+    "Bytes": 174704
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 0.5275000000000001,
+    "MaxMs": 0.2801,
+    "Bytes": 47312
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 2.0067,
+    "MaxMs": 1.3896,
+    "Bytes": 256152
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.006,
+    "MaxMs": 0.006,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 3.4629000000000003,
+    "MaxMs": 1.7783,
+    "Bytes": 10088
+  },
+  "Navigation.PreviewPlan": {
+    "Calls": 1,
+    "TotalMs": 0.202,
+    "MaxMs": 0.202,
+    "Bytes": 456
+  }
+}
