@@ -140,6 +140,11 @@ public partial class BoardView
                 }
 
                 : Array.Empty<Vector2>();
+                // Very small river bends can pass the cross-product test yet
+                // collapse at the triangulator's floating-point tolerance. Keep
+                // their shoreline stroke, but omit the subpixel sand sliver.
+                if (polygon.Length > 0 && Geometry2D.TriangulatePolygon(polygon).Length != 6)
+                    polygon = Array.Empty<Vector2>();
                 _beaches.Add(new(cell, polygon, new[] { contour[i], contour[next] }, inside, new[] { CoastalTriangle(contour[i], contour[next], outer[next]), CoastalTriangle(contour[i], outer[next], outer[i]) }));
             }
 

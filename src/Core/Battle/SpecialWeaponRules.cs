@@ -15,6 +15,7 @@ public sealed record MortarRules
 
 public sealed record BalloonRules
 {
+    public bool KolonelAntiAir { get; init; }
     public int BombDamage { get; init; } = 6;
     public int SplashDamage { get; init; } = 2;
     public int CooldownTurns { get; init; } = 3;

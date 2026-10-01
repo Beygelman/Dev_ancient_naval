@@ -39,6 +39,7 @@ public sealed partial class BattleState
         if (sunk)
         {
             RewardPirateDefeat(balloon, target);
+            RecordEnemyLoss(balloon.Owner, target);
             RemoveDestroyedShip(target);
         }
 

@@ -141,6 +141,7 @@ public sealed partial class BattleState
                 break;
             case TreasuryReward.Currency:
                 _credits[(int)side] += Rules.Treasury.CurrencyReward;
+                RecordCurrencyReceipt(side, Rules.Treasury.CurrencyReward);
                 message = $"Treasury plundered: +{Rules.Treasury.CurrencyReward} Thors.";
                 break;
             case TreasuryReward.AncientBalloon:
@@ -170,6 +171,7 @@ public sealed partial class BattleState
         if (target.Owner != Side.Pirates || owner == Side.Pirates)
             return;
         _credits[(int)owner] += Rules.PirateCurrencyReward;
+        RecordCurrencyReceipt(owner, Rules.PirateCurrencyReward);
         if (Mothership(owner)is { } mother)
             GrantResources(mother, Rules.PirateResourceReward);
         _pirateHomes.Remove(target.Id);

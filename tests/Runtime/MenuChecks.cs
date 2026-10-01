@@ -126,6 +126,9 @@ public partial class MenuChecks : Node
             MouseClick(information.GlobalPosition + information.IconCenter, MouseButton.Left);
             await Frame();
             Check(Game.Hud.InformationVisible, "Actual papyrus information click opens the ship's counsel.");
+            var sections = Descendants(Game.Hud).OfType<Label>().Where(n => n.Name == "InformationSectionHeading").ToArray();
+            Check(sections.Select(s => s.Text).Contains("AT A GLANCE") && sections.Select(s => s.Text).Contains("WEAPONS"), "Information has visibly separate fact groups");
+            Check(Descendants(Game.Hud).OfType<Label>().Count(n => n.Name == "InformationFieldLabel") >= 8, "Facts have individual label/value rows");
             await Capture("lore");
             var infoPanel = Descendants(Game.Hud).OfType<PanelContainer>().Single(n => n.Name == "InformationScroll");
             MouseClick(infoPanel.GetGlobalRect().GetCenter(), MouseButton.Right);
@@ -141,6 +144,9 @@ public partial class MenuChecks : Node
             MouseClick(resourceInformation.GlobalPosition + resourceInformation.IconCenter, MouseButton.Left);
             await Frame();
             Check(Game.Hud.InformationVisible && Game.Hud.InformationText.Contains("1 Mothership resource"), "Resource information describes the selected shoal.");
+            await Frame();
+            var shortContent = Descendants(infoPanel).OfType<ScrollContainer>().Single();
+            Check(shortContent.GetVScrollBar().MaxValue <= shortContent.GetVScrollBar().Page + 1, "A short resource card fits all its facts without scrolling");
             await Capture("resource-lore");
             MouseClick(infoPanel.GetGlobalRect().GetCenter(), MouseButton.Right);
             await Frame();
@@ -149,6 +155,7 @@ public partial class MenuChecks : Node
             string? saveArgument = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--save-file="));
             if (saveArgument is not null)
                 _checks += SaveRecoveryChecks.Run(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(saveArgument[12..]))!, Game.Battle);
+            await CaptureInformationExamples();
             GD.Print($"PASS: {_checks} title/color/save/reload checks.");
             GetTree().Quit();
         }
@@ -157,5 +164,48 @@ public partial class MenuChecks : Node
             GD.PushError(e.ToString());
             GetTree().Quit(1);
         }
+    }
+
+    private async Task CaptureInformationExamples()
+    {
+        Game.LoadScenario(LoreChecks.Example(Game.Battle.Rules));
+        Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(new(8, 10));
+        Game.MapCamera.Zoom = Vector2.One * 1.5f;
+        var mother = Game.Battle.Mothership(Side.Player)!;
+        Game.Hud.ShowInformation(Game.Battle, mother.Position);
+        await Frame();
+        await Frame();
+        var panel = Descendants(Game.Hud).OfType<PanelContainer>().Single(n => n.Name == "InformationScroll");
+        var content = Descendants(panel).OfType<ScrollContainer>().Single();
+        Check(panel.GetGlobalRect().End.Y <= GetViewport().GetVisibleRect().Size.Y - 70, "Long information stays above the bottom controls");
+        Check(content.GetVScrollBar().MaxValue > content.GetVScrollBar().Page, "Long installed-equipment card scrolls instead of overflowing");
+        await Capture("upgraded-lore");
+        content.ScrollVertical = 10000;
+        await Frame();
+        Check(content.ScrollVertical > 0, "Installed improvements can be reached by scrolling");
+        await Capture("installed-lore");
+        Game.Hud.UpdateBattle(Game.Battle, mother, false, OrderMode.None);
+        await Frame();
+        Check(content.ScrollVertical > 0, "Unchanged state retains the current reading position");
+        Game.Hud.CloseMenus();
+        Game.Hud.ShowInformation(Game.Battle, Game.Battle.Villages[1].Position);
+        await Frame();
+        await Frame();
+        Check(content.ScrollVertical == 0 && Game.Hud.InformationText.Contains("Port:"), "Selecting a different object starts its card at the top");
+        await Capture("city-lore");
+        content.ScrollVertical = 10000;
+        await Frame();
+        await Capture("city-improvements");
+        Game.Hud.CloseMenus();
+        var radar = Game.Battle.CaptureSnapshot();
+        var hidden = radar.Ships.Single(s => s.Owner == Side.Enemy);
+        hidden.Position = new(26, 10);
+        radar.GodEye = false;
+        Game.LoadScenario(DevAncientNaval.Core.Battle.BattleState.LoadJson(DevAncientNaval.Core.Battle.BattleState.SerializeSnapshot(radar)));
+        Check(Game.Battle.Vision.IsRadarContact(Side.Player, hidden.Position) && !Game.Battle.Vision.IsVisible(Side.Player, hidden.Position), "Radar fixture is not directly observed");
+        Game.Hud.ShowInformation(Game.Battle, hidden.Position);
+        await Frame();
+        Check(Game.Hud.InformationVisible && !Game.Hud.InformationText.Contains("Health") && !Game.Hud.InformationText.Contains("Mothership"), "Radar information does not disclose health or identity");
+        Game.Hud.CloseMenus();
     }
 }

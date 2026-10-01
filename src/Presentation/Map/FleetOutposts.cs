@@ -41,7 +41,7 @@ public partial class FleetView
                     {
                         Health = shot.Target.Health - shot.Damage
                     };
-                _feedbackPosition = HealthAnchor(Projection.GridToWorld(shot.Target.Position));
+                _feedbackPosition = HealthAnchor(Projection.GridToWorld(shot.Target.Position), shot.Target.Class);
                 _feedbackColor = new("ff8f85");
                 _feedback = $"−{shot.Damage:0}";
                 await TweenValue(.32, _ =>

@@ -115,7 +115,7 @@ public partial class BattleChecks : Node
         // Keep released-save rules under regression while the new economy is
         // checked separately by the faction/economy and current-menu suites.
         var defaults = BattleRules.FromJson(FileAccess.GetFileAsString("res://tests/CoreChecks/Fixtures/balance-0.14.1.json"));
-        Game.LoadScenario(SkirmishSetup.Create(Game.Battle.Board, defaults));
+        Game.LoadScenario(SkirmishSetup.Create(PrototypeBoard.Create(731), defaults));
         var rules = new BattleRules
         {
             StartingCredits = 80,
@@ -144,8 +144,10 @@ public partial class BattleChecks : Node
         var before = Game.Hud.MenuPosition;
         Game.MapCamera.Pan(new(40, 12));
         await Frame();
-        Check(Game.Hud.MenuPosition.DistanceTo(before) > 15, "Ship sectors follow camera");
-        var destination = Game.Battle.Reachable(garrison.Id).First(p => p.Value == 10 && p.Key != garrison.Position).Key;
+        Check(Game.Hud.MenuPosition.DistanceTo(before) > 5, "Ship actions follow the hull while the camera moves");
+        var resources = Game.Battle.CollectionCells(Side.Player).Concat(Game.Battle.DockCells(Side.Player)).ToHashSet();
+        var destination = Game.Battle.Reachable(garrison.Id).First(p => p.Value == 10 && p.Key != garrison.Position && !resources.Contains(p.Key) &&
+            !Descendants(Game.Hud).OfType<SectorButton>().Any(s => s.IsVisibleInTree() && s._HasPoint(Screen(p.Key) - s.GlobalPosition))).Key;
         Tap(Screen(destination));
         var order = Game.CurrentOrder;
         Check(Game.Busy, "Movement starts on tile click");
@@ -317,7 +319,7 @@ public partial class BattleChecks : Node
         Game.MapCamera.ZoomAt(Screen(location), 1.8f);
         Game.SelectCell(location);
         await Frame();
-        Check(Game.SelectedVillageId == village.Id && Button("ActionCapture").IsVisibleInTree() && Button("ActionCapture").Disabled, "Neutral town card requires defeated defenses");
+        Check(Game.SelectedVillageId == village.Id && !Button("ActionCapture").IsVisibleInTree() && !Game.Hud.ClaimPapyrus.Visible, "A living neutral town has no ready claim scroll");
         await Capture("-village-neutral");
         Game.Battle.AttackVillage(Side.Player, 3, village.Id);
         Game.Battle.EndTurn(Side.Player);
@@ -325,18 +327,19 @@ public partial class BattleChecks : Node
         Game.Battle.AttackVillage(Side.Player, 3, village.Id);
         Game.Refresh();
         await Frame();
-        Check(Button("ActionCapture").Disabled, "Zero HP alone does not allow immediate capture");
+        Check(!Game.Hud.ClaimPapyrus.Visible, "Zero HP alone does not reveal a claim scroll");
         Game.Battle.EndTurn(Side.Player);
         Game.Battle.EndTurn(Side.Enemy);
         Game.Refresh();
         await Frame();
-        Check(!Button("ActionCapture").Disabled, "Capture action becomes available after holding until next turn");
+        Check(Game.Hud.ClaimPapyrus.Visible, "Claim scroll appears after holding until next turn");
         Game.CancelOrder();
         await Frame();
-        Tap(GetViewport().GetCanvasTransform() * Game.BoardView.VillageFlagPosition(location));
+        await ToSignal(GetTree().CreateTimer(.42), SceneTreeTimer.SignalName.Timeout);
+        Tap(Game.Hud.ClaimPapyrus.GlobalPosition + new Vector2(150,112));
         await Game.CurrentOrder;
         await Frame();
-        Check(village.Owner == Side.Player && Game.SelectedVillageId == village.Id && Button("ActionBuild").IsVisibleInTree(), "Tapping the village flag captures and opens its shipyard controls");
+        Check(village.Owner == Side.Player && Game.SelectedVillageId == village.Id && Button("ActionBuild").IsVisibleInTree(), "Tapping the hovering scroll captures and opens the town controls");
         Check(Game.Battle.Find(3)!.IsExhausted, "Capturing ship has no remaining actions");
         await Capture("-village-captured");
         Click(Button("ActionFortify"));

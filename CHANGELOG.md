@@ -1,5 +1,45 @@
 # Ancient Naval change history
 
+## 0.20 — 2026-10-01 — River Kingdoms
+
+- Automatically show ready claim/treasury scenes at their world targets. Dark-burgundy dry-brush artwork opens downward from a top hinge, floats, rolls inward and burns before capture/rewards commit. Remove yellow capture/loot action icons and the old capture-marker click region.
+- Restore ship/town/resource action fans beside the world object. Add Thor coins and prices above purchase icons, and zero-cost labels on level rewards. Center the voyage setup on parchment with six fleet emblems, including Red.
+- Share color-specific monuments between Motherships and owned towns: gold dome, silver faceted cap, pink pyramid/white diamond, black cross, dark-green tree and red crystals. Neutral houses, varied roof shades, growing/taller buildings, foreground wheat, detailed tower masonry and woven balloon baskets.
+- Pangaea gains connected lake basins, winding arteries, dead-end branches and narrow bypasses. Prioritize two inland villages and one outer village per territory, with more interior resource fish.
+- Enable unrestricted narrow/coastal sailing for all hulls in new voyages, and anti-air cannons for Kolonel. Saved optional rules keep older voyages' policies. Curved white trade routes meet ports straddling the town/sea edge, with roads to town centers.
+
+[Validation and limits](docs/MILESTONE-0.20.md), [new assets and generation prompts](docs/ACTION-ART-0.20.md). Start **New game** to generate the new waterways and use the new rule settings; **Continue** preserves the saved voyage.
+
+## 0.19 — 2026-10-01 — Worlds and Clay
+
+- Modal victory after projectile/wreck completion, finite fireworks and saved player-attributed voyage totals.
+- Paired clay health/class seals with four damage stages, impact shake/chips and gentle two-flash repair, including towns and structures.
+- Generated pictorial harbor/treasury papyri; roll and burn before one validated Core commit.
+- Upward action fan beside the selected-object ledger, camera-independent placement and rightmost Info.
+- Volumetric hulls, decks, cabins, sails, quay buildings and connected-square clouds; no hidden radar kill class/HP leak.
+- Four saved world policies: tiny island chains, original Oceans, river-cut Continents and central Pangaea. Fair coastal settlements and safe fleet routes.
+- Bake trees/peaks into shared 2× texture atlases with independent depth/fog anchors. Disable bake viewports and free primitive painters after the first completed render; use premultiplied blending to preserve transparent edges.
+- Preserve the organic mesh, saved balance and historical releases. [Evidence](docs/MILESTONE-0.19.md), [art prompts](docs/ACTION-ART-0.19.md).
+
+## 0.18.1 — 2026-10-01 — Readable Charts
+
+- Short counsel followed by separate current-stat, weapon, crew and installed-equipment rows.
+- Remove future upgrade catalogues and list only currently available shipyard classes.
+- Bound information cards to the viewport; keep title/close fixed, scroll long bodies and retain reading position on unchanged updates.
+- Use actual town names, active saved numeric rules and anonymous radar descriptions.
+- Keep all 0.18 gameplay/rendering changes; source, notes and complete release copies remain in the authoritative repository.
+
+## 0.18 — 2026-10-01 — Ports and Captains
+
+- Batch waves/fish; retain camera-independent overlays and hulls, with native bobbing and explicit redraw invalidation.
+- Front-layer black city names/stats, rightmost Info, God’s eye and victory exploration.
+- Saved Boatswain/Captain/Admiral setting, observed-only risk forecasts, focus fire, scouts and economic recovery.
+- 15-HP base Mothership; lower prices including 4-Thor fishers and 8-Thor docks.
+- Seeded level-scaled settlements, wheat/mills, wooden/stone outposts; level-3 ports cost 6, yield +1 and discount local ships by 20%.
+- Cached shortest sea links and stateful progressive lane travel: minimum +2 or +20%, persisted across orders/resume.
+- Allied radar coordinates are attackable by all armed units without disclosing identity/health.
+- Source and complete release copies live in the authoritative repository. [Evidence and compatibility](docs/MILESTONE-0.18.md).
+
 ## 0.17 delivery follow-up — 1 October 2026
 
 - Keep the authoritative source project and README in the Git repository;

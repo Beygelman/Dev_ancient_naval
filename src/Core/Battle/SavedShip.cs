@@ -28,6 +28,7 @@ public sealed class SavedShip
     public bool RestorationUpgrade { get; set; }
     public bool FirepowerUpgrade { get; set; }
     public bool HasRadar { get; set; }
+    public int TradeStreak { get; set; }
     public int MovementSpentUnits { get; set; }
     public int AttacksUsed { get; set; }
     public bool HasMoved { get; set; }
@@ -61,6 +62,7 @@ public sealed class SavedShip
         FirepowerUpgrade = s.FirepowerUpgrade,
         HasRadar = s.HasRadar,
         MovementSpentUnits = s.MovementSpentUnits,
+        TradeStreak = s.TradeStreak,
         AttacksUsed = s.AttacksUsed,
         HasMoved = s.HasMoved,
         IsExhausted = s.IsExhausted,
@@ -97,6 +99,7 @@ public sealed class SavedShip
         ship.FirepowerUpgrade = FirepowerUpgrade;
         ship.HasRadar = HasRadar;
         ship.MovementSpentUnits = MovementSpentUnits;
+        ship.TradeStreak = TradeStreak;
         ship.AttacksUsed = AttacksUsed;
         ship.HasMoved = HasMoved;
         ship.IsExhausted = IsExhausted;

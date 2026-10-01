@@ -25,7 +25,7 @@ public partial class DebugHud : CanvasLayer
     private Label _coins = null !, _coinCaption = null !, _turn = null !, _ship = null !, _details = null !, _message = null !, _banner = null !, _upgradeTitle = null !;
     private Label _health = null !, _damagePreview = null !, _counterPreview = null !;
     private HBoxContainer _combatPreview = null !;
-    private SectorButton _repair = null !, _yard = null !, _radar = null !, _mortar = null !, _resource = null !, _bomb = null !, _capture = null !, _fortify = null !, _loot = null !;
+    private SectorButton _repair = null !, _yard = null !, _radar = null !, _mortar = null !, _resource = null !, _bomb = null !, _capture = null !, _fortify = null !, _port = null !, _loot = null !;
     private Button _end = null !, _restart = null !;
     private readonly Dictionary<ShipClass, SectorButton> _build = new();
     private readonly Dictionary<SectorButton, Label> _badges = new();
@@ -45,7 +45,7 @@ public partial class DebugHud : CanvasLayer
     public bool UpgradeVisible => _upgradeOverlay.Visible;
 
     public event Action? EndTurnRequested, RepairRequested, RestartRequested, ResourceRequested, RadarRequested, MortarRequested;
-    public event Action? BombRequested, CaptureRequested, FortifyRequested, LootRequested;
+    public event Action? BombRequested, CaptureRequested, FortifyRequested, PortRequested, LootRequested;
     public event Action<ShipClass>? BuildRequested;
     public event Action<UpgradeChoice>? UpgradeRequested;
     public override void _Ready()
@@ -70,7 +70,11 @@ public partial class DebugHud : CanvasLayer
         _coinCaption = Label("Thors (+4)", 15, true);
         money.AddChild(_coinCaption);
         _coins = Label("5", 32, true);
-        money.AddChild(_coins);
+        var coinRow = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        coinRow.AddThemeConstantOverride("separation", 6);
+        money.AddChild(coinRow);
+        coinRow.AddChild(new CoinIcon { Name = "ThorCoin", CustomMinimumSize = new(24, 32) });
+        coinRow.AddChild(_coins);
         var turns = new VBoxContainer();
         turns.AddThemeConstantOverride("separation", 1);
         _metrics.AddChild(turns);
@@ -136,6 +140,7 @@ public partial class DebugHud : CanvasLayer
         _bomb = IconButton("ActionBomb", ActionSymbol.Bomb, "Drop bomb", () => BombRequested?.Invoke());
         _capture = IconButton("ActionCapture", ActionSymbol.Flag, "Capture village", () => CaptureRequested?.Invoke());
         _fortify = IconButton("ActionFortify", ActionSymbol.Fortify, "Fortify village", () => FortifyRequested?.Invoke());
+        _port = IconButton("ActionPort", ActionSymbol.Dock, "Build port", () => PortRequested?.Invoke());
         _yard = IconButton("ActionBuild", ActionSymbol.Build, "Shipyard", () =>
         {
             _productionOpen = true;
@@ -162,10 +167,10 @@ public partial class DebugHud : CanvasLayer
         _root.AddChild(_resourceRoot);
         _resource = IconButton("TileResource", ActionSymbol.Fishing, "", () => ResourceRequested?.Invoke(), _resourceRoot);
         _resourceInformation = IconButton("ResourceInformation", ActionSymbol.Information, "Read the chart", OpenInformation, _resourceRoot);
-        _resource.SetSector(0, 2);
-        _resourceInformation.SetSector(1, 2);
+        _resource.SetSector(1, 2);
+        _resourceInformation.SetSector(0, 2);
         Availability(_resourceInformation, true, "Info");
-        _resourceRoot.Configure(new[] { _resource, _resourceInformation }, false);
+        _resourceRoot.Configure(new[] { _resourceInformation, _resource }, false);
         _resourceRoot.Hide();
         _upgradeOverlay = new Control
         {
@@ -205,11 +210,19 @@ public partial class DebugHud : CanvasLayer
             var button = TextButton(UpgradeDescriptions.Description(choice), () => UpgradeRequested?.Invoke(choice));
             button.TooltipText = UpgradeDescriptions.Title(choice);
             button.Name = "Upgrade" + choice;
-            column.AddChild(button);
+            var group = new VBoxContainer();
+            group.AddThemeConstantOverride("separation", 3);
+            var price = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+            price.AddChild(new CoinIcon { CustomMinimumSize = new(17, 17) });
+            price.AddChild(Label("0 · Level reward", 12, true));
+            group.AddChild(price);
+            group.AddChild(button);
+            column.AddChild(group);
             _choices[choice] = button;
         }
 
         BuildGameMenu();
+        BuildActionStories();
         _upgradeOverlay.Hide();
         _radial.Hide();
         _shipCard.Hide();
@@ -258,6 +271,7 @@ public partial class DebugHud : CanvasLayer
             {
                 button.Text = UpgradeDescriptions.Description(choice, battle.Rules);
                 button.Visible = battle.UpgradeOptions(pending.Id).Contains(choice);
+                ((Control)button.GetParent()).Visible = button.Visible;
                 button.Disabled = busy;
             }
 
@@ -273,7 +287,7 @@ public partial class DebugHud : CanvasLayer
             _health.AddThemeColorOverride("font_color", selected.Owner == Side.Player ? PapyrusStyle.Health : PapyrusStyle.EnemyHealth);
             _ship.Text = selected.IsAirborne ? $"{selected.Name} · Persistent" : $"{selected.Name}{(selected.IsMothership ? $" · level {selected.Level}" : selected.IsVeteran ? " ★ VETERAN" : "")}";
             _health.Text = $"Health {selected.Health:0.##}/{selected.MaxHealth:0.##}";
-            _details.Text = selected.IsAirborne ? $"Vision {selected.VisualRange} · Move {selected.MovementRemaining:0}/{selected.MovementAllowance} · 1 HP · Flagship guns can hit within {battle.Rules.Balloon.AntiAirRange} tiles\n{(selected.BombCooldown > 0 ? $"Bomb ready in {selected.BombCooldown} turn(s)" : $"Bomb ready: {battle.Rules.Balloon.BombDamage} direct + {battle.Rules.Balloon.SplashDamage} splash")}" : $"Damage {selected.CurrentDamage + selected.ShotDamageBonus:0} · Range {selected.Definition.AttackRange} · Vision {selected.VisualRange} · Radar {selected.RadarRange}";
+            _details.Text = selected.IsAirborne ? $"Vision {selected.VisualRange} · Move {selected.MovementRemaining:0}/{selected.MovementAllowance} · 1 HP · Flagship/Kolonel guns can hit within {battle.Rules.Balloon.AntiAirRange} tiles\n{(selected.BombCooldown > 0 ? $"Bomb ready in {selected.BombCooldown} turn(s)" : $"Bomb ready: {battle.Rules.Balloon.BombDamage} direct + {battle.Rules.Balloon.SplashDamage} splash")}" : $"Damage {selected.CurrentDamage + selected.ShotDamageBonus:0} · Range {selected.Definition.AttackRange} · Vision {selected.VisualRange} · Radar {selected.RadarRange}";
             if (selected.HasMortar && selected.Definition.Class != ShipClass.AncientGun)
                 _details.Text += $" · Mortar 4–{selected.MortarRange}: {selected.CurrentMortarDamage + selected.ShotDamageBonus:0}";
             if (selected.Definition.Class == ShipClass.FishingDock)
@@ -302,9 +316,11 @@ public partial class DebugHud : CanvasLayer
         _bomb.SetMeta("applicable", selected?.Owner == Side.Player && selected?.IsAirborne == true);
         Availability(_bomb, ownShip && battle.CanDropBomb(selected!.Id), selected?.BombCooldown > 0 ? selected.BombCooldown.ToString() : $"{battle.Rules.Balloon.BombDamage}+{battle.Rules.Balloon.SplashDamage}");
         _bomb.TooltipText = selected?.BombCooldown > 0 ? $"Bomb recharging: {selected.BombCooldown} turns" : $"Move, then bomb: {battle.Rules.Balloon.BombDamage} direct + {battle.Rules.Balloon.SplashDamage} to adjacent cells, including allies. Recharges in {battle.Rules.Balloon.CooldownTurns} turns.";
-        _loot.SetMeta("applicable", selected is { Owner: Side.Player } && !selected.IsAirborne && !selected.IsStructure && selected.IsArmed && battle.TreasuryAt(selected.Position)is not null);
+        _loot.SetMeta("applicable", false);
         Availability(_loot, ownShip && battle.CanLootTreasury(Side.Player, selected!.Id), ownShip && battle.CanLootTreasury(Side.Player, selected!.Id) ? "Loot" : "Wait");
         _loot.TooltipText = $"Remain here until next turn. Discoveries: tower {battle.Rules.Treasury.AncientGunWeight}%, {battle.Rules.Treasury.CurrencyReward} Thors {battle.Rules.Treasury.CurrencyWeight}%, ancient Balloon {battle.Rules.Treasury.AncientBalloonWeight}%, {battle.Rules.Treasury.ResourceReward} resources {battle.Rules.Treasury.ResourcesWeight}%, deadly whirlpool {battle.Rules.Treasury.WhirlpoolWeight}%.";
+        _radar.Cost = selected?.HasRadar == true ? null : selected?.Definition.RadarPrice;
+        _mortar.Cost = selected?.HasMortar == true ? null : battle.Creative ? 0 : battle.MortarPrice;
         UpdateVillage(battle, village, canAct);
         UpdateInformation(battle, selected, village);
         foreach (var(kind, button)in _build)
@@ -312,11 +328,15 @@ public partial class DebugHud : CanvasLayer
             var definition = battle.Rules.Get(kind);
             var reason = village is not null ? battle.VillageBuildBlockReason(Side.Player, village.Id, kind) : selected is null ? "Select a Mothership" : battle.BuildBlockReason(Side.Player, selected.Id, kind);
             button.SetMeta("applicable", village is null || kind != ShipClass.CannonTower);
-            Availability(button, _hasRadial && reason is null, battle.BuildPrice(Side.Player, kind).ToString());
-            button.TooltipText = $"{definition.Name} · {battle.BuildPrice(Side.Player, kind)} Thors" + (reason is null ? "" : $" · {reason}");
+            int price = village is null ? battle.BuildPrice(Side.Player, kind) : battle.VillageBuildPrice(village.Id, kind);
+            button.Cost = price;
+            Availability(button, _hasRadial && reason is null, price.ToString());
+            button.TooltipText = $"{definition.Name} · {price} Thors" + (reason is null ? "" : $" · {reason}");
         }
 
         UpdateCreativeLabel(battle.Creative);
+        UpdateGodEyeLabel(battle.FullMapVisible, battle.Winner == Side.Player);
+        UpdateActionStories(battle, selected, village, canAct);
         ApplyMenuVisibility();
         Layout();
     }
@@ -326,6 +346,8 @@ public partial class DebugHud : CanvasLayer
         _productionOpen = false;
         _resourceRoot.Hide();
         _informationPanel.Hide();
+        _claimPapyrus.SetReady(false);
+        _treasuryPapyrus.SetReady(false);
     }
 
     public void HideResource() => _resourceRoot.Hide();
@@ -333,13 +355,17 @@ public partial class DebugHud : CanvasLayer
     {
         _productionOpen = false;
         if (_informationBattle is { } battle && _inspectionCell is { } cell)
-            (_loreTitle, _loreText) = AncientLore.Cell(battle, cell);
+        {
+            var lore = AncientLore.Cell(battle, cell);
+            SetLore(lore.Title, lore.Page);
+        }
         var glyph = _resource.GetChild<ActionGlyph>(0);
         glyph.Symbol = dock ? ActionSymbol.Dock : ActionSymbol.Fishing;
         glyph.QueueRedraw();
         _resource.TooltipText = (dock ? $"Fishing Dock · +{_informationBattle?.Rules.DockResourceReward} resources, +{_informationBattle?.Rules.Get(ShipClass.FishingDock).IncomePerTurn} income" : "Collect resource shoal · +1 resource") + $" · {price} Thors" + (affordable ? "" : " · not enough Thors");
+        _resource.Cost = price;
         Availability(_resource, affordable, price.ToString());
-        _resourceRoot.Configure(new[] { _resource, _resourceInformation }, true);
+        _resourceRoot.Configure(new[] { _resourceInformation, _resource }, true);
         _resourceRoot.Show();
     }
 
@@ -351,9 +377,8 @@ public partial class DebugHud : CanvasLayer
             return;
         }
 
-        var size = GetViewport().GetVisibleRect().Size;
-        _resourceRoot.Visible = new Rect2(-20, -20, size.X + 40, size.Y + 40).HasPoint(point);
-        _resourceRoot.Position = new Vector2(Math.Clamp(point.X, 114, size.X - 114), Math.Clamp(point.Y, 202, size.Y - 114)) - SectorButton.Center;
+        _resourceRoot.Show();
+        _resourceRoot.Position = ClampWorldUi(point - SectorButton.Center + new Vector2(0, 20), _resourceRoot.Size);
     }
 
     private void ApplyMenuVisibility()
@@ -368,6 +393,7 @@ public partial class DebugHud : CanvasLayer
             _bomb,
             _capture,
             _fortify,
+            _port,
             _loot
         }
 
@@ -399,10 +425,8 @@ public partial class DebugHud : CanvasLayer
             return;
         }
 
-        var size = GetViewport().GetVisibleRect().Size;
-        _radial.Visible = new Rect2(-20, -20, size.X + 40, size.Y + 40).HasPoint(point);
-        var center = new Vector2(Math.Clamp(point.X, 116, size.X - 116), Math.Clamp(point.Y, 126, size.Y - 214));
-        _radial.Position = center - SectorButton.Center;
+        _radial.Visible = _visibleSectors.Count > 0;
+        _radial.Position = ClampWorldUi(point - SectorButton.Center + new Vector2(0, 36), _radial.Size);
     }
 
     public void ShowOpponentTurn(Side side = Side.Enemy)
@@ -519,7 +543,7 @@ public partial class DebugHud : CanvasLayer
         if (_menuPanel is not null)
             _menuPanel.Position = (size - _menuPanel.Size) / 2;
         if (_informationPanel is not null)
-            _informationPanel.Position = new(size.X - _informationPanel.Size.X - 18, Mathf.Clamp((size.Y - _informationPanel.Size.Y) / 2, 118, Math.Max(118, size.Y - _informationPanel.Size.Y - 78)));
+            LayoutInformation(size);
     }
 
     private SectorButton IconButton(string name, ActionSymbol symbol, string hint, Action pressed, Control? parent = null)

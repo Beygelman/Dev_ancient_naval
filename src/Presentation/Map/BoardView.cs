@@ -73,6 +73,8 @@ public partial class BoardView : Node2D
     /// Hovering or selecting only redraws the small command overlay.</summary>
     public void InvalidateWorld(bool force = true)
     {
+        // A repair or shipyard action may change town UI without changing sight.
+        _depthVision = -1;
         bool newWorld = !ReferenceEquals(_maskProjection, Projection) || _terrainMask.Length != Board.Tiles.Count;
         if (newWorld)
         {
@@ -130,6 +132,7 @@ public partial class BoardView : Node2D
         _resourceCells.Clear();
         _resourceCells.UnionWith(Battle.KnownFish(Side.Player));
         _resourceCells.UnionWith(Battle.KnownShoals(Side.Player));
+
         _observations?.QueueRedraw();
         QueueRedraw();
     }
@@ -141,6 +144,7 @@ public partial class BoardView : Node2D
         var inverse = GetGlobalTransformWithCanvas().AffineInverse();
         var viewportSize = GetViewportRect().Size;
         var drawBounds = new Rect2(inverse * Vector2.Zero, Vector2.Zero).Expand(inverse * new Vector2(viewportSize.X, 0)).Expand(inverse * viewportSize).Expand(inverse * new Vector2(0, viewportSize.Y)).Grow(140);
+        DrawTradeRoutes(canvas, drawBounds);
         DrawTreasuries(canvas);
         DrawMovementContour(canvas, Building ? new Color(0.6f, 1, 0.8f, 0.8f) : new Color(0.64f, 0.82f, 1, 0.72f));
         foreach (var cell in Targets)
@@ -157,8 +161,7 @@ public partial class BoardView : Node2D
         foreach (var cell in Collection.Concat(DockSites).Distinct())
         {
             var center = Projection.GridToWorld(cell);
-            if (!drawBounds.HasPoint(center))
-                continue;
+
             var glow = DockSites.Contains(cell) ? new Color("96e5cb") : new Color("ffe49a");
             canvas.DrawSetTransform(center, 0, new Vector2(1, .48f));
             canvas.DrawArc(Vector2.Zero, 23, 0, Mathf.Tau, 24, new Color(glow, .27f), 3, true);
@@ -223,60 +226,7 @@ public partial class BoardView : Node2D
         }
     }
 
-    public Vector2 VillageFlagPosition(GridPosition cell) => Projection.GridToWorld(cell) + new Vector2(19, -39);
-    private void DrawVillage(Node2D canvas, Village village, Vector2? at = null)
-    {
-        var center = at ?? Projection.GridToWorld(village.Position);
-        var accent = FleetPalette.For(Battle, village.Owner);
-        var ground = new[]
-        {
-            new Vector2(-24, -5),
-            new(0, -14),
-            new(25, 0),
-            new(1, 11)
-        }.Select(p => p + center).ToArray();
-        canvas.DrawColoredPolygon(ground, new Color("888e75"));
-        canvas.DrawPolyline(ground.Append(ground[0]).ToArray(), new Color("dfd3a7"), 2, true);
-        for (int i = 0; i < 3; i++)
-        {
-            var p = center + new Vector2((i - 1) * 14, i == 1 ? -10 : 0);
-            canvas.DrawColoredPolygon(new[] { p + new Vector2(-7, -3), p + new Vector2(4, -1), p + new Vector2(4, -13), p + new Vector2(-7, -15) }, new Color("e1cba1"));
-            canvas.DrawColoredPolygon(new[] { p + new Vector2(4, -1), p + new Vector2(11, -5), p + new Vector2(11, -17), p + new Vector2(4, -13) }, new Color("ab9d7e"));
-            canvas.DrawColoredPolygon(new[] { p + new Vector2(-9, -15), p + new Vector2(1, -22), p + new Vector2(13, -17), p + new Vector2(4, -11) }, accent.Darkened(.3f));
-            canvas.DrawLine(p + new Vector2(-2, -3), p + new Vector2(-2, -10), new Color("566264"), 3, true);
-        }
-
-        if (village.IsFortified)
-        {
-            canvas.DrawPolyline(new[] { center + new Vector2(-26, -5), center + new Vector2(-26, 3), center + new Vector2(0, 16), center + new Vector2(26, 4), center + new Vector2(26, -3) }, new Color("b9c2b9"), 5, true);
-            for (int i = -2; i <= 2; i++)
-                canvas.DrawRect(new Rect2(center + new Vector2(i * 10 - 3, 8 - System.Math.Abs(i) * 4), new Vector2(6, 6)), new Color("d4d7c7"));
-        }
-
-        canvas.DrawColoredPolygon(new[] { center + new Vector2(-28, -7), center + new Vector2(-17, -7), center + new Vector2(-20, -23), center + new Vector2(-25, -23) }, new Color("c6bb96"));
-        var flag = center + new Vector2(19, -39);
-        bool capture = Battle.CanCaptureVillage(Side.Player, village.Id);
-        if (capture)
-        {
-            canvas.DrawCircle(flag, 16, new Color(1, .85f, .45f, .13f));
-            canvas.DrawArc(flag, 15, 0, Mathf.Tau, 28, new Color("ffe29a"), 2, true);
-        }
-
-        if (capture || village.Owner is not null)
-        {
-            canvas.DrawLine(flag + new Vector2(-6, 15), flag + new Vector2(-6, -8), new Color("eadfc2"), 2, true);
-        }
-
-        if (village.Health >= 0)
-        {
-            var nameWidth = ThemeDB.FallbackFont.GetStringSize(village.Name, fontSize: 13).X;
-            canvas.DrawString(ThemeDB.FallbackFont, center + new Vector2(-nameWidth * .5f, 20), village.Name, fontSize: 13, modulate: new Color("f0e6ce"));
-            for (int i = 0; i < 5; i++)
-                canvas.DrawRect(new Rect2(center + new Vector2(-18 + i * 8, 25), new Vector2(5, 4)), i < village.Level ? accent : new Color("475857"));
-            canvas.DrawString(ThemeDB.FallbackFont, center + new Vector2(-8, -34), village.Health.ToString("0.##"), fontSize: 14, modulate: new Color("85e6a0"));
-        }
-    }
-
+    public Vector2 VillageFlagPosition(GridPosition cell) => Projection.GridToWorld(cell) + new Vector2(-32, -39);
     private void DrawMovementContour(Node2D canvas, Color color)
     {
         if (!ReferenceEquals(_cachedReachable, Reachable) || !ReferenceEquals(_cachedProjection, Projection))

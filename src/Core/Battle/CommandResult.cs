@@ -17,7 +17,8 @@ public enum CommandKind
     Bomb,
     Capture,
     Fortify,
-    Loot
+    Loot,
+    Port
 }
 
 public sealed record CommandResult(bool Success, string Message, CommandKind Kind = CommandKind.None, int ActorId = 0, int TargetId = 0, double Amount = 0, IReadOnlyList<GridPosition>? Path = null, IReadOnlyList<CombatShot>? Shots = null, IReadOnlyList<MovementFrame>? Movement = null, StructureHit? StructureHit = null, IReadOnlyList<CombatShot>? Splash = null, IReadOnlyList<AreaHit>? AreaHits = null, IReadOnlyList<IncomeReceipt>? IncomeReceipts = null, IReadOnlyList<OutpostShot>? OutpostShots = null, IReadOnlyList<HealingReceipt>? HealingReceipts = null)

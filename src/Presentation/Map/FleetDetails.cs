@@ -21,7 +21,7 @@ public partial class FleetView
                 {
                     Health = shot.Target.Health - shot.Damage
                 };
-            _blastDamage[shot.Target.Id] = (HealthAnchor(point), $"−{shot.Damage:0.##}");
+            _blastDamage[shot.Target.Id] = (HealthAnchor(point, shot.Target.Class), $"−{shot.Damage:0.##}");
         }
 
         foreach (var hit in result.AreaHits ?? Array.Empty<AreaHit>())

@@ -1,0 +1,12 @@
+ad051ef80774b8f4d2dd69b82ffa95fefc45dfcdd95b07aaba8d4118686d36b8  0.18.1/Ancient_Naval_0.18.1_Source.zip
+f5980ed97293324c673b6e65483eec7b695593a206b8136d46ecf7d93cd24329  0.18.1/Ancient_Naval_0.18.1_Windows.zip
+ff99bdbd42ff6a6624a51c4d40bcb3bf6fbd3904d77898a2c7cb7ce134ac1f2e  0.18.1/Ancient_Naval_0.18.1_Notes_RU.md
+273d3927518ad0f4981717bd56cc5a99b8a0a077486e0e50deaa23dbd7667a19  0.18.1/playable/Ancient Naval.exe
+9e1ad4c5e7576a83257abfef79345749fd9f31d1df83a0aaae9a242f58049597  0.18.1/playable/Ancient Naval.pck
+31d98babcff0f7b2c8a2f38efc33e47738c6960f3f0667c3a568c76de406c173  0.18.1/Ancient_Naval_0.18.1_ship-info.png
+74577e8afa8e34de67db0c34e1af5111cda8a672143c435d0c3f1b2104fd2ad7  0.18.1/Ancient_Naval_0.18.1_installed.png
+5ec9f137ee1d5c1ca70f050eee267bb2213019a81c8025b0f63971428d8ccdee  0.18.1/Ancient_Naval_0.18.1_city-info.png
+3d9e5a312763651d790d4410fb162e055bc651ae9724dff99e61d41e0ac0e966  0.18.1/Ancient_Naval_0.18.1_city-improvements.png
+bfe48479e32f53cb91cf32bd2acf343ada81f4bed904fe8f092d7430d9ff1bc4  0.18.1/Ancient_Naval_0.18.1_resource-info.png
+91a05793ab8581addb1a0d9198980316856a256a2652ce1ab68e02116f961be3  0.18.1/Ancient_Naval_0.18.1_equipped-info.png
+6982666945d47a03a9ad89cfbe0c712d353c8677d60d1332a85b2478f430b55c  0.18.1/Ancient_Naval_0.18.1_settings.png

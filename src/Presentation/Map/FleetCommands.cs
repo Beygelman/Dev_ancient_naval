@@ -74,15 +74,10 @@ public partial class FleetView
                     await AnimateSalvo(shot.Attacker, shot.Target.Position, shot.Target, shot.IsMortar, shot.AttackerVisibleToPlayer, shot.TargetVisibleToPlayer);
                     presentation?.Impact(shot.IsCounterattack ? "counter" : "attack");
                     var to = Projection.GridToWorld(shot.Target.Position) + new Vector2(0, -6);
-                    if (shot.TargetSunk)
+                    if (shot.TargetVisibleToPlayer)
                         _snapshots[shot.Target.Id] = shot.Target with
                         {
-                            Health = 0
-                        };
-                    else if (shot.TargetVisibleToPlayer)
-                        _snapshots[shot.Target.Id] = shot.Target with
-                        {
-                            Health = shot.Target.Health - shot.Damage
+                            Health = shot.TargetSunk ? 0 : shot.Target.Health - shot.Damage
                         };
                     if (shot.Promoted && shot.AttackerVisibleToPlayer)
                         _snapshots[shot.Attacker.Id] = shot.Attacker with
@@ -125,7 +120,7 @@ public partial class FleetView
                 presentation?.Impact("village");
                 ApplySplash(result);
                 var town = Projection.GridToWorld(hit.Position) + new Vector2(0, -9);
-                _feedbackPosition = Projection.GridToWorld(hit.Position) + new Vector2(-8, -34);
+                _feedbackPosition = BoardView.TownHealthAnchor(Projection.GridToWorld(hit.Position));
                 _feedback = hit.TargetVisibleToPlayer ? $"−{result.Amount:0.##}" : "";
                 if (hit.CounterDamage > 0 && (hit.AttackerVisibleToPlayer || hit.TargetVisibleToPlayer))
                 {
@@ -138,7 +133,7 @@ public partial class FleetView
                     if (hit.AttackerVisibleToPlayer)
                     {
                         HitEffect(hit.Attacker, to, (to - town).Normalized(), false);
-                        _feedbackPosition = HealthAnchor(Projection.GridToWorld(hit.Attacker.Position));
+                        _feedbackPosition = HealthAnchor(Projection.GridToWorld(hit.Attacker.Position), hit.Attacker.Class);
                         _feedbackColor = new("ffe28c");
                         _feedback = $"Counter −{hit.CounterDamage:0.##}";
                     }
@@ -160,7 +155,7 @@ public partial class FleetView
             {
                 _feedbackColor = new("85e6a0");
                 _feedback = $"+{result.Amount:0.##}";
-                _feedbackPosition = actor is not null ? HealthAnchor(Projection.GridToWorld(actor.Position), actor.Definition.Class) : Projection.GridToWorld(Battle.Villages.First(v => v.Id == result.TargetId).Position) + new Vector2(-8, -34);
+                _feedbackPosition = actor is not null ? HealthAnchor(Projection.GridToWorld(actor.Position), actor.Definition.Class) : BoardView.TownHealthAnchor(Projection.GridToWorld(Battle.Villages.First(v => v.Id == result.TargetId).Position));
                 await TweenValue(0.25, t => _feedbackRise = t * 20);
             }
 
@@ -171,7 +166,7 @@ public partial class FleetView
             foreach (var heal in result.HealingReceipts ?? Array.Empty<HealingReceipt>())
                 if (heal.VisibleToPlayer)
                 {
-                    _feedbackPosition = heal.IsVillage ? Projection.GridToWorld(heal.Position) + new Vector2(-8, -34) : HealthAnchor(Projection.GridToWorld(heal.Position));
+                    _feedbackPosition = heal.IsVillage ? BoardView.TownHealthAnchor(Projection.GridToWorld(heal.Position)) : HealthAnchor(Projection.GridToWorld(heal.Position), Battle.At(heal.Position)?.Definition.Class ?? ShipClass.Garrison);
                     _feedbackColor = new("85e6a0");
                     _feedback = $"+{heal.Amount:0}";
                     await TweenValue(.3, t => _feedbackRise = t * 20);
@@ -263,7 +258,7 @@ public partial class FleetView
                     Health = shot.Target.Health - shot.Damage
                 };
             if (shot.TargetVisibleToPlayer)
-                _blastDamage[shot.Target.Id] = (HealthAnchor(Projection.GridToWorld(shot.Target.Position)), $"−{shot.Damage:0}");
+                _blastDamage[shot.Target.Id] = (HealthAnchor(Projection.GridToWorld(shot.Target.Position), shot.Target.Class), $"−{shot.Damage:0}");
         }
     }
 }

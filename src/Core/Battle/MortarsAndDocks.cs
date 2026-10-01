@@ -22,7 +22,8 @@ public sealed partial class BattleState
                 _shoals.Add(near[0]);
         }
 
-        foreach (var position in water)
+        var sites = Board.Kind == WorldKind.Pangaea ? water.OrderByDescending(p => PangaeaWaters.IsInterior(Board, p)) : water.AsEnumerable();
+        foreach (var position in sites)
         {
             if (_shoals.Count >= 8)
                 break;

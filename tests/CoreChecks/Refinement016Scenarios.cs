@@ -86,14 +86,14 @@ internal static partial class BattleScenarios
 
         b = new BattleState(new GameBoard(24, 24, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(10, 10)), (Side.Enemy, ShipClass.Mothership, new GridPosition(22, 22)), (Side.Enemy, ShipClass.Kolonel, new GridPosition(12, 10)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
         var mother = b.Find(1)!;
-        mother.Health = 8;
+        mother.Health = mother.MaxHealth * .4;
         b.Vision.Recompute(b.Ships, 1);
         var enemy = b.Find(3)!;
         Check(b.WeaponCovers(enemy, mother.Position), "Retreat fixture starts inside a known threat");
         var result = SimpleOpponent.Step(b);
         Check(result.Success && result.Kind == CommandKind.Move && result.ActorId == mother.Id && !b.WeaponCovers(enemy, mother.Position), "Wounded flagship escapes before attacking/building");
         b = new BattleState(new GameBoard(24, 24, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(10, 10)), (Side.Enemy, ShipClass.Mothership, new GridPosition(22, 22)), (Side.Enemy, ShipClass.Kolonel, new GridPosition(13, 10)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
-        b.Find(1)!.Health = 8;
+        b.Find(1)!.Health = b.Find(1)!.MaxHealth * .4;
         b.Vision.Recompute(b.Ships, 1);
         Check(!b.ObservedShips(Side.Player).Any(s => s.Id == 3) && FlagshipSafety.Retreat(b, b.Find(1)!, b.ObservedShips(Side.Player).Where(s => s.Owner != Side.Player).ToArray())is null, "Cautious AI does not react to hidden enemies");
         var coast = new GridPosition(8, 8);

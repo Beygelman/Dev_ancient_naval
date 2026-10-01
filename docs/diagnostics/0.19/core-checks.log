@@ -1,0 +1,25 @@
+PASS: 1535 core checks
+NAVIGATION ships=16 iterations=3 before_bytes=42098928 after_bytes=2117184 before_ms=23,935 after_ms=1,713
+NAVIGATION ships=128 iterations=3 before_bytes=94398960 after_bytes=2040264 before_ms=115,101 after_ms=1,648
+NAVIGATION ships=256 iterations=3 before_bytes=129229224 after_bytes=1967664 before_ms=177,3 after_ms=1,536
+MULTI_AI opponents=2 winner=Enemy round=51 commands=749
+MULTI_AI opponents=4 winner=Enemy3 round=33 commands=774
+REFINEMENT016: tower radar/veterancy, outpost targeting, AA, retreat and fish density passed
+DIFFICULTY Boatswain round=21 ships=8 elapsed_ms=264,6
+DIFFICULTY Captain round=10 ships=17 elapsed_ms=934,9
+DIFFICULTY Admiral round=13 ships=27 elapsed_ms=2133,0
+COMPLETE_AI Boatswain winner=Enemy round=18 orders=251
+COMPLETE_AI Captain winner=Player round=34 orders=709
+COMPLETE_AI Admiral winner=Enemy round=23 orders=502
+AI 0: Player, round 12, actions 241
+AI 1: Player, round 14, actions 268
+AI 2: Enemy, round 22, actions 348
+AI 3: Player, round 13, actions 262
+AI 4: Enemy, round 16, actions 286
+AI 5: Player, round 19, actions 315
+AI 6: Player, round 16, actions 526
+AI 7: Enemy, round 20, actions 713
+PASS: 1201652 Thor/progression/combat checks; 8 complete AI matches.
+PASS: 18 save compatibility and validation checks.
+PASS: 368 four-world generation checks.
+PASS: 23 voyage statistics checks.

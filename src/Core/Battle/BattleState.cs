@@ -69,7 +69,11 @@ public sealed partial class BattleState
     public Ship? FindObserved(Side side, int id) => ObservedShips(side).FirstOrDefault(s => s.Id == id);
     public static double Distance(GridPosition a, GridPosition b) => Math.Sqrt((double)(a.X - b.X) * (a.X - b.X) + (double)(a.Y - b.Y) * (a.Y - b.Y));
     public bool IsFreeWater(GridPosition cell) => Board.TryGetTile(cell, out var tile) && tile!.Terrain != TerrainType.Land && !_forbidden.Contains(cell) && At(cell)is null;
-    private void UpdateVision() => Vision.Recompute(Ships, TurnSerial, _villages);
+    private void UpdateVision()
+    {
+        Vision.SetAllSeeingPlayer(GodEye || Winner == Side.Player);
+        Vision.Recompute(Ships, TurnSerial, _villages);
+    }
     private string? ValidateActor(Side requester, int id, out Ship? ship)
     {
         ship = Find(id);

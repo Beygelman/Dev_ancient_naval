@@ -8,17 +8,22 @@ public sealed class GameBoard
     private readonly bool[] _playable;
     public IReadOnlyList<System.Numerics.Vector2> Boundary { get; }
     public int Seed { get; }
+    public WorldKind Kind { get; }
     public int Width { get; }
     public int Height { get; }
     public OrganicMesh? Mesh { get; }
     public IReadOnlyList<Tile> Tiles { get; }
 
     public GameBoard(int width, int height, Func<GridPosition, TerrainType> terrainAt, int seed = 0,
-        Func<GridPosition, bool>? playable = null, IReadOnlyList<System.Numerics.Vector2>? boundary = null, OrganicMesh? mesh = null)
+        Func<GridPosition, bool>? playable = null, IReadOnlyList<System.Numerics.Vector2>? boundary = null, OrganicMesh? mesh = null,
+        WorldKind kind = WorldKind.Oceans)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
         ArgumentNullException.ThrowIfNull(terrainAt);
+        if (!Enum.IsDefined(kind))
+            throw new ArgumentOutOfRangeException(nameof(kind));
+        Kind = kind;
         Seed = seed; Width = width; Mesh = mesh;
         Height = height;
         _tiles = new Tile[checked(width * height)];

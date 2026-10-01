@@ -131,7 +131,7 @@ public sealed partial class BattleState
     {
         RemoveIncomeSource($"village:{village.Id}");
         if (village.Owner is { } owner && village.Health > 0)
-            SetIncomeSource(new IncomeSource($"village:{village.Id}", owner, VillageIncome(village)));
+            SetIncomeSource(new IncomeSource($"village:{village.Id}", owner, VillageIncome(village) + (village.HasPort ? Rules.Ports.Income : 0)));
     }
 
     public IReadOnlyList<GridPosition> VillageSpawnCells(int villageId) => _villages.FirstOrDefault(v => v.Id == villageId)is { } village ? Board.GetNeighbors(village.Position).Where(IsFreeWater).ToArray() : Array.Empty<GridPosition>();
@@ -163,7 +163,7 @@ public sealed partial class BattleState
             return "This village has already built a ship this turn.";
         if (kind != ShipClass.CannonTower && Rules.Get(kind).Damage > 0 && _ships.Count(s => s.Owner == requester && s.CountsTowardFleet) >= Rules.FleetLimit)
             return $"Fleet limit: {Rules.FleetLimit}.";
-        if (Credits(requester) < BuildPrice(requester, kind))
+        if (Credits(requester) < VillageBuildPrice(villageId, kind))
             return "Not enough Thors.";
         return VillageSpawnCells(villageId).Count == 0 ? "No adjacent water tile is free." : null;
     }
@@ -181,8 +181,9 @@ public sealed partial class BattleState
             IsExhausted = true
         };
         _ships.Add(ship);
+        RecordShipConstruction(ship);
         RegisterShipIncome(ship);
-        _credits[(int)requester] -= BuildPrice(requester, kind);
+        _credits[(int)requester] -= VillageBuildPrice(villageId, kind);
         _everProduced[(int)requester] = true;
         village.HasProduced = true;
         UpdateVision();
@@ -251,7 +252,10 @@ public sealed partial class BattleState
             if (ship.Health <= 0)
             {
                 if (village.Owner is { } owner)
+                {
                     RewardPirateDefeat(owner, ship);
+                    RecordEnemyLoss(owner, ship);
+                }
                 RemoveDestroyedShip(ship);
             }
         }

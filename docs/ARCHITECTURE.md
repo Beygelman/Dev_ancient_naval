@@ -187,3 +187,78 @@ visibility-safe OutpostShot snapshots. Presentation only animates those results.
 The policy skips manually repairing towns and never damages air units.
 FlagshipSafety uses observed enemies only and compares known weapon exposure
 across legal routes; it is deliberately local, not an omniscient future planner.
+
+
+## 0.18 navigation and presentation contracts
+
+`TradeNetwork` builds deterministic shortest maritime links between live same-owner ports, with diagonal land-corner and whirlpool exclusions. Its command-independent cache is invalidated by ownership/zero HP/hazards and aggregate restore. Naval occupancy remains query-specific. `TradeNavigation` uses (cell, lane run) search states and cumulative integer rounding, so the minimum two-tile/20% gain survives both previews and split orders. Off-lane steps reset the run; extra terrain/threat costs remain. `MovementPreview` captures a fixed origin/path reconstruction, never a mutable ship position.
+
+`GodEye` and `AiDifficulty` are optional v1 save fields; missing difficulty defaults to Captain. Port rules and saved town/ship lane state also have legacy-compatible defaults. `BattleVision` keeps genuine memory and the human full-map override separate. Allied radar supplies coordinates to weapons irrespective of an individual unit's radar; observations still require optical sight. Human victory activates full visibility.
+
+Town art is retained apart from mill/flag animation and a Z=6 interface canvas. Gameplay invalidation refreshes town UI even when Vision.Revision did not change. Sea strokes/triangles are submitted in batches with retained buffers; there is one color per multiline segment. Range/resource/trade commands use native viewport clipping and are not reissued on pans. Hulls are not toggled hidden/visible each frame: native position/rotation carries bobbing; state, heading, barrel, sinking and slower city life trigger art redraw.
+
+Admiral is bounded one-turn planning, not an omniscient tree search. It ranks finishing blows, counterfire and an upper-bound next-turn enemy reach forecast; coordinates supporting hulls and avoids costly healthy flagships until firepower is sufficient. Only observed ships feed that forecast. Cheap scouts use anonymous radar positions. Boatswain/Captain/Admiral share rules, prices, income, RNG and visibility.
+
+## Information cards — 0.18.1
+
+`Presentation/UI/AncientLore` reads observed current state into `LorePage` sections
+and labelled rows. It does not catalogue uninstalled upgrades or future unlocks.
+`InformationHud` renders these records as native containers inside a bounded
+scrolling papyrus card; identical visible text reuses its nodes and reading
+position. Keep the title/close controls outside the scroll and derive layout
+from native content/header margins. Radar contacts may be inspected even on
+uncharted terrain, but only their anonymous description is available. Gameplay
+calculations and saved rules remain in Core.
+
+## Worlds, clay seals and victory — 0.19
+
+WorldKind is an optional SavedBoard field, default Oceans. The original Oceans terrain
+branch is unchanged. WorldLandscapeGenerator applies continuous envelope/islet/ridge
+policy to the existing mesh, carves edge-connected shallow rivers and connects trapped
+water to the sea. WorldSettlementPlacement assigns three coastal sites per starting
+territory for the new policies; normal treasury fairness and pirate counts remain.
+Fleets keep safe ocean berths; small hulls may navigate narrow rivers.
+
+VoyageStatistics is an immutable Core value, captured/restored by all staged command
+snapshots. Gross receipts and rewards, actual shipyard hull construction and direct
+player weapon/counter/outpost kills update once at their Core event. Forced fleet
+collapse is excluded. Old snapshots without this optional value start at zero; loading
+never reconstructs lifetime totals from current money or surviving ships.
+
+MainActionStories waits for the cosmetic ActionPapyrus ceremony while Busy blocks
+orders, validates the same battle/target afterwards, then calls the existing command
+facade. Treasure commands still use staged impacts. Both the large illustration and
+ordinary icon use this wrapper. Art has no access to simulation RNG.
+
+VesselArt uses independent floor XY and height Z, reusable face buffers, visible wall
+culling and projected footprint ordering. HealthAmphorae canvases at Z7 follow position
+and bobbing without deck yaw. AmphoraHealthAnimation observes actual visible snapshot
+changes; unchanged draws do not restart it. Town interfaces at Z6 use the same helper
+and only queue extra 30-Hz paint while their health animation is active. Feedback is
+Z8 and originates at the digits. Radar-only destroyed hulls never gain a retained
+class/health snapshot. Connected cloud solids share side/top boundaries and one shadow.
+
+SceneryAtlas packs the original seeded tree/peak primitives in ground-Y order into
+2048×2048 transparent pages at 2× resolution. Every object remains a Sprite2D at its
+original ground anchor in the shared native Y sort; texture offset carries its height.
+AtlasTexture regions share page RIDs and a single premultiplied-alpha material, avoiding
+dark translucent fringes. SceneryAtlasPage disables its viewport after FramePostDraw
+confirms the painter ran, then frees the primitive canvas and disconnects its callback
+exactly once. A new projection replaces both pages and anchors. Hover/camera/fog changes
+never rebake; each sprite's original owning cell controls visibility and tint. Towns
+remain separate retained/animated canvases. Cosmetic placement and Core RNG are unchanged.
+
+MainOutcome waits until all command/impact/sinking presentation finishes before opening
+a CanvasLayer60 modal result. It disables map input and hides the regular HUD; Return
+closes fireworks/input ownership before showing Home. Repeated Refresh does not restart
+the result. Fireworks are finite (7 bursts, at most 224 sparks) and processing stops.
+
+## River kingdoms, world actions and compatibility — 0.20
+
+`FreeCoastalNavigation` defaults false in old rule snapshots and is true in the new balance. NavalNavigationQuery receives this policy per search; when enabled it removes the Mother narrow-cell veto and terrain multipliers. Threats, forbidden cells, land, occupancy, knowledge and corner policy remain common to previews, actual sailing and AI. `Balloon.KolonelAntiAir` likewise defaults false; HasAntiAir/AntiAirCovers are shared by damage, attacks, counters, gun-position searches and Admiral forecasts. Red is appended to FleetColor, preserving existing enum identities.
+
+Pangaea generation retains the existing organic mesh. Seeded lake envelopes are linked by sampled meanders and shared-edge paths, plus tributaries, external mouths and paired basin bypasses. ConnectWater guarantees one edge-connected water network. PangaeaWaters classifies the inner world-space envelope, used to prioritize two interior settlements per territory and interior fish while retaining fair settlement counts and starter resources. Snapshots store the resulting terrain/resources; Continue does not call the generator.
+
+ActionStoriesHud tracks all eligible `(action kind, target ID)` pairs independently of selection. Ready scenes follow their projected target on camera changes; offscreen scenes stop their levitation. The UI sends target IDs to MainActionStories, which selects that object, blocks input while consuming its scroll, revalidates battle identity and eligibility, and commits once after the cosmetic ceremony. No invisible capture-marker hitbox remains. Artwork follows a top-anchored half-circle via explicit convex textured quads, avoiding triangulation of an almost-zero-width closing annulus. Ship/resource RadialPapyrus uses the opposite upward half-circle and clamps only at viewport edges. Purchase costs are active-rule values; repair/cooldown annotations are not mistaken for prices.
+
+FactionSanctuaryArt shares projected floor XY and upright Z between ships, towns and setup emblem previews. Neutral towns omit this monument; owned towns scale it with level. Static house randomness depends only on map seed/town ID, never simulation RNG. Existing native ground-Y anchors and observed-town redraw rules remain; hidden towns keep the last painted ownership/level. Trade routes are retained world commands, with cubic interpolation, checked water bends and white dashes. Only their visual endpoints extend to the port's land/sea midpoint; the Core trade network still begins at the unoccupied sea berth.

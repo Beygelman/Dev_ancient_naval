@@ -12,6 +12,7 @@ public partial class FleetView
         Ink.DrawColoredPolygon(new[] { p(-14, -25), p(0, -33), p(15, -25), p(0, -17) }, new Color("c8c4a2"));
         Ink.DrawLine(p(-12, -6), p(0, 1), accent, 3, true);
         Ink.DrawLine(p(0, 1), p(13, -6), accent, 3, true);
+        DrawTowerMasonry(p, accent, true);
     }
 
     private void DrawCannonTower(Func<float, float, Vector2> p, Color accent)
@@ -22,6 +23,39 @@ public partial class FleetView
         Ink.DrawColoredPolygon(new[] { p(-13, -23), p(0, -30), p(16, -24), p(2, -16) }, new Color("e9d7af"));
         Ink.DrawLine(p(-9, -8), p(1, -2), accent, 3, true);
         Ink.DrawLine(p(1, -2), p(12, -9), accent, 3, true);
+        DrawTowerMasonry(p, accent, false);
+    }
+
+    private void DrawTowerMasonry(Func<float, float, Vector2> p, Color accent, bool ancient)
+    {
+        var mortar = new Color(ancient ? "56685d" : "8d8065");
+        for (int course = 0; course < 5; course++)
+        {
+            float y = 1 - course * 4.6f;
+            Ink.DrawLine(p(-10, y - 5), p(0, y + 1), mortar, .65f, true);
+            Ink.DrawLine(p(0, y + 1), p(12, y - 5), mortar, .65f, true);
+            for (int block = 0; block < 3; block++)
+            {
+                float x = -9 + block * 3.5f + course % 2 * 1.3f;
+                Ink.DrawLine(p(x, y + x * .55f), p(x, y + x * .55f - 3), mortar, .6f, true);
+            }
+        }
+        for (int side = -1; side <= 1; side += 2)
+        {
+            Ink.DrawLine(p(side * 5, -8), p(side * 5, -13), new Color("485650"), 1.4f, true);
+            Ink.DrawLine(p(side * 5-1, -14), p(side * 5+1, -14), new Color("eee0bd"), 1, true);
+            for (int merlon = 0; merlon < 4; merlon++)
+            {
+                float x = side * (2 + merlon * 3);
+                Ink.DrawLine(p(x, -23 - MathF.Abs(x) * .5f), p(x, -27 - MathF.Abs(x) * .5f), new Color("e3d3ad"), 2.4f, true);
+            }
+        }
+        Ink.DrawLine(p(-15, 0), p(-15,-14), new Color("958366"), 1, true);
+        Ink.DrawColoredPolygon(new[] { p(-15,-14),p(-7,-13),p(-15,-9) }, accent);
+        for (int step = 0; step < 3; step++)
+            Ink.DrawLine(p(-4,8+step*2),p(4,8+step*2),new Color("d0bc92"),1.3f,true);
+        Ink.DrawCircle(p(16,5),2.8f,new Color("6e8c68"));
+        Ink.DrawCircle(p(-18,4),2,new Color("b9ae82"));
     }
 
     private void DrawPirateFlag(Func<float, float, Vector2> p)

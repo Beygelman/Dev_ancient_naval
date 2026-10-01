@@ -6,15 +6,15 @@ addition to the external `outputs` directory. Sources are edited directly in
 the repository's `src`, `assets`, `data`, `scenes` and `tests` folders; the root
 `README.md` describes the current version.
 
-## Current version: 0.17
+## Current version: 0.19
 
-- [Windows ZIP](0.17/Ancient_Naval_0.17_Windows.zip)
-- [Source checkpoint ZIP](0.17/Ancient_Naval_0.17_Source.zip)
-- [Release notes in Russian](0.17/Ancient_Naval_0.17_Notes_RU.md)
-- [SHA256 checksums](SHA256-0.17.txt), with paths relative to this directory
-- [Map](0.17/Ancient_Naval_0.17_map.png), [landscape](0.17/Ancient_Naval_0.17_landscape.png), [route](0.17/Ancient_Naval_0.17_route.png)
+- [Windows ZIP](0.19/Ancient_Naval_0.19_Windows.zip)
+- [Source checkpoint ZIP](0.19/Ancient_Naval_0.19_Source.zip)
+- [Release notes in Russian](0.19/Ancient_Naval_0.19_Notes_RU.md)
+- [SHA256 checksums](SHA256-0.19.txt), with paths relative to this directory
+- [Pangaea](0.19/Ancient_Naval_0.19_pangaea.png), [fleet](0.19/Ancient_Naval_0.19_fleet.png), [clay health seals](0.19/Ancient_Naval_0.19_clay-stages.png), [victory](0.19/Ancient_Naval_0.19_victory.png)
 
-For local play, use `0.17/playable/Ancient Naval.exe`. The complete folder includes
+For local play, use `0.19/playable/Ancient Naval.exe`. The complete folder includes
 the PCK, bundled .NET runtime and diagnostics. Keep these files together.
 That raw launch folder is local-only in Git, because the executable is larger
 than GitHub's 100 MiB limit. The complete ZIP is tracked instead.
@@ -25,7 +25,7 @@ than GitHub's 100 MiB limit. The complete ZIP is tracked instead.
 Package and verify the new version first, then run from the repository root:
 
 ```powershell
-./tools/Sync-Release.ps1 -Version '0.17' -OutputsPath 'C:/Users/User/Documents/Codex/2026-09-29/x20/outputs'
+./tools/Sync-Release.ps1 -Version '0.19' -OutputsPath 'C:/Users/User/Documents/Codex/2026-09-29/x20/outputs'
 ```
 
 The tool copies all matching artifacts and every unpacked runtime file,

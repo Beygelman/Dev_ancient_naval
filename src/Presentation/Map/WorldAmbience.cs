@@ -25,6 +25,7 @@ public partial class WorldAmbience : Node2D
     private readonly HashSet<GridPosition> _visibleWater = new();
     private GridPosition[] _harborWater = Array.Empty<GridPosition>();
     private (int Id, Vector2 Center)[] _docks = Array.Empty<(int, Vector2)>();
+    private readonly SeaGeometryBatch _wavesBatch = new();
     private readonly Vector2[] _waterWave = new Vector2[4];
     private readonly Vector2[] _gullWings = new Vector2[5];
     private Rect2 _drawBounds;
@@ -160,6 +161,7 @@ public partial class WorldAmbience : Node2D
         _drawBounds = _drawBounds.Expand(inverse * new Vector2(viewport.Position.X, viewport.End.Y)).Grow(150);
         using (PerformanceTrace.Measure("Ambience.Waves"))
         {
+            _wavesBatch.Clear();
             foreach (var cell in _water)
             {
                 if ((cell.X * 7 + cell.Y * 13) % 4 != 0)
@@ -173,7 +175,7 @@ public partial class WorldAmbience : Node2D
                 _waterWave[1] = center + new Vector2(-4, -1);
                 _waterWave[2] = center + new Vector2(4, -1);
                 _waterWave[3] = center + new Vector2(11, 1);
-                DrawPolyline(_waterWave, new Color(.75f, .9f, .91f, alpha), 1, true);
+                _wavesBatch.Polyline(_waterWave, new Color(.75f, .9f, .91f, alpha));
             }
 
             foreach (var shore in _shores)
@@ -189,9 +191,10 @@ public partial class WorldAmbience : Node2D
                         shore.Points[i] = shore.Edge[i] + shore.Directions[i] * (1 - phase) * 11;
                     }
 
-                    DrawPolyline(shore.Points, new Color(.86f, .94f, .88f, MathF.Sin(phase * Mathf.Pi) * .23f), 1.3f, true);
+                    _wavesBatch.Polyline(shore.Points, new Color(.86f, .94f, .88f, MathF.Sin(phase * Mathf.Pi) * .23f));
                 }
             }
+            _wavesBatch.Submit(this, 1.2f);
         }
 
         using (PerformanceTrace.Measure("Ambience.Fish"))
@@ -232,19 +235,21 @@ public partial class WorldAmbience : Node2D
 
     internal void DrawTownLife(Node2D canvas, Village town, Vector2 center)
     {
-        var hub = center + new Vector2(-22, -22);
-        float rotation = _time * .48f + town.Id;
-        for (int i = 0; i < 4; i++)
+        foreach (var mill in BoardView.TownMills(town))
         {
-            var axis = Vector2.FromAngle(rotation + i * Mathf.Pi / 2);
-            var side = axis.Orthogonal() * 2;
-            canvas.DrawColoredPolygon(new[] { hub + axis * 2, hub + axis * 13, hub + axis * 12 + side, hub + axis * 4 + side }, new Color("ebe1bd"));
+            var hub = center + mill;
+            float rotation = _time * .48f + town.Id;
+            for (int i = 0; i < 4; i++)
+            {
+                var axis = Vector2.FromAngle(rotation + i * Mathf.Pi / 2);
+                var side = axis.Orthogonal() * 2;
+                canvas.DrawColoredPolygon(new[] { hub + axis * 2, hub + axis * 11, hub + axis * 10 + side, hub + axis * 4 + side }, new Color("ebe1bd"));
+            }
+            canvas.DrawCircle(hub, 2.2f, new Color("807858"));
         }
-
-        canvas.DrawCircle(hub, 2.2f, new Color("807858"));
         if (town.Owner is null && !BoardView.Battle.CanCaptureVillage(Side.Player, town.Id))
             return;
-        var flag = center + new Vector2(19, -39);
+        var flag = center + new Vector2(-32, -39);
         var color = FleetPalette.For(BoardView.Battle, town.Owner);
         var cloth = new Vector2[10];
         for (int i = 0; i < 5; i++)

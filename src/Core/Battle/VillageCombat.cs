@@ -27,6 +27,7 @@ public sealed partial class BattleState
             if (sunk)
             {
                 RewardPirateDefeat(side, target);
+                RecordEnemyLoss(side, target);
                 RemoveDestroyedShip(target);
             }
 

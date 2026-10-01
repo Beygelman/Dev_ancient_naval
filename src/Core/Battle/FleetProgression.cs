@@ -38,7 +38,10 @@ public sealed partial class BattleState
         }
 
         int resourceCount = Math.Max(Rules.Economy.MinimumResourceSpots, Rules.Economy.ResourceTileInterval > 0 ? Board.Tiles.Count / Rules.Economy.ResourceTileInterval : 0);
-        foreach (var cell in candidates.Where(p => !_shoals.Contains(p)).Take(Math.Min(resourceCount, candidates.Count)))
+        var resources = candidates.Where(p => !_shoals.Contains(p));
+        if (Board.Kind == WorldKind.Pangaea)
+            resources = resources.OrderByDescending(p => PangaeaWaters.IsInterior(Board, p));
+        foreach (var cell in resources.Take(Math.Min(resourceCount, candidates.Count)))
             _fish.Add(cell);
         // Every starting fleet can demonstrate collection without relying on a lucky seed.
         foreach (var mother in Ships.Where(s => s.IsMothership))

@@ -21,6 +21,10 @@ public partial class WorldAmbience
         new(-2, 0),
         new(-3, 0)
     };
+    private readonly Vector2[] _cloudTop = new Vector2[CloudFacet.Length];
+    private readonly Vector2[] _cloudSide = new Vector2[4];
+    internal const float CloudThickness = 16;
+    internal const float CloudAltitude = 132;
     private BoardTerrainLayer? _sky;
     public override void _Ready()
     {
@@ -56,8 +60,36 @@ public partial class WorldAmbience
             var center = new Vector2(bounds.Position.X + x, bounds.Position.Y + bounds.Size.Y * (.13f + cloud * .17f));
             if (!_drawBounds.Grow(160).HasPoint(center) || !VisibleSurface(center))
                 continue;
-            canvas.DrawSetTransform(shadows ? center : center + new Vector2(-36, -132), 0, new Vector2(31, 16));
-            canvas.DrawColoredPolygon(CloudFacet, shadows ? new Color(.02f, .08f, .1f, .085f) : new Color(.92f, .96f, .94f, .19f));
+            if (shadows)
+            {
+                canvas.DrawSetTransform(center, 0, new Vector2(31, 16));
+                canvas.DrawColoredPolygon(CloudFacet, new Color(.02f, .08f, .1f, .085f));
+            }
+            else
+            {
+                // A single connected square footprint has shaded extruded walls.
+                // Faces share their boundaries, avoiding dark overlapping cloud discs.
+                canvas.DrawSetTransform(center + new Vector2(-36, -CloudAltitude));
+                for (int vertex = 0; vertex < CloudFacet.Length; vertex++)
+                    _cloudTop[vertex] = CloudFacet[vertex] * new Vector2(31, 16) + new Vector2(-5, -CloudThickness);
+                for (int edge = 0; edge < CloudFacet.Length; edge++)
+                {
+                    int next = (edge + 1) % CloudFacet.Length;
+                    var a = CloudFacet[edge] * new Vector2(31, 16);
+                    var b = CloudFacet[next] * new Vector2(31, 16);
+                    if ((b - a).Cross(_cloudTop[next] - a) <= .025f)
+                        continue;
+                    _cloudSide[0] = a;
+                    _cloudSide[1] = b;
+                    _cloudSide[2] = _cloudTop[next];
+                    _cloudSide[3] = _cloudTop[edge];
+                    canvas.DrawColoredPolygon(_cloudSide, MathF.Abs(b.X - a.X) > 1
+                        ? new Color(.72f, .83f, .82f, .22f)
+                        : new Color(.62f, .75f, .76f, .19f));
+                }
+                canvas.DrawColoredPolygon(_cloudTop, new Color(.95f, .97f, .91f, .24f));
+                canvas.DrawLine(_cloudTop[2], _cloudTop[3], new Color(1, 1, .94f, .18f), 1, true);
+            }
             canvas.DrawSetTransform(Vector2.Zero);
         }
     }

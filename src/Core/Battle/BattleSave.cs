@@ -31,10 +31,11 @@ public sealed partial class BattleState
     public string SaveJson() => SerializeSnapshot(CaptureSnapshot());
     private BattleSave CreateSnapshot(SavedBoard? board = null) => new()
     {
-        Board = board ?? new(Board.Width, Board.Height, Board.Seed, Board.Tiles.Where(t => t.Terrain == TerrainType.Land).Select(t => t.Position).ToArray(), Board.Mesh?.Save()),
+        Board = board ?? new(Board.Width, Board.Height, Board.Seed, Board.Tiles.Where(t => t.Terrain == TerrainType.Land).Select(t => t.Position).ToArray(), Board.Mesh?.Save(), Board.Kind),
+        Statistics = Statistics,
         Rules = Rules,
         Ships = _ships.Select(SavedShip.From).ToArray(),
-        Villages = _villages.Select(v => new SavedVillage(v.Id, v.Position, v.Owner, v.Level, v.Health, v.TurnsOwned, v.IsFortified, v.HasProduced, v.HasRepaired, v.HasAttacked, v.Name)).ToArray(),
+        Villages = _villages.Select(v => new SavedVillage(v.Id, v.Position, v.Owner, v.Level, v.Health, v.TurnsOwned, v.IsFortified, v.HasProduced, v.HasRepaired, v.HasAttacked, v.Name, v.HasPort)).ToArray(),
         Fish = _fish.ToArray(),
         Shoals = _shoals.ToArray(),
         Treasuries = _treasuries.ToArray(),
@@ -54,6 +55,8 @@ public sealed partial class BattleState
         Winner = Winner,
         IsDraw = IsDraw,
         Creative = Creative,
+        GodEye = GodEye,
+        Difficulty = Difficulty,
         Color = PlayerColor,
         Factions = _factions.ToArray(),
         FactionNames = _factionNames.Select(e => new FactionIdentity(e.Key, e.Value)).ToArray(),
@@ -90,7 +93,7 @@ public sealed partial class BattleState
     {
         var mesh = saved.Mesh is null ? null : OrganicMesh.Restore(saved.Mesh);
         var land = saved.Land.ToHashSet();
-        var board = new GameBoard(saved.Width, saved.Height, p => land.Contains(p) ? TerrainType.Land : TerrainType.Water, saved.Seed, mesh is null ? null : mesh.Faces.ContainsKey, mesh?.Boundary, mesh);
+        var board = new GameBoard(saved.Width, saved.Height, p => land.Contains(p) ? TerrainType.Land : TerrainType.Water, saved.Seed, mesh is null ? null : mesh.Faces.ContainsKey, mesh?.Boundary, mesh, saved.Kind);
         if (saved.Land.Any(p => !board.Contains(p)) || mesh is not null && mesh.Faces.Keys.Any(p => !board.Contains(p)))
             throw new ArgumentException("Saved terrain lies outside the board.");
         return board;
@@ -98,6 +101,7 @@ public sealed partial class BattleState
 
     private void RestoreEntities(BattleSave saved)
     {
+        _tradeNetworks.Clear();
         var previousShips = _ships.ToDictionary(s => s.Id);
         var previousVillages = _villages.ToDictionary(v => v.Id);
         _ships.Clear();
@@ -122,6 +126,7 @@ public sealed partial class BattleState
             village.Health = state.Health;
             village.TurnsOwned = state.TurnsOwned;
             village.IsFortified = state.Fortified;
+            village.HasPort = state.Port;
             village.HasProduced = state.Produced;
             village.HasRepaired = state.Repaired;
             village.HasAttacked = state.Attacked;
@@ -157,6 +162,9 @@ public sealed partial class BattleState
         Winner = saved.Winner;
         IsDraw = saved.IsDraw;
         Creative = saved.Creative;
+        GodEye = saved.GodEye;
+        Difficulty = saved.Difficulty;
+        Statistics = saved.Statistics;
         PlayerColor = saved.Color;
         _factions.Clear();
         _factions.AddRange(saved.Factions.Length == 0 ? new[] { Side.Player, Side.Enemy } : saved.Factions);

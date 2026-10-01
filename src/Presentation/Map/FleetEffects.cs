@@ -36,6 +36,12 @@ public partial class FleetView
         if (!ReferenceEquals(_visualBattle, Battle))
         {
             _visualBattle = Battle;
+            foreach (var hull in _hulls.Values)
+            {
+                hull.Canvas.QueueFree();
+                hull.Badge.QueueFree();
+            }
+            _hulls.Clear();
             _smoke.Clear();
             _ripples.Clear();
             _debris.Clear();

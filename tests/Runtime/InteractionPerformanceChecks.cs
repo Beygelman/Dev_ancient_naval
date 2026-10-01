@@ -52,7 +52,8 @@ public partial class InteractionPerformanceChecks : Node
             await Frame();
             var args = OS.GetCmdlineUserArgs();
             int opponents = int.Parse(args.FirstOrDefault(a => a.StartsWith("--opponents="))?[12..] ?? "1");
-            var board = ArchipelagoGenerator.Create(731, args.Contains("--scaled-map") ? opponents : 3);
+            var kind = Enum.Parse<WorldKind>(args.FirstOrDefault(a => a.StartsWith("--world-kind="))?[13..] ?? "Oceans");
+            var board = ArchipelagoGenerator.Create(731, args.Contains("--scaled-map") ? opponents : 3, kind);
             var battle = SkirmishSetup.Create(board, Game.Battle.Rules, opponents);
             Game.LoadScenario(battle);
             if (!args.Contains("--live-fog"))
@@ -66,6 +67,7 @@ public partial class InteractionPerformanceChecks : Node
             Game.SelectCell(ship.Position);
             Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(ship.Position);
             Game.MapCamera.Zoom = Vector2.One;
+            if (args.Contains("--wide-view")) Game.MapCamera.FitBoard();
             Game.MapCamera.ForceUpdateScroll();
             if (args.Any(a => a.StartsWith("--save-file=")))
                 Game.SaveSession();
@@ -76,6 +78,14 @@ public partial class InteractionPerformanceChecks : Node
             var handlers = new List<double>();
             PerformanceTrace.Reset();
             _recordFrames = true;
+            for (int pan = 0; pan < 120; pan++)
+            {
+                Game.MapCamera.Pan(new Vector2(MathF.Sin(pan * .08f) * 6, MathF.Cos(pan * .05f) * 3));
+                await Frame();
+            }
+            string panReport = $"PAN frames={_frames.Count}, p50_ms={Percentile(_frames, .5):F3}, p95_ms={Percentile(_frames, .95):F3}, max_ms={_frames.Max():F3}\n";
+            _frames.Clear();
+            _previousFrame = 0;
             foreach (var cell in destinations)
             {
                 var screen = GetViewport().GetCanvasTransform() * Game.BoardView.Projection.GridToWorld(cell);
@@ -97,7 +107,7 @@ public partial class InteractionPerformanceChecks : Node
             for (int frame = 0; frame < 20; frame++)
                 await Frame();
             _recordFrames = false;
-            string report = $"INTERACTION tiles={board.Tiles.Count}, opponents={opponents}, live_fog={args.Contains("--live-fog")}, hover_calls={handlers.Count}, " + $"hover_p50_ms={Percentile(handlers, .5):F3}, hover_p95_ms={Percentile(handlers, .95):F3}, " + $"hover_max_ms={handlers.Max():F3}, frame_p95_ms={Percentile(_frames, .95):F3}, " + $"frame_max_ms={_frames.Max():F3}, process_p95_ms={Percentile(_processTimes, .95):F3}, " + $"draw_calls_p95={Percentile(_drawCalls, .95):F0}, movement_elapsed_ms={movementMs:F3}\n" + PerformanceTrace.Report();
+            string report = panReport + $"INTERACTION world={kind}, wide_view={args.Contains("--wide-view")}, tiles={board.Tiles.Count}, opponents={opponents}, live_fog={args.Contains("--live-fog")}, hover_calls={handlers.Count}, " + $"hover_p50_ms={Percentile(handlers, .5):F3}, hover_p95_ms={Percentile(handlers, .95):F3}, " + $"hover_max_ms={handlers.Max():F3}, frame_p95_ms={Percentile(_frames, .95):F3}, " + $"frame_max_ms={_frames.Max():F3}, process_p95_ms={Percentile(_processTimes, .95):F3}, " + $"draw_calls_p95={Percentile(_drawCalls, .95):F0}, movement_elapsed_ms={movementMs:F3}\n" + PerformanceTrace.Report();
             GD.Print(report);
             var output = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--report="));
             if (output is not null)

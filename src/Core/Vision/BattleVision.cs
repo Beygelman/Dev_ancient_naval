@@ -25,6 +25,14 @@ public sealed partial class BattleVision
     private readonly Dictionary<GridPosition, int>[] _lastSeen = Enumerable.Range(0, BattleState.SideSlots).Select(_ => new Dictionary<GridPosition, int>()).ToArray();
     public BattleVision(GameBoard board) => _board = board;
     public long Revision { get; private set; }
+    private bool _allSeeingPlayer;
+    public void SetAllSeeingPlayer(bool enabled)
+    {
+        if (_allSeeingPlayer == enabled) return;
+        _allSeeingPlayer = enabled;
+        Revision++;
+    }
+    private bool AllSeeing(Side side, GridPosition cell) => side == Side.Player && _allSeeingPlayer && _board.Contains(cell);
 
     public static bool InRadius(GridPosition a, GridPosition b, int radius)
     {
@@ -32,12 +40,13 @@ public sealed partial class BattleVision
         return dx * dx + dy * dy <= (long)radius * (radius + 1);
     }
 
-    public bool IsVisible(Side side, GridPosition cell) => _visible[(int)side].Contains(cell);
-    public bool IsExplored(Side side, GridPosition cell) => _explored[(int)side].Contains(cell);
-    public int ExploredCount(Side side) => _explored[(int)side].Count;
+    public bool IsVisible(Side side, GridPosition cell) => AllSeeing(side, cell) || _visible[(int)side].Contains(cell);
+    public bool IsExplored(Side side, GridPosition cell) => AllSeeing(side, cell) || _explored[(int)side].Contains(cell);
+    public int ExploredCount(Side side) => side == Side.Player && _allSeeingPlayer ? _board.Tiles.Count : _explored[(int)side].Count;
     public int LastSeen(Side side, GridPosition cell) => _lastSeen[(int)side].GetValueOrDefault(cell, -1);
     public TerrainType? KnownTerrain(Side side, GridPosition cell) => IsExplored(side, cell) ? _board.GetTile(cell).Terrain : null;
-    public IReadOnlyCollection<GridPosition> Contacts(Side side) => _contacts[(int)side].ToArray();
+    public IReadOnlyCollection<GridPosition> Contacts(Side side) => side == Side.Player && _allSeeingPlayer ? Array.Empty<GridPosition>() : _contacts[(int)side].ToArray();
+    public bool IsRadarContact(Side side, GridPosition cell) => !IsVisible(side, cell) && _contacts[(int)side].Contains(cell);
     public VisibilityState State(Side side, GridPosition cell) => IsVisible(side, cell) ? VisibilityState.Visible : _contacts[(int)side].Contains(cell) ? VisibilityState.RadarContact : IsExplored(side, cell) ? VisibilityState.Explored : VisibilityState.Unknown;
     public void RevealCombat(Side side, GridPosition cell) => _flashes[(int)side].Add(cell);
     public void ClearCombatFlashes()

@@ -7,15 +7,17 @@ using DevAncientNaval.Core.Vision;
 namespace DevAncientNaval.Core.Battle;
 public sealed partial class BattleState
 {
+    public bool HasAntiAir(Ship ship) => ship.IsMothership || Rules.Balloon.KolonelAntiAir && ship.Definition.Class == ShipClass.Kolonel;
+    public bool AntiAirCovers(Ship ship, GridPosition origin, GridPosition target) => HasAntiAir(ship) && Board.InRadius(origin, target, Rules.Balloon.AntiAirRange) && Board.InRadius(origin, target, ship.Definition.AttackRange);
     public bool UsesMortar(Ship ship, GridPosition cell) => ship.Definition.Class == ShipClass.AncientGun || ship.HasMortar && !Board.InRadius(ship.Position, cell, 3);
     private bool WeaponCoversFrom(Ship ship, GridPosition origin, GridPosition cell, bool counter = false) => ship.IsArmed && (ship.Definition.Class == ShipClass.AncientGun ? !counter && Board.InRadius(origin, cell, 5) : (ship.Definition.Class != ShipClass.Togus && Board.InRadius(origin, cell, ship.Definition.AttackRange) || !counter && ship.HasMortar && !Board.InRadius(origin, cell, 3) && Board.InRadius(origin, cell, ship.MortarRange)));
     public bool WeaponCovers(Ship ship, GridPosition cell, bool counter = false) => WeaponCoversFrom(ship, ship.Position, cell, counter);
-    public double Damage(Ship attacker, Ship target, bool counter = false) => attacker.IsArmed && (!target.IsAirborne || attacker.IsMothership && Board.InRadius(attacker.Position, target.Position, Rules.Balloon.AntiAirRange)) ? Ship.Whole(Math.Max(1, (UsesMortar(attacker, target.Position) && !counter ? attacker.CurrentMortarDamage : attacker.CurrentDamage) + (counter ? attacker.CounterDamageBonus : attacker.ShotDamageBonus) - target.Definition.Armor)) : 0;
+    public double Damage(Ship attacker, Ship target, bool counter = false) => attacker.IsArmed && (!target.IsAirborne || AntiAirCovers(attacker, attacker.Position, target.Position)) ? Ship.Whole(Math.Max(1, (UsesMortar(attacker, target.Position) && !counter ? attacker.CurrentMortarDamage : attacker.CurrentDamage) + (counter ? attacker.CounterDamageBonus : attacker.ShotDamageBonus) - target.Definition.Armor)) : 0;
     public bool CanAttack(int id, int targetId)
     {
         var ship = Find(id);
         var target = ship is null ? null : Find(targetId);
-        return !IsOver && ship is not null && target is not null && (!target.IsAirborne || ship.IsMothership && Board.InRadius(ship.Position, target.Position, Rules.Balloon.AntiAirRange)) && ship.Owner == ActiveSide && ship.Owner != target.Owner && (Vision.IsVisible(ship.Owner, target.Position) || ship.HasRadar && Vision.Contacts(ship.Owner).Contains(target.Position)) && ship.AttacksRemaining > 0 && WeaponCovers(ship, target.Position);
+        return !IsOver && ship is not null && target is not null && (!target.IsAirborne || AntiAirCovers(ship, ship.Position, target.Position)) && ship.Owner == ActiveSide && ship.Owner != target.Owner && (Vision.IsVisible(ship.Owner, target.Position) || Vision.IsRadarContact(ship.Owner, target.Position)) && ship.AttacksRemaining > 0 && WeaponCovers(ship, target.Position);
     }
 
     public IReadOnlyCollection<GridPosition> AttackCells(int id)
@@ -23,10 +25,10 @@ public sealed partial class BattleState
         var ship = Find(id);
         if (ship is null || !ship.IsArmed || IsOver || ship.Owner != ActiveSide || ship.AttacksRemaining == 0)
             return Array.Empty<GridPosition>();
-        return Board.Tiles.Where(t => (Vision.IsVisible(ship.Owner, t.Position) || ship.HasRadar) && WeaponCovers(ship, t.Position)).Select(t => t.Position).ToArray();
+        return Board.Tiles.Where(t => (Vision.IsVisible(ship.Owner, t.Position) || Vision.IsRadarContact(ship.Owner, t.Position)) && WeaponCovers(ship, t.Position)).Select(t => t.Position).ToArray();
     }
 
-    public bool CanCounterattack(Ship defender, Ship attacker) => defender.Health > 0 && defender.IsArmed && (!attacker.IsAirborne || defender.IsMothership && Board.InRadius(defender.Position, attacker.Position, Rules.Balloon.AntiAirRange)) && WeaponCovers(defender, attacker.Position, true);
+    public bool CanCounterattack(Ship defender, Ship attacker) => defender.Health > 0 && defender.IsArmed && (!attacker.IsAirborne || AntiAirCovers(defender, defender.Position, attacker.Position)) && WeaponCovers(defender, attacker.Position, true);
     public double PreviewCounterDamage(Ship attacker, Ship defender)
     {
         double remaining = Math.Max(0, defender.Health - Damage(attacker, defender));
@@ -95,6 +97,7 @@ public sealed partial class BattleState
         if (sunk)
         {
             RewardPirateDefeat(attacker, target);
+            RecordEnemyLoss(attacker.Owner, target);
             RemoveDestroyedShip(target);
             if (attacker.CanEarnVeterancy && !target.IsStructure)
                 attacker.Kills++;

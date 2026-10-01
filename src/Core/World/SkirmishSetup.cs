@@ -22,6 +22,7 @@ public static class SkirmishSetup
             deployment.Add((side, ShipClass.Fishing, cells[2]));
         }
 
-        return new(board, rules, deployment, resourceSeed: board.Seed, seaEvents: board.Mesh is not null);
+        var settlements = board.Kind == WorldKind.Oceans ? null : WorldSettlementPlacement.Create(board, factionCount);
+        return new(board, rules, deployment, resourceSeed: board.Seed, villageSpots: settlements, seaEvents: board.Mesh is not null);
     }
 }

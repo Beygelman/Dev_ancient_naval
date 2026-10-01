@@ -12,6 +12,7 @@ public sealed class Village
     public int Level { get; internal set; } = 1;
     public double MaxHealth => Level * 5;
     public double Health { get; internal set; } = 5;
+    public bool HasPort { get; internal set; }
     public bool IsFortified { get; internal set; }
     public int TurnsOwned { get; internal set; }
     public bool HasProduced { get; internal set; }

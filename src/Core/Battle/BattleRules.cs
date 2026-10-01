@@ -14,6 +14,7 @@ public sealed class BattleRules
         }
     };
     public int StartingCredits { get; init; }
+    public bool FreeCoastalNavigation { get; init; } // Missing in old saves: retain their coastal rules.
     public int IncomePerMothership { get; init; }
     public int RepairAmount { get; init; }
     public int AutoRepairAmount { get; init; } = 2;
@@ -26,6 +27,7 @@ public sealed class BattleRules
     public BalloonRules Balloon { get; init; } = new();
     public TreasuryRules Treasury { get; init; } = new();
     public EconomyRules Economy { get; init; } = new();
+    public PortRules Ports { get; init; } = new();
     public VillageCombatRules VillageCombat { get; init; } = new();
     public IReadOnlyList<LevelUpgrades> Upgrades { get; init; } = new[]
     {
@@ -49,13 +51,14 @@ public sealed class BattleRules
     {
         if (StartingCredits < 0 || IncomePerMothership < 0 || RepairAmount <= 0 || AutoRepairAmount < 0 || FleetLimit < 4 || VillageFortificationPrice < 0 || DockResourceReward < 0 || PirateCurrencyReward < 0 || PirateResourceReward < 0)
             throw new ArgumentException("Invalid economy rules.");
-        if (Mortar is null || Balloon is null || Treasury is null || Economy is null || VillageCombat is null)
+        if (Mortar is null || Balloon is null || Treasury is null || Economy is null || VillageCombat is null || Ports is null)
             throw new ArgumentException("Special weapon and treasury rules cannot be null.");
         Mortar.Validate();
         Balloon.Validate();
         Treasury.Validate();
         Economy.Validate();
         VillageCombat.Validate();
+        Ports.Validate();
         ValidateUpgrades();
         ValidateShips();
     }

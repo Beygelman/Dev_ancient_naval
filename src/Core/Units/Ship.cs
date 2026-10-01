@@ -49,6 +49,7 @@ public sealed class Ship
     public bool CountsTowardFleet => !IsAirborne && !IsStructure && IsArmed;
     public bool IsArmed => Definition.Damage > 0 && Definition.AttackRange > 0;
     public int MovementAllowance => Math.Max(0, Definition.Movement + (MobilityUpgrade ? 1 : 0) + (IsMothership && Level >= 4 ? 1 : 0) - (HealthRatio < 0.25 ? 1 : 0));
+    public int TradeStreak { get; internal set; }
     public int MovementSpentUnits { get; internal set; }
     public int MovementRemainingUnits => IsExhausted ? 0 : Math.Max(0, MovementAllowance * 10 - MovementSpentUnits);
     public double MovementRemaining => MovementRemainingUnits / 10.0;
@@ -57,7 +58,7 @@ public sealed class Ship
     public bool IsExhausted { get; internal set; }
     public bool HasProduced { get; internal set; }
     public bool MovementLocked { get; internal set; }
-    public bool CanMove => IsAirborne ? !IsExhausted && MovementRemainingUnits >= 10 : !IsStructure && !IsExhausted && !MovementLocked && MovementRemainingUnits >= 6 && (Definition.ActionProfile switch
+    public bool CanMove => IsAirborne ? !IsExhausted && MovementRemainingUnits >= 10 : !IsStructure && !IsExhausted && !MovementLocked && MovementRemainingUnits >= 1 && (Definition.ActionProfile switch
     {
         ActionProfile.Scout => true,
         ActionProfile.Standard => !MovementLocked,
@@ -82,6 +83,7 @@ public sealed class Ship
     internal void ResetTurn()
     {
         MovementSpentUnits = 0;
+        TradeStreak = 0;
         AttacksUsed = 0;
         HasMoved = false;
         IsExhausted = false;

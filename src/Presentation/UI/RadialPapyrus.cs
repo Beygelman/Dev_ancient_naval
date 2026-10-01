@@ -18,7 +18,7 @@ public partial class RadialPapyrus : Control
         _commands.Clear();
         for (int i = 0; i < commands.Count; i++)
             _commands.Add(commands[i]);
-        _span = commands.Count * SectorButton.SectorStep;
+        _span = Math.Min(Mathf.Pi, commands.Count * SectorButton.SectorStep);
         _time = unfold ? 0 : 1;
         Reveal = unfold ? 0 : 1;
         foreach (var command in _commands)
@@ -44,7 +44,7 @@ public partial class RadialPapyrus : Control
             return;
         const int steps = 64;
         float span = Math.Max(.06f, _span * Reveal);
-        float start = Mathf.Pi / 2 - span * .5f;
+        float start = -Mathf.Pi / 2 - span * .5f;
         float middle = (SectorButton.Inner + SectorButton.Outer) * .5f;
         float outer = middle + (SectorButton.Outer - middle) * Reveal;
         float inner = middle - (middle - SectorButton.Inner) * Reveal;

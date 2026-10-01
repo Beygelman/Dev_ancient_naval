@@ -94,6 +94,7 @@ public sealed partial class BattleState
         if (upkeep > 0)
             receipts.Add(new("fleet:upkeep", side, Mothership(side)?.Position, -upkeep, true));
         _credits[(int)side] += gross - upkeep;
+        RecordCurrencyReceipt(side, gross);
         return receipts;
     }
 
