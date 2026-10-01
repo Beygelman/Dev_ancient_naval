@@ -19,9 +19,17 @@ public partial class MapInput : Node
     public MapCamera Camera { get; set; } = null!;
     public event Action<Vector2>? Tapped;
     public event Action<Vector2>? Hovered;
+    public event Action? Canceled;
 
     public override void _Input(InputEvent input)
     {
+        if (input is InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: true })
+        {
+            CancelGesture();
+            Canceled?.Invoke();
+            GetViewport().SetInputAsHandled();
+            return;
+        }
         if ((_mouseDown && input is InputEventMouse) ||
             (_touches.Count > 0 && input is InputEventScreenTouch or InputEventScreenDrag))
             Handle(input);

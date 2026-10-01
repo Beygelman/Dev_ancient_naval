@@ -1,0 +1,9 @@
+world: PASS: 37677 world refinement checks (Windows).
+effects: PASS: 51 effects checks (salvo counts, unchanged damage, smooth movement, wildlife, veterans).
+income: PASS: 6 source-income animation checks.
+menu: PASS: 61 title/color/save/reload checks.
+resume: PASS: 44 title/color/save/reload checks.
+battle: PASS: 82 naval runtime checks (legacy-save controls, scroll input, upgrades, stealth animation, hexagon).
+smoke: PASS: 248659 runtime checks (projection, selection, mouse, touch, camera, HUD).
+sea: PASS: 108 sea-event runtime checks.
+optimization: PASS: 11 rendering optimization checks; checksum=255671900.

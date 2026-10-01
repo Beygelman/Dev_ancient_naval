@@ -1,0 +1,45 @@
+INTERACTION tiles=1110, hover_calls=64, hover_p50_ms=0,570, hover_p95_ms=0,962, hover_max_ms=3,040, frame_p95_ms=714,090, frame_max_ms=757,826, movement_elapsed_ms=1793,150
+{
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 39.916,
+    "MaxMs": 2.6984,
+    "Bytes": 10643072
+  },
+  "Board.Draw": {
+    "Calls": 66,
+    "TotalMs": 17041.448600000003,
+    "MaxMs": 427.6936,
+    "Bytes": 23796488
+  },
+  "Ambience.Draw": {
+    "Calls": 108,
+    "TotalMs": 5138.0244,
+    "MaxMs": 124.2972,
+    "Bytes": 776736
+  },
+  "Fleet.Draw": {
+    "Calls": 130,
+    "TotalMs": 460.1136999999999,
+    "MaxMs": 37.2214,
+    "Bytes": 907024
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 8.3245,
+    "MaxMs": 8.3245,
+    "Bytes": 190072
+  },
+  "Ambience.Refresh": {
+    "Calls": 2,
+    "TotalMs": 1.9725,
+    "MaxMs": 1.0372,
+    "Bytes": 324160
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 2.8067,
+    "MaxMs": 1.5118,
+    "Bytes": 366096
+  }
+}

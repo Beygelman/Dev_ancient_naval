@@ -4,117 +4,224 @@ using DevAncientNaval.Core.World;
 using DevAncientNaval.Core.Vision;
 
 namespace DevAncientNaval.Core.Battle;
-
 public sealed partial class BattleState
 {
     public const int CollectionPrice = 2;
     private readonly HashSet<GridPosition> _fish = new();
     public IReadOnlyCollection<GridPosition> FishSpots => _fish.ToArray();
-    public IEnumerable<GridPosition> KnownFish(Side side) => _fish.Where(p => Vision.IsVisible(side,p));
+
+    public IEnumerable<GridPosition> KnownFish(Side side) => _fish.Where(p => Vision.IsVisible(side, p));
     public Ship? Mothership(Side side) => OwnShips(side).FirstOrDefault(s => s.IsMothership);
     public Ship? PendingUpgrade(Side side) => OwnShips(side).FirstOrDefault(s => s.PendingUpgradeLevel > 0);
-
     private void InitializeFishing(IEnumerable<GridPosition>? supplied, int seed)
     {
-        if(supplied is not null)
+        if (supplied is not null)
         {
-            foreach(var cell in supplied)
+            foreach (var cell in supplied)
             {
-                if(!Board.Contains(cell) || Board.GetTile(cell).Terrain==TerrainType.Land) throw new ArgumentException("Fish must be at sea.");
+                if (!Board.Contains(cell) || Board.GetTile(cell).Terrain == TerrainType.Land)
+                    throw new ArgumentException("Fish must be at sea.");
                 _fish.Add(cell);
             }
+
             InitializeShoals(seed);
             return;
         }
+
         InitializeShoals(seed);
-        var random=new Random(seed);
-        var candidates=Board.Tiles.Where(t=>t.Terrain!=TerrainType.Land && At(t.Position) is null).Select(t=>t.Position).ToList();
-        for(int i=candidates.Count-1;i>0;i--) { int j=random.Next(i+1); (candidates[i],candidates[j])=(candidates[j],candidates[i]); }
-        foreach(var cell in candidates.Where(p=>!_shoals.Contains(p)).Take(Math.Min(16,candidates.Count))) _fish.Add(cell);
+        var random = new Random(seed);
+        var candidates = Board.Tiles.Where(t => t.Terrain != TerrainType.Land && At(t.Position)is null).Select(t => t.Position).ToList();
+        for (int i = candidates.Count - 1; i > 0; i--)
+        {
+            int j = random.Next(i + 1);
+            (candidates[i], candidates[j]) = (candidates[j], candidates[i]);
+        }
+
+        int resourceCount = Math.Max(Rules.Economy.MinimumResourceSpots, Rules.Economy.ResourceTileInterval > 0 ? Board.Tiles.Count / Rules.Economy.ResourceTileInterval : 0);
+        foreach (var cell in candidates.Where(p => !_shoals.Contains(p)).Take(Math.Min(resourceCount, candidates.Count)))
+            _fish.Add(cell);
         // Every starting fleet can demonstrate collection without relying on a lucky seed.
-        foreach(var mother in Ships.Where(s=>s.IsMothership))
-            foreach(var cell in candidates.Where(p=>!_shoals.Contains(p)&&BattleVision.InRadius(p,mother.Position,mother.Definition.CollectionRange)).Take(2)) _fish.Add(cell);
+        foreach (var mother in Ships.Where(s => s.IsMothership))
+            foreach (var cell in candidates.Where(p => !_shoals.Contains(p) && Board.InRadius(p, mother.Position, mother.Definition.CollectionRange)).Take(2))
+                _fish.Add(cell);
     }
 
-    public string? RadarBlockReason(Side requester,int id)
+    public string? RadarBlockReason(Side requester, int id)
     {
-        var error=ValidateActor(requester,id,out var ship);
-        if(error is not null) return error;
-        if(ship!.Definition.Class is not (ShipClass.Mothership or ShipClass.Kolonel)) return "У этого класса нет радара.";
-        if(ship.HasRadar) return "Радар уже установлен.";
-        if(Credits(requester)<ship.Definition.RadarPrice) return "Недостаточно Thors.";
+        var error = ValidateActor(requester, id, out var ship);
+        if (error is not null)
+            return error;
+        if (ship!.Definition.Class is not (ShipClass.Mothership or ShipClass.Kolonel or ShipClass.CannonTower))
+            return "This class cannot equip radar.";
+        if (ship.HasRadar)
+            return "Radar is already installed.";
+        if (Credits(requester) < ship.Definition.RadarPrice)
+            return "Not enough Thors.";
         return null;
     }
-    public CommandResult BuyRadar(Side requester,int id)
+
+    public CommandResult BuyRadar(Side requester, int id)
     {
-        var error=RadarBlockReason(requester,id);
-        if(error is not null) return CommandResult.Rejected(error);
-        var ship=Find(id)!; _credits[(int)requester]-=ship.Definition.RadarPrice; ship.HasRadar=true; UpdateVision();
-        return new(true,"Радар установлен.",CommandKind.Radar,id);
+        var error = RadarBlockReason(requester, id);
+        if (error is not null)
+            return CommandResult.Rejected(error);
+        var ship = Find(id)!;
+        _credits[(int)requester] -= ship.Definition.RadarPrice;
+        ship.HasRadar = true;
+        UpdateVision();
+        return new(true, "Radar installed.", CommandKind.Radar, id);
     }
 
+    private bool WithinCollectionReach(Ship ship, GridPosition cell) => Rules.Economy.AdjacentCollectionOnly ? cell == ship.Position || Board.GetSurrounding(ship.Position).Contains(cell) : Board.InRadius(cell, ship.Position, ship.Definition.CollectionRange);
     public IReadOnlyCollection<GridPosition> CollectionCells(int id)
     {
-        var ship=Find(id);
-        if(ship is null || ship.Definition.CollectionRange<=0 || IsOver || ship.Owner!=ActiveSide ||
-            PendingUpgrade(ship.Owner) is not null || Mothership(ship.Owner) is not { Level:<5 }) return Array.Empty<GridPosition>();
-        return _fish.Where(p=>Vision.IsVisible(ship.Owner,p) && BattleVision.InRadius(p,ship.Position,ship.Definition.CollectionRange)).ToArray();
-    }
-    public CommandResult Collect(Side requester,int id,GridPosition cell)
-    {
-        var error=ValidateActor(requester,id,out var ship);
-        if(error is not null) return CommandResult.Rejected(error);
-        if(!CollectionCells(id).Contains(cell)) return CommandResult.Rejected("Рыба должна быть видна и находиться в радиусе сбора.");
-        if(Credits(requester)<CollectionCost(requester)) return CommandResult.Rejected("Для сбора нужно 2 Thors.");
-        var mother=Mothership(requester)!;
-        _credits[(int)requester]-=CollectionCost(requester); _fish.Remove(cell);
-        int oldLevel=mother.Level; GrantResources(mother,1);
-        bool advanced=mother.Level>oldLevel;
-        return new(true,advanced?$"Mothership: уровень {mother.Level}!":$"+1 ресурс Mothership · −{CollectionCost(requester)} Thors",CommandKind.Collect,id,mother.Id,1);
-    }
-    public IReadOnlyList<UpgradeChoice> UpgradeOptions(int motherId) => Find(motherId)?.PendingUpgradeLevel switch
-    {
-        2 => new[] { UpgradeChoice.Income,UpgradeChoice.Mobility },
-        3 => new[] { UpgradeChoice.SecondAttack,UpgradeChoice.Balloon },
-        4 => new[] { UpgradeChoice.Fortification,UpgradeChoice.Shipwright },
-        _ => Array.Empty<UpgradeChoice>()
-    };
-    public CommandResult ChooseUpgrade(Side requester,int id,UpgradeChoice choice)
-    {
-        var mother=Find(id);
-        if(IsOver || requester!=ActiveSide || mother?.Owner!=requester || !UpgradeOptions(id).Contains(choice))
-            return CommandResult.Rejected("Это улучшение сейчас недоступно.");
-        switch(choice)
-        {
-            case UpgradeChoice.Fortification: mother.FortificationUpgrade=true; mother.Health+=5; break;
-            case UpgradeChoice.Shipwright: mother.ShipwrightUpgrade=true; break;
-            case UpgradeChoice.Income: mother.IncomeUpgrade=true; RegisterShipIncome(mother); break;
-            case UpgradeChoice.Mobility: mother.MobilityUpgrade=true; break;
-            case UpgradeChoice.SecondAttack: mother.SecondAttackUpgrade=true; break;
-            case UpgradeChoice.Balloon:
-                _ships.Add(new Ship(_nextId++,requester,Rules.Get(ShipClass.Balloon),mother.Position));
-                break;
-        }
-        mother.PendingUpgradeLevel=0; UpdateVision();
-        return new(true,"Улучшение установлено.",CommandKind.Upgrade,id);
+        var ship = Find(id);
+        if (ship is null || ship.IsExhausted || ship.Definition.CollectionRange <= 0 || IsOver || ship.Owner != ActiveSide || PendingUpgrade(ship.Owner)is not null || Mothership(ship.Owner)is not { Level: < 5 })
+            return Array.Empty<GridPosition>();
+        return _fish.Where(p => Vision.IsVisible(ship.Owner, p) && WithinCollectionReach(ship, p)).ToArray();
     }
 
-    private static int FlightCost(GridPosition from,GridPosition to)
+    public IReadOnlyCollection<GridPosition> CollectionCells(Side side) => OwnShips(side).Where(s => s.Definition.CollectionRange > 0).SelectMany(s => CollectionCells(s.Id)).Distinct().ToArray();
+    public CommandResult Collect(Side requester, GridPosition cell)
     {
-        long dx=from.X-to.X,dy=from.Y-to.Y;
-        return (int)Math.Ceiling(Math.Sqrt(.25+dx*dx+dy*dy)-.5)*10;
+        var collector = OwnShips(requester).FirstOrDefault(s => CollectionCells(s.Id).Contains(cell));
+        return collector is null ? CommandResult.Rejected("A collection ship must be within range.") : Collect(requester, collector.Id, cell);
     }
-    private CommandResult Fly(Ship ship,GridPosition destination)
+
+    public CommandResult Collect(Side requester, int id, GridPosition cell)
     {
-        if(!ship.CanMove || !Board.Contains(destination) || destination==ship.Position || FlightCost(ship.Position,destination)>ship.MovementRemainingUnits) return CommandResult.Rejected("Выберите другую клетку для перелёта.");
-        int cost=FlightCost(ship.Position,destination); var start=ship.Position; int steps=Math.Max(Math.Abs(destination.X-start.X),Math.Abs(destination.Y-start.Y));
-        var path=new List<GridPosition> { start }; var frames=new List<MovementFrame> { MovementFrame(ship) };
-        for(int i=1;i<=steps;i++)
+        var error = ValidateActor(requester, id, out var ship);
+        if (error is not null)
+            return CommandResult.Rejected(error);
+        if (!CollectionCells(id).Contains(cell))
+            return CommandResult.Rejected("Fish must be visible and within collection range.");
+        if (Credits(requester) < CollectionCost(requester))
+            return CommandResult.Rejected($"Collection costs {CollectionCost(requester)} Thors.");
+        var mother = Mothership(requester)!;
+        _credits[(int)requester] -= CollectionCost(requester);
+        _fish.Remove(cell);
+        int oldLevel = mother.Level;
+        GrantResources(mother, 1);
+        bool advanced = mother.Level > oldLevel;
+        return new(true, advanced ? $"Mothership: level {mother.Level}!" : $"+1 Mothership resource · −{CollectionCost(requester)} Thors", CommandKind.Collect, id, mother.Id, 1);
+    }
+
+    public IReadOnlyList<UpgradeChoice> UpgradeOptions(int motherId) => Rules.Upgrades.FirstOrDefault(u => u.Level == Find(motherId)?.PendingUpgradeLevel)?.Choices ?? Array.Empty<UpgradeChoice>();
+    public CommandResult ChooseUpgrade(Side requester, int id, UpgradeChoice choice)
+    {
+        var mother = Find(id);
+        if (IsOver || requester != ActiveSide || mother?.Owner != requester || !UpgradeOptions(id).Contains(choice))
+            return CommandResult.Rejected("This upgrade is not available now.");
+        switch (choice)
         {
-            var cell=new GridPosition(Ship.Whole(start.X+(destination.X-start.X)*i/(double)steps),Ship.Whole(start.Y+(destination.Y-start.Y)*i/(double)steps));
-            ship.Position=cell; UpdateVision(); path.Add(cell); frames.Add(MovementFrame(ship));
+            case UpgradeChoice.Restoration:
+                mother.RestorationUpgrade = true;
+                mother.Health += 5;
+                break;
+            case UpgradeChoice.Vision:
+                mother.VisionUpgrade = true;
+                break;
+            case UpgradeChoice.Firepower:
+                mother.FirepowerUpgrade = true;
+                break;
+            case UpgradeChoice.Shipwright:
+                mother.ShipwrightUpgrade = true;
+                break;
+            case UpgradeChoice.Mobility:
+                mother.MobilityUpgrade = true;
+                break;
+            case UpgradeChoice.SecondAttack:
+                mother.SecondAttackUpgrade = true;
+                break;
+            case UpgradeChoice.FishingBoat:
+                // A level reward is always deliverable, even when all adjacent berths are occupied.
+                var berth = FishingRewardBerth(mother);
+                if (berth is null)
+                    return CommandResult.Rejected("There is no reachable free water for the fishing boat.");
+                var fishing = new Ship(_nextId++, requester, Rules.Get(ShipClass.Fishing), berth.Value)
+                {
+                    IsExhausted = true
+                };
+                _ships.Add(fishing);
+                RegisterShipIncome(fishing);
+                break;
+            case UpgradeChoice.Balloon:
+                _ships.Add(new Ship(_nextId++, requester, Rules.Get(ShipClass.Balloon), mother.Position));
+                break;
         }
-        ship.HasMoved=true; ship.MovementSpentUnits+=cost;
-        return new(true,"Воздушный шар: перелёт завершён.",CommandKind.Move,ship.Id,Path:path,Movement:frames);
+
+        mother.PendingUpgradeLevel = 0;
+        UpdateVision();
+        return new(true, "Upgrade installed.", CommandKind.Upgrade, id);
+    }
+
+    private GridPosition? FishingRewardBerth(Ship mother)
+    {
+        var scout = new Ship(0, mother.Owner, Rules.Get(ShipClass.Fishing), mother.Position);
+        var visited = new HashSet<GridPosition>
+        {
+            mother.Position
+        };
+        var pending = new Queue<GridPosition>();
+        pending.Enqueue(mother.Position);
+        while (pending.TryDequeue(out var cell))
+        {
+            if (IsFreeWater(cell))
+                return cell;
+            foreach (var next in Board.GetSurrounding(cell))
+                if (!visited.Contains(next) && StepCost(scout, cell, next, false)is not null)
+                {
+                    visited.Add(next);
+                    pending.Enqueue(next);
+                }
+        }
+
+        return null;
+    }
+
+    private (Dictionary<GridPosition, int> Costs, Dictionary<GridPosition, GridPosition> Previous) FlightRoutes(Ship ship)
+    {
+        var costs = new Dictionary<GridPosition, int>
+        {
+            {
+                ship.Position,
+                0
+            }
+        };
+        var previous = new Dictionary<GridPosition, GridPosition>();
+        var queue = new Queue<GridPosition>();
+        queue.Enqueue(ship.Position);
+        while (queue.TryDequeue(out var p))
+            foreach (var n in Board.GetSurrounding(p))
+            {
+                int cost = costs[p] + 10;
+                if (cost > ship.MovementRemainingUnits || _forbidden.Contains(n) || !costs.TryAdd(n, cost))
+                    continue;
+                previous[n] = p;
+                queue.Enqueue(n);
+            }
+
+        return (costs, previous);
+    }
+
+    private CommandResult Fly(Ship ship, GridPosition destination)
+    {
+        var path = PathTo(ship.Id, destination);
+        if (path.Count < 2)
+            return CommandResult.Rejected("Choose an accessible tile within flight range.");
+        var frames = new List<MovementFrame>
+        {
+            MovementFrame(ship)
+        };
+        foreach (var cell in path.Skip(1))
+        {
+            ship.Position = cell;
+            ship.MovementSpentUnits += 10;
+            UpdateVision();
+            frames.Add(MovementFrame(ship));
+        }
+
+        ship.HasMoved = true;
+        return new(true, "Balloon: flight complete.", CommandKind.Move, ship.Id, Path: path, Movement: frames);
     }
 }

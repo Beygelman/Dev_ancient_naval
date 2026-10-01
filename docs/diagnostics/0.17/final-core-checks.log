@@ -1,0 +1,17 @@
+PASS: 1535 core checks
+NAVIGATION ships=16 iterations=3 before_bytes=42098928 after_bytes=2117184 before_ms=28,015 after_ms=1,79
+NAVIGATION ships=128 iterations=3 before_bytes=94398960 after_bytes=2040264 before_ms=123,374 after_ms=1,875
+NAVIGATION ships=256 iterations=3 before_bytes=129229224 after_bytes=1967664 before_ms=205,342 after_ms=1,87
+MULTI_AI opponents=2 winner=Enemy2 round=65 commands=878
+MULTI_AI opponents=4 winner=Enemy4 round=53 commands=929
+REFINEMENT016: tower radar/veterancy, outpost targeting, AA, retreat and fish density passed
+AI 0: Player, round 12, actions 241
+AI 1: Player, round 14, actions 268
+AI 2: Enemy, round 15, actions 228
+AI 3: Player, round 13, actions 262
+AI 4: Enemy, round 16, actions 286
+AI 5: Player, round 19, actions 315
+AI 6: Player, round 16, actions 526
+AI 7: Enemy, round 14, actions 463
+PASS: 1198194 Thor/progression/combat checks; 8 complete AI matches.
+PASS: 23 save compatibility and validation checks.

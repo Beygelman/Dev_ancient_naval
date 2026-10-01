@@ -10,7 +10,8 @@ config_version=5
 
 [application]
 
-config/name="Dev_ancient_naval"
+config/name="Ancient Naval"
+config/version="0.17"
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.7", "C#", "Mobile")
 config/icon="res://icon.svg"

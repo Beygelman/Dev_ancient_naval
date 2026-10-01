@@ -1,33 +1,70 @@
-# Генерация карты и геометрии — 0.10
+# Organic hexagonal maps — 0.15
 
-## Контур и острова
+The references have coherent curved rows flowing through occasional three-way
+and five-way junctions. The useful feature is shared topology and direction,
+not random outlines for individual cells. The generator constructs one connected
+mesh first; every cell then inherits its sides from that mesh.
 
-`ArchipelagoGenerator` создаёт воспроизводимую карту по начальному числу. Пять вершин располагаются вокруг общего центра со случайными радиусами и углами. Вариант принимается, только если все пять сторон имеют длину 18–24 в единицах логической клетки. Маска выпуклого пятиугольника определяет существующие клетки; снаружи нельзя выбрать клетку, двигаться, летать, строить или получать обзор.
+1. Pick six different boundary subdivision counts. Map area scales approximately
+   with fleet count: linear scale is `sqrt((rivals + 1) / 4)`.
+2. Solve the circumradius for six chord angles summing to a full turn. Chord
+   lengths follow the subdivision counts. All six boundary sides remain straight.
+3. Fit six bilinear patches between the center, corners and boundary divisions.
+   Shared vertices have common IDs. Smooth parameter spacing varies cell sizes.
+4. Redirect paired interior rows to produce local junctions and changes of flow.
+   Keep boundary vertices fixed. Apply broad seeded displacement and swirl,
+   without independent per-vertex random jitter.
+5. Accept relaxation and topology changes only while neighboring cells retain
+   safe area, edge lengths and convex corners. Minimum angles are 38 degrees
+   in map space and 32 degrees after isometric projection.
+6. Split or collapse selected interior connections to form triangles and
+   pentagons. Roughly nine out of ten cells remain quadrilaterals. Gameplay
+   addresses are IDs; their values do not imply square adjacency.
+7. Pair opposite half-edge directions at junctions to derive coherent tangents.
+   Compute each interior cubic seam once, sample it six times, and share that
+   exact curve in reverse between neighboring cells. Validate intersections and
+   picking, falling back to a straight shared seam if a curve is unsafe.
+8. Index edge and corner adjacency for movement and range. An ordinary corner
+   crossing costs one step; terrain and hostile threat costs still apply.
 
-Габариты прямоугольного контейнера вычисляются по контуру. Стартовые гавани находятся в противоположных концах его средней строки; корабли размещаются относительно гавани. Вокруг стартов оставляется открытая вода.
+| Rivals | Fleets | Edges per side | Cells at seed 731 |
+|---:|---:|---:|---:|
+| 1 | 2 | 17–23 | 611 |
+| 2 | 3 | 21–27 | 879 |
+| 3 | 4 | 24–30 | 1,110 |
+| 4 | 5 | 27–34 | 1,371 |
 
-Генератор выбирает одну из трёх схем открытого моря: поперечный коридор, диагональный маршрут или центральный бассейн. Центральная полоса шириной пять клеток защищена от суши. Острова строятся из повёрнутых эллипсов с несколькими волнами береговой линии: крупные, средние и мелкие. После обрезки сохраняется связная часть. Между отдельными островами оставляется минимум две водные клетки; одноклеточные сжатия бухт расширяются эрозией берега. Число принятых островов зависит от свободного места.
+Sources: `Core/World/OrganicMesh.cs` and `Presentation/Map/IsometricProjection.cs`.
+Rectangular boards remain for focused rule fixtures. Saves preserve exact
+vertices/faces, so Continue does not regenerate the map.
 
-Рыба размещается отдельно от крупных косяков: до 16 случайных мест плюс две гарантированные клетки возле каждого Mothership, до 8 косяков. Рыба встречается заметно реже, чем на прежней карте 20×20. Порядок размещения воспроизводим.
+## Islands and deployment
 
-## Деформированная сетка
+Islands use rotated multi-frequency radial outlines with spatial perturbation.
+Start berths remain at sea, and narrow passages are widened. Larger island
+placement cycles through starting territories. Deployment uses a random axis:
+two fleets are opposed; additional fleets occupy separated perimeter anchors.
+Each starting territory receives the same village count, three treasuries and
+one pirate patrol. This balances access counts rather than promising identical
+travel distance or terrain in every procedurally generated position.
 
-`IsometricProjection` строит общую плоскую сетку для актуальных габаритов карты:
+Rendering follows the boundary of each entire connected island. It decimates
+short segments and applies four shared Chaikin rounding passes. That outline
+is clipped against individual cells for fog privacy. Beaches have continuously
+varying widths; inset points are relaxed together to avoid crossed strips.
+A translucent offshore band follows the coastline rather than coloring whole
+water cells. Dense forests and winding mountain chains follow continuous seeded
+world-space fields, crossing tile boundaries; a cell owns only their fog mask.
+Three tree silhouettes and several peaks may occupy one cell. Trees, peaks,
+villages and hulls share native Y sorting at individual ground anchors.
+Clouds are coherent connected-square translucent silhouettes; they drift in an
+elevated air layer above separately rendered surface shadows.
 
-1. Несколько плавных локальных вихрей поворачивают и изгибают группы клеток. Чрезмерное искажение ослабляется до получения выпуклых клеток.
-2. Три прохода случайного смещения общих вершин делают размеры, углы и длины сторон нерегулярными. Смещение откатывается, если у любой затронутой клетки нарушается выпуклость или минимальная площадь.
-3. Часть узлов, где сходятся четыре клетки, раздваивается на два соединённых узла. Две соседние клетки получают дополнительную сторону: возникают настоящие пятиугольники и узлы с тремя рёбрами.
-4. Часть общих рёбер схлопывается в одну вершину. Проверяются все соседние многоугольники; недопустимое схлопывание откатывается. Появляются треугольные участки.
-5. Каждое общее ребро получает небольшую кривизну и хранится один раз. У острых концов рёбра выпрямляются, если изгиб нарушает корректный выбор клетки.
+## Verification
 
-Это единая сетка, а не независимое случайное смещение каждого нарисованного квадрата. Нет промежутков между соседями. Клетки сохраняют логические адреса и правила движения по восьми направлениям: форма клетки не добавляет скрытой платы за движение.
-
-## Выбор клетки и контуры
-
-Границы клеток индексируются по пространственным корзинам. Клик сначала находит кандидатов, затем проверяется попадание в настоящий многоугольник. Центр корабля — среднее положение углов клетки. Камера учитывает только существующие клетки пятиугольника.
-
-Контуры движения, радара и ресурсов строятся из тех же рёбер. Общие внутренние рёбра выбранного набора исключаются, оставляя только его границу. Область атаки и доступные клетки движения не заливаются цветом. Отдельная цель получает собственный контур.
-
-## Проверки
-
-Проверяются 100 начальных чисел генерации: воспроизводимость, длины пяти сторон, маска, доступные гавани, соединение морем, отсутствие одноклеточных проливов, редкость ресурсов и стартовая рыба. В Godot проверяются 16 сеток 20×20 и ещё 8 карт актуального переменного размера: триангуляция, точки около каждого ребра, общие границы, выбор через камеру и обработка мыши/касания.
+Core checks exercise boundary counts, disk topology, symmetric adjacency,
+determinism, naval passage, balanced territories and independent factions.
+Godot checks additionally triangulate coast/beach geometry, check quadrilateral
+majority, groves, peaks and raster limits. Hover must leave terrain unchanged,
+while discovering a cell builds only its geometry. Changing an already known
+cell's visibility must reuse its retained geometry and change only its tint.

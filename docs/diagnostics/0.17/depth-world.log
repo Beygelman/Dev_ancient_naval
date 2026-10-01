@@ -1,0 +1,9 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+WORLD begin 3
+WORLD geometry 3
+WORLD raster 3
+WORLD hover 3
+WORLD 3 enemies: 1110 cells; 16 smooth island contours; trees=1235; peaks=113; terrainTexture=(3609, 2022).
+PASS: 16609 world refinement checks (Windows).

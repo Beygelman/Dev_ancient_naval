@@ -1,0 +1,16 @@
+PASS: 1535 core checks
+NAVIGATION ships=16 iterations=3 before_bytes=42098928 after_bytes=2117184 before_ms=76,792 after_ms=3,951
+NAVIGATION ships=128 iterations=3 before_bytes=94398960 after_bytes=2040264 before_ms=392,305 after_ms=5,975
+NAVIGATION ships=256 iterations=3 before_bytes=129229224 after_bytes=1967664 before_ms=461,766 after_ms=3,478
+MULTI_AI opponents=2 winner=Enemy round=31 commands=422
+MULTI_AI opponents=4 winner=Enemy4 round=35 commands=712
+AI 0: Player, round 12, actions 234
+AI 1: Player, round 13, actions 254
+AI 2: Enemy, round 14, actions 217
+AI 3: Player, round 11, actions 199
+AI 4: Enemy, round 16, actions 279
+AI 5: Player, round 14, actions 214
+AI 6: Player, round 15, actions 468
+AI 7: Player, round 12, actions 348
+PASS: 1194349 Thor/progression/combat checks; 8 complete AI matches.
+PASS: 23 save compatibility and validation checks.

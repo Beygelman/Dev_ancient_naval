@@ -1,0 +1,10 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  DevAncientNaval.Core -> C:\__Beygelman\! -11\dev-ancient-naval\src\Core\bin\Debug\net8.0\DevAncientNaval.Core.dll
+  Dev_ancient_naval -> C:\__Beygelman\! -11\dev-ancient-naval\.godot\mono\temp\bin\Debug\Dev_ancient_naval.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:00.83

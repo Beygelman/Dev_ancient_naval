@@ -1,0 +1,82 @@
+release-battle.log
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PASS: 82 naval runtime checks (legacy-save controls, scroll input, upgrades, stealth animation, hexagon).
+
+release-effects.log
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PASS: 104 effects checks (salvo counts, unchanged damage, smooth movement, wildlife, veterans).
+
+release-income.log
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PASS: 6 source-income animation checks.
+
+release-menu.log
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PASS: 63 title/color/save/reload checks.
+
+release-optimization.log
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+DRAW_ORDER ships=16, iterations=300, before_bytes=787200, after_bytes=324000, before_ms=1,382, after_ms=1,046
+DRAW_ORDER ships=128, iterations=300, before_bytes=4051200, after_bytes=2743200, before_ms=15,923, after_ms=15,051
+DRAW_ORDER ships=512, iterations=300, before_bytes=15151200, after_bytes=11037600, before_ms=40,463, after_ms=61,192
+PASS: 11 rendering optimization checks; checksum=255671900.
+
+release-resume.log
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PASS: 46 title/color/save/reload checks.
+
+release-sea.log
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PASS: 108 sea-event runtime checks.
+
+release-smoke.log
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PASS: 248659 runtime checks (projection, selection, mouse, touch, camera, HUD).
+
+release-world.log
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+WORLD begin 1
+WORLD geometry 1
+WORLD raster 1
+WORLD hover 1
+WORLD 1 enemies: 611 cells; 8 smooth island contours; trees=426; peaks=2; terrainTexture=(2926, 1428).
+WORLD begin 2
+WORLD geometry 2
+WORLD raster 2
+WORLD hover 2
+WORLD 2 enemies: 879 cells; 12 smooth island contours; trees=858; peaks=2; terrainTexture=(3466, 1680).
+WORLD begin 3
+WORLD geometry 3
+WORLD raster 3
+WORLD hover 3
+WORLD 3 enemies: 1110 cells; 16 smooth island contours; trees=861; peaks=8; terrainTexture=(3609, 2022).
+WORLD begin 4
+WORLD geometry 4
+WORLD raster 4
+WORLD hover 4
+WORLD 4 enemies: 1371 cells; 20 smooth island contours; trees=1431; peaks=12; terrainTexture=(4095, 1969).
+PASS: 37677 world refinement checks (Windows).
+
+final-effects.log
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PASS: 104 effects checks (salvo counts, unchanged damage, smooth movement, wildlife, veterans).

@@ -2,40 +2,75 @@ using System;
 using Godot;
 
 namespace DevAncientNaval.Presentation.UI;
-
-/// <summary>Equal annular sectors; the center stays transparent to map input.</summary>
+/// <summary>One ink command on the unfolding parchment arc.</summary>
 public partial class SectorButton : Button
 {
     public float CenterAngle { get; private set; }
-    public float Sweep { get; private set; } = Mathf.Pi/4;
-    public const float Inner = 29, Outer = 65;
-    public static readonly Vector2 Center = new(68,68);
-    public void SetSector(int index,int count)
+    public float Sweep { get; private set; } = SectorStep;
+
+    public const float Inner = 51, Outer = 103, SectorStep = .49f;
+    public static readonly Vector2 Center = new(124, 124);
+    private float _offset;
+    private float _reveal = 1;
+    private readonly Vector2[] _polygon = new Vector2[34];
+    private ActionGlyph? _glyph;
+    private Label? _badge;
+    public void AttachInk(ActionGlyph glyph, Label badge)
     {
-        Sweep=Mathf.Pi/4; CenterAngle=(count==2?0:-Mathf.Pi/2)+index*Mathf.Tau/count;
+        _glyph = glyph;
+        _badge = badge;
+        PlaceInk();
+    }
+
+    public void SetSector(int index, int count)
+    {
+        Sweep = SectorStep;
+        _offset = (index - (count - 1) * .5f) * SectorStep;
+        SetReveal(1);
+    }
+
+    public Vector2 IconCenter => Center + Vector2.FromAngle(CenterAngle) * 77;
+
+    public void SetReveal(float progress)
+    {
+        _reveal = Mathf.Clamp(progress, 0, 1);
+        CenterAngle = Mathf.Pi / 2 + _offset * _reveal;
+        PlaceInk();
         QueueRedraw();
     }
-    public Vector2 IconCenter => Center + Vector2.FromAngle(CenterAngle)*47;
+
+    private void PlaceInk()
+    {
+        if (_glyph is not null)
+            _glyph.Position = IconCenter - _glyph.Size * .5f - new Vector2(0, 4);
+        if (_badge is not null)
+            _badge.Visible = false;
+        Modulate = new Color(1, 1, 1, _reveal);
+    }
+
     public override bool _HasPoint(Vector2 point)
     {
-        var offset=point-Center; float radius=offset.Length();
-        float angle=Mathf.Wrap(offset.Angle()-CenterAngle,-Mathf.Pi,Mathf.Pi);
-        return radius>=Inner&&radius<=Outer&&Math.Abs(angle)<=Sweep/2-0.025f;
+        if (_reveal < .95f)
+            return false;
+        var offset = point - Center;
+        float radius = offset.Length();
+        float angle = Mathf.Wrap(offset.Angle() - CenterAngle, -Mathf.Pi, Mathf.Pi);
+        return radius >= Inner && radius <= Outer && Math.Abs(angle) <= Sweep / 2;
     }
+
     public override void _Draw()
     {
-        const int steps=32;
-        var polygon=new Vector2[(steps+1)*2];
-        float start=CenterAngle-Sweep/2+0.025f, span=Sweep-0.05f;
-        for(int i=0;i<=steps;i++)
+        if (!IsHovered() || Disabled)
+            return;
+        const int steps = 16;
+        float start = CenterAngle - Sweep / 2 + 0.025f, span = Sweep - 0.05f;
+        for (int i = 0; i <= steps; i++)
         {
-            float angle=start+span*i/steps;
-            polygon[i]=Center+Vector2.FromAngle(angle)*Outer;
-            polygon[polygon.Length-1-i]=Center+Vector2.FromAngle(angle)*Inner;
+            float angle = start + span * i / steps;
+            _polygon[i] = Center + Vector2.FromAngle(angle) * Outer;
+            _polygon[_polygon.Length - 1 - i] = Center + Vector2.FromAngle(angle) * Inner;
         }
-        var color=Disabled?new Color(0.05f,0.14f,0.18f,0.48f):IsHovered()?new Color(0.2f,0.47f,0.53f,0.8f):new Color(0.06f,0.2f,0.26f,0.68f);
-        DrawColoredPolygon(polygon,color);
-        var outline=new Vector2[polygon.Length+1]; polygon.CopyTo(outline,0); outline[^1]=polygon[0];
-        DrawPolyline(outline,new Color(0.55f,0.85f,0.9f,Disabled?0.18f:0.5f),1.2f,true);
+
+        DrawColoredPolygon(_polygon, new Color(PapyrusStyle.Bronze, .19f));
     }
 }

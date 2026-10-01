@@ -4,7 +4,7 @@ namespace DevAncientNaval.Presentation.Camera;
 
 public partial class MapCamera : Camera2D
 {
-    public const float MinZoom = 0.25f;
+    public const float MinZoom = 0.16f;
     public const float MaxZoom = 2.5f;
     public Rect2 MapBounds { get; set; }
 

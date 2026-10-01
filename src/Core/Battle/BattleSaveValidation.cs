@@ -1,0 +1,59 @@
+using DevAncientNaval.Core.Units;
+using DevAncientNaval.Core.World;
+
+namespace DevAncientNaval.Core.Battle;
+/// <summary>Rejects incomplete snapshots before collections or mesh indexes are rebuilt.</summary>
+internal static class BattleSaveValidation
+{
+    internal static void ValidateEnvelope(BattleSave saved)
+    {
+        if (saved.Version != 1 || saved.Board is null || saved.Rules is null || saved.Board.Width < 1 || saved.Board.Height < 1 || (long)saved.Board.Width * saved.Board.Height > 20_000 || saved.Board.Land is null || saved.Ships is null || saved.Villages is null || saved.Fish is null || saved.Shoals is null || saved.Treasuries is null || saved.Whirlpools is null || saved.CaptureWaits is null || saved.TreasuryWaits is null || saved.PirateHomes is null || saved.Outcomes is null || saved.Income is null || saved.Vision is null || saved.Credits is null || saved.EverProduced is null || saved.Credits.Length is not (3 or BattleState.SideSlots) || saved.Credits.Any(n => n < 0) || saved.EverProduced.Length != saved.Credits.Length || saved.Round < 1 || saved.TurnSerial < 0 || saved.EventDraws is < 0 or > 10_000_000 || !Enum.IsDefined(saved.ActiveSide) || !Enum.IsDefined(saved.Color) || saved.Winner is { } winner && !Enum.IsDefined(winner) || saved.LastReward is { } reward && !Enum.IsDefined(reward))
+            throw new ArgumentException("Invalid or unsupported saved game.");
+        if (saved.Factions is null || saved.FactionColors is null || saved.Factions.Length > 0 && (saved.Factions.Length is < 2 or > 5 || !saved.Factions.Contains(Side.Player) || saved.Factions.Any(side => !BattleState.PlayableSides.Contains(side)) || saved.Factions.Distinct().Count() != saved.Factions.Length))
+            throw new ArgumentException("Invalid saved faction roster.");
+        if (saved.FactionColors.Any(entry => entry is null || !BattleState.PlayableSides.Contains(entry.Side) || !Enum.IsDefined(entry.Color)) || saved.FactionColors.Select(entry => entry.Side).Distinct().Count() != saved.FactionColors.Length || saved.FactionColors.Select(entry => entry.Color).Distinct().Count() != saved.FactionColors.Length)
+            throw new ArgumentException("Invalid saved fleet colors.");
+    }
+
+    internal static void ValidateContents(BattleSave saved, GameBoard board, BattleRules rules)
+    {
+        if (saved.Ships.Any(s => s is null || s.Id <= 0 || !Enum.IsDefined(s.Owner) || !Enum.IsDefined(s.Kind) || !board.Contains(s.Position) || !double.IsFinite(s.Health) || s.Health <= 0 || s.Level is < 1 or > 5 || s.BombCooldown < 0 || s.BombCooldown > rules.Balloon.CooldownTurns || s.Kills < 0 || s.Resources < 0 || s.MovementSpentUnits < 0 || s.AttacksUsed < 0))
+            throw new ArgumentException("Invalid saved fleet.");
+        if (saved.Villages.Any(v => v is null || v.Id <= 0 || !board.Contains(v.Position) || v.Owner is { } owner && !Enum.IsDefined(owner) || v.Level is < 1 or > 5 || !double.IsFinite(v.Health) || v.Health < 0 || v.Health > v.Level * 5 || v.TurnsOwned < 0) || saved.Treasuries.Any(t => t is null || t.Id <= 0 || !board.Contains(t.Position)))
+            throw new ArgumentException("Invalid saved settlements or treasuries.");
+        if (saved.FactionNames is null || saved.FactionNames.Length > 4 || saved.FactionNames.Any(e => e is null || e.Side == Side.Player || e.Side == Side.Pirates || !Enum.IsDefined(e.Side) || !WorldNames.Captains.Contains(e.Name)) || saved.FactionNames.Select(e => e.Side).Distinct().Count() != saved.FactionNames.Length || saved.FactionNames.Select(e => e.Name).Distinct().Count() != saved.FactionNames.Length || saved.Villages.Any(v => v.Name is null || v.Name.Length > 60 || v.Name.Any(char.IsControl)))
+            throw new ArgumentException("Invalid saved world identities.");
+        var roster = saved.Factions.Length == 0 ? new[]
+        {
+            Side.Player,
+            Side.Enemy
+        }
+
+        : saved.Factions;
+        if (saved.FactionNames.Length > 0 && (saved.FactionNames.Length != roster.Length - 1 || saved.FactionNames.Any(e => !roster.Contains(e.Side))))
+            throw new ArgumentException("Saved captain identities do not match their roster.");
+        if (saved.FactionColors.Length > 0 && (saved.FactionColors.Length != roster.Length || roster.Any(side => !saved.FactionColors.Any(entry => entry.Side == side)) || saved.FactionColors.First(entry => entry.Side == Side.Player).Color != saved.Color))
+            throw new ArgumentException("Saved fleet colors do not match their roster.");
+        if (roster.Any(side => (int)side >= saved.Credits.Length))
+            throw new ArgumentException("Saved currency slots do not cover every fleet.");
+        if (saved.Ships.Any(ship => ship.Owner != Side.Pirates && !roster.Contains(ship.Owner)) || saved.Ships.Where(ship => ship.Kind == ShipClass.Mothership).GroupBy(ship => ship.Owner).Any(group => group.Count() > 1) || saved.ActiveSide != Side.Pirates && !roster.Contains(saved.ActiveSide))
+            throw new ArgumentException("Saved fleet is outside its faction roster.");
+        var ids = saved.Ships.Select(s => s.Id).Concat(saved.Villages.Select(v => v.Id)).Concat(saved.Treasuries.Select(t => t.Id)).ToArray();
+        if (ids.Distinct().Count() != ids.Length || saved.NextId <= ids.DefaultIfEmpty(0).Max())
+            throw new ArgumentException("Invalid save identifiers.");
+        if (saved.Fish.Any(p => !board.Contains(p)) || saved.Shoals.Any(p => !board.Contains(p)) || saved.Whirlpools.Any(w => w is null || !board.Contains(w.Position) || w.Cells is null || w.Cells.Any(p => !board.Contains(p))))
+            throw new ArgumentException("Invalid saved sea features.");
+        var ships = saved.Ships.ToDictionary(s => s.Id);
+        var villages = saved.Villages.Select(v => v.Id).ToHashSet();
+        var treasuries = saved.Treasuries.Select(t => t.Id).ToHashSet();
+        foreach (var wait in saved.CaptureWaits.Concat(saved.TreasuryWaits))
+            if (wait is null || !Enum.IsDefined(wait.Side) || !board.Contains(wait.Position) || wait.Since < 0 || wait.Since > saved.TurnSerial || !ships.TryGetValue(wait.Ship, out var ship) || ship.Owner != wait.Side)
+                throw new ArgumentException("Invalid saved waiting crew.");
+        if (saved.CaptureWaits.Any(w => !villages.Contains(w.Target)) || saved.TreasuryWaits.Any(w => !treasuries.Contains(w.Target)) || saved.CaptureWaits.Select(w => (w.Target, w.Side, w.Ship)).Distinct().Count() != saved.CaptureWaits.Length || saved.TreasuryWaits.Select(w => w.Target).Distinct().Count() != saved.TreasuryWaits.Length)
+            throw new ArgumentException("Invalid saved capture or plunder progress.");
+        if (saved.PirateHomes.Any(h => h is null || !board.Contains(h.Position) || !ships.TryGetValue(h.Ship, out var ship) || ship.Owner != Side.Pirates) || saved.PirateHomes.Select(h => h.Ship).Distinct().Count() != saved.PirateHomes.Length || saved.Outcomes.Any(o => o is null || !treasuries.Contains(o.Treasury) || !Enum.IsDefined(o.Reward)) || saved.Outcomes.Select(o => o.Treasury).Distinct().Count() != saved.Outcomes.Length)
+            throw new ArgumentException("Invalid saved sea-event progress.");
+        if (saved.Income.Any(i => i is null || string.IsNullOrWhiteSpace(i.Id) || !Enum.IsDefined(i.Owner) || i.Amount < 0 || i.BoundShipId is { } shipId && !ships.ContainsKey(shipId)) || saved.Income.Select(i => i.Id).Distinct().Count() != saved.Income.Length)
+            throw new ArgumentException("Invalid saved income sources.");
+    }
+}

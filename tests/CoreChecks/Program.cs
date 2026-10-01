@@ -36,3 +36,8 @@ Check(typeof(GameBoard).Assembly.GetReferencedAssemblies().All(a => !a.Name!.Sta
     "Core must not reference Godot");
 Console.WriteLine($"PASS: {checks} core checks");
 BattleScenarios.Run();
+var persistenceRules = DevAncientNaval.Core.Battle.BattleRules.FromJson(
+    File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+int persistenceChecks = PersistenceChecks.Run(persistenceRules,
+    Environment.GetEnvironmentVariable("ANCIENT_NAVAL_LEGACY_FIXTURES"));
+Console.WriteLine($"PASS: {persistenceChecks} save compatibility and validation checks.");

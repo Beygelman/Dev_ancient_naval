@@ -16,6 +16,10 @@
 *.jks
 export_credentials.cfg
 
+# Full local launch copies; Git carries the corresponding Windows ZIP.
+# The raw Godot executable exceeds GitHub's regular-file size limit.
+/releases/*/playable/
+
 # Local validation / environment files
 .local/
 NuGet.local.config

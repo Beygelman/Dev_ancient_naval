@@ -1,6 +1,7 @@
 namespace DevAncientNaval.Core.Grid;
 
-/// <summary>Logical square-grid coordinates, independent of the renderer.</summary>
+/// <summary>Stable cell address. On generated maps it is an ID; use GameBoard
+/// for neighbors, distance and geometry. Rectangular fixtures retain XY rules.</summary>
 public readonly record struct GridPosition(int X, int Y)
 {
     public IEnumerable<GridPosition> OrthogonalNeighbors()

@@ -1,0 +1,93 @@
+INTERACTION tiles=1110, opponents=1, live_fog=False, hover_calls=64, hover_p50_ms=0,047, hover_p95_ms=0,094, hover_max_ms=1,163, frame_p95_ms=33,230, frame_max_ms=107,328, process_p95_ms=311,817, draw_calls_p95=3125, movement_elapsed_ms=1587,497
+{
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 3.6380999999999992,
+    "MaxMs": 0.8389,
+    "Bytes": 94768
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 74.58639999999998,
+    "MaxMs": 5.1629,
+    "Bytes": 7353936
+  },
+  "Fleet.Draw": {
+    "Calls": 238,
+    "TotalMs": 14.876699999999992,
+    "MaxMs": 0.3377,
+    "Bytes": 200712
+  },
+  "Ambience.Waves": {
+    "Calls": 80,
+    "TotalMs": 600.5534000000001,
+    "MaxMs": 30.2231,
+    "Bytes": 0
+  },
+  "Ambience.Fish": {
+    "Calls": 80,
+    "TotalMs": 193.73370000000006,
+    "MaxMs": 3.5536,
+    "Bytes": 0
+  },
+  "Ambience.Draw": {
+    "Calls": 80,
+    "TotalMs": 802.3344000000001,
+    "MaxMs": 32.4925,
+    "Bytes": 2016
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 4.8905,
+    "MaxMs": 4.8905,
+    "Bytes": 225264
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 0.6385,
+    "MaxMs": 0.6385,
+    "Bytes": 112552
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 0.5015000000000001,
+    "MaxMs": 0.2634,
+    "Bytes": 38488
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 1.4708999999999999,
+    "MaxMs": 0.968,
+    "Bytes": 178144
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0062,
+    "MaxMs": 0.0062,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 1.4826000000000001,
+    "MaxMs": 0.7764,
+    "Bytes": 4472
+  },
+  "Save.Capture": {
+    "Calls": 1,
+    "TotalMs": 0.3847,
+    "MaxMs": 0.3847,
+    "Bytes": 272104
+  },
+  "Save.Write": {
+    "Calls": 1,
+    "TotalMs": 31.9921,
+    "MaxMs": 31.9921,
+    "Bytes": 5205456
+  },
+  "Navigation.PreviewPlan": {
+    "Calls": 1,
+    "TotalMs": 0.0749,
+    "MaxMs": 0.0749,
+    "Bytes": 448
+  }
+}

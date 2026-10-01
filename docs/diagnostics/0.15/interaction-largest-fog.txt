@@ -1,0 +1,99 @@
+INTERACTION tiles=1371, opponents=4, live_fog=True, hover_calls=64, hover_p50_ms=0,061, hover_p95_ms=0,247, hover_max_ms=1,417, frame_p95_ms=23,104, frame_max_ms=74,884, process_p95_ms=89,048, draw_calls_p95=739, movement_elapsed_ms=1721,787
+{
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 5.714599999999998,
+    "MaxMs": 1.0243,
+    "Bytes": 94192
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 16.5835,
+    "MaxMs": 0.5422,
+    "Bytes": 3160
+  },
+  "Ambience.Draw": {
+    "Calls": 87,
+    "TotalMs": 298.9179,
+    "MaxMs": 11.0634,
+    "Bytes": 18472
+  },
+  "Fleet.Draw": {
+    "Calls": 278,
+    "TotalMs": 658.9790999999999,
+    "MaxMs": 6.4815,
+    "Bytes": 13091056
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 4.7591,
+    "MaxMs": 4.7591,
+    "Bytes": 232712
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 0.8664,
+    "MaxMs": 0.8664,
+    "Bytes": 11112
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 1.0776,
+    "MaxMs": 0.7434,
+    "Bytes": 37408
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 3.4035,
+    "MaxMs": 1.9036,
+    "Bytes": 70720
+  },
+  "Board.Terrain.Draw": {
+    "Calls": 35,
+    "TotalMs": 3.7955,
+    "MaxMs": 0.2019,
+    "Bytes": 1120
+  },
+  "Board.Terrain.Shore.Draw": {
+    "Calls": 35,
+    "TotalMs": 22.579300000000007,
+    "MaxMs": 3.6749,
+    "Bytes": 5040
+  },
+  "Board.Terrain.Scenery.Draw": {
+    "Calls": 35,
+    "TotalMs": 8.4293,
+    "MaxMs": 0.8543,
+    "Bytes": 9408
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0164,
+    "MaxMs": 0.0164,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 1.8414,
+    "MaxMs": 1.341,
+    "Bytes": 13928
+  },
+  "Save.Capture": {
+    "Calls": 1,
+    "TotalMs": 1.3579,
+    "MaxMs": 1.3579,
+    "Bytes": 259944
+  },
+  "Save.Write": {
+    "Calls": 1,
+    "TotalMs": 116.5121,
+    "MaxMs": 116.5121,
+    "Bytes": 4822080
+  },
+  "Navigation.PreviewPlan": {
+    "Calls": 1,
+    "TotalMs": 0.3799,
+    "MaxMs": 0.3799,
+    "Bytes": 448
+  }
+}

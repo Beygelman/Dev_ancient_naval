@@ -2,82 +2,90 @@ using DevAncientNaval.Core.Grid;
 using System.Numerics;
 
 namespace DevAncientNaval.Core.World;
-
-/// <summary>A seeded convex pentagon, five 18–24-cell sides and separated island clusters.</summary>
+/// <summary>Seeded islands on a boundary-fitted hexagonal cell complex.</summary>
 public static class ArchipelagoGenerator
 {
-    public static GameBoard Create(int seed)
+    public static GameBoard Create(int seed, int opponentCount = 3)
     {
-        var random = new Random(seed);
-        Vector2[] boundary;
-        do
+        if (opponentCount is < 1 or > 4)
+            throw new ArgumentOutOfRangeException(nameof(opponentCount));
+        float scale = MathF.Sqrt((opponentCount + 1) / 4f);
+        var mesh = OrganicMesh.Create(seed, scale);
+        var random = new Random(seed ^ 91417);
+        GameBoard Board(HashSet<GridPosition> land) => new(mesh.Width, mesh.Height, p => land.Contains(p) ? TerrainType.Land : TerrainType.Water, seed, mesh.Faces.ContainsKey, mesh.Boundary, mesh);
+        var water = Board(new());
+        var anchors = Enumerable.Range(0, opponentCount + 1).Select(index => water.Center(water.FleetAnchor(index, opponentCount + 1))).ToArray();
+        var center = mesh.Boundary.Aggregate(Vector2.Zero, (a, b) => a + b) / 6;
+        var land = new HashSet<GridPosition>();
+        var border = mesh.Faces.Keys.Where(p => mesh.Neighbors(p).Count < mesh.Faces[p].Count).ToHashSet();
+        var candidates = mesh.Faces.Keys.Where(p => !border.Contains(p) && !mesh.Neighbors(p, true).Any(border.Contains)).ToArray();
+        int factionCount = opponentCount + 1;
+        var territoryCandidates = Enumerable.Range(0, factionCount).Select(index => candidates.Where(position => water.StartingTerritory(position, factionCount) == index).ToArray()).ToArray();
+        bool Reserved(Vector2 p) => anchors.Any(anchor => Vector2.Distance(p, anchor) < 4.6f) || opponentCount == 1 && Math.Abs(Vector2.Dot(p - center, new Vector2(-(anchors[1] - anchors[0]).Y, (anchors[1] - anchors[0]).X)) / Vector2.Distance(anchors[0], anchors[1])) < 1.5f;
+        int accepted = 0, desired = (int)Math.Round((16 + random.Next(3)) * scale * scale);
+        for (int attempt = 0; attempt < 700 && accepted < desired; attempt++)
         {
-            double rotation = random.NextDouble() * .35 - .175;
-            boundary = Enumerable.Range(0,5).Select(i => {
-                double a = -Math.PI/2 + i*Math.Tau/5 + rotation + (random.NextDouble()-.5)*.09;
-                double r = 16.7 + random.NextDouble()*3;
-                return new Vector2((float)(Math.Cos(a)*r),(float)(Math.Sin(a)*r));
-            }).ToArray();
-        } while (Enumerable.Range(0,5).Any(i => Vector2.Distance(boundary[i],boundary[(i+1)%5]) is <18 or >24));
-        var offset = new Vector2(1-boundary.Min(v=>v.X),1-boundary.Min(v=>v.Y));
-        boundary = boundary.Select(v=>v+offset).ToArray();
-        int width=(int)Math.Ceiling(boundary.Max(v=>v.X))+2, height=(int)Math.Ceiling(boundary.Max(v=>v.Y))+2;
-        bool Inside(GridPosition p)
-        {
-            for(int i=0;i<5;i++) { var a=boundary[i]; var d=boundary[(i+1)%5]-a; var q=new Vector2(p.X,p.Y)-a; if(d.X*q.Y-d.Y*q.X<0) return false; }
-            return true;
-        }
-        int mid=height/2, pattern=random.Next(3);
-        var row=Enumerable.Range(0,width).Where(x=>Inside(new(x,mid))).ToArray();
-        var left=new GridPosition(row.Min()+3,mid); var right=new GridPosition(row.Max()-3,mid);
-        var land=new HashSet<GridPosition>();
-        bool Reserved(GridPosition p)
-        {
-            if(Math.Abs(p.X-left.X)<=3&&Math.Abs(p.Y-mid)<=3 || Math.Abs(p.X-right.X)<=3&&Math.Abs(p.Y-mid)<=3) return true;
-            if(Math.Abs(p.Y-mid)<2.5) return true;
-            return pattern switch {
-                0 => Math.Abs(p.X-width*.5)<2,
-                1 => Math.Abs(p.Y-(mid+(p.X-width*.5)*.28))<2,
-                _ => (p.X-width*.5)*(p.X-width*.5)+(p.Y-mid)*(p.Y-mid)<36
-            };
-        }
-        int accepted=0, desired=12+random.Next(4);
-        for(int attempt=0;attempt<600&&accepted<desired;attempt++)
-        {
-            double cx=2+random.NextDouble()*(width-4), cy=2+random.NextDouble()*(height-4);
-            double size=accepted<3?3+random.NextDouble()*1.5:accepted<7?1.5+random.NextDouble()*1.5:.6+random.NextDouble()*.8;
-            double ry=size*(.6+random.NextDouble()*.7), angle=random.NextDouble()*Math.PI, phase=random.NextDouble()*6;
-            var candidate=new HashSet<GridPosition>();
-            for(int y=1;y<height-1;y++) for(int x=1;x<width-1;x++)
+            var territory = territoryCandidates[accepted % factionCount];
+            if (territory.Length == 0)
+                territory = candidates;
+            var origin = mesh.Centers[territory[random.Next(territory.Length)]];
+            double size = accepted < factionCount ? 3.4 + random.NextDouble() * 1.8 : accepted < factionCount * 2 ? 2.2 + random.NextDouble() * 1.5 : .9 + random.NextDouble();
+            double ry = size * (.7 + random.NextDouble() * .5), angle = random.NextDouble() * Math.PI, phase = random.NextDouble() * 6;
+            var remaining = new HashSet<GridPosition>();
+            foreach (var p in candidates)
             {
-                var p=new GridPosition(x,y); if(!Inside(p)||Reserved(p)||p.OrthogonalNeighbors().Any(n=>!Inside(n))) continue;
-                double dx=x-cx,dy=y-cy,u=(dx*Math.Cos(angle)+dy*Math.Sin(angle))/size,v=(-dx*Math.Sin(angle)+dy*Math.Cos(angle))/ry;
-                double a=Math.Atan2(v,u),coast=1+.22*Math.Sin(3*a+phase)+.13*Math.Cos(5*a-phase);
-                if(u*u+v*v<coast*coast) candidate.Add(p);
+                var c = mesh.Centers[p];
+                if (Reserved(c))
+                    continue;
+                double dx = c.X - origin.X, dy = c.Y - origin.Y;
+                double u = (dx * Math.Cos(angle) + dy * Math.Sin(angle)) / size, v = (-dx * Math.Sin(angle) + dy * Math.Cos(angle)) / ry;
+                double a = Math.Atan2(v, u), coast = 1 + .22 * Math.Sin(3 * a + phase) + .12 * Math.Cos(5 * a - phase);
+                if (u * u + v * v + .09 * Math.Sin(dx * .55 + phase) * Math.Cos(dy * .5 - phase) < coast * coast)
+                    remaining.Add(p);
             }
-            var remaining=new HashSet<GridPosition>(candidate); var largest=new HashSet<GridPosition>();
-            while(remaining.Count>0)
+
+            var largest = new HashSet<GridPosition>();
+            while (remaining.Count > 0)
             {
-                var component=new HashSet<GridPosition>(); var q=new Queue<GridPosition>(); q.Enqueue(remaining.First());
-                while(q.TryDequeue(out var p)) { if(!remaining.Remove(p)) continue; component.Add(p); foreach(var n in p.OrthogonalNeighbors()) if(remaining.Contains(n)) q.Enqueue(n); }
-                if(component.Count>largest.Count) largest=component;
+                var component = new HashSet<GridPosition>();
+                var pending = new Queue<GridPosition>();
+                pending.Enqueue(remaining.First());
+                while (pending.TryDequeue(out var p))
+                {
+                    if (!remaining.Remove(p))
+                        continue;
+                    component.Add(p);
+                    foreach (var n in mesh.Neighbors(p))
+                        if (remaining.Contains(n))
+                            pending.Enqueue(n);
+                }
+
+                if (component.Count > largest.Count)
+                    largest = component;
             }
-            if(largest.Count==0 || accepted<3&&largest.Count<10) continue;
-            if(largest.Any(p=>land.Any(q=>Math.Max(Math.Abs(p.X-q.X),Math.Abs(p.Y-q.Y))<3))) continue;
-            land.UnionWith(largest); accepted++;
+
+            if (largest.Count == 0 || accepted < factionCount && largest.Count < 8)
+                continue;
+            if (largest.Any(p => mesh.Neighbors(p, true).Any(n => land.Contains(n) || mesh.Neighbors(n, true).Any(land.Contains))))
+                continue;
+            land.UnionWith(largest);
+            accepted++;
         }
+
         bool widened;
         do
         {
-            widened=false;
-            for(int y=1;y<height-1;y++) for(int x=1;x<width-1;x++)
+            widened = false;
+            foreach (var p in mesh.Faces.Keys)
             {
-                var p=new GridPosition(x,y);
-                if(!Inside(p)||land.Contains(p)||!GameBoard.IsNarrowPassage(p,land.Contains)) continue;
-                var bank=p.OrthogonalNeighbors().Where(land.Contains).OrderBy(q=>q.OrthogonalNeighbors().Count(land.Contains)).First();
-                land.Remove(bank); widened=true;
+                if (land.Contains(p) || !water.IsNarrowAt(p, land.Contains))
+                    continue;
+                var bank = mesh.Neighbors(p).Where(land.Contains).MinBy(q => mesh.Neighbors(q).Count(land.Contains));
+                land.Remove(bank);
+                widened = true;
             }
-        } while(widened);
-        return new GameBoard(width,height,p=>land.Contains(p)?TerrainType.Land:TerrainType.Water,seed,Inside,boundary);
+        }
+        while (widened);
+        return Board(land);
     }
 }

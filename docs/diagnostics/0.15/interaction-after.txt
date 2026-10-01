@@ -1,0 +1,81 @@
+INTERACTION tiles=1110, opponents=1, live_fog=False, hover_calls=64, hover_p50_ms=0,056, hover_p95_ms=0,167, hover_max_ms=1,374, frame_p95_ms=26,730, frame_max_ms=53,066, process_p95_ms=137,798, draw_calls_p95=1906, movement_elapsed_ms=1619,261
+{
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 4.427800000000001,
+    "MaxMs": 1.0089,
+    "Bytes": 94768
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 16.286900000000006,
+    "MaxMs": 0.4723,
+    "Bytes": 3312
+  },
+  "Fleet.Draw": {
+    "Calls": 273,
+    "TotalMs": 406.9832000000001,
+    "MaxMs": 4.036,
+    "Bytes": 12954240
+  },
+  "Ambience.Draw": {
+    "Calls": 80,
+    "TotalMs": 1052.6841000000004,
+    "MaxMs": 16.1266,
+    "Bytes": 657280
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 5.2494,
+    "MaxMs": 5.2494,
+    "Bytes": 225000
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 0.9251,
+    "MaxMs": 0.9251,
+    "Bytes": 122816
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 0.6365,
+    "MaxMs": 0.3661,
+    "Bytes": 37408
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 2.4228,
+    "MaxMs": 1.4064,
+    "Bytes": 270144
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0116,
+    "MaxMs": 0.0116,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 4.647600000000001,
+    "MaxMs": 2.494,
+    "Bytes": 30168
+  },
+  "Save.Capture": {
+    "Calls": 1,
+    "TotalMs": 0.5812,
+    "MaxMs": 0.5812,
+    "Bytes": 271744
+  },
+  "Save.Write": {
+    "Calls": 1,
+    "TotalMs": 44.5285,
+    "MaxMs": 44.5285,
+    "Bytes": 5194544
+  },
+  "Navigation.PreviewPlan": {
+    "Calls": 1,
+    "TotalMs": 0.1016,
+    "MaxMs": 0.1016,
+    "Bytes": 448
+  }
+}

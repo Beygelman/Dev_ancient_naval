@@ -1,0 +1,4 @@
+edbd128898c0074c04de48273c0afc345527b16caad7216ea5161381d861004c  0.17/Ancient_Naval_0.17_Source.zip
+2b03445c617aa66c57cd6ae4453889bfff6f0f67080be43d659d5e727351ffc4  0.17/Ancient_Naval_0.17_Windows.zip
+a4f8c98cda24c6ed87980bc1675cf76dd5c67a46dbfb6d86ea3477c3ccd4f92a  0.17/playable/Ancient Naval.exe
+65b33e1f5d90a37526ae3ab4a5d642cab53ea4137928e3caabfc8a474f3fcc23  0.17/playable/Ancient Naval.pck
