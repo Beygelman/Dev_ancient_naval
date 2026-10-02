@@ -9,6 +9,7 @@ namespace DevAncientNaval.Presentation.Map;
 public partial class WorldAmbience
 {
     private sealed record FishSchool(GridPosition Cell, Vector2 Center, Vector2[] Water, float Radius, bool Reef);
+    private readonly SeaGeometryBatch _fishBatch = new();
     private FishSchool[] _schools = Array.Empty<FishSchool>();
     private static readonly Vector2[] FishBody =
     {
@@ -52,6 +53,7 @@ public partial class WorldAmbience
 
     private void DrawFishSchools()
     {
+        _fishBatch.Clear();
         foreach (var school in _schools)
         {
             if (!_drawBounds.HasPoint(school.Center))
@@ -62,14 +64,13 @@ public partial class WorldAmbience
                 {
                     float angle = stone * 2.4f + school.Cell.X;
                     var at = school.Center + new Vector2(MathF.Cos(angle) * 10, MathF.Sin(angle) * 5);
-                    DrawSetTransform(at, angle, new Vector2(.8f + stone % 3 * .3f, .52f));
-                    DrawColoredPolygon(ReefStone, new Color(.35f, .65f, .56f, .32f));
-                    DrawSetTransform(Vector2.Zero);
+                    var stoneTransform = new Transform2D(angle, new Vector2(.8f + stone % 3 * .3f, .52f), 0, at);
+                    _fishBatch.Polygon(ReefStone, new Color(.35f, .65f, .56f, .32f), stoneTransform);
                     // Branching submerged coral, deliberately geometric and readable.
                     var stem = at + new Vector2(0, -4);
-                    DrawLine(at, stem + new Vector2(0, -5), new Color(.84f, .53f, .37f, .48f), 1.8f, true);
-                    DrawLine(stem, stem + new Vector2(-4, -3), new Color(.84f, .53f, .37f, .48f), 1.5f, true);
-                    DrawLine(stem, stem + new Vector2(4, -3), new Color(.84f, .53f, .37f, .48f), 1.5f, true);
+                    _fishBatch.Line(at, stem + new Vector2(0, -5), new Color(.84f, .53f, .37f, .48f));
+                    _fishBatch.Line(stem, stem + new Vector2(-4, -3), new Color(.84f, .53f, .37f, .48f));
+                    _fishBatch.Line(stem, stem + new Vector2(4, -3), new Color(.84f, .53f, .37f, .48f));
                 }
             }
 
@@ -81,17 +82,17 @@ public partial class WorldAmbience
                 var position = school.Center + new Vector2(MathF.Cos(phase) * radius, MathF.Sin(phase) * radius * .58f);
                 var tangent = new Vector2(-MathF.Sin(phase), MathF.Cos(phase) * .58f);
                 float size = school.Reef ? .58f + fish % 3 * .12f : .9f;
-                DrawSetTransform(position, tangent.Angle(), new Vector2(size, size * .75f));
-                DrawColoredPolygon(FishBody, school.Reef ? new Color(.92f, .77f, .42f, .67f) : new Color(.72f, .85f, .73f, .75f));
-                DrawColoredPolygon(FishTail, new Color(.67f, .80f, .68f, .64f));
-                DrawCircle(new Vector2(3, -.3f), .45f, new Color(.1f, .3f, .36f, .65f));
-                DrawSetTransform(Vector2.Zero);
+                var fishTransform = new Transform2D(tangent.Angle(), new Vector2(size, size * .75f), 0, position);
+                _fishBatch.Polygon(FishBody, school.Reef ? new Color(.92f, .77f, .42f, .67f) : new Color(.72f, .85f, .73f, .75f), fishTransform);
+                _fishBatch.Polygon(FishTail, new Color(.67f, .80f, .68f, .64f), fishTransform);
+                _fishBatch.Line(fishTransform * new Vector2(2.7f, -.3f), fishTransform * new Vector2(3.3f, -.3f), new Color(.1f, .3f, .36f, .65f));
             }
 
             // One thin water wash above the silhouettes puts the school below the surface.
-            DrawColoredPolygon(school.Water, new Color(.17f, .40f, .49f, .13f));
+            _fishBatch.Polygon(school.Water, new Color(.17f, .40f, .49f, .13f), Transform2D.Identity);
             float shimmer = MathF.Sin(_time * .7f + school.Cell.X) * 3;
-            DrawLine(school.Center + new Vector2(-school.Radius, -5 + shimmer), school.Center + new Vector2(-3, -7 + shimmer), new Color(.69f, .88f, .87f, .18f), 1, true);
+            _fishBatch.Line(school.Center + new Vector2(-school.Radius, -5 + shimmer), school.Center + new Vector2(-3, -7 + shimmer), new Color(.69f, .88f, .87f, .18f));
         }
+        _fishBatch.Submit(this, 1.2f);
     }
 }

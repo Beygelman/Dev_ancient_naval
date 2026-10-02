@@ -52,9 +52,7 @@ public partial class Main
 
     public Task BuyMortar() => !CanCommand || SelectedShipId is not { } id ? Task.CompletedTask : Perform(b => b.BuyMortar(Side.Player, id));
     private Task ConfirmResource() => !CanCommand || _resourceCell is not { } cell ? Task.CompletedTask : Perform(b => _resourceIsDock ? b.BuildDock(Side.Player, cell) : b.Collect(Side.Player, cell));
-    public Task LootTreasury() => !CanCommand || SelectedShipId is not { } id ? Task.CompletedTask : Perform(b => b.LootTreasury(Side.Player, id), deferImpacts: true);
     public Task DropBomb() => !CanCommand || SelectedShipId is not { } id ? Task.CompletedTask : Perform(b => b.DropBomb(Side.Player, id), deferImpacts: true);
-    public Task CaptureVillage() => !CanCommand || SelectedVillageId is not { } id ? Task.CompletedTask : Perform(b => b.CaptureVillage(Side.Player, id));
     public Task FortifyVillage() => !CanCommand || SelectedVillageId is not { } id ? Task.CompletedTask : Perform(b => b.FortifyVillage(Side.Player, id));
     public Task BuyRadar() => !CanCommand || SelectedShipId is not { } id ? Task.CompletedTask : Perform(b => b.BuyRadar(Side.Player, id));
     public Task ChooseUpgrade(UpgradeChoice choice) => !CanCommand || Battle.PendingUpgrade(Side.Player)is not { } ship ? Task.CompletedTask : Perform(b => b.ChooseUpgrade(Side.Player, ship.Id, choice));
@@ -103,6 +101,7 @@ public partial class Main
             else
                 presentation?.Finish();
             Hud.ShowMessage(result.Message);
+            await PresentEncounters();
         }
         finally
         {
@@ -135,6 +134,7 @@ public partial class Main
                 await Fleet.Animate(ended, presentation: turnPresentation);
             else
                 turnPresentation.Finish();
+            await PresentHeavenlyAssistance(ended);
             if (!Battle.IsOver)
                 await RunOpponents();
         }

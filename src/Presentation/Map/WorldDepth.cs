@@ -11,7 +11,9 @@ public partial class BoardView
     private Node2D? _depthGroup;
     private IsometricProjection? _depthProjection;
     private long _depthVision = -1;
-    private readonly List<(GridPosition Cell, BoardTerrainLayer Canvas)> _depthObjects = new();
+    private readonly List<(GridPosition Cell, Node2D Canvas)> _depthObjects = new();
+    private readonly List<(GridPosition Cell, BoardTerrainLayer Canvas)> _townArt = new();
+    private readonly List<(GridPosition Cell, BoardTerrainLayer Canvas)> _townInterfaces = new();
     private readonly List<(GridPosition Cell, BoardTerrainLayer Canvas)> _townCanvases = new();
     internal Action<Node2D, Village, Vector2>? DrawTownLife { get; set; }
     internal int DepthObjectCount => _depthObjects.Count;
@@ -36,19 +38,12 @@ public partial class BoardView
             parent.AddChild(_depthGroup);
             _depthObjects.Clear();
             _townCanvases.Clear();
+            _townArt.Clear();
+            _townHomes.Clear();
+            _townHealth.Clear();
+            _townInterfaces.Clear();
             BuildScenery();
-            foreach (var item in _scenery)
-            {
-                if (item.Kind == 0)
-                    continue;
-                var canvas = new BoardTerrainLayer
-                {
-                    Position = item.Point,
-                    DrawWorld = node => DrawSceneryObject(node, item, Vector2.Zero)
-                };
-                _depthGroup.AddChild(canvas);
-                _depthObjects.Add((item.Cell, canvas));
-            }
+            BuildSceneryAtlas();
 
             foreach (var town in Battle.Villages)
             {
@@ -64,13 +59,30 @@ public partial class BoardView
                         if (current is not null)
                         {
                             DrawVillage(node, current, Vector2.Zero);
-                            DrawTownLife?.Invoke(node, current, Vector2.Zero);
+
                         }
                     }
                 };
                 _depthGroup.AddChild(canvas);
                 _depthObjects.Add((town.Position, canvas));
-                _townCanvases.Add((town.Position, canvas));
+                _townArt.Add((town.Position, canvas));
+                var life = new BoardTerrainLayer
+                {
+                    Name = "TownLife" + id,
+                    DrawWorld = node => { if (Battle.VillageAt(town.Position) is { } current) DrawTownLife?.Invoke(node, current, Vector2.Zero); }
+                };
+                canvas.AddChild(life);
+                _townCanvases.Add((town.Position, life));
+                var townUi = new BoardTerrainLayer
+                {
+                    Name = "TownInterface" + id,
+                    ZIndex = 6,
+                    Position = canvas.Position,
+                    DrawWorld = node => { if (Battle.VillageAt(town.Position) is { } current) DrawVillageInterface(node, current); }
+                };
+                _depthGroup.AddChild(townUi);
+                _depthObjects.Add((town.Position, townUi));
+                _townInterfaces.Add((town.Position, townUi));
             }
         }
 
@@ -84,11 +96,20 @@ public partial class BoardView
             canvas.Modulate = visible ? Colors.White : new Color(.43f, .43f, .43f);
         }
 
+        foreach (var (cell, canvas) in _townArt)
+            if (Battle.Vision.IsVisible(Side.Player, cell)) canvas.QueueRedraw();
+        foreach (var (cell, canvas) in _townInterfaces)
+            if (Battle.Vision.IsVisible(Side.Player, cell)) canvas.QueueRedraw();
         AnimateTowns();
     }
 
     internal void AnimateTowns()
     {
+        float time = TownAnimationTime;
+        foreach (var (cell, canvas) in _townInterfaces)
+            if (Battle.Vision.IsVisible(Side.Player, cell) && Battle.VillageAt(cell) is { } town
+                && _townHealth.TryGetValue(town.Id, out var health) && health.Active(time))
+                canvas.QueueRedraw();
         foreach (var(cell, canvas)in _townCanvases)
         {
             // An explored town keeps its last observed appearance while hidden.

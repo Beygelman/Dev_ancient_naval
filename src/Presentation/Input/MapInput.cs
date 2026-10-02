@@ -16,8 +16,12 @@ public partial class MapInput : Node
     private Vector2 _lastMouse;
     private bool _mouseDown;
     private bool _dragged;
+    private double _pressedAt;
+    private Vector2? _pendingHover;
+    public const double SalvoHoldSeconds = .4;
     public MapCamera Camera { get; set; } = null!;
     public event Action<Vector2>? Tapped;
+    public event Action<Vector2>? Held;
     public event Action<Vector2>? Hovered;
     public event Action? Canceled;
 
@@ -36,6 +40,18 @@ public partial class MapInput : Node
     }
 
     public override void _UnhandledInput(InputEvent input) => Handle(input);
+    public override void _Process(double delta)
+    {
+        if (_pendingHover is not { } point) return;
+        _pendingHover = null;
+        Hovered?.Invoke(point);
+    }
+    private static double Now => Time.GetTicksUsec() / 1_000_000.0;
+    private void ReleaseAt(Vector2 point)
+    {
+        if (Now - _pressedAt >= SalvoHoldSeconds) Held?.Invoke(point);
+        else Tapped?.Invoke(point);
+    }
 
     public override void _Notification(int what)
     {
@@ -47,6 +63,7 @@ public partial class MapInput : Node
         _touches.Clear();
         _mouseDown = false;
         _dragged = false;
+        _pendingHover = null;
     }
 
     private void Handle(InputEvent input)
@@ -67,12 +84,13 @@ public partial class MapInput : Node
                         _mouseDown = true;
                         _dragged = false;
                         _start = _lastMouse = mouse.Position;
+                        _pressedAt = Now;
                     }
                     else if (_mouseDown)
                     {
                         _mouseDown = false;
                         if (!_dragged && _start.DistanceTo(mouse.Position) < DragThreshold)
-                            Tapped?.Invoke(mouse.Position);
+                            ReleaseAt(mouse.Position);
                     }
                 }
                 else if (mouse.Pressed && mouse.ButtonIndex is MouseButton.WheelUp or MouseButton.WheelDown)
@@ -83,13 +101,13 @@ public partial class MapInput : Node
                 if (!_dragged && _start.DistanceTo(motion.Position) >= DragThreshold)
                 {
                     _dragged = true;
-                    Camera.Pan(motion.Position - _start);
+                    Camera.Pan(motion.Position - _lastMouse);
                 }
                 else if (_dragged) Camera.Pan(motion.Position - _lastMouse);
                 _lastMouse = motion.Position;
                 break;
             case InputEventMouseMotion motion when !_mouseDown && _touches.Count == 0:
-                Hovered?.Invoke(motion.Position);
+                _pendingHover = motion.Position;
                 return;
             default: return;
         }
@@ -109,6 +127,7 @@ public partial class MapInput : Node
             if (_touches.Count == 0)
             {
                 _start = touch.Position;
+                _pressedAt = Now;
                 _dragged = false;
             }
             else _dragged = true; // Pinching never becomes a tap when fingers lift.
@@ -117,7 +136,7 @@ public partial class MapInput : Node
         else if (_touches.Remove(touch.Index))
         {
             if (_touches.Count == 0 && !_dragged && _start.DistanceTo(touch.Position) < DragThreshold)
-                Tapped?.Invoke(touch.Position);
+                ReleaseAt(touch.Position);
         }
     }
 
@@ -144,7 +163,7 @@ public partial class MapInput : Node
             if (!_dragged && _start.DistanceTo(drag.Position) >= DragThreshold)
             {
                 _dragged = true;
-                Camera.Pan(drag.Position - _start);
+                Camera.Pan(drag.Position - old);
             }
             else if (_dragged) Camera.Pan(drag.Position - old);
             _touches[drag.Index] = drag.Position;

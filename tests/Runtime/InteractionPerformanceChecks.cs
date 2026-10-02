@@ -25,13 +25,26 @@ public partial class InteractionPerformanceChecks : Node
     private readonly List<double> _drawCalls = new();
     private bool _recordFrames;
     private long _previousFrame;
+    private string _phase = "pan";
+    private double _previousCanvasCompiles, _previousDrawCompiles;
+    private readonly List<string> _slowFrames = new();
+    private readonly int[] _previousCollections = new int[3];
     public override void _Process(double delta)
     {
         if (_recordFrames)
         {
             long now = Stopwatch.GetTimestamp();
             if (_previousFrame != 0)
-                _frames.Add(Stopwatch.GetElapsedTime(_previousFrame, now).TotalMilliseconds);
+            {
+                double elapsed = Stopwatch.GetElapsedTime(_previousFrame, now).TotalMilliseconds;
+                _frames.Add(elapsed);
+                if (elapsed > 60)
+                    _slowFrames.Add($"phase={_phase}, frame_ms={elapsed:F3}, GC_delta={GC.CollectionCount(0)-_previousCollections[0]}/{GC.CollectionCount(1)-_previousCollections[1]}/{GC.CollectionCount(2)-_previousCollections[2]}, process_ms={Performance.GetMonitor(Performance.Monitor.TimeProcess)*1000:F3}, focused={DisplayServer.WindowIsFocused()}, canvas_compile_delta={Performance.GetMonitor(Performance.Monitor.PipelineCompilationsCanvas)-_previousCanvasCompiles}, draw_compile_delta={Performance.GetMonitor(Performance.Monitor.PipelineCompilationsDraw)-_previousDrawCompiles}");
+            }
+            _previousCanvasCompiles = Performance.GetMonitor(Performance.Monitor.PipelineCompilationsCanvas);
+            _previousDrawCompiles = Performance.GetMonitor(Performance.Monitor.PipelineCompilationsDraw);
+            for (int generation = 0; generation < 3; generation++)
+                _previousCollections[generation] = GC.CollectionCount(generation);
             _previousFrame = now;
             _processTimes.Add(Performance.GetMonitor(Performance.Monitor.TimeProcess) * 1000);
             _drawCalls.Add(Performance.GetMonitor(Performance.Monitor.RenderTotalDrawCallsInFrame));
@@ -52,7 +65,8 @@ public partial class InteractionPerformanceChecks : Node
             await Frame();
             var args = OS.GetCmdlineUserArgs();
             int opponents = int.Parse(args.FirstOrDefault(a => a.StartsWith("--opponents="))?[12..] ?? "1");
-            var board = ArchipelagoGenerator.Create(731, args.Contains("--scaled-map") ? opponents : 3);
+            var kind = Enum.Parse<WorldKind>(args.FirstOrDefault(a => a.StartsWith("--world-kind="))?[13..] ?? "Oceans");
+            var board = ArchipelagoGenerator.Create(731, args.Contains("--scaled-map") ? opponents : 3, kind);
             var battle = SkirmishSetup.Create(board, Game.Battle.Rules, opponents);
             Game.LoadScenario(battle);
             if (!args.Contains("--live-fog"))
@@ -66,6 +80,7 @@ public partial class InteractionPerformanceChecks : Node
             Game.SelectCell(ship.Position);
             Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(ship.Position);
             Game.MapCamera.Zoom = Vector2.One;
+            if (args.Contains("--wide-view")) Game.MapCamera.FitBoard();
             Game.MapCamera.ForceUpdateScroll();
             if (args.Any(a => a.StartsWith("--save-file=")))
                 Game.SaveSession();
@@ -76,6 +91,15 @@ public partial class InteractionPerformanceChecks : Node
             var handlers = new List<double>();
             PerformanceTrace.Reset();
             _recordFrames = true;
+            for (int pan = 0; pan < 120; pan++)
+            {
+                Game.MapCamera.Pan(new Vector2(MathF.Sin(pan * .08f) * 6, MathF.Cos(pan * .05f) * 3));
+                await Frame();
+            }
+            string panReport = $"PAN frames={_frames.Count}, p50_ms={Percentile(_frames, .5):F3}, p95_ms={Percentile(_frames, .95):F3}, max_ms={_frames.Max():F3}\n";
+            _frames.Clear();
+            _previousFrame = 0;
+            _phase = "hover";
             foreach (var cell in destinations)
             {
                 var screen = GetViewport().GetCanvasTransform() * Game.BoardView.Projection.GridToWorld(cell);
@@ -88,6 +112,7 @@ public partial class InteractionPerformanceChecks : Node
             var resourceCells = battle.KnownFish(Side.Player).Concat(battle.KnownShoals(Side.Player)).ToHashSet();
             var destination = battle.Reachable(ship.Id).OrderByDescending(p => p.Value).First(p => p.Key != ship.Position && !resourceCells.Contains(p.Key)).Key;
             var origin = ship.Position;
+            _phase = "move/encounter/save";
             long movementStart = Stopwatch.GetTimestamp();
             Game.SelectCell(destination);
             await Game.CurrentOrder;
@@ -97,7 +122,7 @@ public partial class InteractionPerformanceChecks : Node
             for (int frame = 0; frame < 20; frame++)
                 await Frame();
             _recordFrames = false;
-            string report = $"INTERACTION tiles={board.Tiles.Count}, opponents={opponents}, live_fog={args.Contains("--live-fog")}, hover_calls={handlers.Count}, " + $"hover_p50_ms={Percentile(handlers, .5):F3}, hover_p95_ms={Percentile(handlers, .95):F3}, " + $"hover_max_ms={handlers.Max():F3}, frame_p95_ms={Percentile(_frames, .95):F3}, " + $"frame_max_ms={_frames.Max():F3}, process_p95_ms={Percentile(_processTimes, .95):F3}, " + $"draw_calls_p95={Percentile(_drawCalls, .95):F0}, movement_elapsed_ms={movementMs:F3}\n" + PerformanceTrace.Report();
+            string report = panReport + $"INTERACTION world={kind}, wide_view={args.Contains("--wide-view")}, tiles={board.Tiles.Count}, opponents={opponents}, live_fog={args.Contains("--live-fog")}, hover_calls={handlers.Count}, " + $"hover_p50_ms={Percentile(handlers, .5):F3}, hover_p95_ms={Percentile(handlers, .95):F3}, " + $"hover_max_ms={handlers.Max():F3}, frame_p95_ms={Percentile(_frames, .95):F3}, " + $"frame_max_ms={_frames.Max():F3}, process_p95_ms={Percentile(_processTimes, .95):F3}, " + $"draw_calls_p95={Percentile(_drawCalls, .95):F0}, movement_elapsed_ms={movementMs:F3}\n" + "SLOW_FRAMES\n" + string.Join("\n", _slowFrames) + "\n" + PerformanceTrace.Report();
             GD.Print(report);
             var output = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--report="));
             if (output is not null)

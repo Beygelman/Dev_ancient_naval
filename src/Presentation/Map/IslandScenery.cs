@@ -13,6 +13,9 @@ public partial class BoardView
     private readonly List<Scenery> _scenery = new();
     internal int TreeCount => _scenery.Count(item => item.Kind == 1);
     internal int MountainCount => _scenery.Count(item => item.Kind == 2);
+    internal IEnumerable<GridPosition> RenderedMountainCells => _scenery.Where(item => item.Kind == 2).Select(item => item.Cell);
+    internal IEnumerable<Vector2[]> MountainGroundFootprints => _scenery.Where(item => item.Kind == 2)
+        .Select(item => MountainFootprint(item, item.Point));
 
     private sealed record Scenery(GridPosition Cell, Vector2 Point, float Size, int Kind, float Shade);
     private void DrawIslandScenery(Node2D canvas, ISet<GridPosition> cells)
@@ -67,12 +70,33 @@ public partial class BoardView
         }
         else
         {
-            var peak = p + new Vector2(s * item.Shade * .2f, -s * 1.65f);
-            canvas.DrawColoredPolygon(new[] { p + new Vector2(-s, 0), peak, p + new Vector2(s, s * .2f), p + new Vector2(0, s * .35f) }, C("748d7b"));
-            canvas.DrawColoredPolygon(new[] { peak, p + new Vector2(s, s * .2f), p + new Vector2(s * .12f, s * .08f) }, C("536f67"));
-            canvas.DrawColoredPolygon(new[] { p + new Vector2(-s * .6f, -s * .2f), peak, p + new Vector2(-s * .15f, -s * .2f) }, C("a6b29a"));
-            if (s > 19)
-                canvas.DrawColoredPolygon(new[] { peak, peak.Lerp(p + new Vector2(-s, 0), .24f), peak + new Vector2(0, s * .26f), peak.Lerp(p + new Vector2(s, s * .2f), .23f) }, C("d9decb"));
+            var ground = MountainFootprint(item, p);
+            var shoulder = ground.Select(v => p + (v - p) * .68f + new Vector2(0, -s * .27f)).ToArray();
+            var peak = p + new Vector2(s * item.Shade * .32f, -s * 1.7f);
+            // A low vegetated, irregular skirt blends into the island. Several
+            // folded rock faces replace the old four-sided, flat-bottomed prism.
+            for (int i = 0; i < ground.Length; i++)
+            {
+                int next = (i + 1) % ground.Length;
+                if ((ground[next] - ground[i]).Cross(shoulder[next] - ground[i]) > .001f)
+                {
+                    var color = C("72976a").Darkened(i % 4 * .025f);
+                    SceneryTriangle(canvas, ground[i], ground[next], shoulder[next], color);
+                    SceneryTriangle(canvas, ground[i], shoulder[next], shoulder[i], color);
+                }
+                if ((shoulder[next] - shoulder[i]).Cross(peak - shoulder[i]) > .001f)
+                    SceneryTriangle(canvas, shoulder[i], shoulder[next], peak, C(i < 3 ? "91a18a" : "657f72").Darkened(i % 3 * .035f));
+            }
+            canvas.DrawLine(peak, shoulder[8], C("bac3a7"), .9f, true);
+            canvas.DrawLine(peak, shoulder[2], C("536f67"), .7f, true);
+            if (s > 22)
+            {
+                var a = peak.Lerp(shoulder[4], .25f);
+                var b = peak + new Vector2(s * .05f, s * .32f);
+                var c = peak.Lerp(shoulder[1], .22f);
+                SceneryTriangle(canvas, peak, a, b, C("d7dccb"));
+                SceneryTriangle(canvas, peak, b, c, C("d7dccb"));
+            }
         }
     }
 
@@ -82,12 +106,26 @@ public partial class BoardView
         _sceneryProjection = Projection;
         _scenery.Clear();
         var random = new Random(Board.Seed ^ 92173);
+        var features = TerrainFeatures.For(Board);
         var towns = Battle.Villages.Select(v => Projection.GridToWorld(v.Position)).ToArray();
         var bounds = Projection.BoardBounds(Board);
+        var sandBins = new Dictionary<(int X, int Y), List<(Vector2[] Shape, Rect2 Bounds)>>();
+        foreach (var beach in _beaches.Where(b => b.Polygon.Length > 0))
+        {
+            var box = PolygonBounds(beach.Polygon);
+            for (int y = (int)MathF.Floor(box.Position.Y / 64); y <= (int)MathF.Floor(box.End.Y / 64); y++)
+                for (int x = (int)MathF.Floor(box.Position.X / 64); x <= (int)MathF.Floor(box.End.X / 64); x++)
+                {
+                    if (!sandBins.TryGetValue((x, y), out var entries)) sandBins[(x, y)] = entries = new();
+                    entries.Add((beach.Polygon, box));
+                }
+        }
         bool LandPoint(Vector2 p, out GridPosition cell)
         {
             cell = Projection.WorldToGrid(p);
-            return _landShapes.TryGetValue(cell, out var shapes) && shapes.Any(shape => Geometry2D.IsPointInPolygon(p, shape));
+            if (!_landShapes.TryGetValue(cell, out var shapes) || !shapes.Any(shape => Geometry2D.IsPointInPolygon(p, shape))) return false;
+            return !sandBins.TryGetValue(((int)MathF.Floor(p.X / 64), (int)MathF.Floor(p.Y / 64)), out var beaches) ||
+                !beaches.Any(b => b.Bounds.HasPoint(p) && Geometry2D.IsPointInPolygon(p, b.Shape));
         }
 
         // Correlated continuous fields determine forests/ridges. A tile is merely
@@ -101,27 +139,41 @@ public partial class BoardView
                 _scenery.Add(new(cell, p, 2 + (float)random.NextDouble() * 4, 0, (float)random.NextDouble() - .5f));
                 if (towns.Any(town => town.DistanceSquaredTo(p) < 1100))
                     continue;
-                float field = MathF.Sin(p.X * .018f + Board.Seed) + MathF.Cos(p.Y * .022f) + .5f * MathF.Sin((p.X + p.Y) * .009f);
-                if (field > -.55f || random.Next(14) == 0)
+                float density = features.ForestDensity(cell);
+                if (density > 0 && random.NextDouble() < density * .6f)
                     _scenery.Add(new(cell, p, 5 + (float)random.NextDouble() * 9, 1, random.Next(3)));
             }
 
-        for (float y = bounds.Position.Y; y < bounds.End.Y; y += 34)
-            for (float x = bounds.Position.X; x < bounds.End.X; x += 47)
+        foreach (var cell in features.MountainCells.OrderBy(c => c.Y).ThenBy(c => c.X))
+        {
+            var p = Projection.GridToWorld(cell);
+            // Rectangular legacy boards acquire a visual warp in the projection;
+            // their Core coordinates therefore are not world-space pixel anchors.
+            // Inset the actual displayed cell, preserving the Core plan's .66 margin.
+            var footprint = Projection.Diamond(cell).Select(v => p.Lerp(v, .66f)).ToArray();
+            float size = 25 + (float)random.NextDouble() * 13;
+            var mountain = new Scenery(cell, p, size, 2, (float)random.NextDouble() - .5f);
+            while (size > 1 && MountainFootprint(mountain, p).Any(point => !Geometry2D.IsPointInPolygon(point, footprint) || !LandPoint(point, out _)))
             {
-                var p = new Vector2(x + (float)random.NextDouble() * 25, y + (float)random.NextDouble() * 20);
-                if (!LandPoint(p, out var cell) || towns.Any(t => t.DistanceSquaredTo(p) < 2000))
-                    continue;
-                float ridge = MathF.Abs(MathF.Sin(p.X * .009f + MathF.Sin(p.Y * .014f + Board.Seed) * 1.6f));
-                if (ridge > .57f && random.Next(12) != 0)
-                    continue;
-                // A peak's footprint stays on land, while its height may overlap
-                // the next tile exactly as a real continuous mountain chain does.
-                if (!LandPoint(p + new Vector2(-16, 0), out _) || !LandPoint(p + new Vector2(16, 0), out _))
-                    continue;
-                _scenery.Add(new(cell, p, 22 + (float)random.NextDouble() * 25, 2, (float)random.NextDouble() - .5f));
+                size *= .88f;
+                mountain = mountain with { Size = size };
             }
+            _scenery.Add(mountain);
+        }
 
         _scenery.Sort((a, b) => a.Point.Y.CompareTo(b.Point.Y));
+    }
+
+    private static Vector2[] MountainFootprint(Scenery item, Vector2 p) => Enumerable.Range(0, 12).Select(i =>
+    {
+        float angle = i * Mathf.Tau / 12;
+        float uneven = 1 + .12f * MathF.Sin(i * 2.7f + item.Shade * 5);
+        return p + new Vector2(MathF.Cos(angle), MathF.Sin(angle) * .38f) * item.Size * uneven;
+    }).ToArray();
+
+    private static void SceneryTriangle(CanvasItem canvas, Vector2 a, Vector2 b, Vector2 c, Color color)
+    {
+        if (MathF.Abs((b - a).Cross(c - a)) > .001f)
+            canvas.DrawPrimitive(new[] { a, b, c }, new[] { color }, Array.Empty<Vector2>());
     }
 }

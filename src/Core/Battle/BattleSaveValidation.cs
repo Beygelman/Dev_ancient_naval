@@ -7,8 +7,17 @@ internal static class BattleSaveValidation
 {
     internal static void ValidateEnvelope(BattleSave saved)
     {
-        if (saved.Version != 1 || saved.Board is null || saved.Rules is null || saved.Board.Width < 1 || saved.Board.Height < 1 || (long)saved.Board.Width * saved.Board.Height > 20_000 || saved.Board.Land is null || saved.Ships is null || saved.Villages is null || saved.Fish is null || saved.Shoals is null || saved.Treasuries is null || saved.Whirlpools is null || saved.CaptureWaits is null || saved.TreasuryWaits is null || saved.PirateHomes is null || saved.Outcomes is null || saved.Income is null || saved.Vision is null || saved.Credits is null || saved.EverProduced is null || saved.Credits.Length is not (3 or BattleState.SideSlots) || saved.Credits.Any(n => n < 0) || saved.EverProduced.Length != saved.Credits.Length || saved.Round < 1 || saved.TurnSerial < 0 || saved.EventDraws is < 0 or > 10_000_000 || !Enum.IsDefined(saved.ActiveSide) || !Enum.IsDefined(saved.Color) || saved.Winner is { } winner && !Enum.IsDefined(winner) || saved.LastReward is { } reward && !Enum.IsDefined(reward))
+        if (saved.Version != 1 || saved.Statistics is null || saved.Board is null || saved.Rules is null || saved.Board.Width < 1 || saved.Board.Height < 1 || (long)saved.Board.Width * saved.Board.Height > 20_000 || saved.Board.Land is null || saved.Ships is null || saved.Villages is null || saved.Fish is null || saved.Shoals is null || saved.Treasuries is null || saved.Whirlpools is null || saved.CaptureWaits is null || saved.TreasuryWaits is null || saved.PirateHomes is null || saved.Outcomes is null || saved.Income is null || saved.Vision is null || saved.Credits is null || saved.EverProduced is null || saved.Credits.Length is not (3 or BattleState.SideSlots) || saved.Credits.Any(n => n < 0) || saved.EverProduced.Length != saved.Credits.Length || saved.Round < 1 || saved.TurnSerial < 0 || saved.EventDraws is < 0 or > 10_000_000 || !Enum.IsDefined(saved.Board.Kind) || !Enum.IsDefined(saved.Difficulty) || !Enum.IsDefined(saved.ActiveSide) || !Enum.IsDefined(saved.Color) || saved.Winner is { } winner && !Enum.IsDefined(winner) || saved.LastReward is { } reward && !Enum.IsDefined(reward))
             throw new ArgumentException("Invalid or unsupported saved game.");
+        saved.Statistics.Validate();
+        if (saved.PersonalTurnStarts is null || saved.FlagshipKills is null
+            || saved.PersonalTurnStarts.Length is not (0 or BattleState.SideSlots)
+            || saved.FlagshipKills.Length is not (0 or BattleState.SideSlots)
+            || saved.PersonalTurnStarts.Any(n => n < 0 || (long)n > (long)saved.TurnSerial + 1)
+            || saved.FlagshipKills.Any(n => n is < 0 or > 4)
+            || saved.PersonalTurnStarts.Length > 0 && saved.PersonalTurnStarts[(int)Side.Pirates] != 0
+            || saved.FlagshipKills.Length > 0 && saved.FlagshipKills[(int)Side.Pirates] != 0)
+            throw new ArgumentException("Invalid saved heavenly assistance progress.");
         if (saved.Factions is null || saved.FactionColors is null || saved.Factions.Length > 0 && (saved.Factions.Length is < 2 or > 5 || !saved.Factions.Contains(Side.Player) || saved.Factions.Any(side => !BattleState.PlayableSides.Contains(side)) || saved.Factions.Distinct().Count() != saved.Factions.Length))
             throw new ArgumentException("Invalid saved faction roster.");
         if (saved.FactionColors.Any(entry => entry is null || !BattleState.PlayableSides.Contains(entry.Side) || !Enum.IsDefined(entry.Color)) || saved.FactionColors.Select(entry => entry.Side).Distinct().Count() != saved.FactionColors.Length || saved.FactionColors.Select(entry => entry.Color).Distinct().Count() != saved.FactionColors.Length)
@@ -17,9 +26,12 @@ internal static class BattleSaveValidation
 
     internal static void ValidateContents(BattleSave saved, GameBoard board, BattleRules rules)
     {
-        if (saved.Ships.Any(s => s is null || s.Id <= 0 || !Enum.IsDefined(s.Owner) || !Enum.IsDefined(s.Kind) || !board.Contains(s.Position) || !double.IsFinite(s.Health) || s.Health <= 0 || s.Level is < 1 or > 5 || s.BombCooldown < 0 || s.BombCooldown > rules.Balloon.CooldownTurns || s.Kills < 0 || s.Resources < 0 || s.MovementSpentUnits < 0 || s.AttacksUsed < 0))
+        if (saved.Encounters is null || saved.Encounters.Any(e => e is null || e.Side is Side.Player or Side.Pirates || !Enum.IsDefined(e.Side) || !board.Contains(e.Position))
+            || saved.Encounters.Select(e => e.Side).Distinct().Count() != saved.Encounters.Length)
+            throw new ArgumentException("Invalid saved nation encounters.");
+        if (saved.Ships.Any(s => s is null || s.Id <= 0 || !Enum.IsDefined(s.Owner) || !Enum.IsDefined(s.Kind) || !board.Contains(s.Position) || !double.IsFinite(s.Health) || s.Health <= 0 || s.Level is < 1 or > 5 || s.BombCooldown < 0 || s.BombCooldown > rules.Balloon.CooldownTurns || s.Kills < 0 || s.Resources < 0 || s.MovementSpentUnits < 0 || s.TradeStreak is < 0 or > 100 || s.AttacksUsed < 0))
             throw new ArgumentException("Invalid saved fleet.");
-        if (saved.Villages.Any(v => v is null || v.Id <= 0 || !board.Contains(v.Position) || v.Owner is { } owner && !Enum.IsDefined(owner) || v.Level is < 1 or > 5 || !double.IsFinite(v.Health) || v.Health < 0 || v.Health > v.Level * 5 || v.TurnsOwned < 0) || saved.Treasuries.Any(t => t is null || t.Id <= 0 || !board.Contains(t.Position)))
+        if (saved.Villages.Any(v => v is null || v.Id <= 0 || !board.Contains(v.Position) || v.Owner is { } owner && !Enum.IsDefined(owner) || v.Level is < 1 or > 5 || !double.IsFinite(v.Health) || v.Health < 0 || v.Health > v.Level * 5 || v.TurnsOwned < 0 || v.Port && v.Level < 3) || saved.Treasuries.Any(t => t is null || t.Id <= 0 || !board.Contains(t.Position)))
             throw new ArgumentException("Invalid saved settlements or treasuries.");
         if (saved.FactionNames is null || saved.FactionNames.Length > 4 || saved.FactionNames.Any(e => e is null || e.Side == Side.Player || e.Side == Side.Pirates || !Enum.IsDefined(e.Side) || !WorldNames.Captains.Contains(e.Name)) || saved.FactionNames.Select(e => e.Side).Distinct().Count() != saved.FactionNames.Length || saved.FactionNames.Select(e => e.Name).Distinct().Count() != saved.FactionNames.Length || saved.Villages.Any(v => v.Name is null || v.Name.Length > 60 || v.Name.Any(char.IsControl)))
             throw new ArgumentException("Invalid saved world identities.");
@@ -30,6 +42,13 @@ internal static class BattleSaveValidation
         }
 
         : saved.Factions;
+        if (saved.PersonalTurnStarts.Where((n, index) => n > 0 && !roster.Contains((Side)index)).Any()
+            || saved.FlagshipKills.Where((n, index) => n > 0 && !roster.Contains((Side)index)).Any()
+            || saved.FlagshipKills.Any(n => n > roster.Length - 1)
+            || saved.FlagshipKills.Sum() > roster.Count(side => !saved.Ships.Any(ship => ship.Owner == side && ship.Kind == ShipClass.Mothership)))
+            throw new ArgumentException("Saved heavenly assistance does not match the fleet roster.");
+        if (saved.Encounters.Any(e => !roster.Contains(e.Side)))
+            throw new ArgumentException("Saved nation encounters do not match the roster.");
         if (saved.FactionNames.Length > 0 && (saved.FactionNames.Length != roster.Length - 1 || saved.FactionNames.Any(e => !roster.Contains(e.Side))))
             throw new ArgumentException("Saved captain identities do not match their roster.");
         if (saved.FactionColors.Length > 0 && (saved.FactionColors.Length != roster.Length || roster.Any(side => !saved.FactionColors.Any(entry => entry.Side == side)) || saved.FactionColors.First(entry => entry.Side == Side.Player).Color != saved.Color))

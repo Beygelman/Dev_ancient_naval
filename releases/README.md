@@ -6,15 +6,45 @@ addition to the external `outputs` directory. Sources are edited directly in
 the repository's `src`, `assets`, `data`, `scenes` and `tests` folders; the root
 `README.md` describes the current version.
 
-## Current version: 0.17
+## Current version: v0.20.2
 
-- [Windows ZIP](0.17/Ancient_Naval_0.17_Windows.zip)
-- [Source checkpoint ZIP](0.17/Ancient_Naval_0.17_Source.zip)
-- [Release notes in Russian](0.17/Ancient_Naval_0.17_Notes_RU.md)
-- [SHA256 checksums](SHA256-0.17.txt), with paths relative to this directory
-- [Map](0.17/Ancient_Naval_0.17_map.png), [landscape](0.17/Ancient_Naval_0.17_landscape.png), [route](0.17/Ancient_Naval_0.17_route.png)
+User-requested version number; this build includes the completed 0.21 work.
 
-For local play, use `0.17/playable/Ancient Naval.exe`. The complete folder includes
+- [Windows ZIP](0.20.2/Ancient_Naval_0.20.2_Windows.zip)
+- [Source ZIP](0.20.2/Ancient_Naval_0.20.2_Source.zip)
+- [Russian notes](0.20.2/Ancient_Naval_0.20.2_Notes_RU.md), [checksums](SHA256-0.20.2.txt)
+- [Landscape](0.20.2/Ancient_Naval_0.20.2_landscape.png), [pirate bay](0.20.2/Ancient_Naval_0.20.2_pirate-bay.png), [heavenly blessing](0.20.2/Ancient_Naval_0.20.2_blessing.png)
+
+Local launch: `0.20.2/playable/Ancient Naval.exe`. Keep the whole runtime folder together.
+
+## Previous checkpoint: 0.21
+
+- [Windows ZIP](0.21/Ancient_Naval_0.21_Windows.zip)
+- [Source ZIP](0.21/Ancient_Naval_0.21_Source.zip)
+- [Russian notes](0.21/Ancient_Naval_0.21_Notes_RU.md), [checksums](SHA256-0.21.txt)
+- [Actions](0.21/Ancient_Naval_0.21_actions.png), [claim banner](0.21/Ancient_Naval_0.21_claim.png), [first encounter](0.21/Ancient_Naval_0.21_encounter.png)
+
+Local launch: `0.21/playable/Ancient Naval.exe`. Keep the whole runtime folder together.
+
+## Previous version: 0.20
+
+- [Windows ZIP](0.20/Ancient_Naval_0.20_Windows.zip)
+- [Source checkpoint ZIP](0.20/Ancient_Naval_0.20_Source.zip)
+- [Russian release notes](0.20/Ancient_Naval_0.20_Notes_RU.md)
+- [Checksums](SHA256-0.20.txt)
+- [Setup](0.20/Ancient_Naval_0.20_setup.png), [Pangaea](0.20/Ancient_Naval_0.20_pangaea.png), [red fleet](0.20/Ancient_Naval_0.20_red-fleet.png), [claim scroll](0.20/Ancient_Naval_0.20_claim.png)
+
+Local launch: `0.20/playable/Ancient Naval.exe`. Keep the whole runtime folder together.
+
+## Previous version: 0.19
+
+- [Windows ZIP](0.19/Ancient_Naval_0.19_Windows.zip)
+- [Source checkpoint ZIP](0.19/Ancient_Naval_0.19_Source.zip)
+- [Release notes in Russian](0.19/Ancient_Naval_0.19_Notes_RU.md)
+- [SHA256 checksums](SHA256-0.19.txt), with paths relative to this directory
+- [Pangaea](0.19/Ancient_Naval_0.19_pangaea.png), [fleet](0.19/Ancient_Naval_0.19_fleet.png), [clay health seals](0.19/Ancient_Naval_0.19_clay-stages.png), [victory](0.19/Ancient_Naval_0.19_victory.png)
+
+For local play, use `0.19/playable/Ancient Naval.exe`. The complete folder includes
 the PCK, bundled .NET runtime and diagnostics. Keep these files together.
 That raw launch folder is local-only in Git, because the executable is larger
 than GitHub's 100 MiB limit. The complete ZIP is tracked instead.
@@ -25,7 +55,7 @@ than GitHub's 100 MiB limit. The complete ZIP is tracked instead.
 Package and verify the new version first, then run from the repository root:
 
 ```powershell
-./tools/Sync-Release.ps1 -Version '0.17' -OutputsPath 'C:/Users/User/Documents/Codex/2026-09-29/x20/outputs'
+./tools/Sync-Release.ps1 -Version '0.20' -OutputsPath 'C:/Users/User/Documents/Codex/2026-09-29/x20/outputs'
 ```
 
 The tool copies all matching artifacts and every unpacked runtime file,

@@ -1,0 +1,30 @@
+PASS: 1535 core checks
+NAVIGATION ships=16 iterations=3 before_bytes=42098928 after_bytes=2117184 before_ms=25,639 after_ms=1,756
+NAVIGATION ships=128 iterations=3 before_bytes=94398960 after_bytes=2040264 before_ms=118,883 after_ms=1,716
+NAVIGATION ships=256 iterations=3 before_bytes=129229224 after_bytes=1967664 before_ms=195,007 after_ms=1,59
+MULTI_AI opponents=2 winner=Enemy2 round=20 commands=390
+MULTI_AI opponents=4 winner=Player round=41 commands=1184
+REFINEMENT016: tower radar/veterancy, outpost targeting, AA, retreat and fish density passed
+DIFFICULTY Boatswain round=4 ships=5 elapsed_ms=45,9
+DIFFICULTY Captain round=15 ships=15 elapsed_ms=421,5
+DIFFICULTY Admiral round=16 ships=28 elapsed_ms=1864,8
+COMPLETE_AI Boatswain winner=Enemy round=3 orders=55
+COMPLETE_AI Captain winner=Enemy round=3 orders=59
+COMPLETE_AI Admiral winner=Enemy round=24 orders=480
+AI 0: Player, round 11, actions 214
+AI 1: Player, round 13, actions 246
+AI 2: Enemy, round 10, actions 147
+AI 3: Player, round 18, actions 384
+AI 4: Enemy, round 17, actions 291
+AI 5: Enemy, round 13, actions 250
+AI 6: Enemy, round 22, actions 785
+AI 7: Enemy, round 13, actions 394
+PASS: 1199513 Thor/progression/combat checks; 8 complete AI matches.
+PASS: 18 save compatibility and validation checks.
+PASS: 368 four-world generation checks.
+PASS: 23 voyage statistics checks.
+PASS: 79 free-coast, anti-air, inland Pangaea and red-save checks.
+PASS: 38 salvo, encounters, level rewards and compatibility checks.
+PASS: 31 v0.20.2 progression, mountain shadows, radar and heavenly aid checks.
+PASS: 545 v0.20.2 world placement and deterministic terrain checks.
+PASS: 133 v0.20.2 themed Latin names and Continue checks.

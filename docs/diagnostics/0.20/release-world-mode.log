@@ -1,0 +1,24 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+WORLD MODE Oceans: seed=2021175222, cells=1110
+WORLD MODE Oceans: Continue begins
+WORLD MODE Oceans: Continue complete
+WORLD MODE Oceans: full chart begins
+WORLD MODE Oceans: full chart complete
+WORLD MODE SeaWorld: seed=1269558831, cells=1058
+WORLD MODE SeaWorld: Continue begins
+WORLD MODE SeaWorld: Continue complete
+WORLD MODE SeaWorld: full chart begins
+WORLD MODE SeaWorld: full chart complete
+WORLD MODE Continents: seed=804288908, cells=1056
+WORLD MODE Continents: Continue begins
+WORLD MODE Continents: Continue complete
+WORLD MODE Continents: full chart begins
+WORLD MODE Continents: full chart complete
+WORLD MODE Pangaea: seed=1935047293, cells=1114
+WORLD MODE Pangaea: Continue begins
+WORLD MODE Pangaea: Continue complete
+WORLD MODE Pangaea: full chart begins
+WORLD MODE Pangaea: full chart complete
+PASS: 110 world selector/generation/save/native rendering checks (Windows).

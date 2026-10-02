@@ -65,11 +65,12 @@ public partial class SeaChecks : Node
                 Game.MapCamera.Position=Game.BoardView.Projection.GridToWorld(ship.Position);
                 Game.MapCamera.Zoom=Vector2.One*1.4f;Game.MapCamera.ForceUpdateScroll();
                 Game.SelectCell(ship.Position); await Frame();
-                var button=Descendants(Game.Hud).OfType<SectorButton>().Single(n=>n.Name=="ActionLoot");
-                Check(button.IsVisibleInTree() && button.Disabled,"Treasury action displays waiting state");
+                var button=Game.Hud.TreasuryPapyrus;
+                Check(!button.IsVisibleInTree(),"Treasury scroll waits until crew is ready");
                 NextTurn(); Game.SelectCell(ship.Position);await Frame();
-                Check(!button.Disabled,"Treasury action enables next turn");
-                var point=button.GlobalPosition+button.IconCenter;
+                Check(button.IsVisibleInTree(),"Treasury scroll appears next turn");
+                await ToSignal(GetTree().CreateTimer(.42),SceneTreeTimer.SignalName.Timeout);
+                var point=button.GlobalPosition+new Vector2(150,112);
                 GetViewport().PushInput(new InputEventMouseButton{Position=point,GlobalPosition=point,ButtonIndex=MouseButton.Left,Pressed=true},true);
                 GetViewport().PushInput(new InputEventMouseButton{Position=point,GlobalPosition=point,ButtonIndex=MouseButton.Left,Pressed=false},true);
                 await Game.CurrentOrder; await Frame();

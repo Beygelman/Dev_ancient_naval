@@ -57,13 +57,16 @@ public partial class Main
         PositionActions();
         BoardView.RefreshOverlays();
         Fleet.QueueRedraw();
+        RefreshOutcome();
     }
 
     private void PositionActions()
     {
         Vector2 Screen(GridPosition p) => GetViewport().GetCanvasTransform() * BoardView.ToGlobal(BoardView.Projection.GridToWorld(p));
-        Hud.PositionActions(_resourceCell is null ? (Selected is { } ship ? Screen(ship.Position) : SelectedVillage is { } village ? Screen(village.Position) : BoardView.Selected is { } inspected ? Screen(inspected) : null) : null);
+        Hud.PositionActions(_resourceCell is null ? (Selected is { } ship ? Screen(ship.Position) : SelectedVillage is { } village ? Screen(village.Position) : BoardView.Selected is { } inspected ? Screen(inspected) : null) : null,
+            (Selected is { } selected ? ShipVisualProfile.ProgressY(selected.Definition.Class) : SelectedVillage is not null ? 69 : 0) * MapCamera.Zoom.Y);
         Hud.PositionResource(_resourceCell is { } cell ? Screen(cell) : null);
+        Hud.PositionStories(Screen);
     }
 
     public override void _Process(double delta)
@@ -75,6 +78,6 @@ public partial class Main
         _lastCanvasTransform = transform;
         _lastViewportSize = size;
         PositionActions();
-        BoardView.RefreshOverlays(); // Refresh only culled live objects after a camera change.
+        // World-space overlay commands are retained; the renderer clips them after a pan.
     }
 }

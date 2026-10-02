@@ -13,18 +13,18 @@ public sealed partial class BattleState
     public IEnumerable<GridPosition> KnownShoals(Side side) => _shoals.Where(p => Vision.IsVisible(side, p));
     private void InitializeShoals(int seed)
     {
-        var random = new Random(seed ^ 0x5367);
-        var water = Board.Tiles.Where(t => t.Terrain != TerrainType.Land && At(t.Position) is null && !_fish.Contains(t.Position)).Select(t => t.Position).OrderBy(_ => random.Next()).ToArray();
+        var water = WorldResourcePlacement.Order(Board, Board.Tiles.Where(t => t.Terrain != TerrainType.Land &&
+            At(t.Position) is null && !_fish.Contains(t.Position)).Select(t => t.Position), seed ^ 0x5367);
         foreach (var mother in Ships.Where(s => s.IsMothership))
         {
-            var near = water.Where(p => Board.InRadius(p, mother.Position, 2)).ToArray();
+            var near = water.Where(p => Board.InRadius(mother.Position, p, 2)).ToArray();
             if (near.Length > 0)
                 _shoals.Add(near[0]);
         }
 
         foreach (var position in water)
         {
-            if (_shoals.Count >= 8)
+            if (_shoals.Count >= 6)
                 break;
             if (_shoals.All(other => !Board.InRadius(position, other, 2)))
                 _shoals.Add(position);
@@ -42,6 +42,9 @@ public sealed partial class BattleState
         double oldMax = mother.MaxHealth;
         mother.Resources -= needed;
         mother.Level++;
+        int reward = Rules.LevelCurrencyRewards[mother.Level - 2];
+        _credits[(int)mother.Owner] += reward;
+        RecordCurrencyReceipt(mother.Owner, reward);
         mother.Health += mother.MaxHealth - oldMax;
         mother.PendingUpgradeLevel = mother.Level;
         if (mother.Level == 5)

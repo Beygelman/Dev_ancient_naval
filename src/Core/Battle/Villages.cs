@@ -131,7 +131,7 @@ public sealed partial class BattleState
     {
         RemoveIncomeSource($"village:{village.Id}");
         if (village.Owner is { } owner && village.Health > 0)
-            SetIncomeSource(new IncomeSource($"village:{village.Id}", owner, VillageIncome(village)));
+            SetIncomeSource(new IncomeSource($"village:{village.Id}", owner, VillageIncome(village) + (village.HasPort ? Rules.Ports.Income : 0)));
     }
 
     public IReadOnlyList<GridPosition> VillageSpawnCells(int villageId) => _villages.FirstOrDefault(v => v.Id == villageId)is { } village ? Board.GetNeighbors(village.Position).Where(IsFreeWater).ToArray() : Array.Empty<GridPosition>();
@@ -163,7 +163,7 @@ public sealed partial class BattleState
             return "This village has already built a ship this turn.";
         if (kind != ShipClass.CannonTower && Rules.Get(kind).Damage > 0 && _ships.Count(s => s.Owner == requester && s.CountsTowardFleet) >= Rules.FleetLimit)
             return $"Fleet limit: {Rules.FleetLimit}.";
-        if (Credits(requester) < BuildPrice(requester, kind))
+        if (Credits(requester) < VillageBuildPrice(villageId, kind))
             return "Not enough Thors.";
         return VillageSpawnCells(villageId).Count == 0 ? "No adjacent water tile is free." : null;
     }
@@ -181,8 +181,9 @@ public sealed partial class BattleState
             IsExhausted = true
         };
         _ships.Add(ship);
+        RecordShipConstruction(ship);
         RegisterShipIncome(ship);
-        _credits[(int)requester] -= BuildPrice(requester, kind);
+        _credits[(int)requester] -= VillageBuildPrice(villageId, kind);
         _everProduced[(int)requester] = true;
         village.HasProduced = true;
         UpdateVision();
@@ -217,7 +218,7 @@ public sealed partial class BattleState
         return !IsOver && ship is not null && village is not null && ship.Owner == ActiveSide && village.Health > 0 && village.Owner != ship.Owner && ship.AttacksRemaining > 0 && Vision.IsVisible(ship.Owner, village.Position) && WeaponCovers(ship, village.Position);
     }
 
-    public CommandResult AttackVillage(Side requester, int shipId, int villageId)
+    public CommandResult AttackVillage(Side requester, int shipId, int villageId, bool doubleSalvo = false)
     {
         var error = ValidateActor(requester, shipId, out var ship);
         if (error is not null)
@@ -225,15 +226,17 @@ public sealed partial class BattleState
         if (!CanAttackVillage(shipId, villageId))
             return CommandResult.Rejected("A visible village must be within weapon range.");
         var village = _villages.First(v => v.Id == villageId);
+        if (doubleSalvo && !CanDoubleSalvo(shipId, village.Position))
+            return CommandResult.Rejected("A double salvo needs two cannon shots remaining.");
         var attackerBefore = ShipSnapshot.From(ship!);
         bool attackerVisible = ship!.Owner == Side.Player || Vision.IsVisible(Side.Player, ship.Position);
         bool townVisible = Vision.IsVisible(Side.Player, village.Position);
         bool mortar = UsesMortar(ship, village.Position);
         double counterDamage = 0;
         double raw = (mortar ? ship.CurrentMortarDamage + Rules.Mortar.VillageDamageBonus : ship.CurrentDamage) + ship.ShotDamageBonus;
-        double damage = Math.Min(village.Health, raw * (village.IsFortified ? .75 : 1));
+        double damage = Math.Min(village.Health, raw * (village.IsFortified ? .75 : 1) * (doubleSalvo ? 2 : 1));
         village.Health = Math.Max(0, village.Health - damage);
-        ship.AttacksUsed++;
+        ship.AttacksUsed += doubleSalvo ? 2 : 1;
         var splash = mortar ? MortarSplash(ship, village.Position) : Array.Empty<CombatShot>();
         var area = mortar ? MortarVillageSplash(ship, village.Position, village.Id) : Array.Empty<AreaHit>();
         if (ship.Definition.ActionProfile == ActionProfile.Standard && ship.HasMoved)
@@ -251,13 +254,16 @@ public sealed partial class BattleState
             if (ship.Health <= 0)
             {
                 if (village.Owner is { } owner)
+                {
                     RewardPirateDefeat(owner, ship);
+                    RecordEnemyLoss(owner, ship);
+                }
                 RemoveDestroyedShip(ship);
             }
         }
 
         RecordImpact("village-counter");
         UpdateVision();
-        return new(true, $"Town hit for {damage:0.##} damage." + (village.Health <= 0 ? " Defenses defeated: hold alongside until next turn to capture." : ""), CommandKind.Attack, shipId, villageId, damage, Path: new[] { ship.Position, village.Position }, StructureHit: new(attackerBefore, village.Position, counterDamage, mortar, attackerVisible, townVisible), Splash: splash, AreaHits: area);
+        return new(true, $"Town hit for {damage:0.##} damage." + (village.Health <= 0 ? " Defenses defeated: hold alongside until next turn to capture." : ""), CommandKind.Attack, shipId, villageId, damage, Path: new[] { ship.Position, village.Position }, StructureHit: new(attackerBefore, village.Position, counterDamage, mortar, attackerVisible, townVisible, doubleSalvo ? 2 : 1), Splash: splash, AreaHits: area);
     }
 }

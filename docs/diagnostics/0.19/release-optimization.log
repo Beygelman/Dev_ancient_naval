@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+DRAW_ORDER ships=16, iterations=300, before_bytes=787200, after_bytes=324000, before_ms=1,004, after_ms=0,914
+DRAW_ORDER ships=128, iterations=300, before_bytes=4051200, after_bytes=2743200, before_ms=8,067, after_ms=14,092
+DRAW_ORDER ships=512, iterations=300, before_bytes=15151200, after_bytes=11037600, before_ms=43,711, after_ms=63,461
+PASS: 11 rendering optimization checks; checksum=255671900.

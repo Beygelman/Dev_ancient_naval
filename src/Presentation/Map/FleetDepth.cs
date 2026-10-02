@@ -4,7 +4,7 @@ using Godot;
 
 namespace DevAncientNaval.Presentation.Map;
 /// <summary>Ship and scenery canvases share one native Y-sort root. Static scenery
-/// retains its draw commands; only moving hulls and effects redraw.</summary>
+/// retains shared texture regions; only moving hulls and effects redraw.</summary>
 public partial class FleetView
 {
     public BoardView? Landscape { get; set; }
@@ -13,12 +13,20 @@ public partial class FleetView
     private CanvasItem Ink => _ink ?? this;
 
     private readonly Dictionary<int, HullCanvas> _hulls = new();
+    private readonly HashSet<int> _shownHulls = new();
     private readonly List<int> _retiredHulls = new();
     private BoardTerrainLayer? _frontEffects;
     private sealed class HullCanvas
     {
         internal BoardTerrainLayer Canvas = null !;
+        internal BoardTerrainLayer Badge = null !;
+        internal readonly AmphoraHealthAnimation Health = new();
         internal ShipSnapshot Ship = null !;
+        internal float Heading = float.NaN;
+        internal float Barrel = float.NaN;
+        internal float LastDraw = -1;
+        internal int? Selection;
+        internal bool HealthAnimating;
     }
 
     public override void _Ready()
@@ -27,7 +35,7 @@ public partial class FleetView
         _frontEffects = new BoardTerrainLayer
         {
             Name = "ShellsAndFeedback",
-            ZIndex = 2,
+            ZIndex = 8,
             DrawWorld = canvas =>
             {
                 _ink = canvas;
@@ -47,19 +55,19 @@ public partial class FleetView
     private void RefreshHullCanvases()
     {
         Landscape?.RefreshDepthObjects(this);
-        foreach (var hull in _hulls.Values)
-            hull.Canvas.Visible = false;
+        _shownHulls.Clear();
         foreach (var entry in PrepareDrawOrder())
             ShowHull(entry.Ship, entry.Center);
         if (_movingVisible && _movingShip is { } moving)
             ShowHull(moving, _movingPosition);
         _retiredHulls.Clear();
         foreach (var pair in _hulls)
-            if (!pair.Value.Canvas.Visible)
+            if (!_shownHulls.Contains(pair.Key))
                 _retiredHulls.Add(pair.Key);
         foreach (int id in _retiredHulls)
         {
             _hulls[id].Canvas.QueueFree();
+            _hulls[id].Badge.QueueFree();
             _hulls.Remove(id);
         }
 
@@ -76,6 +84,7 @@ public partial class FleetView
                 Name = "Hull" + ship.Id,
                 DrawWorld = canvas =>
                 {
+                    using var trace = DevAncientNaval.Presentation.Diagnostics.PerformanceTrace.Measure("Hull.Draw");
                     _ink = canvas;
                     try
                     {
@@ -90,15 +99,41 @@ public partial class FleetView
                 }
             };
             AddChild(hull.Canvas);
+            hull.Badge = new BoardTerrainLayer
+            {
+                Name = "HealthAmphorae" + ship.Id,
+                ZIndex = 7,
+                DrawWorld = canvas => AmphoraBadgeArt.Draw(canvas, Vector2.Zero, hull.Ship.Health, hull.Ship.MaxHealth,
+                    FleetPalette.For(Battle, hull.Ship.Owner), hull.Ship.Class, hull.Health.Motion(_clock))
+            };
+            AddChild(hull.Badge);
             _hulls.Add(ship.Id, hull);
         }
 
+        _shownHulls.Add(ship.Id);
+        float heading = DeckAngle(ship.Id);
+        float barrel = _barrelAngles.GetValueOrDefault(ship.Id);
+        bool redraw = hull.Ship != ship || hull.Heading != heading || hull.Barrel != barrel || hull.Selection != SelectedId ||
+            _sinking.ContainsKey(ship.Id) || ship.Class == Core.Units.ShipClass.Mothership && _clock - hull.LastDraw >= .10f;
+        bool healthChanged = hull.Ship != ship;
+        hull.Health.Observe(ship.Health, ship.MaxHealth, _clock);
         hull.Ship = ship;
-        hull.Canvas.Position = point;
+        hull.Heading = heading;
+        hull.Barrel = barrel;
+        hull.Selection = SelectedId;
+        var (bob, roll) = HullMotion(ship);
+        hull.Canvas.Position = point + bob;
+        hull.Canvas.Rotation = roll;
         hull.Canvas.Visible = true;
         hull.Canvas.ZIndex = ship.Class == Core.Units.ShipClass.Balloon ? 1 : 0;
         float sink = _sinking.GetValueOrDefault(ship.Id);
         hull.Canvas.Modulate = new Color(1, 1, 1, 1 - sink * sink);
-        hull.Canvas.QueueRedraw();
+        hull.Badge.Position = point + bob + HealthBadgeOffset(ship.Class);
+        hull.Badge.Visible = !_sinking.ContainsKey(ship.Id);
+        bool healthAnimating = hull.Health.Active(_clock);
+        if (healthChanged || healthAnimating || hull.HealthAnimating)
+            hull.Badge.QueueRedraw();
+        hull.HealthAnimating = healthAnimating;
+        if (redraw) { hull.LastDraw = _clock; hull.Canvas.QueueRedraw(); }
     }
 }

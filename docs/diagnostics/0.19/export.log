@@ -1,0 +1,146 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Ініціалізація проекту (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Сканування структури файлу...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Завантаження глобальних назв класів...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Перевірка GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Створення сценаріїв автозавантаження...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Ініціалізація плагінів...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Початок сканування файлів...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started Реєстрація глобальних класів... (20 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[   4% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[   9% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  14% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  19% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  23% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  28% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  33% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  38% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  42% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  47% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  52% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  57% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  61% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  66% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  71% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  76% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  80% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  85% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  90% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[92m[ DONE ][39m [1mupdate_scripts_classes[22m
+[0m
+[   0% ] [90m[1mdotnet_publish_project[22m | Started Publishing .NET project... (1 steps)[39m[0m
+[   0% ] [90m[1mdotnet_publish_project[22m | Running dotnet publish[39m[0m
+[92m[ DONE ][39m [1mdotnet_publish_project[22m
+[0m
+[   0% ] [90m[1msavepack[22m | Started Пакування (102 steps)[39m[0m
+[   1% ] [90m[1msavepack[22m | Збереження файлу: res://.godot/imported/ancient-naval-title.png-4f34772d03b12f59c423f6142a34566e.ctex[39m[0m
+[   1% ] [90m[1msavepack[22m | Збереження файлу: res://assets/ui/ancient-naval-title.png.import[39m[0m
+[   2% ] [90m[1msavepack[22m | Збереження файлу: res://.godot/imported/harbor-claim-0.19.png-fdd90d3586867b78da51dc993cc62bec.ctex[39m[0m
+[   2% ] [90m[1msavepack[22m | Збереження файлу: res://assets/ui/harbor-claim-0.19.png.import[39m[0m
+[   3% ] [90m[1msavepack[22m | Збереження файлу: res://.godot/imported/menu-harbor-0.16.png-8ea9d4a340e01466ccee4c5077570917.ctex[39m[0m
+[   3% ] [90m[1msavepack[22m | Збереження файлу: res://assets/ui/menu-harbor-0.16.png.import[39m[0m
+[   4% ] [90m[1msavepack[22m | Збереження файлу: res://assets/ui/menu-sea.gdshader[39m[0m
+[   5% ] [90m[1msavepack[22m | Збереження файлу: res://.godot/imported/treasury-awakening-0.19.png-7fe2bb97b6532bf0d7ee32d13925330a.ctex[39m[0m
+[   5% ] [90m[1msavepack[22m | Збереження файлу: res://assets/ui/treasury-awakening-0.19.png.import[39m[0m
+[   6% ] [90m[1msavepack[22m | Збереження файлу: res://data/balance.json[39m[0m
+[   7% ] [90m[1msavepack[22m | Збереження файлу: res://.godot/exported/133200997/export-4a24720ee5e787dbe30abc634fa3679d-Main.scn[39m[0m
+[   8% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Camera/MapCamera.cs[39m[0m
+[   9% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Diagnostics/PerformanceTrace.cs[39m[0m
+[  10% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Input/MapInput.cs[39m[0m
+[  11% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/AmphoraBadgeArt.cs[39m[0m
+[  12% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/AmphoraHealthAnimation.cs[39m[0m
+[  13% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/BoardSeaObjects.cs[39m[0m
+[  14% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/BoardTerrainLayer.cs[39m[0m
+[  15% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/BoardView.cs[39m[0m
+[  16% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/CityShipArt.cs[39m[0m
+[  17% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/DeckProjection.cs[39m[0m
+[  18% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FishSchools.cs[39m[0m
+[  19% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetAmphorae.cs[39m[0m
+[  21% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetAnimation.cs[39m[0m
+[  22% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetBalloonArt.cs[39m[0m
+[  23% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetCommands.cs[39m[0m
+[  24% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetDepth.cs[39m[0m
+[  25% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetDetails.cs[39m[0m
+[  26% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetEffects.cs[39m[0m
+[  27% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetGeometry.cs[39m[0m
+[  28% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetHeading.cs[39m[0m
+[  29% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetIncome.cs[39m[0m
+[  30% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetLandmarks.cs[39m[0m
+[  31% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetOutposts.cs[39m[0m
+[  32% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetPalette.cs[39m[0m
+[  33% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetShipDrawing.cs[39m[0m
+[  33% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetSinking.cs[39m[0m
+[  34% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/FleetView.cs[39m[0m
+[  35% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/IslandScenery.cs[39m[0m
+[  36% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/IsometricProjection.cs[39m[0m
+[  37% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/RouteCoverage.cs[39m[0m
+[  38% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/SceneryAtlas.cs[39m[0m
+[  40% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/SeaGeometryBatch.cs[39m[0m
+[  41% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/ShipVisualProfile.cs[39m[0m
+[  42% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/TerrainRasterCache.cs[39m[0m
+[  43% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/TownArt.cs[39m[0m
+[  44% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/TradeRouteView.cs[39m[0m
+[  45% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/VesselArt.cs[39m[0m
+[  46% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/WeatherView.cs[39m[0m
+[  47% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/WhirlpoolView.cs[39m[0m
+[  48% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/WorldAmbience.cs[39m[0m
+[  49% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Map/WorldDepth.cs[39m[0m
+[  50% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/ActionGlyph.cs[39m[0m
+[  51% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/ActionPapyrus.cs[39m[0m
+[  52% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/ActionStoriesHud.cs[39m[0m
+[  53% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/AncientLore.cs[39m[0m
+[  54% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/DebugHud.cs[39m[0m
+[  55% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/GameMenu.cs[39m[0m
+[  56% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/InformationHud.cs[39m[0m
+[  57% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/LorePage.cs[39m[0m
+[  58% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/MenuHarborView.cs[39m[0m
+[  60% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/PapyrusStyle.cs[39m[0m
+[  61% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/RadialPapyrus.cs[39m[0m
+[  62% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/SectorButton.cs[39m[0m
+[  63% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/StartScreen.cs[39m[0m
+[  64% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/VictoryScreen.cs[39m[0m
+[  65% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/UI/VillageHud.cs[39m[0m
+[  66% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/Main.cs[39m[0m
+[  66% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/MainActionStories.cs[39m[0m
+[  67% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/MainCommands.cs[39m[0m
+[  68% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/MainNavigation.cs[39m[0m
+[  69% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/MainOutcome.cs[39m[0m
+[  70% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/MainSaving.cs[39m[0m
+[  71% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/MainSelection.cs[39m[0m
+[  72% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/MainSession.cs[39m[0m
+[  73% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/MainView.cs[39m[0m
+[  74% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/PrototypeBoard.cs[39m[0m
+[  75% ] [90m[1msavepack[22m | Збереження файлу: res://src/Presentation/SaveStore.cs[39m[0m
+[  76% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/ActionStoryChecks.cs[39m[0m
+[  77% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/BattleChecks.cs[39m[0m
+[  79% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/EffectsChecks.cs[39m[0m
+[  80% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/FleetArtChecks.cs[39m[0m
+[  81% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/GridChecks.cs[39m[0m
+[  82% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/IncomeChecks.cs[39m[0m
+[  83% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/InteractionPerformanceChecks.cs[39m[0m
+[  84% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/LoreChecks.cs[39m[0m
+[  85% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/MenuChecks.cs[39m[0m
+[  86% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/OptimizationChecks.cs[39m[0m
+[  87% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/PortCityChecks.cs[39m[0m
+[  88% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/PresentedImpactChecks.cs[39m[0m
+[  89% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/PrototypeChecks.cs[39m[0m
+[  90% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/Release014Checks.cs[39m[0m
+[  91% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/SaveRecoveryChecks.cs[39m[0m
+[  92% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/SeaChecks.cs[39m[0m
+[  93% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/UiPapyrusChecks.cs[39m[0m
+[  94% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/VictoryChecks.cs[39m[0m
+[  95% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/WorldModeChecks.cs[39m[0m
+[  96% ] [90m[1msavepack[22m | Збереження файлу: res://tests/Runtime/WorldRefinementChecks.cs[39m[0m
+[  97% ] [90m[1msavepack[22m | Збереження файлу: res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex[39m[0m
+[  97% ] [90m[1msavepack[22m | Збереження файлу: res://icon.svg.import[39m[0m
+[  97% ] [90m[1msavepack[22m | Збереження файлу: res://scenes/Main.tscn.remap[39m[0m
+[  97% ] [90m[1msavepack[22m | Збереження файлу: res://.godot/global_script_class_cache.cfg[39m[0m
+[  97% ] [90m[1msavepack[22m | Збереження файлу: res://icon.svg[39m[0m
+[  97% ] [90m[1msavepack[22m | Збереження файлу: res://.godot/uid_cache.bin[39m[0m
+[  97% ] [90m[1msavepack[22m | Збереження файлу: res://project.binary[39m[0m
+[92m[ DONE ][39m [1msavepack[22m
+[0m

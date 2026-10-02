@@ -29,21 +29,28 @@ public sealed partial class BattleState
         }
 
         InitializeShoals(seed);
-        var random = new Random(seed);
         var candidates = Board.Tiles.Where(t => t.Terrain != TerrainType.Land && At(t.Position)is null).Select(t => t.Position).ToList();
-        for (int i = candidates.Count - 1; i > 0; i--)
-        {
-            int j = random.Next(i + 1);
-            (candidates[i], candidates[j]) = (candidates[j], candidates[i]);
-        }
-
         int resourceCount = Math.Max(Rules.Economy.MinimumResourceSpots, Rules.Economy.ResourceTileInterval > 0 ? Board.Tiles.Count / Rules.Economy.ResourceTileInterval : 0);
-        foreach (var cell in candidates.Where(p => !_shoals.Contains(p)).Take(Math.Min(resourceCount, candidates.Count)))
-            _fish.Add(cell);
-        // Every starting fleet can demonstrate collection without relying on a lucky seed.
+        resourceCount = Math.Max(1, (int)Math.Round(resourceCount * .70));
+        var resources = WorldResourcePlacement.Order(Board, candidates.Where(p => !_shoals.Contains(p)), seed);
+        // One guaranteed first catch per fleet; further resources require exploration.
         foreach (var mother in Ships.Where(s => s.IsMothership))
-            foreach (var cell in candidates.Where(p => !_shoals.Contains(p) && Board.InRadius(p, mother.Position, mother.Definition.CollectionRange)).Take(2))
+            foreach (var cell in resources.Where(p => Board.InRadius(mother.Position, p, mother.Definition.CollectionRange)).Take(1))
                 _fish.Add(cell);
+        if (Board.Kind == WorldKind.Pangaea)
+        {
+            int interiorTarget = resourceCount / 2 + 1;
+            foreach (var cell in resources.Where(p => PangaeaWaters.IsInterior(Board, p)))
+            {
+                if (_fish.Count >= resourceCount || _fish.Count(p => PangaeaWaters.IsInterior(Board, p)) >= interiorTarget) break;
+                if (_fish.All(p => !Board.GetNeighbors(p).Contains(cell))) _fish.Add(cell);
+            }
+        }
+        foreach (var cell in resources)
+        {
+            if (_fish.Count >= Math.Min(resourceCount, resources.Count)) break;
+            if (_fish.All(p => !Board.GetNeighbors(p).Contains(cell))) _fish.Add(cell);
+        }
     }
 
     public string? RadarBlockReason(Side requester, int id)

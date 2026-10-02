@@ -30,6 +30,8 @@ public static class SimpleOpponent
             return result.Success ? result : battle.ChooseUpgrade(side, upgrading.Id, choices.First(c => c != preferred));
         }
 
+        if (battle.Difficulty == AiDifficulty.Admiral) return AdmiralOpponent.Step(battle);
+        if (battle.Difficulty == AiDifficulty.Boatswain) return BoatswainOpponent.Step(battle);
         var allies = battle.OwnShips(side).ToArray();
         var enemies = battle.ObservedShips(side).Where(s => s.Owner != side).ToArray();
         var villages = battle.ObservedVillages(side).ToArray();
@@ -52,7 +54,7 @@ public static class SimpleOpponent
                 return battle.Attack(side, ship.Id, target.Id);
         }
 
-        foreach (var ship in allies.Where(s => s.HasRadar))
+        foreach (var ship in allies.Where(s => s.IsArmed))
             foreach (var contact in battle.Vision.Contacts(side))
                 if (battle.TargetCells(ship.Id).Contains(contact))
                     return battle.AttackAt(side, ship.Id, contact);

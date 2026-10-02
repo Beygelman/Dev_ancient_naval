@@ -10,7 +10,7 @@ internal static partial class BattleScenarios
     private static void Refinement016()
     {
         var rules = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
-        Check(rules.Get(ShipClass.Kolonel).AttackRange == 2 && rules.Get(ShipClass.Invader).AttackRange == 1 && rules.Get(ShipClass.Garrison).AttackRange == 1, "New cannon ranges are exact");
+        Check(rules.Get(ShipClass.Kolonel).AttackRange == 2 && rules.Get(ShipClass.Invader).AttackRange == 1 && rules.Get(ShipClass.Garrison).AttackRange == 2, "Current cannon ranges include the extended Brig range");
         Check(rules.Get(ShipClass.CannonTower).AttackRange == 4 && rules.Get(ShipClass.CannonTower).VisualRange == 2 && rules.Get(ShipClass.CannonTower).RadarRange == 4, "Tower distinguishes optical sight and radar");
         Check(rules.Get(ShipClass.Balloon).VisualRange == 6 && rules.Balloon.AntiAirRange == 2 && Rules.Balloon.AntiAirRange == 3, "Reduced balloon sight/AA coexist with legacy range snapshots");
         var b = new BattleState(new GameBoard(24, 24, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(8, 8)), (Side.Enemy, ShipClass.Mothership, new GridPosition(22, 22)), (Side.Enemy, ShipClass.Balloon, new GridPosition(10, 8)), (Side.Enemy, ShipClass.Balloon, new GridPosition(11, 8)), (Side.Player, ShipClass.CannonTower, new GridPosition(4, 4)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
@@ -86,14 +86,14 @@ internal static partial class BattleScenarios
 
         b = new BattleState(new GameBoard(24, 24, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(10, 10)), (Side.Enemy, ShipClass.Mothership, new GridPosition(22, 22)), (Side.Enemy, ShipClass.Kolonel, new GridPosition(12, 10)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
         var mother = b.Find(1)!;
-        mother.Health = 8;
+        mother.Health = mother.MaxHealth * .4;
         b.Vision.Recompute(b.Ships, 1);
         var enemy = b.Find(3)!;
         Check(b.WeaponCovers(enemy, mother.Position), "Retreat fixture starts inside a known threat");
         var result = SimpleOpponent.Step(b);
         Check(result.Success && result.Kind == CommandKind.Move && result.ActorId == mother.Id && !b.WeaponCovers(enemy, mother.Position), "Wounded flagship escapes before attacking/building");
         b = new BattleState(new GameBoard(24, 24, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(10, 10)), (Side.Enemy, ShipClass.Mothership, new GridPosition(22, 22)), (Side.Enemy, ShipClass.Kolonel, new GridPosition(13, 10)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
-        b.Find(1)!.Health = 8;
+        b.Find(1)!.Health = b.Find(1)!.MaxHealth * .4;
         b.Vision.Recompute(b.Ships, 1);
         Check(!b.ObservedShips(Side.Player).Any(s => s.Id == 3) && FlagshipSafety.Retreat(b, b.Find(1)!, b.ObservedShips(Side.Player).Where(s => s.Owner != Side.Player).ToArray())is null, "Cautious AI does not react to hidden enemies");
         var coast = new GridPosition(8, 8);
@@ -109,7 +109,10 @@ internal static partial class BattleScenarios
         var pirateShot = b.EndTurn(Side.Player);
         Check(pirateShot.OutpostShots is { Count: 1 } && b.Find(3)is null && b.Credits(Side.Player) == money + 2 && b.Mothership(Side.Player)!.Resources == 1, "Outpost pirate kills grant the owner's normal currency/resource bounty");
         var generated = SkirmishSetup.Create(ArchipelagoGenerator.Create(116, 3), rules, 3);
-        Check(generated.FishSpots.Count >= generated.Board.Tiles.Count / 24, "Resource schools scale with map area");
+        int fishBudget = (int)Math.Round(Math.Max(rules.Economy.MinimumResourceSpots,
+            generated.Board.Tiles.Count / rules.Economy.ResourceTileInterval) * .70);
+        Check(generated.FishSpots.Count >= fishBudget - generated.Treasuries.Count &&
+            generated.FishSpots.Count <= fishBudget, "Reduced fish budget scales with map area; treasury sites replace overlapping fish");
         Console.WriteLine("REFINEMENT016: tower radar/veterancy, outpost targeting, AA, retreat and fish density passed");
     }
 }

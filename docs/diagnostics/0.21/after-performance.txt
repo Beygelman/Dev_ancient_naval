@@ -1,0 +1,100 @@
+PAN frames=119, p50_ms=17,672, p95_ms=26,808, max_ms=43,752
+INTERACTION world=Pangaea, wide_view=True, tiles=1371, opponents=4, live_fog=False, hover_calls=64, hover_p50_ms=0,054, hover_p95_ms=0,105, hover_max_ms=0,646, frame_p95_ms=19,604, frame_max_ms=177,246, process_p95_ms=177,148, draw_calls_p95=3795, movement_elapsed_ms=3701,440
+{
+  "Fleet.Draw": {
+    "Calls": 506,
+    "TotalMs": 46.356999999999964,
+    "MaxMs": 1.6769,
+    "Bytes": 1070792
+  },
+  "Ambience.Waves": {
+    "Calls": 201,
+    "TotalMs": 430.0207999999999,
+    "MaxMs": 3.7823,
+    "Bytes": 0
+  },
+  "Ambience.Fish": {
+    "Calls": 201,
+    "TotalMs": 155.3674999999999,
+    "MaxMs": 1.482,
+    "Bytes": 1503608
+  },
+  "Ambience.Draw": {
+    "Calls": 201,
+    "TotalMs": 616.5502999999998,
+    "MaxMs": 4.9232,
+    "Bytes": 1508528
+  },
+  "Hull.Draw": {
+    "Calls": 438,
+    "TotalMs": 192.6794,
+    "MaxMs": 1.051,
+    "Bytes": 1183904
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 3.4804,
+    "MaxMs": 0.3907,
+    "Bytes": 93920
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 44.3986,
+    "MaxMs": 1.6825,
+    "Bytes": 625336
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 4.1252,
+    "MaxMs": 4.1252,
+    "Bytes": 186896
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 1.0421,
+    "MaxMs": 1.0421,
+    "Bytes": 174704
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 0.6198,
+    "MaxMs": 0.3413,
+    "Bytes": 47104
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 2.6798,
+    "MaxMs": 1.4995,
+    "Bytes": 346472
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0061,
+    "MaxMs": 0.0061,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 3.4219999999999997,
+    "MaxMs": 1.825,
+    "Bytes": 10120
+  },
+  "Save.Capture": {
+    "Calls": 1,
+    "TotalMs": 0.6172,
+    "MaxMs": 0.6172,
+    "Bytes": 349552
+  },
+  "Save.Write": {
+    "Calls": 1,
+    "TotalMs": 48.5111,
+    "MaxMs": 48.5111,
+    "Bytes": 1491408
+  },
+  "Navigation.PreviewPlan": {
+    "Calls": 1,
+    "TotalMs": 0.276,
+    "MaxMs": 0.276,
+    "Bytes": 456
+  }
+}

@@ -23,6 +23,7 @@ public partial class FleetView
                 continue;
             }
 
+            if (shot.TargetVisibleToPlayer && FocusTarget is not null) await FocusTarget(shot.Target.Position);
             var from = Projection.GridToWorld(shot.Origin) + new Vector2(0, -16);
             var to = Projection.GridToWorld(shot.Target.Position) + new Vector2(0, -6);
             var direction = (to - from).Normalized();
@@ -41,7 +42,7 @@ public partial class FleetView
                     {
                         Health = shot.Target.Health - shot.Damage
                     };
-                _feedbackPosition = HealthAnchor(Projection.GridToWorld(shot.Target.Position));
+                _feedbackPosition = HealthAnchor(Projection.GridToWorld(shot.Target.Position), shot.Target.Class);
                 _feedbackColor = new("ff8f85");
                 _feedback = $"−{shot.Damage:0}";
                 await TweenValue(.32, _ =>

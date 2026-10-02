@@ -1,6 +1,6 @@
 # Ancient Naval — project development guide
 
-Version 2.5 · 1 October 2026 · Godot 4.7.2 .NET / C# / .NET 8
+Version 2.9 · 2 October 2026 · Godot 4.7.2 .NET / C# / .NET 8
 
 This guide adapts the supplied Version 1.0 document to the actual project.
 The original remains in `docs/AGENT-GUIDELINES-ORIGINAL.md`. Read this file, `README.md` and the
@@ -82,8 +82,7 @@ scope; historical design notes are context, not new work orders.
   observed problem. The current map does not require introducing them in advance.
 - Static terrain has a bounded raster and separately retained per-cell sources.
   Discoveries build only new cells; known cells change tint on fog updates.
-  A new world invalidates every cell source. Hover cannot update the raster. Live overlays must redraw after
-  camera movement because they cull offscreen objects. Keep fog in the cache key.
+  A new world invalidates every cell source. Hover cannot update the raster. Retain world-space range/resource/trade commands across camera movement; native clipping handles their viewport. A new manually culled overlay needs explicit camera invalidation. Keep fog in the cache key.
 - Animation populations remain bounded. Stop processing hidden menu scenery;
   respond to resize/command events instead of repeating unchanged work per frame.
 - Tall scenery, villages and hulls share one native Y-sort root with individual
@@ -97,6 +96,20 @@ scope; historical design notes are context, not new work orders.
 - Automatic outpost shots are Core turn results. Respect active repair, level-2
   unlock, lowest-HP targeting and fog; animation cannot apply damage a second time.
 - Flagship retreat decisions use only observed enemies and legal movement routes.
+
+- Trade routes are cached by active owned ports/hazards. Clear topology after aggregate restore; lane speed depends on run history, so route search states include the run. Preview paths retain their original origin. Save the run across partial movement and reset it at turn start.
+- God's eye overrides only human visibility; it must not pollute explored memory or AI observations. Radar targeting uses shared contacts without exposing health.
+- Difficulty changes decisions rather than statistics or income. Forecasts use observed enemies; a healthy hostile flagship is engaged only with adequate combined firepower.
+- Town art/UI must refresh on repair/production even when sight did not change. City interfaces live above world scenery; visual seed draws never consume simulation RNG.
+
+- WorldKind selects terrain only; it must never silently replace the organic cell mesh. Oceans is the optional save-field default. New map policies preserve fair coastal settlement/treasury counts and connected ocean fleet routes.
+- VoyageStatistics are immutable player-attributed totals in every staged snapshot. Income counts gross positive receipts/rewards; shipyards count built hulls; direct enemy kills exclude structures and nation-collapse scuttling. Missing old-save totals start at zero.
+- Ready pictorial actions open once as horizontal banners and commit only after their burn; block orders during the ceremony and revalidate its original battle/target. Never award a treasury before that boundary.
+- Clay badges use observed HP only, retain an unrotated foreground canvas, and animate independently of hull geometry. Town health animation must not refresh hidden observed state. Victory must wait for Busy and PendingPresentation to clear, then own input and stop hidden/finished fireworks.
+
+- TerrainFeatures is the deterministic, board-owned source for mountain cells, forest density and coast depth. Optical rays use actual mesh polygons; radar ignores mountains. Rendering cannot invent extra blocking peaks.
+- Heavenly aid counters persist in staged snapshots and Continue. Pay once at each fifth personal turn start; direct flagship kills exclude collapse scuttling. Never reveal an unknown nation through the aid plaque.
+- Village ground and wheat are clipped to land minus beach, including fully enclosed holes. Native polygon subtraction can return hole rings; these require proper decomposition before drawing.
 
 ## Safety invariants to test
 

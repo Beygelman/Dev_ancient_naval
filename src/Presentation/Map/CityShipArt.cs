@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using DevAncientNaval.Core.Battle;
 
 namespace DevAncientNaval.Presentation.Map;
 /// <summary>Reusable, rotation-safe city geometry with upright buildings and visible faces.</summary>
@@ -66,7 +67,7 @@ internal sealed class CityShipArt : IComparer<int>
         Triangle(a, c, d, color);
     }
 
-    public void Draw(CanvasItem canvas, Func<float, float, float, Vector2> project, Color accent, float time, float fracture = 0)
+    public void Draw(CanvasItem canvas, Func<float, float, float, Vector2> project, Color accent, float time, float fracture = 0, FleetColor faction = FleetColor.Blue, int cityLevel = 5)
     {
         _canvas = canvas;
         _p = (x, y, z) => project(x, y + MathF.Sign(y) * fracture * 14, z - fracture * MathF.Abs(y) * .24f);
@@ -154,14 +155,19 @@ internal sealed class CityShipArt : IComparer<int>
             _canvas.DrawLine(_p(-20 + i * 5, 15, 0.1f), _p(-18 + i * 5, 19, 0.1f), new("bba078"), .65f, true);
         for (int i = 0; i < 4; i++)
             _canvas.DrawLine(_p(-5, 13 - i, i * .7f), _p(3, 13 - i, i * .7f), new("f1dfb2"), 1, true);
-        for (int i = 0; i < _order.Length; i++)
+        int homeCount = Math.Min(Homes.Length, 3 + cityLevel * 3);
+        for (int i = 0; i < homeCount; i++)
             _order[i] = i;
-        Array.Sort(_order, this);
-        foreach (int index in _order)
+        _order[homeCount] = Homes.Length;
+        Array.Sort(_order, 0, homeCount + 1, this);
+        for (int slot = 0; slot <= homeCount; slot++)
+        {
+            int index = _order[slot];
             if (index == Homes.Length)
-                Temple(accent);
+                FactionSanctuaryArt.Draw(_canvas, (x, y, z) => _p(x, y - 2, z * (1 + .1f * (cityLevel - 1)) + 6), faction);
             else
-                House(Homes[index], accent, index);
+                House(Homes[index] with { H = Homes[index].H + (cityLevel - 3) * 1.1f }, accent.Darkened(index % 4 * .035f), index);
+        }
         var flag = _p(29, 2, 17);
         _canvas.DrawLine(_p(29, 2, 0), flag, new("c8ab73"), 1, true);
         Triangle(flag, flag + new Vector2(9, 1 + MathF.Sin(time * 1.3f)), flag + new Vector2(0, 5), accent);
@@ -215,14 +221,4 @@ internal sealed class CityShipArt : IComparer<int>
         }
     }
 
-    private void Temple(Color accent)
-    {
-        Box(new(0, -2, 6, 8, 7, 10, 0), new("f6efda"), accent, 0);
-        var dome = _p(0, -2, 18);
-        var origin = _p(0, 0, 0);
-        float scale = MathF.Sqrt(MathF.Pow((_p(1, 0, 0) - origin).X, 2) + MathF.Pow((_p(0, 1, 0) - origin).X, 2));
-        _canvas.DrawCircle(dome, 3.6f * scale, new("d3ad4d"));
-        _canvas.DrawArc(dome, 3.6f * scale, Mathf.Pi, Mathf.Tau, 14, new("f9d880"), 1, true);
-        _canvas.DrawLine(dome - new Vector2(0, 3.6f * scale), dome - new Vector2(0, 5 * scale), new("f8d46f"), 1, true);
-    }
 }

@@ -105,7 +105,10 @@ public partial class EffectsChecks : Node
             Game.SelectCell(target);
             float deckBefore = Game.Fleet.DeckAngle(ship.Id);
             var order = Game.CurrentOrder;
-            Check(Game.Fleet.TurningForShot && Game.Fleet.ActiveProjectileCount == 0, "The battery aims before any cannonball launches");
+            Check(!Game.Fleet.TurningForShot && Game.Fleet.ActiveProjectileCount == 0, "The camera leads the shot before the battery aims");
+            for (int frame = 0; frame < 180 && !Game.Fleet.TurningForShot && !order.IsCompleted; frame++)
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            Check(Game.Fleet.TurningForShot && Game.Fleet.ActiveProjectileCount == 0, "The battery aims after the camera arrives and before any cannonball launches");
             Check(Game.Battle.Find(2)!.Health == hp, "Actual Core health remains unchanged until the last cannonball lands");
             await Capture("salvo-" + kind);
             await order;

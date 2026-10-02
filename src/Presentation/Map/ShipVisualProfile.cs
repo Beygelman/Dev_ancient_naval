@@ -5,6 +5,7 @@ namespace DevAncientNaval.Presentation.Map;
 /// <summary>Presentation-only dimensions and timing; never changes combat damage.</summary>
 internal readonly record struct ShipVisualProfile(float Size, float DeckWidth, float TravelSeconds, int Cannonballs, float Wake)
 {
+    internal static float ProgressY(ShipClass kind) => 32 * For(kind).Size;
     public static ShipVisualProfile For(ShipClass kind) => kind switch
     {
         ShipClass.Mothership => new(1.23f, 1, .64f, 2, 1.3f),

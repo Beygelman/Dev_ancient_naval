@@ -55,6 +55,7 @@ public sealed partial class BattleState
         bool first = !_everProduced[(int)requester];
         ship.IsExhausted = !first;
         _ships.Add(ship);
+        RecordShipConstruction(ship);
         RegisterShipIncome(ship);
         _credits[(int)requester] -= BuildPrice(requester, shipClass);
         _everProduced[(int)requester] = true;

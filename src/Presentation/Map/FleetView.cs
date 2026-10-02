@@ -11,6 +11,7 @@ public partial class FleetView : Node2D
     public IsometricProjection Projection { get; set; } = null !;
     public int? SelectedId { get; set; }
     public Vector2? ProjectilePosition { get; private set; }
+    public Func<Core.Grid.GridPosition, System.Threading.Tasks.Task>? FocusTarget { get; set; }
 
     private readonly Dictionary<int, ShipSnapshot> _snapshots = new();
     private readonly HashSet<int> _suppressed = new();

@@ -25,6 +25,9 @@ public partial class WorldRefinementChecks : Node
         try
         {
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            var args = OS.GetCmdlineUserArgs();
+            int seed = int.Parse(args.FirstOrDefault(arg => arg.StartsWith("--seed="))?[7..] ?? "731");
+            var kind = Enum.Parse<WorldKind>(args.FirstOrDefault(arg => arg.StartsWith("--world-kind="))?[13..] ?? "Oceans");
             string? selectedMap = OS.GetCmdlineUserArgs().FirstOrDefault(arg => arg.StartsWith("--world-opponents="));
             foreach (int opponents in selectedMap is null ? new[]
             {
@@ -42,9 +45,23 @@ public partial class WorldRefinementChecks : Node
             )
             {
                 GD.Print($"WORLD begin {opponents}");
-                var board = ArchipelagoGenerator.Create(731, opponents);
+                var board = ArchipelagoGenerator.Create(seed, opponents, kind);
                 Game.LoadScenario(SkirmishSetup.Create(board, Game.Battle.Rules, opponents));
                 Game.Home.Hide();
+                if (args.Contains("--world-roundtrip"))
+                {
+                    Check(args.Any(arg => arg.StartsWith("--save-file=")), "World roundtrip requires a disposable save file.");
+                    await DrawFrame();
+                    await DrawFrame();
+                    string snapshot = Game.Battle.SaveJson();
+                    int atlasBefore = Game.BoardView.SceneryAtlasBuildCount;
+                    Game.Saves.Write(Game.Battle, Game.MapCamera.Position, Game.MapCamera.Zoom.X);
+                    await Game.ContinueSession();
+                    await DrawFrame();
+                    await DrawFrame();
+                    Check(Game.Battle.SaveJson() == snapshot && Game.BoardView.SceneryAtlasBuildCount == atlasBefore + 1,
+                        "Continue replaces the dense world's atlas once without changing its saved terrain or rules.");
+                }
                 if (opponents == 1 && DisplayServer.GetName() != "headless")
                 {
                     await DrawFrame();
@@ -97,10 +114,34 @@ public partial class WorldRefinementChecks : Node
                     Check(textureSize.X is> 0 and <= 4096 && textureSize.Y is> 0 and <= 4096 && (long)textureSize.X * textureSize.Y <= 8_388_608, "Terrain raster dimensions obey the axis and memory budget.");
                     Check(Game.BoardView.TerrainTextureIdle, "Cached terrain viewport stops rendering after one update.");
                     GD.Print($"WORLD hover {opponents}");
-                    Check(Game.BoardView.TreeCount > board.Tiles.Count(tile => tile.Terrain == TerrainType.Land) * 2, "Island coastlines contain dense groves.");
-                    Check(Game.BoardView.MountainCount > 0, "Seeded islands contain larger mountain ridges.");
+                    Check(Game.BoardView.TreeCount > 0 && Game.BoardView.TreeCount < board.Tiles.Count(tile => tile.Terrain == TerrainType.Land) * 5, "Plain land alternates with bounded sparse groves.");
+                    Check(Game.BoardView.MountainCount == TerrainFeatures.For(board).MountainCells.Count, "Rendered mountains exactly match the shared inland terrain plan.");
                     Check(Game.Fleet.YSortEnabled && Game.Fleet.GetNode<Node2D>("IslandDepth").YSortEnabled, "Ships and land objects share native screen-depth sorting.");
-                    Check(Game.BoardView.DepthObjectCount == Game.BoardView.TreeCount + Game.BoardView.MountainCount + Game.Battle.Villages.Count, "Every tall landscape object has its own ground anchor, rather than a tile-wide draw order.");
+                    Check(Game.BoardView.DepthObjectCount == Game.BoardView.TreeCount + Game.BoardView.MountainCount + Game.Battle.Villages.Count * 2, "Every tall landscape object has its own ground anchor, rather than a tile-wide draw order; town labels use a separate front canvas.");
+                    int atlasBuilds = Game.BoardView.SceneryAtlasBuildCount;
+                    Check(Game.BoardView.SceneryAtlasRegionCount == Game.BoardView.TreeCount + Game.BoardView.MountainCount,
+                        "Every original tree and peak retains its own atlas region.");
+                    Check(Game.BoardView.SceneryAtlasIdle && Game.BoardView.SceneryAtlasPageCount is > 0 and <= 16,
+                        $"Scenery atlases render once and stay within a bounded page budget (idle={Game.BoardView.SceneryAtlasIdle}, pages={Game.BoardView.SceneryAtlasPageCount}, trees={Game.BoardView.TreeCount}, peaks={Game.BoardView.MountainCount}).");
+                    var sprites = Game.Fleet.GetNode<Node2D>("IslandDepth").GetChildren().OfType<Sprite2D>().ToArray();
+                    Check(sprites.Length == Game.BoardView.SceneryAtlasRegionCount && sprites.All(sprite =>
+                        sprite.Texture is AtlasTexture atlas && atlas.Region.Size.X > 0 && atlas.Region.Size.Y > 0 &&
+                        atlas.Region.End.X <= 2048 && atlas.Region.End.Y <= 2048 && sprite.Scale == Vector2.One * .5f),
+                        "Tall objects use separate, uncut, high-resolution sprites sharing bounded textures.");
+                    // Inspect the baked image, not only the existence of a texture.
+                    // Each original trunk has an opaque pixel just above its anchor.
+                    foreach (var atlasGroup in sprites.Where(sprite => sprite.Name.ToString() == "Tree")
+                                 .GroupBy(sprite => ((AtlasTexture)sprite.Texture).Atlas.GetRid()))
+                    {
+                        var image = ((AtlasTexture)atlasGroup.First().Texture).Atlas.GetImage();
+                        Check(image is not null && !image.IsEmpty(), "Tree atlas contains a rendered image.");
+                        Check(atlasGroup.All(sprite =>
+                        {
+                            var region = ((AtlasTexture)sprite.Texture).Region;
+                            var pixel = region.Position - sprite.Offset + new Vector2(0, -2);
+                            return image!.GetPixel(Mathf.RoundToInt(pixel.X), Mathf.RoundToInt(pixel.Y)).A > .1f;
+                        }), "Every packed tree preserves the visible trunk at its ground anchor.");
+                    }
                     foreach (var tile in board.Tiles.Take(10))
                     {
                         Game.BoardView.Select(tile.Position);
@@ -117,6 +158,8 @@ public partial class WorldRefinementChecks : Node
                     Check(Game.BoardView.ObservationDrawCount == observationsBefore,
                         $"Hovering reuses known resources and range contours ({observationsBefore} -> {Game.BoardView.ObservationDrawCount}).");
                     Check(Game.BoardView.TerrainTextureUpdateRequests == textureBefore && Game.BoardView.TerrainTextureIdle, "Hovering/selection cannot trigger terrain GPU rerasterization.");
+                    Check(Game.BoardView.SceneryAtlasBuildCount == atlasBuilds && Game.BoardView.SceneryAtlasIdle,
+                        "Hovering and camera changes reuse the baked scenery.");
                     Game.BoardView.InvalidateWorld();
                     await DrawFrame();
                     await DrawFrame();
@@ -140,10 +183,18 @@ public partial class WorldRefinementChecks : Node
                         int affected = Game.BoardView.TerrainDrawCount - beforeReveal;
                         Check(affected == 0 && Game.BoardView.TerrainVisibilityUpdateCount == visibilityBefore + 1, "Restoring visibility tints exactly one retained cell without rebuilding geometry.");
                         Check(Game.BoardView.TerrainTextureIdle, "Incremental fog raster settles without continuous updates.");
+                        Check(Game.BoardView.SceneryAtlasBuildCount == atlasBuilds && Game.BoardView.SceneryAtlasIdle &&
+                            sprites.All(sprite =>
+                            {
+                                var cell = Game.BoardView.Projection.WorldToGrid(sprite.Position);
+                                bool visible = Game.Battle.Vision.IsVisible(Side.Player, cell);
+                                return sprite.Visible == (visible || Game.Battle.Vision.IsExplored(Side.Player, cell)) &&
+                                    sprite.Modulate == (visible ? Colors.White : new Color(.43f, .43f, .43f));
+                            }), "Fog tints or hides each independent anchor without rebaking scenery.");
                     }
                 }
 
-                GD.Print($"WORLD {opponents} enemies: {board.Tiles.Count} cells; {Game.BoardView.IslandContours.Count} smooth island contours; trees={Game.BoardView.TreeCount}; peaks={Game.BoardView.MountainCount}; terrainTexture={Game.BoardView.TerrainTextureSize}.");
+                GD.Print($"WORLD {kind} seed={seed}, {opponents} enemies: {board.Tiles.Count} cells; {Game.BoardView.IslandContours.Count} smooth island contours; trees={Game.BoardView.TreeCount}; peaks={Game.BoardView.MountainCount}; sceneryPages={Game.BoardView.SceneryAtlasPageCount}; terrainTexture={Game.BoardView.TerrainTextureSize}.");
             }
 
             var capture = OS.GetCmdlineUserArgs().FirstOrDefault(argument => argument.StartsWith("--capture="));

@@ -53,8 +53,9 @@ public sealed partial class BattleState
 
         StartVillageTurn(ActiveSide);
         var receipts = CreditTurnIncome(ActiveSide);
+        var heavenly = StartHeavenlyTurn(ActiveSide);
         UpdateVision();
-        return new(true, ActiveSide == Side.Player ? "Your turn." : $"{FactionName(ActiveSide)}'s turn.", CommandKind.EndTurn, IncomeReceipts: receipts, OutpostShots: outpostShots, HealingReceipts: healing);
+        return new(true, ActiveSide == Side.Player ? "Your turn." : $"{FactionName(ActiveSide)}'s turn.", CommandKind.EndTurn, IncomeReceipts: receipts, OutpostShots: outpostShots, HealingReceipts: healing, HeavenlyReceipts: heavenly);
     }
 
     private void RegisterShipIncome(Ship ship)
@@ -94,6 +95,7 @@ public sealed partial class BattleState
         if (upkeep > 0)
             receipts.Add(new("fleet:upkeep", side, Mothership(side)?.Position, -upkeep, true));
         _credits[(int)side] += gross - upkeep;
+        RecordCurrencyReceipt(side, gross);
         return receipts;
     }
 

@@ -32,6 +32,21 @@ internal static class UiPapyrusChecks
                     yield return descendant;
         }
 
+        var difficulties = Descendants(game.Home).OfType<Button>().Where(b => b.Name.ToString().StartsWith("Difficulty")).ToArray();
+        Check(difficulties.Length == 3, "All three captain difficulties exist.");
+        var initialDifficulty = game.Home.Difficulty;
+        foreach (var difficulty in Enum.GetValues<AiDifficulty>())
+        {
+            difficulties.Single(b => b.Name == "Difficulty" + difficulty).EmitSignal(BaseButton.SignalName.Pressed);
+            Check(game.Home.Difficulty == difficulty, "Difficulty selector " + difficulty);
+        }
+        difficulties.Single(b => b.Name == "Difficulty" + initialDifficulty).EmitSignal(BaseButton.SignalName.Pressed);
+        var oldEye = game.Battle.GodEye;
+        var eye = Descendants(game.Hud).OfType<Button>().Single(b => b.Name == "GodEye");
+        eye.EmitSignal(BaseButton.SignalName.Pressed);
+        Check(game.Battle.GodEye != oldEye && game.Battle.Board.Tiles.All(t => game.Battle.Vision.IsVisible(Side.Player, t.Position)), "God's eye menu reveals the complete chart.");
+        eye.EmitSignal(BaseButton.SignalName.Pressed);
+        Check(game.Battle.GodEye == oldEye, "God's eye menu restores the prior setting.");
         int before = game.Home.OpponentCount;
         var settings = Descendants(game.Home).OfType<Button>().Where(b => b.Name.ToString().StartsWith("OpponentCount")).ToArray();
         Check(settings.Length == 4, "All four rival fleet choices exist.");
@@ -56,7 +71,7 @@ internal static class UiPapyrusChecks
             commands.Add(command);
         }
 
-        Check(Math.Abs(commands[0].CenterAngle + commands[^1].CenterAngle - Mathf.Pi) < .001, "Scroll opens equally upward from its bottom.");
+        Check(Math.Abs(commands[0].CenterAngle + commands[^1].CenterAngle - Mathf.Pi) < .001, "Scroll opens symmetrically below its object.");
         scroll.Configure(commands, true);
         Check(scroll.Reveal == 0 && scroll.ActionCount == 8, "Scroll starts rolled and retains locked commands.");
         Check(!commands[0]._HasPoint(commands[0].IconCenter), "Rolled commands cannot receive accidental clicks.");
@@ -68,12 +83,13 @@ internal static class UiPapyrusChecks
         Check(commands.All(c => !c._HasPoint(SectorButton.Center)), "The map remains clickable in the scroll's center.");
         scroll.QueueFree();
         var mother = game.Battle.Mothership(Side.Player)!;
-        string lore = AncientLore.Ship(game.Battle, mother);
-        Check(lore.Contains($"Health {mother.Health:0.##}/{mother.MaxHealth:0.##}"), "Chart describes actual ship health.");
-        Check(lore.Contains($"Range {mother.Definition.AttackRange}"), "Chart uses active weapon range.");
-        Check(lore.Contains($"+{game.Battle.Rules.AutoRepairAmount} HP automatically"), "Chart uses active passive repair value.");
+        checks += LoreChecks.Run(game.Battle);
+        string lore = AncientLore.Ship(game.Battle, mother).PlainText;
+        Check(lore.Contains($"Health: {mother.Health:0.##}/{mother.MaxHealth:0.##}"), "Chart describes actual ship health.");
+        Check(lore.Contains($"{mother.Definition.AttackRange} tiles"), "Chart uses active weapon range.");
+        Check(lore.Contains($"Passive repair: +{game.Battle.Rules.AutoRepairAmount} HP"), "Chart uses active passive repair value.");
         var fisher = game.Battle.OwnShips(Side.Player).First(s => s.Definition.Class == ShipClass.Fishing);
-        Check(AncientLore.Ship(game.Battle, fisher).Contains($"+{fisher.Definition.IncomePerTurn} Thors"), "Fishing income comes from active rules.");
+        Check(AncientLore.Ship(game.Battle, fisher).PlainText.Contains($"+{fisher.Definition.IncomePerTurn} Thors"), "Fishing income comes from active rules.");
         game.Hud.ShowInformation(game.Battle, mother.Position);
         Check(game.Hud.InformationVisible && game.Hud.InformationText.Contains(mother.Name == "Mothership" ? "city may sail" : "Health"), "Information button opens a readable chart.");
         game.Hud.CloseMenus();

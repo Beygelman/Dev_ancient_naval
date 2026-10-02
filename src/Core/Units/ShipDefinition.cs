@@ -10,4 +10,4 @@ public sealed record ShipDefinition(ShipClass Class, string Name, int MaxHealth,
     int Armor, int Damage, int Movement, int VisualRange, int RadarRange,
     int AttackRange, int Price, ActionProfile ActionProfile,
     double CoastMovementCost = 1, double NarrowMovementCost = 1, int IncomePerTurn = 0,
-    int RadarPrice = 0, int CollectionRange = 0, int HealthPerLevel = 0);
+    int RadarPrice = 0, int CollectionRange = 0, int HealthPerLevel = 0, int ResourceRequirementIncrease = 0);

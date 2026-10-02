@@ -51,7 +51,7 @@ public partial class BoardView
         }
     }
 
-    private static float BeachWidth(Vector2 p) => 3 + 8 * (.5f + .5f * MathF.Sin(p.X * .008f + MathF.Sin(p.Y * .02f) * 2));
+    internal static float BeachWidth(Vector2 p) => 4 + 16 * MathF.Pow(.5f + .5f * MathF.Sin(p.X * .008f + MathF.Sin(p.Y * .02f) * 2), 1.5f);
     private void EnsureIslandGeometry()
     {
         if (ReferenceEquals(_islandProjection, Projection))
@@ -140,6 +140,11 @@ public partial class BoardView
                 }
 
                 : Array.Empty<Vector2>();
+                // Very small river bends can pass the cross-product test yet
+                // collapse at the triangulator's floating-point tolerance. Keep
+                // their shoreline stroke, but omit the subpixel sand sliver.
+                if (polygon.Length > 0 && Geometry2D.TriangulatePolygon(polygon).Length != 6)
+                    polygon = Array.Empty<Vector2>();
                 _beaches.Add(new(cell, polygon, new[] { contour[i], contour[next] }, inside, new[] { CoastalTriangle(contour[i], contour[next], outer[next]), CoastalTriangle(contour[i], outer[next], outer[i]) }));
             }
 
@@ -221,7 +226,7 @@ public partial class BoardView
         {
             if (!cells.Contains(beach.Cell))
                 continue;
-            var color = new Color("f5f4e8");
+            var color = new Color("e7d7a6");
             if (beach.Polygon.Length > 0)
             {
                 // Thin shore quads can be below the generic polygon triangulator's

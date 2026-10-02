@@ -95,6 +95,7 @@ public partial class FleetView
     {
         if (!attackerVisible && !targetVisible)
             return;
+        if (targetVisible && FocusTarget is not null) await FocusTarget(targetCell);
         var profile = ShipVisualProfile.For(attacker.Class);
         int count = mortar ? 1 : Math.Max(1, profile.Cannonballs);
         LastSalvoCount = count;

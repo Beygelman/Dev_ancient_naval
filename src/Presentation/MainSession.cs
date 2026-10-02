@@ -23,10 +23,11 @@ public partial class Main
         var args = OS.GetCmdlineUserArgs();
         bool tests = args.Any(a => a.EndsWith("-test"));
         bool menuTest = args.Contains("--menu-test");
+        bool victoryTest = (args.Contains("--victory-test") || args.Contains("--world-mode-test")) && args.Any(a => a.StartsWith("--save-file="));
         string save = args.FirstOrDefault(a => a.StartsWith("--save-file="))?[12..] ?? ProjectSettings.GlobalizePath("user://last_battle.json");
         bool performanceSave = args.Contains("--performance-test") && args.Any(a => a.StartsWith("--save-file="));
         _saveStore = new SaveStore(save);
-        _saveEnabled = (!tests || menuTest || performanceSave) && !_mapPreview;
+        _saveEnabled = (!tests || menuTest || performanceSave || victoryTest) && !_mapPreview;
         if (menuTest && !args.Any(a => a.StartsWith("--save-file=")))
             _saveEnabled = false;
         _home = new StartScreen
@@ -67,6 +68,7 @@ public partial class Main
         if (_sessionLoading || Busy)
             return;
         SaveSession();
+        HideOutcome();
         SetBattleVisible(false);
         _home.ShowHome(_saveStore.Exists);
     }
@@ -86,8 +88,10 @@ public partial class Main
         {
             _home.SetNotice("Charting a new sea…");
             int opponents = _home.OpponentCount;
-            var battle = await Task.Run(() => SkirmishSetup.Create(PrototypeBoard.Create(opponentCount: opponents), _rules, opponents));
+            var kind = _home.WorldKind;
+            var battle = await Task.Run(() => SkirmishSetup.Create(PrototypeBoard.Create(opponentCount: opponents, kind: kind), _rules, opponents));
             battle.SetPlayerColor(color);
+            battle.SetDifficulty(_home.Difficulty);
             _home.Hide();
             SetBattleVisible(true);
             LoadScenario(battle);
@@ -184,7 +188,7 @@ public partial class Main
                     throw new InvalidOperationException(result.Message);
                 InvalidateGameplayPresentation();
                 Refresh();
-                Hud.ShowMessage($"{Battle.FactionName(before)}’s turn.");
+                Hud.ShowMessage("");
                 if (before != Battle.ActiveSide && Battle.ActiveSide != Side.Player)
                     Hud.ShowOpponentTurn(Battle.ActiveSide);
                 if (!FastChecks)
@@ -194,6 +198,8 @@ public partial class Main
                 }
 
                 presentation.Finish();
+                await PresentHeavenlyAssistance(result);
+                await PresentEncounters();
                 await SaveSessionAsync();
                 if (before != Battle.ActiveSide && Battle.ActiveSide != Side.Player)
                     Hud.ShowOpponentTurn(Battle.ActiveSide);

@@ -6,10 +6,11 @@ public partial class DebugHud
 {
     private Control _menuOverlay = null !;
     private PanelContainer _menuPanel = null !;
+    private Button _godEyeButton = null !;
     private Button _creativeButton = null !;
     public bool MenuVisible => _menuOverlay?.Visible == true;
 
-    public event Action? CreativeRequested, ExitRequested, MenuChanged, HomeRequested;
+    public event Action? CreativeRequested, GodEyeRequested, ExitRequested, MenuChanged, HomeRequested;
     private void BuildGameMenu()
     {
         _menuOverlay = new Control
@@ -48,6 +49,10 @@ public partial class DebugHud
         _creativeButton.Name = "Creative";
         column.AddChild(_creativeButton);
         column.AddChild(Label("Free ships, docks and fish collection", 14, true));
+        _godEyeButton = TextButton("God’s eye: off", () => GodEyeRequested?.Invoke());
+        _godEyeButton.Name = "GodEye";
+        column.AddChild(_godEyeButton);
+        column.AddChild(Label("See the whole sea without fog", 14, true));
         Add("CloseMenu", "Return to game", () => SetMenuVisible(false));
         Add("MainMenu", "Save and return to title", () =>
         {
@@ -65,6 +70,12 @@ public partial class DebugHud
         _menuOverlay.Visible = visible;
         MenuChanged?.Invoke();
         Layout();
+    }
+
+    private void UpdateGodEyeLabel(bool enabled, bool victory)
+    {
+        _godEyeButton.Text = victory ? "God’s eye: on · Victory" : enabled ? "God’s eye: on ✓" : "God’s eye: off";
+        _godEyeButton.Disabled = victory;
     }
 
     private void UpdateCreativeLabel(bool enabled)

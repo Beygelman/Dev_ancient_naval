@@ -41,3 +41,11 @@ var persistenceRules = DevAncientNaval.Core.Battle.BattleRules.FromJson(
 int persistenceChecks = PersistenceChecks.Run(persistenceRules,
     Environment.GetEnvironmentVariable("ANCIENT_NAVAL_LEGACY_FIXTURES"));
 Console.WriteLine($"PASS: {persistenceChecks} save compatibility and validation checks.");
+
+Console.WriteLine($"PASS: {WorldGenerationScenarios.Run(persistenceRules)} four-world generation checks.");
+Console.WriteLine($"PASS: {VoyageStatisticsChecks.Run(persistenceRules)} voyage statistics checks.");
+Console.WriteLine($"PASS: {Refinement020Checks.Run(persistenceRules)} free-coast, anti-air, inland Pangaea and red-save checks.");
+Console.WriteLine($"PASS: {Refinement021Checks.Run(persistenceRules)} salvo, encounters, level rewards and compatibility checks.");
+Console.WriteLine($"PASS: {Rules0202Checks.Run(persistenceRules)} v0.20.2 progression, mountain shadows, radar and heavenly aid checks.");
+Console.WriteLine($"PASS: {World0202Checks.Run(persistenceRules)} v0.20.2 world placement and deterministic terrain checks.");
+Console.WriteLine($"PASS: {Culture0202Checks.Run(persistenceRules)} v0.20.2 themed Latin names and Continue checks.");

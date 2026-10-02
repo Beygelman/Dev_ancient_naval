@@ -1,0 +1,100 @@
+PAN frames=119, p50_ms=16,694, p95_ms=17,720, max_ms=33,682
+INTERACTION world=Oceans, wide_view=False, tiles=1371, opponents=4, live_fog=True, hover_calls=64, hover_p50_ms=0,032, hover_p95_ms=0,088, hover_max_ms=1,036, frame_p95_ms=17,700, frame_max_ms=70,984, process_p95_ms=72,476, draw_calls_p95=928, movement_elapsed_ms=1567,458
+{
+  "Ambience.Waves": {
+    "Calls": 145,
+    "TotalMs": 9.899300000000004,
+    "MaxMs": 0.5617,
+    "Bytes": 0
+  },
+  "Ambience.Fish": {
+    "Calls": 145,
+    "TotalMs": 29.505699999999997,
+    "MaxMs": 1.7866,
+    "Bytes": 2246248
+  },
+  "Ambience.Draw": {
+    "Calls": 145,
+    "TotalMs": 53.4103,
+    "MaxMs": 2.361,
+    "Bytes": 2249824
+  },
+  "Fleet.Draw": {
+    "Calls": 394,
+    "TotalMs": 14.015600000000008,
+    "MaxMs": 0.6229,
+    "Bytes": 132040
+  },
+  "Hull.Draw": {
+    "Calls": 142,
+    "TotalMs": 66.45609999999999,
+    "MaxMs": 1.3059,
+    "Bytes": 25696
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 2.7403000000000013,
+    "MaxMs": 0.7582,
+    "Bytes": 94192
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 74.82050000000001,
+    "MaxMs": 2.2176,
+    "Bytes": 5625760
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 4.7097,
+    "MaxMs": 4.7097,
+    "Bytes": 233408
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 0.1618,
+    "MaxMs": 0.1618,
+    "Bytes": 11352
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 0.6031,
+    "MaxMs": 0.322,
+    "Bytes": 41328
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 1.5114,
+    "MaxMs": 0.845,
+    "Bytes": 76000
+  },
+  "Board.Terrain.Draw": {
+    "Calls": 35,
+    "TotalMs": 3.3308999999999997,
+    "MaxMs": 0.18,
+    "Bytes": 1120
+  },
+  "Board.Terrain.Shore.Draw": {
+    "Calls": 35,
+    "TotalMs": 23.0252,
+    "MaxMs": 3.2852,
+    "Bytes": 5040
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.007,
+    "MaxMs": 0.007,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 0.21389999999999998,
+    "MaxMs": 0.1546,
+    "Bytes": 2280
+  },
+  "Navigation.PreviewPlan": {
+    "Calls": 1,
+    "TotalMs": 0.2252,
+    "MaxMs": 0.2252,
+    "Bytes": 456
+  }
+}

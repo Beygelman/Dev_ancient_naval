@@ -33,7 +33,15 @@ public partial class FleetView
         }
 
         for (int i = 0; i < 24; i++)
+        {
+            float a = .05f * Mathf.Pi + i / 24f * 1.65f * Mathf.Pi;
+            float b = .05f * Mathf.Pi + (i + 1) / 24f * 1.65f * Mathf.Pi;
+            var low = p(MathF.Cos(a) * 32, MathF.Sin(a) * 32, -4);
+            var nextLow = p(MathF.Cos(b) * 32, MathF.Sin(b) * 32, -4);
+            if ((nextLow - low).Cross(outer[i + 1] - low) > .025f)
+                DrawProjectedPolygon(new[] { low, nextLow, outer[i + 1], outer[i] }, new("9c987f"));
             DrawProjectedPolygon(new[] { outer[i], outer[i + 1], inner[i + 1], inner[i] }, new("d7cbb0"));
+        }
         Ink.DrawPolyline(outer, new("f5efdc"), 1.8f, true);
         Ink.DrawPolyline(inner, new("9ba087"), 1.2f, true);
         DrawProjectedPolygon(new[] { p(-9, -2, 0), p(-5, -8, 0), p(3, -7, 0), p(9, -1, 0), p(3, 5, 0), p(-6, 5, 0) }, new("839c86"));
@@ -45,13 +53,15 @@ public partial class FleetView
             Ink.DrawLine(p(x, 1, 2), p(x + 2, 1, 3), new("d0a180"), 1.2f, true);
         }
 
-        for (int i = 0; i < 5; i++)
+        var homes = new (float X, float Y)[5];
+        for (int i = 0; i < homes.Length; i++)
         {
             float a = .3f + i * .9f, x = MathF.Cos(a) * 28, y = MathF.Sin(a) * 28;
-            DrawProjectedPolygon(new[] { p(x - 4, y, 0), p(x + 4, y, 0), p(x + 4, y, 8), p(x - 4, y, 8) }, new("eadfc3"));
-            DrawProjectedPolygon(new[] { p(x - 5, y, 8), p(x, y - 3, 11), p(x + 5, y, 8) }, accent.Darkened(.16f));
-            Ink.DrawLine(p(x, y, 3), p(x, y, 5), new("536961"), 1.4f, true);
+            homes[i] = (x, y);
         }
+        Array.Sort(homes, (one, two) => p(one.X, one.Y, 0).Y.CompareTo(p(two.X, two.Y, 0).Y));
+        foreach (var home in homes)
+            _vesselArt.DrawDeckHouse(Ink, p, home.X, home.Y, 7, 6, 7, accent);
 
         for (int i = 0; i < 25; i += 6)
             Ink.DrawLine(outer[i], inner[i].Lerp(p(0, 0, 0), .25f), new("aa9875"), 3.2f, true);

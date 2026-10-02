@@ -60,6 +60,7 @@ internal static partial class BattleScenarios
         Release014Rules();
         FactionEconomy();
         Refinement016();
+        PortsAndDifficulty();
         PresentedCombat();
         Opponent();
         Console.WriteLine($"PASS: {_checks} Thor/progression/combat checks; 8 complete AI matches.");

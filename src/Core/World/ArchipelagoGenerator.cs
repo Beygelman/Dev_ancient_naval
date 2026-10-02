@@ -5,12 +5,16 @@ namespace DevAncientNaval.Core.World;
 /// <summary>Seeded islands on a boundary-fitted hexagonal cell complex.</summary>
 public static class ArchipelagoGenerator
 {
-    public static GameBoard Create(int seed, int opponentCount = 3)
+    public static GameBoard Create(int seed, int opponentCount = 3, WorldKind kind = WorldKind.Oceans)
     {
         if (opponentCount is < 1 or > 4)
             throw new ArgumentOutOfRangeException(nameof(opponentCount));
+        if (!Enum.IsDefined(kind))
+            throw new ArgumentOutOfRangeException(nameof(kind));
         float scale = MathF.Sqrt((opponentCount + 1) / 4f);
         var mesh = OrganicMesh.Create(seed, scale);
+        if (kind != WorldKind.Oceans)
+            return WorldLandscapeGenerator.Create(mesh, seed, opponentCount + 1, kind);
         var random = new Random(seed ^ 91417);
         GameBoard Board(HashSet<GridPosition> land) => new(mesh.Width, mesh.Height, p => land.Contains(p) ? TerrainType.Land : TerrainType.Water, seed, mesh.Faces.ContainsKey, mesh.Boundary, mesh);
         var water = Board(new());

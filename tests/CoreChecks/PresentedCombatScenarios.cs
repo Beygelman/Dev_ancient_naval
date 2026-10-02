@@ -54,7 +54,10 @@ internal static partial class BattleScenarios
         Check(battle.Find(3)is null, "Only flagship sinking completion releases the remaining fleet");
         prepared.Finish();
         Check(battle.Winner == Side.Player, "The surviving flagship wins after a staged collapse");
-        Check(WorldNames.Captains.Count == 20 && WorldNames.Towns.Count == 40 && WorldNames.Captains.Distinct().Count() == 20 && WorldNames.Towns.Distinct().Count() == 40, "Name catalogs contain exactly 20 captains and 40 towns");
+        Check(WorldNames.Captains.Count > 20 && WorldNames.Towns.Count > 40 &&
+            WorldNames.Captains.Distinct().Count() == WorldNames.Captains.Count &&
+            WorldNames.Towns.Distinct().Count() == WorldNames.Towns.Count,
+            "Expanded captain and town catalogs retain unique identities");
         var mapped = SkirmishSetup.Create(DevAncientNaval.Presentation.PrototypeBoard.Create(opponentCount: 1), rules, 1);
         var scout = mapped.OwnShips(Side.Player).First(s => s.Definition.Class == ShipClass.Fishing);
         var beforeShip = scout;

@@ -15,6 +15,7 @@ public partial class SectorButton : Button
     private readonly Vector2[] _polygon = new Vector2[34];
     private ActionGlyph? _glyph;
     private Label? _badge;
+    public int? Cost { get; set; }
     public void AttachInk(ActionGlyph glyph, Label badge)
     {
         _glyph = glyph;
@@ -24,8 +25,8 @@ public partial class SectorButton : Button
 
     public void SetSector(int index, int count)
     {
-        Sweep = SectorStep;
-        _offset = (index - (count - 1) * .5f) * SectorStep;
+        Sweep = Math.Min(SectorStep, Mathf.Pi / Math.Max(1, count));
+        _offset = ((count - 1) * .5f - index) * Sweep;
         SetReveal(1);
     }
 
@@ -34,7 +35,7 @@ public partial class SectorButton : Button
     public void SetReveal(float progress)
     {
         _reveal = Mathf.Clamp(progress, 0, 1);
-        CenterAngle = Mathf.Pi / 2 + _offset * _reveal;
+        CenterAngle = Mathf.Pi / 2 - _offset * _reveal;
         PlaceInk();
         QueueRedraw();
     }
@@ -60,6 +61,15 @@ public partial class SectorButton : Button
 
     public override void _Draw()
     {
+        if (Cost is { } cost)
+        {
+            var at = IconCenter + new Vector2(0, -23);
+            string text = cost.ToString();
+            float width = ThemeDB.FallbackFont.GetStringSize(text, fontSize: 12).X;
+            DrawStyleBox(PapyrusStyle.Panel(.9f), new Rect2(at - new Vector2(width / 2 + 11, 9), new Vector2(width + 22, 18)));
+            CoinIcon.DrawCoin(this, at - new Vector2(width / 2 + 3, 0), 5.5f);
+            DrawString(ThemeDB.FallbackFont, at + new Vector2(3 - width / 2, 4), text, fontSize: 12, modulate: PapyrusStyle.Ink);
+        }
         if (!IsHovered() || Disabled)
             return;
         const int steps = 16;

@@ -14,7 +14,6 @@ public partial class FleetView
     private readonly HashSet<int> _playedWrecks = new();
     internal int SinkingCount => _sinking.Count;
 
-    private static Vector2 HealthAnchor(Vector2 center, ShipClass kind = ShipClass.Garrison) => center + (kind == ShipClass.Balloon ? new Vector2(23, -56) : new Vector2(-6, 27));
     private async Task Sink(ShipSnapshot ship, bool visible)
     {
         if (!_playedWrecks.Add(ship.Id))

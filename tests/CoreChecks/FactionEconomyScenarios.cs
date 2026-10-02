@@ -9,7 +9,7 @@ internal static partial class BattleScenarios
     private static void FactionEconomy()
     {
         var rules = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
-        Check(rules.StartingCredits == 8 && rules.Get(ShipClass.Garrison).Price == 6 && rules.Get(ShipClass.Kolonel).Price == 20, "Current economy requires saving for larger warships");
+        Check(rules.StartingCredits == 8 && rules.Get(ShipClass.Garrison).Price == 5 && rules.Get(ShipClass.Kolonel).Price == 12 && rules.Get(ShipClass.Invader).Price == 7, "Current hull prices follow the requested 0.21 economy");
         Check(rules.Get(ShipClass.Kolonel).AttackRange == 2 && rules.Get(ShipClass.Invader).AttackRange == 1, "Kolonel reaches two tiles and Galleon one");
         Check(Rules.Economy.MothershipIncomePerLevel == 2 && Rules.Economy.CombatShipsPerUpkeep == 0 && !Rules.Economy.AdjacentCollectionOnly, "Released balance snapshots preserve their economy and collection rules");
         var board = new GameBoard(32, 32, _ => TerrainType.Water);
