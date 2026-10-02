@@ -71,7 +71,7 @@ internal static class UiPapyrusChecks
             commands.Add(command);
         }
 
-        Check(Math.Abs(commands[0].CenterAngle + commands[^1].CenterAngle + Mathf.Pi) < .001, "Scroll opens equally upward from its bottom.");
+        Check(Math.Abs(commands[0].CenterAngle + commands[^1].CenterAngle - Mathf.Pi) < .001, "Scroll opens symmetrically below its object.");
         scroll.Configure(commands, true);
         Check(scroll.Reveal == 0 && scroll.ActionCount == 8, "Scroll starts rolled and retains locked commands.");
         Check(!commands[0]._HasPoint(commands[0].IconCenter), "Rolled commands cannot receive accidental clicks.");

@@ -24,6 +24,7 @@ public sealed partial class BattleState
             throw new ArgumentException("Invalid fleet color.");
         PlayerColor = color;
         AssignFactionColors(color);
+        RethemeUnplayedWorld();
     }
 
     public BattleSave CaptureSnapshot() => PendingPresentation is null ? CreateSnapshot() : throw new InvalidOperationException("A projectile is still in flight.");
@@ -61,6 +62,9 @@ public sealed partial class BattleState
         Factions = _factions.ToArray(),
         FactionNames = _factionNames.Select(e => new FactionIdentity(e.Key, e.Value)).ToArray(),
         FactionColors = _factionColors.Select(entry => new FactionColor(entry.Key, entry.Value)).ToArray(),
+        Encounters = _encounters.Values.ToArray(),
+        PersonalTurnStarts = _personalTurnStarts.ToArray(),
+        FlagshipKills = _flagshipKills.ToArray(),
         EventSeed = _eventSeed,
         EventDraws = _eventDraws,
         LastReward = LastTreasuryReward
@@ -152,6 +156,13 @@ public sealed partial class BattleState
 
     private void RestoreProgress(BattleSave saved)
     {
+        Array.Clear(_personalTurnStarts);
+        Array.Clear(_flagshipKills);
+        Array.Copy(saved.PersonalTurnStarts, _personalTurnStarts, saved.PersonalTurnStarts.Length);
+        Array.Copy(saved.FlagshipKills, _flagshipKills, saved.FlagshipKills.Length);
+        _encounters.Clear();
+        foreach (var encounter in saved.Encounters)
+            _encounters.Add(encounter.Side, encounter);
         Array.Clear(_credits);
         Array.Copy(saved.Credits, _credits, saved.Credits.Length);
         Array.Copy(saved.EverProduced, _everProduced, saved.EverProduced.Length);
@@ -172,9 +183,10 @@ public sealed partial class BattleState
         _factionNames.Clear();
         foreach (var entry in saved.FactionNames)
             _factionNames[entry.Side] = entry.Name;
-        AssignWorldNames();
         foreach (var entry in saved.FactionColors)
             _factionColors[entry.Side] = entry.Color;
+        _worldNamesRestored = true;
+        AssignWorldNames();
         // The seeded sequence and draw count are part of the v1 contract: loading
         // must not reroll an undiscovered treasury or a pirate patrol choice.
         _eventSeed = saved.EventSeed;

@@ -63,7 +63,7 @@ public sealed partial class BattleState
         for (int step = 1; step <= order.Length; step++)
         {
             var candidate = order[(previous + step) % order.Length];
-            if (candidate == Side.Pirates ? OwnShips(candidate).Any() : Mothership(candidate)is not null)
+            if (candidate == Side.Pirates ? OwnShips(candidate).Any() || _villages.Any(v => v.Owner == Side.Pirates && v.Health > 0) : Mothership(candidate)is not null)
                 return candidate;
         }
 

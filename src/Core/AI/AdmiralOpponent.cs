@@ -17,7 +17,8 @@ internal static class AdmiralOpponent
         var mother = allies.First(s => s.IsMothership);
         var fleet = allies.Where(s => s.CountsTowardFleet && !s.IsMothership).ToArray();
         bool crisis = fleet.Length < 2;
-        double Danger(Ship ship, GridPosition cell) => enemies.Sum(enemy => Forecast(battle, enemy, ship, cell));
+        var threats = new AdmiralThreats(battle, enemies);
+        double Danger(Ship ship, GridPosition cell) => threats.At(ship, cell);
         if (FlagshipSafety.Retreat(battle, mother, enemies)is { } escape)
             return escape;
         foreach (var ship in allies)
@@ -29,15 +30,10 @@ internal static class AdmiralOpponent
         foreach (var balloon in allies.Where(s => s.IsAirborne && battle.CanDropBomb(s.Id)))
             if (enemies.Any(e => e.Position == balloon.Position))
                 return battle.DropBomb(side, balloon.Id);
-        // Focus fire: choose a target the remaining fleet can finish this turn.
-        // If none can be finished, prefer useful low-risk damage over trading a hull.
-        var attacks = enemies.Select(target => new { Target = target, Guns = allies.Where(s => battle.CanAttack(s.Id, target.Id)).ToArray() }).Where(plan => plan.Guns.Length > 0).Select(plan => new { plan.Target, plan.Guns, Total = plan.Guns.Sum(s => battle.Damage(s, plan.Target) * s.AttacksRemaining), Distance = plan.Guns.Min(s => battle.Board.Distance(s.Position, plan.Target.Position)) }).Where(plan => !plan.Target.IsMothership || plan.Target.HealthRatio <= .5 || plan.Total >= plan.Target.Health).OrderByDescending(plan => plan.Total >= plan.Target.Health).ThenBy(plan => plan.Target.Health).ThenBy(plan => plan.Distance).ThenByDescending(plan => plan.Target.CurrentDamage + plan.Target.ShotDamageBonus);
-        foreach (var plan in attacks)
-        {
-            var shooter = plan.Guns.Where(s => battle.PreviewCounterDamage(s, plan.Target) < s.Health || plan.Total >= plan.Target.Health && !s.IsMothership).OrderBy(s => battle.PreviewCounterDamage(s, plan.Target)).ThenByDescending(s => s.HasMortar).ThenByDescending(s => battle.Damage(s, plan.Target)).FirstOrDefault();
-            if (shooter is not null && (!crisis || plan.Total >= plan.Target.Health || Danger(shooter, shooter.Position) < shooter.Health))
-                return battle.Attack(side, shooter.Id, plan.Target.Id);
-        }
+        // Commit one legal order from a remaining-turn fleet plan, then replan
+        // from the resulting observations and health at the next step.
+        if (AdmiralTactics.Step(battle, allies, enemies, Danger) is { } coordinated)
+            return coordinated;
 
         foreach (var town in towns.Where(v => v.Owner != side && v.Health > 0).OrderBy(v => v.Health))
         {
@@ -46,7 +42,8 @@ internal static class AdmiralOpponent
                 continue;
             var shooter = guns.FirstOrDefault(s => !town.IsFortified || s.Health > battle.VillageCounterDamage(town) || s.HasMortar);
             if (shooter is not null)
-                return battle.AttackVillage(side, shooter.Id, town.Id);
+                return battle.AttackVillage(side, shooter.Id, town.Id,
+                    battle.CanDoubleSalvo(shooter.Id, town.Position) && town.Health > shooter.CurrentDamage * (town.IsFortified ? .75 : 1));
         }
 
         foreach (var ship in allies.Where(s => s.CanRepair && s.HealthRatio < .6))
@@ -112,9 +109,15 @@ internal static class AdmiralOpponent
                 continue;
             }
 
-            if (crisis && enemies.Length > 0 && ship.IsArmed || ship.IsMothership && Danger(ship, ship.Position) >= ship.Health * .5)
+            if ((crisis && enemies.Length > 0 && ship.IsArmed
+                && Danger(ship, ship.Position) >= ship.Health * .65
+                && allies.Where(a => a.IsArmed && battle.Board.Distance(a.Position, ship.Position) <= 3).Sum(a => a.Health) < Danger(ship, ship.Position) * 1.25)
+                || ship.IsMothership && Danger(ship, ship.Position) >= ship.Health * .5)
             {
-                var refuge = reachable.Keys.OrderBy(p => Danger(ship, p)).ThenByDescending(p => enemies.Min(e => battle.Board.Distance(p, e.Position))).First();
+                double SupportDistance(GridPosition p) => allies.Where(a=>a.Id!=ship.Id && a.IsArmed)
+                    .Select(a=>battle.Board.Distance(p,a.Position)).DefaultIfEmpty(0).Min();
+                var refuge = reachable.Keys.OrderBy(p => Danger(ship, p)).ThenBy(SupportDistance)
+                    .ThenByDescending(p => enemies.Min(e => battle.Board.Distance(p, e.Position))).First();
                 if (refuge != ship.Position && Danger(ship, refuge) <= Danger(ship, ship.Position))
                     return battle.Move(side, ship.Id, refuge);
                 continue;
@@ -135,7 +138,7 @@ internal static class AdmiralOpponent
                 route ??= BestRoute(battle.ObservedTreasuries(side).Select(t => t.Position), ship, battle, 0);
             }
 
-            if (route is null && !crisis && ship.IsArmed)
+            if (route is null && ship.IsArmed && (!crisis || !ship.IsMothership))
             {
                 var target = enemies.Where(e => !e.IsMothership || e.HealthRatio <= .5 || allies.Where(a => a.IsArmed && !a.IsMothership).Sum(a => battle.Damage(a, e) * (a.Definition.ActionProfile == ActionProfile.Heavy ? 2 : 1)) >= e.Health).OrderBy(e => e.IsMothership).ThenBy(e => e.Health).FirstOrDefault();
                 if (target is not null)
@@ -188,15 +191,4 @@ internal static class AdmiralOpponent
     }
 
     private static IReadOnlyList<GridPosition>? BestRoute(IEnumerable<GridPosition> goals, Ship ship, BattleState battle, int range) => goals.OrderBy(p => battle.Board.Distance(ship.Position, p)).Take(3).Select(p => battle.RouteToward(ship.Id, p, range)).Where(p => p.Count > 1).OrderBy(p => battle.PathCost(ship.Id, p)).FirstOrDefault();
-    private static double Forecast(BattleState battle, Ship enemy, Ship ship, GridPosition cell)
-    {
-        if (enemy.IsAirborne)
-            return enemy.BombCooldown <= 1 && battle.Board.InRadius(enemy.Position, cell, 1) ? battle.Rules.Balloon.BombDamage : 0;
-        if (!enemy.IsArmed || ship.IsAirborne && (!battle.AntiAirCovers(enemy, enemy.Position, cell)))
-            return 0;
-        bool covers = battle.WeaponCovers(enemy, cell);
-        if (!covers && !enemy.IsStructure && !enemy.HasMortar)
-            covers = battle.Board.Distance(enemy.Position, cell) <= enemy.MovementAllowance + enemy.AttackRange;
-        return covers ? Math.Max(1, (enemy.HasMortar && battle.UsesMortar(enemy, cell) ? enemy.CurrentMortarDamage : enemy.CurrentDamage) + enemy.ShotDamageBonus - ship.Definition.Armor) * (enemy.Definition.ActionProfile == ActionProfile.Heavy ? 2 : 1) : 0;
-    }
 }

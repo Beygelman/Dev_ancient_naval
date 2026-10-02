@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DevAncientNaval.Core.AI;
@@ -18,6 +19,7 @@ public partial class Main
 {
     private BattleState? _presentedBattle;
     private long _presentedVision = -1;
+    private readonly List<Vector2> _actionTargetScreens = new(16);
     public void Refresh()
     {
         using var trace = DevAncientNaval.Presentation.Diagnostics.PerformanceTrace.Measure("Main.Refresh");
@@ -54,6 +56,9 @@ public partial class Main
         BoardView.DockSites = CanCommand && Mode == OrderMode.None ? Battle.DockCells(Side.Player) : Array.Empty<GridPosition>();
         BoardView.Building = Mode == OrderMode.Build;
         Hud.UpdateBattle(Battle, selected, Busy, Mode, village);
+        if (CanCommand && _salvoCell is { } target && SelectedShipId == _salvoActorId)
+            Hud.ShowSalvoChoice(Battle.CanDoubleSalvo(_salvoActorId, target));
+        else Hud.HideSalvoChoice();
         PositionActions();
         BoardView.RefreshOverlays();
         Fleet.QueueRedraw();
@@ -63,9 +68,31 @@ public partial class Main
     private void PositionActions()
     {
         Vector2 Screen(GridPosition p) => GetViewport().GetCanvasTransform() * BoardView.ToGlobal(BoardView.Projection.GridToWorld(p));
-        Hud.PositionActions(_resourceCell is null ? (Selected is { } ship ? Screen(ship.Position) : SelectedVillage is { } village ? Screen(village.Position) : BoardView.Selected is { } inspected ? Screen(inspected) : null) : null);
+        Hud.PositionActions(_resourceCell is null ? (Selected is { } ship ? Screen(ship.Position) : SelectedVillage is { } village ? Screen(village.Position) : BoardView.Selected is { } inspected ? Screen(inspected) : null) : null,
+            (Selected is { } selected ? ShipVisualProfile.ProgressY(selected.Definition.Class) : SelectedVillage is not null ? 69 : 0) * MapCamera.Zoom.Y);
+        _actionTargetScreens.Clear();
+        foreach (var attackCell in BoardView.Targets)
+            _actionTargetScreens.Add(Screen(attackCell));
+        // The ring must also leave neighboring friendly objects selectable.
+        // Optical/owned air units use their raised drawing anchor, not the sea
+        // tile beneath them. Anonymous radar contacts remain tile points above.
+        foreach (var observed in Battle.ObservedShips(Side.Player))
+            if (observed.Id != SelectedShipId)
+                _actionTargetScreens.Add(Screen(observed.Position) +
+                    (observed.IsAirborne ? new Vector2(0, -62) * MapCamera.Zoom : Vector2.Zero));
+        foreach (var town in Battle.ObservedVillages(Side.Player))
+            if (town.Id != SelectedVillageId)
+                _actionTargetScreens.Add(Screen(town.Position));
+        Hud.SetActionTargetHitExclusions(_actionTargetScreens);
         Hud.PositionResource(_resourceCell is { } cell ? Screen(cell) : null);
         Hud.PositionStories(Screen);
+        if (_salvoCell is { } target)
+        {
+            var targetShip = Battle.ObservedAt(Side.Player, target);
+            float offset = targetShip is not null ? ShipVisualProfile.ProgressY(targetShip.Definition.Class)
+                : Battle.ObservedVillages(Side.Player).Any(v => v.Position == target) ? 69 : 24;
+            Hud.PositionSalvoChoice(Screen(target), offset * MapCamera.Zoom.Y);
+        }
     }
 
     public override void _Process(double delta)

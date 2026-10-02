@@ -58,7 +58,7 @@ public partial class BoardView
                         var current = Battle.VillageAt(town.Position);
                         if (current is not null)
                         {
-                            DrawVillage(node, current, Vector2.Zero);
+                            DrawCachedTown(node, current, false);
 
                         }
                     }
@@ -69,10 +69,21 @@ public partial class BoardView
                 var life = new BoardTerrainLayer
                 {
                     Name = "TownLife" + id,
+                    Position = VillagePlacement(town).Offset,
+                    Scale = Vector2.One * Math.Max(.001f, VillagePlacement(town).Scale),
                     DrawWorld = node => { if (Battle.VillageAt(town.Position) is { } current) DrawTownLife?.Invoke(node, current, Vector2.Zero); }
                 };
                 canvas.AddChild(life);
                 _townCanvases.Add((town.Position, life));
+                var foreground = new BoardTerrainLayer
+                {
+                    Name = "TownForeground" + id,
+                    DrawWorld = node => { if (Battle.VillageAt(town.Position) is { } current) DrawCachedTown(node, current, true); }
+                };
+                // Animated mill blades sit between the houses and the retained
+                // front wall/wheat, instead of painting over every town layer.
+                canvas.AddChild(foreground);
+                _townArt.Add((town.Position, foreground));
                 var townUi = new BoardTerrainLayer
                 {
                     Name = "TownInterface" + id,

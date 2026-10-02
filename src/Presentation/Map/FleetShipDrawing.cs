@@ -44,6 +44,14 @@ public partial class FleetView
             return;
         }
 
+        if (ship.Class == ShipClass.Lighthouse)
+        {
+            DrawLighthouse(center, FleetPalette.For(Battle, ship.Owner));
+            if (ship.Id == SelectedId)
+                Ink.DrawArc(center + LighthouseOffset, 20, 0, Mathf.Tau, 32, new Color("ffe298"), 1.7f, true);
+            return;
+        }
+
         var profile = ShipVisualProfile.For(ship.Class);
         float size = profile.Size;
         // Bob/roll use the retained hull canvas transform; floor geometry changes only with heading.
@@ -116,8 +124,7 @@ public partial class FleetView
         {
             for (int slot = 0; slot < ship.ProgressGoal; slot++)
             {
-                float angle = Mathf.Pi / 2 + (slot - (ship.ProgressGoal - 1) * .5f) * .22f;
-                var point = center + Vector2.FromAngle(angle) * 39;
+                var point = center + new Vector2((slot - (ship.ProgressGoal - 1) * .5f) * 9, ShipVisualProfile.ProgressY(ship.Class));
                 var rect = new Rect2(point - new Vector2(4, 3), new Vector2(8, 6));
                 Ink.DrawRect(rect, slot < ship.Progress ? new Color(ship.Class == ShipClass.Mothership ? "83e9ba" : "ffd66e") : new Color("17333e"));
                 Ink.DrawRect(rect, new Color("b2c8bc"), false, 1);

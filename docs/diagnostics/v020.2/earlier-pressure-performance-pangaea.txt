@@ -1,0 +1,188 @@
+PAN frames=119, p50_ms=42.264, p95_ms=123.137, max_ms=187.059
+INTERACTION world=Pangaea, wide_view=True, tiles=1371, opponents=4, live_fog=False, hover_calls=64, hover_p50_ms=0.059, hover_p95_ms=0.201, hover_max_ms=0.656, frame_p95_ms=103.483, frame_max_ms=156.676, process_p95_ms=186.779, draw_calls_p95=3244, movement_elapsed_ms=1558.075
+SLOW_FRAMES
+phase=pan, frame_ms=76,973, GC_delta=0/0/0, process_ms=95,404, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=90,734, GC_delta=0/0/0, process_ms=95,404, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=62,251, GC_delta=0/0/0, process_ms=95,404, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=89,163, GC_delta=0/0/0, process_ms=95,404, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=123,137, GC_delta=0/0/0, process_ms=95,404, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=104,858, GC_delta=0/0/0, process_ms=95,404, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=90,502, GC_delta=0/0/0, process_ms=95,404, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=85,133, GC_delta=0/0/0, process_ms=95,404, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=74,756, GC_delta=0/0/0, process_ms=123,198, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=78,297, GC_delta=0/0/0, process_ms=123,198, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=69,668, GC_delta=0/0/0, process_ms=123,198, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=70,884, GC_delta=0/0/0, process_ms=123,198, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=94,129, GC_delta=0/0/0, process_ms=123,198, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=71,966, GC_delta=0/0/0, process_ms=123,198, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=67,473, GC_delta=0/0/0, process_ms=123,198, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=73,356, GC_delta=0/0/0, process_ms=123,198, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=187,059, GC_delta=0/0/0, process_ms=123,198, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=161,399, GC_delta=0/0/0, process_ms=186,779, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=182,886, GC_delta=0/0/0, process_ms=186,779, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=65,695, GC_delta=0/0/0, process_ms=186,779, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=113,095, GC_delta=0/0/0, process_ms=186,779, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=64,132, GC_delta=0/0/0, process_ms=182,346, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=62,178, GC_delta=0/0/0, process_ms=182,346, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=112,321, GC_delta=0/0/0, process_ms=182,346, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=61,558, GC_delta=0/0/0, process_ms=182,346, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=81,179, GC_delta=0/0/0, process_ms=182,346, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=62,370, GC_delta=0/0/0, process_ms=182,346, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=127,714, GC_delta=0/0/0, process_ms=182,346, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=84,730, GC_delta=0/0/0, process_ms=127,521, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=76,044, GC_delta=0/0/0, process_ms=127,521, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=61,553, GC_delta=0/0/0, process_ms=127,521, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=131,391, GC_delta=0/0/0, process_ms=127,521, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=77,176, GC_delta=0/0/0, process_ms=131,034, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=pan, frame_ms=65,674, GC_delta=0/0/0, process_ms=131,034, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=60,822, GC_delta=0/0/0, process_ms=77,293, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=79,175, GC_delta=0/0/0, process_ms=77,293, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=95,750, GC_delta=0/0/0, process_ms=77,293, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=70,930, GC_delta=0/0/0, process_ms=77,293, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=100,828, GC_delta=0/0/0, process_ms=77,293, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=71,388, GC_delta=0/0/0, process_ms=77,293, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=62,401, GC_delta=0/0/0, process_ms=77,293, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=63,389, GC_delta=0/0/0, process_ms=95,793, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=96,267, GC_delta=0/0/0, process_ms=95,793, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=74,837, GC_delta=0/0/0, process_ms=95,793, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=68,132, GC_delta=0/0/0, process_ms=95,793, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=64,460, GC_delta=0/0/0, process_ms=95,793, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=115,494, GC_delta=0/0/0, process_ms=95,793, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=79,851, GC_delta=0/0/0, process_ms=95,793, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=103,483, GC_delta=0/0/0, process_ms=115,388, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=79,702, GC_delta=0/0/0, process_ms=115,388, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=61,910, GC_delta=0/0/0, process_ms=115,388, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=hover, frame_ms=134,482, GC_delta=0/0/0, process_ms=115,388, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=156,676, GC_delta=0/0/0, process_ms=134,254, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=67,418, GC_delta=0/0/0, process_ms=134,254, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=111,995, GC_delta=0/0/0, process_ms=134,254, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=82,959, GC_delta=0/0/0, process_ms=134,254, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=76,703, GC_delta=0/0/0, process_ms=134,254, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=60,823, GC_delta=0/0/0, process_ms=134,254, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=64,918, GC_delta=0/0/0, process_ms=134,254, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=71,210, GC_delta=0/0/0, process_ms=134,254, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=76,131, GC_delta=0/0/0, process_ms=113,062, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=134,198, GC_delta=0/0/0, process_ms=113,062, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=69,159, GC_delta=0/0/0, process_ms=113,062, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=92,782, GC_delta=0/0/0, process_ms=113,062, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=62,225, GC_delta=0/0/0, process_ms=113,062, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=83,905, GC_delta=0/0/0, process_ms=113,062, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=60,197, GC_delta=0/0/0, process_ms=134,068, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=87,885, GC_delta=0/0/0, process_ms=134,068, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=97,184, GC_delta=0/0/0, process_ms=134,068, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+{
+  "Ambience.Waves": {
+    "Calls": 185,
+    "TotalMs": 2097.4413,
+    "MaxMs": 50.5026,
+    "Bytes": 14848056
+  },
+  "Ambience.Fish": {
+    "Calls": 185,
+    "TotalMs": 108.06589999999997,
+    "MaxMs": 3.7775,
+    "Bytes": 0
+  },
+  "Ambience.Draw": {
+    "Calls": 185,
+    "TotalMs": 2231.1624999999985,
+    "MaxMs": 51.1287,
+    "Bytes": 14852592
+  },
+  "Fleet.Water.Draw": {
+    "Calls": 264,
+    "TotalMs": 2.941699999999999,
+    "MaxMs": 0.092,
+    "Bytes": 113928
+  },
+  "Fleet.Hulls.Refresh": {
+    "Calls": 264,
+    "TotalMs": 20.32520000000001,
+    "MaxMs": 0.2276,
+    "Bytes": 562232
+  },
+  "Fleet.Draw": {
+    "Calls": 264,
+    "TotalMs": 23.504800000000007,
+    "MaxMs": 0.2931,
+    "Bytes": 676256
+  },
+  "Hull.Draw": {
+    "Calls": 480,
+    "TotalMs": 159.13800000000018,
+    "MaxMs": 3.8052,
+    "Bytes": 1511520
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 4.206500000000002,
+    "MaxMs": 0.3986,
+    "Bytes": 93920
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 59.20949999999999,
+    "MaxMs": 5.5248,
+    "Bytes": 625336
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 5.5421,
+    "MaxMs": 5.5421,
+    "Bytes": 194168
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 1.0813,
+    "MaxMs": 1.0813,
+    "Bytes": 168464
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 0.624,
+    "MaxMs": 0.3821,
+    "Bytes": 50752
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 2.6801000000000004,
+    "MaxMs": 1.6506,
+    "Bytes": 339976
+  },
+  "Animation.TravelRoute": {
+    "Calls": 1,
+    "TotalMs": 0.5447,
+    "MaxMs": 0.5447,
+    "Bytes": 2440
+  },
+  "Animation.Start": {
+    "Calls": 1,
+    "TotalMs": 12.9582,
+    "MaxMs": 12.9582,
+    "Bytes": 8968
+  },
+  "Selection.Dispatch": {
+    "Calls": 1,
+    "TotalMs": 21.5247,
+    "MaxMs": 21.5247,
+    "Bytes": 423184
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0079,
+    "MaxMs": 0.0079,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 1.5889,
+    "MaxMs": 0.8123,
+    "Bytes": 10072
+  },
+  "Navigation.PreviewPlan": {
+    "Calls": 1,
+    "TotalMs": 0.1974,
+    "MaxMs": 0.1974,
+    "Bytes": 456
+  }
+}

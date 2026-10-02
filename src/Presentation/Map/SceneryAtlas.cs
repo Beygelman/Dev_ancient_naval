@@ -57,10 +57,10 @@ public partial class BoardView
             float s = item.Size;
             var min = item.Kind == 1
                 ? new Vector2(-s - 4, -s * 2.85f - 4)
-                : new Vector2(-s - 3, -s * 1.65f - 3);
+                : new Vector2(-s * 1.15f - 3, -s * 1.7f - 3);
             var max = item.Kind == 1
                 ? new Vector2(Math.Max(s * 1.3f + 4, 9 + s * .6f), 5 + s * .24f)
-                : new Vector2(s + 3, s * .35f + 3);
+                : new Vector2(s * 1.15f + 3, s * .44f + 3);
             var pixelMin = new Vector2I(Mathf.FloorToInt(min.X * SceneryBakeScale), Mathf.FloorToInt(min.Y * SceneryBakeScale));
             var pixelMax = new Vector2I(Mathf.CeilToInt(max.X * SceneryBakeScale), Mathf.CeilToInt(max.Y * SceneryBakeScale));
             var size = pixelMax - pixelMin;

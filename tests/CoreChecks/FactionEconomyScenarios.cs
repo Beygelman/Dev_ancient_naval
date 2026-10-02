@@ -9,8 +9,8 @@ internal static partial class BattleScenarios
     private static void FactionEconomy()
     {
         var rules = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
-        Check(rules.StartingCredits == 8 && rules.Get(ShipClass.Garrison).Price == 5 && rules.Get(ShipClass.Kolonel).Price == 18, "Current economy requires saving for larger warships");
-        Check(rules.Get(ShipClass.Kolonel).AttackRange == 2 && rules.Get(ShipClass.Invader).AttackRange == 1, "Kolonel reaches two tiles and Galleon one");
+        Check(rules.StartingCredits == 8 && rules.Get(ShipClass.Garrison).Price == 5 && rules.Get(ShipClass.Kolonel).Price == 12 && rules.Get(ShipClass.Invader).Price == 7, "Current hull prices follow the requested 0.21 economy");
+        Check(rules.Get(ShipClass.Kolonel).AttackRange == 2 && rules.Get(ShipClass.Invader).AttackRange == 2, "Kolonel and the improved Galleon reach two tiles");
         Check(Rules.Economy.MothershipIncomePerLevel == 2 && Rules.Economy.CombatShipsPerUpkeep == 0 && !Rules.Economy.AdjacentCollectionOnly, "Released balance snapshots preserve their economy and collection rules");
         var board = new GameBoard(32, 32, _ => TerrainType.Water);
         var setup = new List<(Side, ShipClass, GridPosition)>();
@@ -80,11 +80,11 @@ internal static partial class BattleScenarios
         battle.EndTurn(Side.Player);
         credited = battle.EndTurn(Side.Enemy);
         Check(credited.IncomeReceipts!.Sum(receipt => receipt.Amount) == 2 && credited.IncomeReceipts!.Single(receipt => receipt.IsUpkeep).Amount == -1, "Upkeep receipt matches the net credit at turn start");
-        battle = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(2, 2)), (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)), (Side.Player, ShipClass.CannonTower, new GridPosition(8, 8)), (Side.Enemy, ShipClass.Garrison, new GridPosition(10, 8)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
+        battle = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(2, 2)), (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)), (Side.Player, ShipClass.CannonTower, new GridPosition(8, 8)), (Side.Enemy, ShipClass.Garrison, new GridPosition(9, 8)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
         var towerShot = battle.Attack(Side.Player, 3, 4);
         Check(towerShot.Success && towerShot.Amount == 3 && towerShot.Shots![0].IsMortar == false && towerShot.Splash!.Count == 0, "Defensive tower fires a short-range cannon without mortar splash");
         Check(!battle.CanAttack(3, 4) && !battle.Move(Side.Player, 3, new(8, 9)).Success, "A cannon tower has one shot and cannot move");
-        battle = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(5, 5)), (Side.Enemy, ShipClass.Mothership, new GridPosition(7, 5)), (Side.Enemy2, ShipClass.Mothership, new GridPosition(7, 6)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
+        battle = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(5, 5)), (Side.Enemy, ShipClass.Mothership, new GridPosition(6, 5)), (Side.Enemy2, ShipClass.Mothership, new GridPosition(6, 6)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
         battle.Find(2)!.Health = 1;
         battle.Find(3)!.Health = 1;
         Check(battle.Attack(Side.Player, 1, 2).Success && !battle.IsOver, "Destroying the first rival flagship leaves the other rival in the battle");

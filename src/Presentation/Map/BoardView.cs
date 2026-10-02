@@ -45,6 +45,8 @@ public partial class BoardView : Node2D
     internal Vector2I TerrainTextureSize => _terrainCache?.Size ?? Vector2I.Zero;
     internal bool TerrainTextureIdle => _terrainCache?.Idle == true;
     internal int TerrainRegionCount => _terrainCache?.RegionCount ?? 0;
+    internal int TerrainSurfaceSourceCount => _terrainCache?.SurfaceSourceCount ?? 0;
+    internal int TerrainSourceCopies(GridPosition cell) => _terrainCache?.SourceCopies(cell) ?? 0;
     internal int TerrainVisibilityUpdateCount => _terrainCache?.VisibilityChanges ?? 0;
     internal int TerrainKnownCellCount => _terrainCache?.KnownCellCount ?? 0;
 
@@ -177,10 +179,11 @@ public partial class BoardView : Node2D
         }
     }
 
-    private void DrawUnexploredWorld(Node2D canvas)
+    private void DrawUnexploredWorld(Node2D canvas, ISet<GridPosition> cells)
     {
         foreach (var tile in Board.Tiles)
         {
+            if (!cells.Contains(tile.Position)) continue;
             canvas.DrawColoredPolygon(Projection.Diamond(tile.Position), new Color("192a36"));
             canvas.DrawPolyline(Projection.ClosedOutline(tile.Position), new Color(.12f, .27f, .31f, .32f), .8f, true);
         }
@@ -198,6 +201,7 @@ public partial class BoardView : Node2D
         using var trace = PerformanceTrace.Measure("Board.Terrain.Draw");
         TerrainDrawCount++;
         EnsureIslandGeometry();
+        var features = TerrainFeatures.For(Board);
         foreach (var tile in Board.Tiles)
         {
             if (!cells.Contains(tile.Position))
@@ -213,20 +217,26 @@ public partial class BoardView : Node2D
             var location = Board.Center(tile.Position);
             float tone = (float)System.Math.Sin(location.X * .33 + location.Y * .27 + Board.Seed % 17) * .022f;
             color = tone > 0 ? color.Lightened(tone) : color.Darkened(-tone);
-            if (terrain == TerrainType.Land && _landShapes.TryGetValue(tile.Position, out var landShapes))
+            color = color.Darkened(terrain == TerrainType.Land ? features.InlandDepth(tile.Position) * .07f :
+                System.Math.Min(8, System.Math.Max(0, features.DistanceFromCoast(tile.Position) - 1)) * .012f);
+            // Draw water beneath the shared smooth island shape. Filling an
+            // entire land tile with sand left pointed tile corners in the sea.
+            var seaColor = terrain == TerrainType.Land ? new Color("30596b") : color;
+            canvas.DrawColoredPolygon(vertices, seaColor);
+            if (_landShapes.TryGetValue(tile.Position, out var landShapes))
             {
-                // Water under a rounded coast fills the corner cut from the island union.
-                canvas.DrawColoredPolygon(vertices, new Color("30596b"));
+                var landColor = new Color("77ab68");
+                landColor = tone > 0 ? landColor.Lightened(tone) : landColor.Darkened(-tone);
+                landColor = landColor.Darkened(terrain == TerrainType.Land ? features.InlandDepth(tile.Position) * .07f : 0);
                 foreach (var shape in landShapes)
-                    canvas.DrawColoredPolygon(shape, color);
+                    canvas.DrawColoredPolygon(shape, landColor);
             }
-            else
-                canvas.DrawColoredPolygon(vertices, color);
             canvas.DrawPolyline(Projection.ClosedOutline(tile.Position), new Color(0.12f, 0.27f, 0.31f, 0.32f), .8f, true);
         }
     }
 
-    public Vector2 VillageFlagPosition(GridPosition cell) => Projection.GridToWorld(cell) + new Vector2(-32, -39);
+    internal static Vector2 VillageFlagOffset => new(13, -47);
+    public Vector2 VillageFlagPosition(GridPosition cell) => Projection.GridToWorld(cell) + VillageFlagOffset;
     private void DrawMovementContour(Node2D canvas, Color color)
     {
         if (!ReferenceEquals(_cachedReachable, Reachable) || !ReferenceEquals(_cachedProjection, Projection))

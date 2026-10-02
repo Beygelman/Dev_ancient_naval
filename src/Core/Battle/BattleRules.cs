@@ -15,6 +15,14 @@ public sealed class BattleRules
     };
     public int StartingCredits { get; init; }
     public bool FreeCoastalNavigation { get; init; } // Missing in old saves: retain their coastal rules.
+    public bool DoubleSalvo { get; init; }
+    public bool MountainSightShadows { get; init; }
+    public bool SmallHullRadarStealth { get; init; }
+    public bool HeavenlyAssistance { get; init; }
+    public bool ThemedWorldNames { get; init; }
+    public bool LighthousesEnabled { get; init; } // Missing in old voyages: their construction menu is preserved.
+    public int EncounterCurrencyReward { get; init; }
+    public IReadOnlyList<int> LevelCurrencyRewards { get; init; } = new[] { 0, 0, 0, 0 };
     public int IncomePerMothership { get; init; }
     public int RepairAmount { get; init; }
     public int AutoRepairAmount { get; init; } = 2;
@@ -38,8 +46,14 @@ public sealed class BattleRules
     };
     public IReadOnlyList<ShipDefinition> Ships { get; init; } = Array.Empty<ShipDefinition>();
     public static ShipDefinition DefaultCannonTower { get; } = new(ShipClass.CannonTower, "Cannon Tower", 10, 0, 3, 0, 3, 0, 2, 8, ActionProfile.Scout);
+    public static ShipDefinition DefaultLighthouse { get; } = new(ShipClass.Lighthouse, "Lighthouse", 10, 0, 0, 0, 4, 5, 0, 6, ActionProfile.Scout, RadarPrice: 2);
 
-    public ShipDefinition Get(ShipClass shipClass) => Ships.FirstOrDefault(s => s.Class == shipClass) ?? (shipClass == ShipClass.CannonTower ? DefaultCannonTower : throw new ArgumentException("Unknown ship class."));
+    public ShipDefinition Get(ShipClass shipClass) => Ships.FirstOrDefault(s => s.Class == shipClass) ?? (shipClass switch
+    {
+        ShipClass.CannonTower => DefaultCannonTower,
+        ShipClass.Lighthouse => DefaultLighthouse,
+        _ => throw new ArgumentException("Unknown ship class.")
+    });
     public static BattleRules FromJson(string json)
     {
         var rules = JsonSerializer.Deserialize<BattleRules>(json, JsonOptions) ?? throw new ArgumentException("Missing battle rules.", nameof(json));
@@ -51,6 +65,8 @@ public sealed class BattleRules
     {
         if (StartingCredits < 0 || IncomePerMothership < 0 || RepairAmount <= 0 || AutoRepairAmount < 0 || FleetLimit < 4 || VillageFortificationPrice < 0 || DockResourceReward < 0 || PirateCurrencyReward < 0 || PirateResourceReward < 0)
             throw new ArgumentException("Invalid economy rules.");
+        if (EncounterCurrencyReward < 0 || LevelCurrencyRewards is null || LevelCurrencyRewards.Count != 4 || LevelCurrencyRewards.Any(r => r < 0))
+            throw new ArgumentException("Invalid voyage reward rules.");
         if (Mortar is null || Balloon is null || Treasury is null || Economy is null || VillageCombat is null || Ports is null)
             throw new ArgumentException("Special weapon and treasury rules cannot be null.");
         Mortar.Validate();
@@ -75,11 +91,16 @@ public sealed class BattleRules
     {
         if (Ships is null || Ships.Any(s => s is null))
             throw new ArgumentException("Ship definitions cannot be null.");
-        // CannonTower is optional in old snapshots; its default is supplied by Get.
-        if (Ships.Count < Enum.GetValues<ShipClass>().Length - 1 || Ships.Count > Enum.GetValues<ShipClass>().Length || Ships.Select(s => s.Class).Distinct().Count() != Ships.Count || Enum.GetValues<ShipClass>().Except(new[] { ShipClass.CannonTower }).Any(kind => !Ships.Any(s => s.Class == kind)))
+        // Added structures are optional in old snapshots; defaults are supplied by Get.
+        if (Ships.Count < Enum.GetValues<ShipClass>().Length - 2 || Ships.Count > Enum.GetValues<ShipClass>().Length || Ships.Select(s => s.Class).Distinct().Count() != Ships.Count || Enum.GetValues<ShipClass>().Except(new[] { ShipClass.CannonTower, ShipClass.Lighthouse }).Any(kind => !Ships.Any(s => s.Class == kind)))
             throw new ArgumentException("Every ship class must have exactly one definition.");
         foreach (var ship in Ships)
-            if (!Enum.IsDefined(ship.Class) || !Enum.IsDefined(ship.ActionProfile) || string.IsNullOrWhiteSpace(ship.Name) || ship.MaxHealth <= 0 || ship.HealthPerLevel < 0 || ship.Movement < 0 || (ship.Movement == 0 && ship.Class is not (ShipClass.FishingDock or ShipClass.AncientGun or ShipClass.CannonTower)) || ship.Damage < 0 || ship.Armor < 0 || ship.AttackRange < 0 || !double.IsFinite(ship.CoastMovementCost) || !double.IsFinite(ship.NarrowMovementCost) || ship.CoastMovementCost < 1 || ship.NarrowMovementCost < 1 || ship.IncomePerTurn < 0 || ship.VisualRange < 1 || ship.RadarRange < 0 || ship.RadarPrice < 0 || ship.CollectionRange < 0 || ship.Price < 0 || (ship.Class is not (ShipClass.Mothership or ShipClass.Balloon or ShipClass.AncientGun or ShipClass.PirateSchooner) && ship.Price == 0) || (ship.Class is ShipClass.Fishing or ShipClass.Balloon or ShipClass.FishingDock && (ship.Damage != 0 || ship.AttackRange != 0 || ship.RadarRange != 0)) || (ship.Class is not (ShipClass.Fishing or ShipClass.Balloon or ShipClass.FishingDock) && (ship.Damage == 0 || ship.AttackRange == 0)))
+        {
+            if (!Enum.IsDefined(ship.Class) || !Enum.IsDefined(ship.ActionProfile) || string.IsNullOrWhiteSpace(ship.Name) || ship.MaxHealth <= 0 || ship.HealthPerLevel < 0 || ship.ResourceRequirementIncrease is < 0 or > 10 || ship.Movement < 0 || (ship.Movement == 0 && ship.Class is not (ShipClass.FishingDock or ShipClass.AncientGun or ShipClass.CannonTower or ShipClass.Lighthouse)) || ship.Damage < 0 || ship.Armor < 0 || ship.AttackRange < 0 || !double.IsFinite(ship.CoastMovementCost) || !double.IsFinite(ship.NarrowMovementCost) || ship.CoastMovementCost < 1 || ship.NarrowMovementCost < 1 || ship.IncomePerTurn < 0 || ship.VisualRange < 0 || ship.RadarRange < 0 || ship.RadarPrice < 0 || ship.CollectionRange < 0 || ship.Price < 0 || (ship.Class is not (ShipClass.Mothership or ShipClass.Balloon or ShipClass.AncientGun or ShipClass.PirateSchooner) && ship.Price == 0) || (ship.Class is ShipClass.Fishing or ShipClass.Balloon or ShipClass.FishingDock && (ship.Damage != 0 || ship.AttackRange != 0 || ship.RadarRange != 0)) || (ship.Class is not (ShipClass.Fishing or ShipClass.Balloon or ShipClass.FishingDock or ShipClass.Lighthouse) && (ship.Damage == 0 || ship.AttackRange == 0)))
                 throw new ArgumentException($"Invalid ship definition: {ship.Name}.");
+            if (ship.Class == ShipClass.Lighthouse && (ship.Movement != 0 || ship.Damage != 0 || ship.AttackRange != 0 ||
+                ship.VisualRange != 4 || ship.RadarRange < 1 || ship.RadarPrice < 1))
+                throw new ArgumentException("A Lighthouse must be stationary and unarmed, with four-tile sight and purchasable radar.");
+        }
     }
 }

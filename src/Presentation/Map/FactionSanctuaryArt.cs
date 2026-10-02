@@ -7,6 +7,19 @@ namespace DevAncientNaval.Presentation.Map;
 /// <summary>Shared fleet monument. Ground x/y rotate independently of upright height z.</summary>
 internal static class FactionSanctuaryArt
 {
+    internal static void DrawPirate(CanvasItem canvas, Func<float, float, float, Vector2> p)
+    {
+        Box(canvas, p, 0, 0, 0, 10, 9, 2, new("757769"));
+        Box(canvas, p, 0, 0, 2, 8, 7, 15, new("5a6260"));
+        Pyramid(canvas, p, 0, 0, 17, 5, 6, new("303b3e"));
+        var skull = p(0, 3.8f, 11);
+        canvas.DrawCircle(skull, 2, new("e8dfc7"));
+        canvas.DrawLine(p(-2, 3.8f, 6), p(2, 3.8f, 9), new("e8dfc7"), .8f, true);
+        canvas.DrawLine(p(2, 3.8f, 6), p(-2, 3.8f, 9), new("e8dfc7"), .8f, true);
+        Box(canvas, p, -3, 0, 17, 1.5f, 1.5f, 4, new("b5ad94"));
+        Box(canvas, p, 3, 0, 17, 1.5f, 1.5f, 4, new("b5ad94"));
+    }
+
     internal static void Draw(CanvasItem canvas, Func<float, float, float, Vector2> p, FleetColor faction)
     {
         if (faction == FleetColor.Green)

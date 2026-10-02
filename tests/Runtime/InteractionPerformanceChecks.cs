@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -23,18 +24,35 @@ public partial class InteractionPerformanceChecks : Node
     private readonly List<double> _frames = new();
     private readonly List<double> _processTimes = new();
     private readonly List<double> _drawCalls = new();
+    private double _videoMemoryPeak, _textureMemoryPeak, _bufferMemoryPeak;
     private bool _recordFrames;
     private long _previousFrame;
+    private string _phase = "pan";
+    private double _previousCanvasCompiles, _previousDrawCompiles;
+    private readonly List<string> _slowFrames = new();
+    private readonly int[] _previousCollections = new int[3];
     public override void _Process(double delta)
     {
         if (_recordFrames)
         {
             long now = Stopwatch.GetTimestamp();
             if (_previousFrame != 0)
-                _frames.Add(Stopwatch.GetElapsedTime(_previousFrame, now).TotalMilliseconds);
+            {
+                double elapsed = Stopwatch.GetElapsedTime(_previousFrame, now).TotalMilliseconds;
+                _frames.Add(elapsed);
+                if (elapsed > 60)
+                    _slowFrames.Add($"phase={_phase}, frame_ms={elapsed:F3}, GC_delta={GC.CollectionCount(0)-_previousCollections[0]}/{GC.CollectionCount(1)-_previousCollections[1]}/{GC.CollectionCount(2)-_previousCollections[2]}, process_ms={Performance.GetMonitor(Performance.Monitor.TimeProcess)*1000:F3}, focused={DisplayServer.WindowIsFocused()}, canvas_compile_delta={Performance.GetMonitor(Performance.Monitor.PipelineCompilationsCanvas)-_previousCanvasCompiles}, draw_compile_delta={Performance.GetMonitor(Performance.Monitor.PipelineCompilationsDraw)-_previousDrawCompiles}");
+            }
+            _previousCanvasCompiles = Performance.GetMonitor(Performance.Monitor.PipelineCompilationsCanvas);
+            _previousDrawCompiles = Performance.GetMonitor(Performance.Monitor.PipelineCompilationsDraw);
+            for (int generation = 0; generation < 3; generation++)
+                _previousCollections[generation] = GC.CollectionCount(generation);
             _previousFrame = now;
             _processTimes.Add(Performance.GetMonitor(Performance.Monitor.TimeProcess) * 1000);
             _drawCalls.Add(Performance.GetMonitor(Performance.Monitor.RenderTotalDrawCallsInFrame));
+            _videoMemoryPeak = Math.Max(_videoMemoryPeak, Performance.GetMonitor(Performance.Monitor.RenderVideoMemUsed));
+            _textureMemoryPeak = Math.Max(_textureMemoryPeak, Performance.GetMonitor(Performance.Monitor.RenderTextureMemUsed));
+            _bufferMemoryPeak = Math.Max(_bufferMemoryPeak, Performance.GetMonitor(Performance.Monitor.RenderBufferMemUsed));
         }
     }
 
@@ -49,6 +67,7 @@ public partial class InteractionPerformanceChecks : Node
     {
         try
         {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
             await Frame();
             var args = OS.GetCmdlineUserArgs();
             int opponents = int.Parse(args.FirstOrDefault(a => a.StartsWith("--opponents="))?[12..] ?? "1");
@@ -56,11 +75,18 @@ public partial class InteractionPerformanceChecks : Node
             var board = ArchipelagoGenerator.Create(731, args.Contains("--scaled-map") ? opponents : 3, kind);
             var battle = SkirmishSetup.Create(board, Game.Battle.Rules, opponents);
             Game.LoadScenario(battle);
+            // The timing harness calls the production selection/preview paths
+            // directly. Desktop clicks must not end a turn or replace this fixture
+            // while the user keeps working in another window.
+            GetViewport().GuiDisableInput = true;
+            Game.MapInput.SetProcessInput(false);
+            Game.MapInput.SetProcessUnhandledInput(false);
+            Game.Hud.SetProcessUnhandledInput(false);
             if (!args.Contains("--live-fog"))
             {
-                foreach (var tile in board.Tiles)
-                    battle.Vision.RevealCombat(Side.Player, tile.Position);
-                battle.Vision.Recompute(battle.Ships, battle.TurnSerial, battle.Villages);
+                // Use the actual whole-map setting. Combat flashes expire on the
+                // first move and would measure a synthetic map-wide fog transition.
+                battle.SetGodEye(true);
             }
 
             var ship = battle.OwnShips(Side.Player).First(s => s.Definition.Class == ShipClass.Garrison);
@@ -84,8 +110,10 @@ public partial class InteractionPerformanceChecks : Node
                 await Frame();
             }
             string panReport = $"PAN frames={_frames.Count}, p50_ms={Percentile(_frames, .5):F3}, p95_ms={Percentile(_frames, .95):F3}, max_ms={_frames.Max():F3}\n";
+            double panP95 = Percentile(_frames, .95), panMax = _frames.Max();
             _frames.Clear();
             _previousFrame = 0;
+            _phase = "hover";
             foreach (var cell in destinations)
             {
                 var screen = GetViewport().GetCanvasTransform() * Game.BoardView.Projection.GridToWorld(cell);
@@ -96,8 +124,13 @@ public partial class InteractionPerformanceChecks : Node
             }
 
             var resourceCells = battle.KnownFish(Side.Player).Concat(battle.KnownShoals(Side.Player)).ToHashSet();
-            var destination = battle.Reachable(ship.Id).OrderByDescending(p => p.Value).First(p => p.Key != ship.Position && !resourceCells.Contains(p.Key)).Key;
+            var movementOptions = battle.Reachable(ship.Id).OrderByDescending(p => p.Value)
+                .Where(p => p.Key != ship.Position && !resourceCells.Contains(p.Key)).ToArray();
+            if (movementOptions.Length == 0)
+                throw new InvalidOperationException($"No profiling route: ship={ship.Id}, pos={ship.Position}, movement={ship.MovementRemainingUnits}, side={battle.ActiveSide}, over={battle.IsOver}, sameBattle={ReferenceEquals(battle, Game.Battle)}, busy={Game.Busy}, knownResources={resourceCells.Count}, reachable={battle.Reachable(ship.Id).Count}.");
+            var destination = movementOptions[0].Key;
             var origin = ship.Position;
+            _phase = "move/encounter/save";
             long movementStart = Stopwatch.GetTimestamp();
             Game.SelectCell(destination);
             await Game.CurrentOrder;
@@ -107,11 +140,16 @@ public partial class InteractionPerformanceChecks : Node
             for (int frame = 0; frame < 20; frame++)
                 await Frame();
             _recordFrames = false;
-            string report = panReport + $"INTERACTION world={kind}, wide_view={args.Contains("--wide-view")}, tiles={board.Tiles.Count}, opponents={opponents}, live_fog={args.Contains("--live-fog")}, hover_calls={handlers.Count}, " + $"hover_p50_ms={Percentile(handlers, .5):F3}, hover_p95_ms={Percentile(handlers, .95):F3}, " + $"hover_max_ms={handlers.Max():F3}, frame_p95_ms={Percentile(_frames, .95):F3}, " + $"frame_max_ms={_frames.Max():F3}, process_p95_ms={Percentile(_processTimes, .95):F3}, " + $"draw_calls_p95={Percentile(_drawCalls, .95):F0}, movement_elapsed_ms={movementMs:F3}\n" + PerformanceTrace.Report();
+            string report = panReport + $"INTERACTION world={kind}, wide_view={args.Contains("--wide-view")}, tiles={board.Tiles.Count}, opponents={opponents}, live_fog={args.Contains("--live-fog")}, hover_calls={handlers.Count}, " + $"hover_p50_ms={Percentile(handlers, .5):F3}, hover_p95_ms={Percentile(handlers, .95):F3}, " + $"hover_max_ms={handlers.Max():F3}, frame_p95_ms={Percentile(_frames, .95):F3}, " + $"frame_max_ms={_frames.Max():F3}, process_p95_ms={Percentile(_processTimes, .95):F3}, " + $"draw_calls_p95={Percentile(_drawCalls, .95):F0}, movement_elapsed_ms={movementMs:F3}\n" + "SLOW_FRAMES\n" + string.Join("\n", _slowFrames) + "\n" + PerformanceTrace.Report();
+            report += $"\nRENDER_MEMORY video_peak_mib={_videoMemoryPeak / (1024 * 1024):F2}, texture_peak_mib={_textureMemoryPeak / (1024 * 1024):F2}, buffer_peak_mib={_bufferMemoryPeak / (1024 * 1024):F2}\n";
             GD.Print(report);
             var output = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--report="));
             if (output is not null)
                 File.WriteAllText(output[9..], report);
+            if (args.Contains("--verify-smoothness") && (DisplayServer.GetName() == "headless"
+                || panP95 > 25 || panMax > 80 || Percentile(_frames, .95) > 25
+                || _frames.Max() > 100 || handlers.Max() > 16))
+                throw new InvalidOperationException("Native frame-pacing gate failed: inspect the recorded slow frames before packaging.");
             GD.Print("PASS: real-map interaction profiling completed.");
             GetTree().Quit();
         }

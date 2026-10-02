@@ -10,6 +10,16 @@ public static class SimpleOpponent
 {
     public static CommandResult Step(BattleState battle)
     {
+        var result = Decide(battle);
+        // A fog preview can be legal while the first actual cell is blocked by
+        // an undiscovered obstacle. Recover from that observed command result,
+        // rather than repeating a rejected order indefinitely.
+        return !result.Success && result.Message.StartsWith("Passage blocked", StringComparison.Ordinal)
+            ? AINavigationRecovery.Step(battle) : result;
+    }
+
+    private static CommandResult Decide(BattleState battle)
+    {
         if (battle.IsOver)
             return CommandResult.Rejected("The battle is over.");
         var side = battle.ActiveSide;
@@ -51,7 +61,8 @@ public static class SimpleOpponent
         {
             var target = enemies.Where(t => battle.CanAttack(ship.Id, t.Id)).OrderBy(t => t.Health <= battle.Damage(ship, t) ? 0 : 1).ThenBy(t => t.Definition.Class == ShipClass.Mothership ? 0 : 1).ThenBy(t => t.Health).FirstOrDefault();
             if (target is not null)
-                return battle.Attack(side, ship.Id, target.Id);
+                return battle.Attack(side, ship.Id, target.Id, battle.CanDoubleSalvo(ship.Id, target.Position)
+                    && target.Health > battle.Damage(ship, target));
         }
 
         foreach (var ship in allies.Where(s => s.IsArmed))

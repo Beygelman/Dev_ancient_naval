@@ -206,7 +206,10 @@ public partial class FleetArtChecks : Node
     {
         var battle = new BattleState(new GameBoard(24, 24, _ => TerrainType.Water), Game.Battle.Rules,
             new[] { (Side.Player, ShipClass.Mothership, new GridPosition(1, 1)), (Side.Enemy, ShipClass.Mothership, new GridPosition(21, 21)),
-                (Side.Player, ShipClass.Togus, new GridPosition(8, 8)), (Side.Enemy, ShipClass.Fishing, new GridPosition(12, 8)) }, Array.Empty<GridPosition>());
+                (Side.Player, ShipClass.Togus, new GridPosition(8, 8)), (Side.Enemy, ShipClass.Invader, new GridPosition(12, 8)) }, Array.Empty<GridPosition>());
+        var save = battle.CaptureSnapshot();
+        save.Ships.Single(s => s.Id == 4).Health = 5;
+        battle = BattleState.LoadJson(BattleState.SerializeSnapshot(save));
         Game.LoadScenario(battle);
         await Frame();
         await Frame();

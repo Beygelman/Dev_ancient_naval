@@ -23,6 +23,7 @@ internal static class AncientLore
             ShipClass.FishingDock => "A quay draws wealth from the shoal; the fish endure when its timbers fall.",
             ShipClass.AncientGun => "The old tower watches without a keel; its stone remembers no healing.",
             ShipClass.CannonTower => "A small tower keeps an unwavering watch over the nearby sea.",
+            ShipClass.Lighthouse => "A light among the rocks joins distant ports and watches the open sea.",
             ShipClass.PirateSchooner => "The pirate follows careless sails; its defeat leaves a modest prize.",
             _ => "A silk watcher sees beyond the waves and carries thunder beneath its basket."
         };
@@ -75,6 +76,8 @@ internal static class AncientLore
                 rows.Add(new("Against towns", $"+{battle.Rules.Mortar.VillageDamageBonus} mortar damage"));
             }
             rows.Add(new("Shots", $"{ship.AttacksRemaining} left this turn"));
+            if (battle.Rules.DoubleSalvo && (ship.Definition.Class == ShipClass.Kolonel || ship.IsMothership && ship.SecondAttackUpgrade))
+                rows.Add(new("Double salvo", "Select a cannon target, then choose one or two cannonballs on its parchment; two shots launch together and receive one enemy reply"));
             if (ship.Definition.Class is not (ShipClass.Togus or ShipClass.AncientGun))
                 rows.Add(new("Counterfire", $"{ship.CurrentDamage + ship.CounterDamageBonus:0.##} damage · {ship.Definition.AttackRange} tiles; if alive"));
             if (battle.HasAntiAir(ship))
@@ -112,6 +115,10 @@ internal static class AncientLore
         }
         if (ship.IsMothership)
             rows.Add(new("Shipyard", CurrentShipyard(battle, ship.Level, false)));
+        if (battle.Rules.SmallHullRadarStealth && ship.Definition.Class is ShipClass.Garrison or ShipClass.Fishing)
+            rows.Add(new("Low profile", "Hidden from radar; visible to nearby lookouts"));
+        if (battle.Rules.HeavenlyAssistance && ship.IsMothership && ship.Owner == Side.Player)
+            rows.Add(new("Heavenly blessing", "+2 Thors every fifth personal turn"));
         if (ship.Definition.Class == ShipClass.PirateSchooner)
             rows.Add(new("Bounty", $"{battle.Rules.PirateCurrencyReward} Thors · {battle.Rules.PirateResourceReward} resource"));
         if (rows.Count > 0)
@@ -171,6 +178,8 @@ internal static class AncientLore
                 new("3 · Claim", "Use the flag; the crew spends all actions")
             })
         };
+        if (battle.Rules.HeavenlyAssistance && village.Owner == Side.Player && village.Health > 0)
+            sections.Add(new("Faith", new LoreRow[] { new("Heavenly blessing", "+2 Thors every fifth personal turn") }));
         var improvements = new List<LoreRow>();
         if (village.IsFortified)
         {
@@ -198,6 +207,8 @@ internal static class AncientLore
     {
         var classes = new[] { ShipClass.Fishing, ShipClass.Garrison, ShipClass.Invader, ShipClass.Kolonel, ShipClass.Togus }
             .Concat(town ? System.Array.Empty<ShipClass>() : new[] { ShipClass.CannonTower });
+        if (battle.Rules.LighthousesEnabled && level >= (town ? 3 : 1))
+            classes = classes.Append(ShipClass.Lighthouse);
         return string.Join(", ", classes.Where(kind => (town ? BattleState.VillageRequiredLevel(kind) : BattleState.RequiredLevel(kind)) <= level)
             .Select(kind => battle.Rules.Get(kind).Name));
     }

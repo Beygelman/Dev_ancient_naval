@@ -1,6 +1,6 @@
 # Ancient Naval — project development guide
 
-Version 2.7 · 1 October 2026 · Godot 4.7.2 .NET / C# / .NET 8
+Version 3.0 · 2 October 2026 · Godot 4.7.2 .NET / C# / .NET 8
 
 This guide adapts the supplied Version 1.0 document to the actual project.
 The original remains in `docs/AGENT-GUIDELINES-ORIGINAL.md`. Read this file, `README.md` and the
@@ -11,7 +11,7 @@ scope; historical design notes are context, not new work orders.
 
 - Refactors preserve rules, visuals, seeded outcomes and existing saves unless
   the user requests a behavior change. State any intentional fixes explicitly.
-- All player-facing text is English. Keep the requested menu signature intact.
+- Player-facing text supports English, Ukrainian and Dutch. Add complete catalog messages and preserve proper names and numerals. Keep the requested menu signature intact.
 - Internal names such as `Invader`, `Togus` and `Garrison` are serialized legacy
   identifiers. Display names are Galleon, Granado and Brig; do not rename enums
   to match the UI without a migration.
@@ -69,6 +69,20 @@ scope; historical design notes are context, not new work orders.
 - Keep deterministic iteration and random draw order. Cosmetics must never
   consume simulation randomness. New randomness must survive save/resume.
 
+## Version and release checks
+
+- Version labels follow `v020`, `v020.1` through `v020.9`, then `v021`.
+  The user explicitly requested the corrected build to remain `v020.2`.
+- Before **every** delivery, build and run meaningful Core/native checks, then
+  run `tools/Check-ReleaseSmoothness.ps1` on the final Debug build with a native
+  renderer. Preserve its reports under `docs/diagnostics/<version>/`.
+  Headless runs cannot establish frame pacing. Do not run CPU-heavy checks
+  concurrently with frame-timing measurements. An exceeded gate is a failure
+  to investigate before export, not a reason to relax the threshold.
+- Test target parchment choices using actual mouse/touch inputs. Double charges
+  share a flight; staged impacts still commit exactly once. Radar-only attacks
+  must never disclose hidden hulls, health, damage digits or sunk outcomes.
+
 ## Turn-based performance
 
 - AI, income, production, healing and cooldowns advance through commands/turns,
@@ -104,8 +118,12 @@ scope; historical design notes are context, not new work orders.
 
 - WorldKind selects terrain only; it must never silently replace the organic cell mesh. Oceans is the optional save-field default. New map policies preserve fair coastal settlement/treasury counts and connected ocean fleet routes.
 - VoyageStatistics are immutable player-attributed totals in every staged snapshot. Income counts gross positive receipts/rewards; shipyards count built hulls; direct enemy kills exclude structures and nation-collapse scuttling. Missing old-save totals start at zero.
-- Ready pictorial actions commit only after their roll/burn; block orders during the ceremony and revalidate its original battle/target. Never award a treasury before that boundary.
+- Ready pictorial actions open once as horizontal banners and commit only after their burn; block orders during the ceremony and revalidate its original battle/target. Never award a treasury before that boundary.
 - Clay badges use observed HP only, retain an unrotated foreground canvas, and animate independently of hull geometry. Town health animation must not refresh hidden observed state. Victory must wait for Busy and PendingPresentation to clear, then own input and stop hidden/finished fireworks.
+
+- TerrainFeatures is the deterministic, board-owned source for mountain cells, forest density and coast depth. Optical rays use actual mesh polygons; radar ignores mountains. Rendering cannot invent extra blocking peaks.
+- Heavenly aid counters persist in staged snapshots and Continue. Pay once at each fifth personal turn start; direct flagship kills exclude collapse scuttling. Never reveal an unknown nation through the aid plaque.
+- Village ground and wheat are clipped to land minus beach, including fully enclosed holes. Native polygon subtraction can return hole rings; these require proper decomposition before drawing.
 
 ## Safety invariants to test
 

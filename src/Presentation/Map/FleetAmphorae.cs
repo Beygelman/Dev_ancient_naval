@@ -10,6 +10,7 @@ public partial class FleetView
         ShipClass.Balloon => new(32, -65),
         ShipClass.AncientGun or ShipClass.CannonTower => new(30, -28),
         ShipClass.FishingDock => new(34, -23),
+        ShipClass.Lighthouse => new(9, -47),
         _ => new(31 * ShipVisualProfile.For(kind).Size + 9, -18)
     };
 

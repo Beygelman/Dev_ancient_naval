@@ -11,6 +11,7 @@ public partial class BoardView
 {
     private (IsometricProjection Projection, int Ship, long Vision, bool Mortar)? _coverageContext;
     private readonly Dictionary<GridPosition, Coverage> _coverage = new();
+    private readonly HashSet<GridPosition> _coverageKnown = new();
     private sealed record Coverage(Vector2[][] Guns, Vector2[][] Mortar, Vector2[][] Collection, Vector2[][] MortarTiles);
     private void DrawProjectedCoverage()
     {
@@ -21,6 +22,9 @@ public partial class BoardView
         {
             _coverageContext = context;
             _coverage.Clear();
+            _coverageKnown.Clear();
+            foreach (var tile in Board.Tiles)
+                if (Battle.Vision.IsExplored(Side.Player, tile.Position)) _coverageKnown.Add(tile.Position);
         }
 
         bool forecast = PreviewPath.Count > 1;
@@ -31,10 +35,12 @@ public partial class BoardView
         {
             if (_coverage.Count >= 96)
                 _coverage.Clear();
-            var known = Board.Tiles.Where(t => Battle.Vision.IsExplored(Side.Player, t.Position)).Select(t => t.Position).ToArray();
-            var guns = ship.Definition.Class != ShipClass.Togus && ship.IsArmed ? known.Where(p => Board.InRadius(origin, p, ship.Definition.AttackRange)).ToArray() : Array.Empty<GridPosition>();
-            var mortar = ship.HasMortar ? known.Where(p => Board.InRadius(origin, p, ship.MortarRange) && (ship.Definition.Class == ShipClass.AncientGun || !Board.InRadius(origin, p, 3))).ToArray() : Array.Empty<GridPosition>();
-            var collection = ship.Definition.CollectionRange > 0 ? known.Where(p => Board.InRadius(origin, p, Battle.Rules.Economy.AdjacentCollectionOnly ? 1 : ship.Definition.CollectionRange)).ToArray() : Array.Empty<GridPosition>();
+            IEnumerable<GridPosition> Radius(int range) => Board.Mesh is { } mesh ? mesh.Within(origin, range).Where(_coverageKnown.Contains)
+                : _coverageKnown.Where(p => Board.InRadius(origin, p, range));
+            var guns = ship.Definition.Class != ShipClass.Togus && ship.IsArmed ? Radius(ship.Definition.AttackRange).ToArray() : Array.Empty<GridPosition>();
+            var near = ship.HasMortar && ship.Definition.Class != ShipClass.AncientGun ? Radius(3).ToHashSet() : new HashSet<GridPosition>();
+            var mortar = ship.HasMortar ? Radius(ship.MortarRange).Where(p => !near.Contains(p)).ToArray() : Array.Empty<GridPosition>();
+            var collection = ship.Definition.CollectionRange > 0 ? Radius(Battle.Rules.Economy.AdjacentCollectionOnly ? 1 : ship.Definition.CollectionRange).ToArray() : Array.Empty<GridPosition>();
             coverage = new(Projection.BoundaryEdges(guns).ToArray(), Projection.BoundaryEdges(mortar).ToArray(), Projection.BoundaryEdges(collection).ToArray(), mortar.Select(Projection.Diamond).ToArray());
             _coverage[origin] = coverage;
         }

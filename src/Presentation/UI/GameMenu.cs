@@ -33,6 +33,7 @@ public partial class DebugHud
         column.AddThemeConstantOverride("separation", 12);
         _menuPanel.AddChild(column);
         column.AddChild(Label("Menu", 25, true));
+        column.AddChild(new LanguageButtons());
         void Add(string name, string title, Action action)
         {
             var button = TextButton(title, action);
@@ -54,7 +55,7 @@ public partial class DebugHud
         column.AddChild(_godEyeButton);
         column.AddChild(Label("See the whole sea without fog", 14, true));
         Add("CloseMenu", "Return to game", () => SetMenuVisible(false));
-        Add("MainMenu", "Save and return to title", () =>
+        Add("MainMenu", "Return to title", () =>
         {
             SetMenuVisible(false);
             HomeRequested?.Invoke();

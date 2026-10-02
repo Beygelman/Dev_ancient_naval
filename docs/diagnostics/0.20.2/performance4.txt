@@ -1,0 +1,102 @@
+PAN frames=119, p50_ms=16,645, p95_ms=19,369, max_ms=40,916
+INTERACTION world=Oceans, wide_view=False, tiles=1371, opponents=4, live_fog=True, hover_calls=64, hover_p50_ms=0,030, hover_p95_ms=0,094, hover_max_ms=0,890, frame_p95_ms=18,231, frame_max_ms=80,757, process_p95_ms=88,145, draw_calls_p95=881, movement_elapsed_ms=1569,177
+SLOW_FRAMES
+phase=move/encounter/save, frame_ms=80,757, GC_delta=0/0/0, process_ms=21,315, focused=False, canvas_compile_delta=0, draw_compile_delta=0
+{
+  "Ambience.Waves": {
+    "Calls": 148,
+    "TotalMs": 7.3422,
+    "MaxMs": 0.1708,
+    "Bytes": 0
+  },
+  "Ambience.Fish": {
+    "Calls": 148,
+    "TotalMs": 23.586500000000015,
+    "MaxMs": 2.4109,
+    "Bytes": 12384
+  },
+  "Ambience.Draw": {
+    "Calls": 148,
+    "TotalMs": 36.631099999999996,
+    "MaxMs": 2.5061,
+    "Bytes": 16032
+  },
+  "Fleet.Draw": {
+    "Calls": 390,
+    "TotalMs": 12.071800000000009,
+    "MaxMs": 0.3139,
+    "Bytes": 131112
+  },
+  "Hull.Draw": {
+    "Calls": 140,
+    "TotalMs": 49.1576,
+    "MaxMs": 0.911,
+    "Bytes": 138240
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 2.5806,
+    "MaxMs": 0.6403,
+    "Bytes": 94192
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 37.7623,
+    "MaxMs": 4.0343,
+    "Bytes": 585336
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 4.2663,
+    "MaxMs": 4.2663,
+    "Bytes": 267664
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 0.2261,
+    "MaxMs": 0.2261,
+    "Bytes": 12048
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 0.518,
+    "MaxMs": 0.2659,
+    "Bytes": 48160
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 1.9693999999999998,
+    "MaxMs": 1.1097,
+    "Bytes": 173064
+  },
+  "Board.Terrain.Draw": {
+    "Calls": 35,
+    "TotalMs": 2.604199999999999,
+    "MaxMs": 0.2012,
+    "Bytes": 1120
+  },
+  "Board.Terrain.Shore.Draw": {
+    "Calls": 35,
+    "TotalMs": 17.4043,
+    "MaxMs": 2.4276,
+    "Bytes": 5040
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0061,
+    "MaxMs": 0.0061,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 0.18769999999999998,
+    "MaxMs": 0.1291,
+    "Bytes": 3400
+  },
+  "Navigation.PreviewPlan": {
+    "Calls": 1,
+    "TotalMs": 0.1909,
+    "MaxMs": 0.1909,
+    "Bytes": 456
+  }
+}

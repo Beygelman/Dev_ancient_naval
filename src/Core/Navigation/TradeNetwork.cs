@@ -8,6 +8,10 @@ public sealed class TradeNetwork
     private readonly HashSet<(GridPosition, GridPosition)> _edges = new();
     private readonly List<IReadOnlyList<GridPosition>> _routes = new();
     public IReadOnlyList<IReadOnlyList<GridPosition>> Routes => _routes;
+    /// <summary>Each undirected water edge appears once, even when several shortest port routes share it.</summary>
+    public IReadOnlyList<(GridPosition From, GridPosition To)> Edges { get; private set; } = Array.Empty<(GridPosition, GridPosition)>();
+    /// <summary>Unique edge chains split at junctions and endpoint berths, for one layer of drawn route ink.</summary>
+    public IReadOnlyList<IReadOnlyList<GridPosition>> RenderRoutes { get; private set; } = Array.Empty<IReadOnlyList<GridPosition>>();
 
     public bool Contains(GridPosition from, GridPosition to) => _edges.Contains((from, to));
     public bool IsEmpty => _edges.Count == 0;
@@ -55,6 +59,49 @@ public sealed class TradeNetwork
             }
         }
 
+        result.BuildRenderRoutes(ports);
         return result;
+    }
+
+    private static int Compare(GridPosition a, GridPosition b) => a.Y != b.Y ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X);
+    private static (GridPosition, GridPosition) Edge(GridPosition a, GridPosition b) => Compare(a, b) < 0 ? (a, b) : (b, a);
+
+    private void BuildRenderRoutes(IEnumerable<GridPosition> endpoints)
+    {
+        Edges = _edges.Where(e => Compare(e.Item1, e.Item2) < 0).Select(e => (From: e.Item1, To: e.Item2))
+            .OrderBy(e => e.From.Y).ThenBy(e => e.From.X).ThenBy(e => e.To.Y).ThenBy(e => e.To.X).ToArray();
+        var adjacency = new Dictionary<GridPosition, List<GridPosition>>();
+        foreach (var (from, to) in Edges)
+        {
+            if (!adjacency.TryGetValue(from, out var first)) adjacency[from] = first = new();
+            if (!adjacency.TryGetValue(to, out var second)) adjacency[to] = second = new();
+            first.Add(to);
+            second.Add(from);
+        }
+        foreach (var neighbors in adjacency.Values) neighbors.Sort(Compare);
+        var stops = adjacency.Where(e => e.Value.Count != 2).Select(e => e.Key).Concat(endpoints).ToHashSet();
+        var used = new HashSet<(GridPosition, GridPosition)>();
+        var paths = new List<IReadOnlyList<GridPosition>>();
+        void Trace(GridPosition from, GridPosition to)
+        {
+            if (!used.Add(Edge(from, to))) return;
+            var path = new List<GridPosition> { from, to };
+            var previous = from;
+            var current = to;
+            while (!stops.Contains(current))
+            {
+                var next = adjacency[current].First(p => p != previous);
+                if (!used.Add(Edge(current, next))) break;
+                path.Add(next);
+                previous = current;
+                current = next;
+            }
+            paths.Add(path.AsReadOnly());
+        }
+        foreach (var node in stops.Where(adjacency.ContainsKey).OrderBy(p => p.Y).ThenBy(p => p.X))
+            foreach (var next in adjacency[node]) Trace(node, next);
+        // A closed sea loop with no port/junction must also draw every edge once.
+        foreach (var (from, to) in Edges) Trace(from, to);
+        RenderRoutes = paths.AsReadOnly();
     }
 }

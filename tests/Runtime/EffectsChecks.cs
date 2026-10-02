@@ -7,6 +7,7 @@ using DevAncientNaval.Core.Units;
 using DevAncientNaval.Core.World;
 using DevAncientNaval.Presentation;
 using DevAncientNaval.Presentation.Map;
+using DevAncientNaval.Presentation.UI;
 using Godot;
 using Side = DevAncientNaval.Core.Units.Side;
 
@@ -103,9 +104,30 @@ public partial class EffectsChecks : Node
             double hp = defender.Health, damage = Game.Battle.Damage(ship, defender);
             Game.SelectCell(origin);
             Game.SelectCell(target);
+            if (Game.Hud.SalvoChoiceVisible)
+            {
+                await Wait(.3f);
+                SectorButton FindSingle(Node node)
+                {
+                    if (node is SectorButton { Name: var name } button && name == "SingleShot") return button;
+                    foreach (var child in node.GetChildren())
+                    {
+                        var found = FindSingle(child);
+                        if (found is not null) return found;
+                    }
+                    return null!;
+                }
+                var single = FindSingle(Game.Hud);
+                var point = single.GlobalPosition + single.IconCenter;
+                GetViewport().PushInput(new InputEventMouseButton { ButtonIndex=MouseButton.Left, Position=point, GlobalPosition=point, Pressed=true }, true);
+                GetViewport().PushInput(new InputEventMouseButton { ButtonIndex=MouseButton.Left, Position=point, GlobalPosition=point, Pressed=false }, true);
+            }
             float deckBefore = Game.Fleet.DeckAngle(ship.Id);
             var order = Game.CurrentOrder;
-            Check(Game.Fleet.TurningForShot && Game.Fleet.ActiveProjectileCount == 0, "The battery aims before any cannonball launches");
+            Check(!Game.Fleet.TurningForShot && Game.Fleet.ActiveProjectileCount == 0, "The camera leads the shot before the battery aims");
+            for (int frame = 0; frame < 180 && !Game.Fleet.TurningForShot && !order.IsCompleted; frame++)
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            Check(Game.Fleet.TurningForShot && Game.Fleet.ActiveProjectileCount == 0, "The battery aims after the camera arrives and before any cannonball launches");
             Check(Game.Battle.Find(2)!.Health == hp, "Actual Core health remains unchanged until the last cannonball lands");
             await Capture("salvo-" + kind);
             await order;

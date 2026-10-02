@@ -14,52 +14,51 @@ public partial class BoardView
     private float TownAnimationTime => (Time.GetTicksMsec() - _townAnimationEpoch) / 1000f;
     internal static Vector2 TownHealthAnchor(Vector2 center) => center + new Vector2(38, -31);
 
-    private readonly Dictionary<int, (Vector2 Position, float Height, float Width)[]> _townHomes = new();
-    internal static Vector2[] TownMills(Village town) => town.Level < 2 ? Array.Empty<Vector2>() : town.Level < 4 ? new[]
+    private readonly Dictionary<int, TownHouse[]> _townHomes = new();
+    internal static Vector2[] TownMills(Village town) => TownMills(town.Level);
+    private static Vector2[] TownMills(int level) => level < 2 ? Array.Empty<Vector2>() : level < 4 ? new[]
     {
-        new Vector2(-24, -17)
+        new Vector2(-18, 0)
     }
 
     : new[]
     {
-        new Vector2(-29, -18),
-        new Vector2(26, -8)
+        new Vector2(-18, 0),
+        new Vector2(18, 0)
     };
-    private void DrawVillage(Node2D canvas, Village town, Vector2 center)
+    internal TownHouse[] TownHomes(Village town) => TownHomes(town.Id);
+    private TownHouse[] TownHomes(int townId)
     {
-        if (!_townHomes.TryGetValue(town.Id, out var homes))
-        {
-            var random = new Random(Board.Seed ^ town.Id * 719);
-            homes = Enumerable.Range(0, 16).Select(i => (new Vector2((float)random.NextDouble() * 42 - 21, (float)random.NextDouble() * 22 - 13), 10f + random.Next(13), 5f + random.Next(4))).OrderBy(h => h.Item1.Y).ToArray();
-            _townHomes[town.Id] = homes;
-        }
+        if (!_townHomes.TryGetValue(townId, out var homes))
+            _townHomes[townId] = homes = TownLayout.Build(Board.Seed ^ townId * 719);
+        return homes;
+    }
+    private void DrawVillage(Node2D canvas, TownArtState town, Vector2 center)
+    {
+        var homes = TownHomes(town.Id);
 
-        var accent = FleetPalette.For(Battle, town.Owner);
-        var ground = new[]
-        {
-            center + new Vector2(-30, -9),
-            center + new Vector2(0, -23),
-            center + new Vector2(33, -4),
-            center + new Vector2(2, 17)
-        };
-        canvas.DrawColoredPolygon(ground, new Color("999b7a"));
-        int count = 3 + town.Level * 2;
+        var accent = town.Accent;
+        if (town.IsFortified) DrawTownWall(canvas, town, center, false);
+        int count = Math.Min(homes.Length, 3 + town.Level * 2);
         bool shrineDrawn = false;
         void Shrine()
         {
             if (town.Owner is not { } owner) return;
             Vector2 Project(float x, float y, float z) => center + new Vector2((x - y) * .85f, (x + y) * .42f - z);
-            FactionSanctuaryArt.Draw(canvas, (x, y, z) => Project(x, y - 4, z * (1.4f + .24f * (town.Level - 1)) + 1), Battle.ColorFor(owner));
+            Vector2 Monument(float x, float y, float z) => Project(x, y - 4, z * SanctuaryHeightScale(town.Level) + 1);
+            if (owner == Side.Pirates) FactionSanctuaryArt.DrawPirate(canvas, Monument);
+            else FactionSanctuaryArt.Draw(canvas, Monument, town.Monument);
         }
         for (int i = 0; i < count; i++)
         {
             var home = homes[i];
             if (!shrineDrawn && home.Position.Y >= -3) { Shrine(); shrineDrawn = true; }
             var p = center + home.Position;
-            float h = home.Height + Math.Max(0, town.Level - 2) * 4;
+            float h = home.Height + Math.Max(0, town.Level - 2) * 1.7f;
             float w = home.Width;
-            canvas.DrawColoredPolygon(new[] { p + new Vector2(-w, 0), p + new Vector2(2, 4), p + new Vector2(2, 4 - h), p + new Vector2(-w, -h) }, new Color("e2caa1").Darkened(i % 4 * .035f));
-            canvas.DrawColoredPolygon(new[] { p + new Vector2(2, 4), p + new Vector2(w + 3, 0), p + new Vector2(w + 3, -h), p + new Vector2(2, 4 - h) }, new Color("ac9a77"));
+            var plaster = new Color(home.Style switch { 0 => "e2caa1", 1 => "e6d5b6", 2 => "d4c4aa", 3 => "ddd4bc", _ => "cfc3a5" });
+            canvas.DrawColoredPolygon(new[] { p + new Vector2(-w, 0), p + new Vector2(2, 4), p + new Vector2(2, 4 - h), p + new Vector2(-w, -h) }, plaster);
+            canvas.DrawColoredPolygon(new[] { p + new Vector2(2, 4), p + new Vector2(w + 3, 0), p + new Vector2(w + 3, -h), p + new Vector2(2, 4 - h) }, plaster.Darkened(.2f));
             canvas.DrawColoredPolygon(new[] { p + new Vector2(-w - 1, -h), p + new Vector2(0, -h - 5), p + new Vector2(w + 4, -h), p + new Vector2(2, 5 - h) }, accent.Darkened(.12f + i % 5 * .07f));
             // Upright doors, cornices, lintels and roof tiles distinguish the houses.
             canvas.DrawLine(p + new Vector2(-w, -h + 1), p + new Vector2(2, 4 - h + 1), new Color("f4e5c2"), 1, true);
@@ -84,78 +83,43 @@ public partial class BoardView
         }
 
         if (!shrineDrawn) Shrine();
-        foreach (var mill in TownMills(town))
+        foreach (var mill in TownMills(town.Level))
         {
             var p = center + mill;
-            canvas.DrawColoredPolygon(new[] { p + new Vector2(-5, 9), p + new Vector2(6, 9), p + new Vector2(4, -7), p + new Vector2(-3, -7) }, new Color("d6c6a3"));
-            canvas.DrawColoredPolygon(new[] { p + new Vector2(-6, -7), p + new Vector2(0, -12), p + new Vector2(6, -7) }, new Color("886d4c"));
+            canvas.DrawColoredPolygon(new[] { p + new Vector2(-5, 0), p + new Vector2(6, 0), p + new Vector2(4, -16), p + new Vector2(-3, -16) }, new Color("d6c6a3"));
+            canvas.DrawColoredPolygon(new[] { p + new Vector2(-6, -16), p + new Vector2(0, -22), p + new Vector2(6, -16) }, new Color("886d4c"));
         }
 
-        if (town.IsFortified)
-        {
-            var wall = new[]
-            {
-                center + new Vector2(-35, -8),
-                center + new Vector2(-35, 10),
-                center + new Vector2(0, 28),
-                center + new Vector2(36, 10),
-                center + new Vector2(36, -9)
-            };
-            bool stone = town.Level >= 3;
-            if (stone)
-                for (int segment = 1; segment < wall.Length; segment++)
-                    canvas.DrawColoredPolygon(new[] { wall[segment - 1], wall[segment], wall[segment] + new Vector2(0, -6), wall[segment - 1] + new Vector2(0, -6) }, new Color("a6ab99"));
-            else
-                canvas.DrawPolyline(wall, new Color("826442"), 4, true);
-            if (stone)
-                for (int segment = 1; segment < wall.Length; segment++)
-                {
-                    canvas.DrawLine(wall[segment-1] + new Vector2(0,-3), wall[segment] + new Vector2(0,-3), new Color("7b8377"), .65f, true);
-                    for (float t = .08f; t < 1; t += .18f)
-                    {
-                        var at = wall[segment-1].Lerp(wall[segment],t);
-                        canvas.DrawLine(at,at+new Vector2(0,-3),new Color("7b8377"),.6f);
-                    }
-                }
-            for (int i = 1; i < wall.Length; i++)
-                for (float t = 0; t <= 1; t += .14f)
-                {
-                    var at = wall[i - 1].Lerp(wall[i], t);
-                    if (stone)
-                        canvas.DrawRect(new Rect2(at + new Vector2(-2, -8), new Vector2(4, 5)), new Color("d1cbb6"));
-                    else
-                        canvas.DrawLine(at, at + new Vector2(0, -7), new Color("b49a6b"), 2, true);
-                }
-        }
-
-        DrawTownFields(canvas, town, center);
-        if (town.HasPort)
-            DrawPort(canvas, town, center);
         if (town.Owner is not null)
-            canvas.DrawLine(center + new Vector2(13, -24), center + new Vector2(13, -47), new Color("eadfc2"), 2, true);
+            canvas.DrawLine(center + new Vector2(13, -24), center + VillageFlagOffset, new Color("eadfc2"), 2, true);
     }
 
-    private static void DrawTownFields(Node2D canvas, Village town, Vector2 center)
+    private void DrawVillageForeground(Node2D canvas, TownArtState town, Vector2 center)
     {
-        int rows = 2 + town.Level / 2;
-        for (int field = 0; field < rows; field++)
+        if (town.IsFortified) DrawTownWall(canvas, town, center, true);
+    }
+
+    internal static float SanctuaryHeightScale(int level) => 1.4f + .3f * (level - 1);
+    private void DrawTownFields(Node2D canvas, TownArtState town, Vector2 center)
+    {
+        foreach (var field in TownGround(town).Fields)
         {
-            var at = center + new Vector2(-28 + field * 14, 36 + field % 2 * 4);
-            canvas.DrawColoredPolygon(new[] { at, at + new Vector2(12,-5), at + new Vector2(21,0), at + new Vector2(9,6) }, new Color("aa8d50"));
-            for (int stalk = 0; stalk < 8; stalk++)
+            foreach (var shape in field.Shapes)
+                canvas.DrawColoredPolygon(shape.Select(p => p + center).ToArray(), new Color("ad985f"));
+            foreach (var basePoint in field.Stalks)
             {
-                var basePoint = at + new Vector2(4 + stalk % 4 * 3, stalk / 4 * 3);
-                canvas.DrawLine(basePoint, basePoint + new Vector2(0,-5), new Color("e2bd62"), .8f);
-                canvas.DrawLine(basePoint + new Vector2(-1.4f,-4), basePoint + new Vector2(1.4f,-6), new Color("f4d889"), 1.1f, true);
+                var p = basePoint + center;
+                canvas.DrawLine(p, p + new Vector2(0,-4), new Color("e2bd62"), .8f);
+                canvas.DrawLine(p + new Vector2(-1.1f,-3), p + new Vector2(1.1f,-5), new Color("f4d889"), 1.1f, true);
             }
         }
     }
 
     internal Vector2 PortAnchor(Village town) => Projection.GridToWorld(town.Position).Lerp(Projection.GridToWorld(Battle.PortBerth(town)), .5f);
 
-    private void DrawPort(Node2D canvas, Village town, Vector2 center)
+    private void DrawPort(Node2D canvas, TownArtState town, Vector2 center)
     {
-        var sea = Projection.GridToWorld(Battle.PortBerth(town)) - Projection.GridToWorld(town.Position);
+        var sea = Projection.GridToWorld(town.PortBerth) - Projection.GridToWorld(town.Position);
         var axis = sea.Normalized();
         var side = axis.Orthogonal();
         var shore = center + sea * .5f;
@@ -180,7 +144,7 @@ public partial class BoardView
 
         Vector2 P(float x, float y, float z) => shore + new Vector2(x-y,(x+y)*.45f-z);
         FactionSanctuaryArt.Box(canvas, P, 0,0,0,9,7,8,new Color("d5c098"));
-        FactionSanctuaryArt.Pyramid(canvas, P,0,0,8,5,4,FleetPalette.For(Battle,town.Owner).Darkened(.2f));
+        FactionSanctuaryArt.Pyramid(canvas, P,0,0,8,5,4,town.Accent.Darkened(.2f));
         canvas.DrawCircle(shore + new Vector2(0,-4),2,new Color("f0e4bf"));
         canvas.DrawLine(shore + new Vector2(0,-6),shore + new Vector2(0,-2),new Color("726851"),1);
     }

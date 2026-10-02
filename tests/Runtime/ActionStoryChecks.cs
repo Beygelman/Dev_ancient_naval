@@ -56,6 +56,8 @@ public partial class ActionStoryChecks : Node
 
     private void CheckSideLayout(ActionPapyrus papyrus)
     {
+        Check(papyrus.Size == SectorButton.PaperFootprint,
+            "Claim and treasury banners share the object command parchment size");
         var heading = Nodes(Game.Hud).OfType<Label>().Single(label => label.IsVisibleInTree()
             && label.Text == Game.Hud.ShipText);
         Node? ancestor = heading.GetParent();
@@ -66,7 +68,7 @@ public partial class ActionStoryChecks : Node
         Check(fan.Position.DistanceTo(card.Position) > 100,
             "actions return to the world object rather than the ledger");
         Check(papyrus.Position.Y < fan.Position.Y,
-            "the downward pictorial action hangs above the ship's upward fan");
+            "the straight pictorial banner hangs above the lower command fan");
         Check(papyrus.GetGlobalRect().Position.X >= 0
             && papyrus.GetGlobalRect().End.X <= GetViewport().GetVisibleRect().Size.X,
             "wide pictorial action stays inside the viewport");
@@ -74,7 +76,7 @@ public partial class ActionStoryChecks : Node
 
     private void Click(ActionPapyrus papyrus)
     {
-        var point = papyrus.GlobalPosition + new Vector2(papyrus.Size.X / 2, 112);
+        var point = papyrus.GlobalPosition + papyrus.Size / 2;
         GetViewport().PushInput(new InputEventMouseButton
         {
             ButtonIndex = MouseButton.Left,
@@ -104,6 +106,9 @@ public partial class ActionStoryChecks : Node
             "the alongside crew waits a full owner turn");
         battle.SetGodEye(true);
         Game.LoadScenario(battle);
+        Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(location) + new Vector2(0, -35);
+        Game.MapCamera.Zoom = Vector2.One;
+        Game.MapCamera.ForceUpdateScroll();
         Game.FastChecks = false;
         var town = battle.Villages.Single();
         Check(Game.SelectedShipId is null && Game.Hud.ClaimPapyrus.Visible,
@@ -117,6 +122,11 @@ public partial class ActionStoryChecks : Node
         CheckSideLayout(papyrus);
         Check(papyrus.HasArtwork,
             "harbor action has its brush illustration");
+        Game.CancelOrder();
+        Check(papyrus.Reveal == 1 && papyrus.Visible, "deselecting cannot reopen a ready banner");
+        papyrus.SetOnScreen(false); papyrus.SetOnScreen(true); Game.Refresh();
+        Check(papyrus.Reveal == 1 && papyrus.Visible, "returning from off-screen cannot restart unfolding");
+        Game.SelectCell(location);
         await Capture("-claim-ready");
         var stats = battle.Statistics;
         int credits = battle.Credits(Side.Player);
@@ -165,6 +175,9 @@ public partial class ActionStoryChecks : Node
             "the plunder crew waits to the next player turn");
         battle.SetGodEye(true);
         Game.LoadScenario(battle);
+        Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(new(7,6)) + new Vector2(0, -35);
+        Game.MapCamera.Zoom = Vector2.One;
+        Game.MapCamera.ForceUpdateScroll();
         Game.FastChecks = false;
         Game.SelectCell(new(7, 6));
         await Frame();

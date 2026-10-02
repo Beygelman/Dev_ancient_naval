@@ -28,6 +28,8 @@ public sealed partial class BattleState
             return error;
         if (!Enum.IsDefined(shipClass) || shipClass is ShipClass.Mothership or ShipClass.Balloon or ShipClass.FishingDock or ShipClass.AncientGun or ShipClass.PirateSchooner)
             return "This class cannot be built.";
+        if (shipClass == ShipClass.Lighthouse && !Rules.LighthousesEnabled)
+            return "Lighthouse construction is unavailable in this voyage.";
         if (mother!.Definition.Class != ShipClass.Mothership)
             return "Select a Mothership to build ships.";
         if (mother.Level < RequiredLevel(shipClass))

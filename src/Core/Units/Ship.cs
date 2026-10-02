@@ -11,7 +11,7 @@ public sealed class Ship
     public int Kills { get; internal set; }
     public bool IsVeteran { get; internal set; }
     public bool CanEarnVeterancy => !IsMothership && !IsAirborne && IsArmed && Definition.Class != ShipClass.FishingDock;
-    public bool IsStructure => Definition.Class is ShipClass.FishingDock or ShipClass.AncientGun or ShipClass.CannonTower;
+    public bool IsStructure => Definition.Class is ShipClass.FishingDock or ShipClass.AncientGun or ShipClass.CannonTower or ShipClass.Lighthouse;
     public bool IsAncient { get; internal set; }
     public int BombCooldown { get; internal set; }
     public bool HasRepaired { get; internal set; }
@@ -20,7 +20,7 @@ public sealed class Ship
     public bool IsAirborne => Definition.Class == ShipClass.Balloon;
     public int Level { get; internal set; } = 1;
     public int Resources { get; internal set; }
-    public int ResourcesRequired => IsMothership && Level < 5 ? Level + 1 : 0;
+    public int ResourcesRequired => IsMothership && Level < 5 ? Level + 1 + Definition.ResourceRequirementIncrease : 0;
     public int PendingUpgradeLevel { get; internal set; }
     public bool IncomeUpgrade { get; internal set; }
     public bool MobilityUpgrade { get; internal set; }

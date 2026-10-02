@@ -42,7 +42,7 @@ public partial class BattleChecks : Node
     }
 
     private Button Button(string name) => Descendants(Game.Hud).OfType<Button>().Single(b => b.Name == name);
-    private Vector2 ClickAt(Button b) => b is SectorButton s ? s.GlobalPosition + s.IconCenter : b.GetGlobalRect().GetCenter();
+    private Vector2 ClickAt(Button b) => b is SectorButton s ? s.GetGlobalTransform() * s.IconCenter : b.GetGlobalRect().GetCenter();
     private void Click(Button b)
     {
         var p = ClickAt(b);
@@ -147,7 +147,7 @@ public partial class BattleChecks : Node
         Check(Game.Hud.MenuPosition.DistanceTo(before) > 5, "Ship actions follow the hull while the camera moves");
         var resources = Game.Battle.CollectionCells(Side.Player).Concat(Game.Battle.DockCells(Side.Player)).ToHashSet();
         var destination = Game.Battle.Reachable(garrison.Id).First(p => p.Value == 10 && p.Key != garrison.Position && !resources.Contains(p.Key) &&
-            !Descendants(Game.Hud).OfType<SectorButton>().Any(s => s.IsVisibleInTree() && s._HasPoint(Screen(p.Key) - s.GlobalPosition))).Key;
+            !Descendants(Game.Hud).OfType<SectorButton>().Any(s => s.IsVisibleInTree() && s._HasPoint(s.GetGlobalTransform().AffineInverse() * Screen(p.Key)))).Key;
         Tap(Screen(destination));
         var order = Game.CurrentOrder;
         Check(Game.Busy, "Movement starts on tile click");
@@ -158,6 +158,7 @@ public partial class BattleChecks : Node
         Game.FastChecks = true;
         var mother = Game.Battle.Mothership(Side.Player)!;
         Game.SelectCell(mother.Position);
+        await ToSignal(GetTree().CreateTimer(.3), SceneTreeTimer.SignalName.Timeout);
         await Frame();
         var sectors = Descendants(Game.Hud).OfType<SectorButton>().Where(s => s.IsVisibleInTree()).ToArray();
         Check(sectors.Length == 5 && sectors.All(s => Mathf.IsEqualApprox(s.Sweep, SectorButton.SectorStep) && s._HasPoint(s.IconCenter) && !s._HasPoint(SectorButton.Center)), "Five readable papyrus sectors, including information, leave the map center transparent");
@@ -261,8 +262,17 @@ public partial class BattleChecks : Node
         Game.SelectCell(new(7, 7));
         Check(Game.BoardView.Targets.Contains(new GridPosition(9, 7)), "Selectable targets remain outlined");
         Game.SelectCell(new(9, 7));
+        if (Game.Battle.Rules.DoubleSalvo)
+        {
+            Check(Game.Hud.SalvoChoiceVisible, "Two-shot target opens the choice parchment");
+            await Frame();
+            Click(Button("SingleShot"));
+        }
         order = Game.CurrentOrder;
-        Check(Game.Fleet.TurningForShot && Game.Fleet.ProjectilePosition is null, "Cannon vessel starts turning before any projectile launches");
+        Check(!Game.Fleet.TurningForShot && Game.Fleet.ProjectilePosition is null, "Camera leads the broadside and projectile");
+        for (int frame = 0; frame < 120 && !Game.Fleet.TurningForShot && !order.IsCompleted; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        Check(Game.Fleet.TurningForShot && Game.Fleet.ProjectilePosition is null, "Broadside begins after the camera arrives and before any projectile");
         await WaitForProjectile(order);
         Check(Game.Fleet.ProjectilePosition is not null && !Game.Fleet.TurningForShot, "Cannon projectile follows the completed broadside turn");
         await order;
@@ -336,7 +346,7 @@ public partial class BattleChecks : Node
         Game.CancelOrder();
         await Frame();
         await ToSignal(GetTree().CreateTimer(.42), SceneTreeTimer.SignalName.Timeout);
-        Tap(Game.Hud.ClaimPapyrus.GlobalPosition + new Vector2(150,112));
+        Tap(Game.Hud.ClaimPapyrus.GlobalPosition + Game.Hud.ClaimPapyrus.Size / 2);
         await Game.CurrentOrder;
         await Frame();
         Check(village.Owner == Side.Player && Game.SelectedVillageId == village.Id && Button("ActionBuild").IsVisibleInTree(), "Tapping the hovering scroll captures and opens the town controls");
@@ -394,8 +404,8 @@ public partial class BattleChecks : Node
         Game.FastChecks = false;
         Click(Button("ActionBomb"));
         var bombOrder = Game.CurrentOrder;
-        await ToSignal(GetTree().CreateTimer(.15), SceneTreeTimer.SignalName.Timeout);
-        Check(Game.Fleet.ProjectilePosition is not null, "Bomb visibly falls from the balloon");
+        await WaitForProjectile(bombOrder);
+        Check(Game.Fleet.ProjectilePosition is not null, "Bomb visibly falls after the camera arrives");
         await Capture("-bomb-falling");
         await bombOrder;
         await Frame();

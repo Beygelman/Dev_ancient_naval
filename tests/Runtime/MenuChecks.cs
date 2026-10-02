@@ -123,7 +123,7 @@ public partial class MenuChecks : Node
                 GetViewport().PushInput(new InputEventMouseButton { Position = point, GlobalPosition = point, ButtonIndex = button, Pressed = false }, true);
             }
 
-            MouseClick(information.GlobalPosition + information.IconCenter, MouseButton.Left);
+            MouseClick(information.GetGlobalTransform() * information.IconCenter, MouseButton.Left);
             await Frame();
             Check(Game.Hud.InformationVisible, "Actual papyrus information click opens the ship's counsel.");
             var sections = Descendants(Game.Hud).OfType<Label>().Where(n => n.Name == "InformationSectionHeading").ToArray();
@@ -141,7 +141,7 @@ public partial class MenuChecks : Node
             var resourceAction = Descendants(Game.Hud).OfType<Button>().Single(b => b.Name == "TileResource");
             Check(resourceAction.IsVisibleInTree(), "Resource scroll is open before right-click cancellation.");
             var resourceInformation = Descendants(Game.Hud).OfType<DevAncientNaval.Presentation.UI.SectorButton>().Single(b => b.Name == "ResourceInformation");
-            MouseClick(resourceInformation.GlobalPosition + resourceInformation.IconCenter, MouseButton.Left);
+            MouseClick(resourceInformation.GetGlobalTransform() * resourceInformation.IconCenter, MouseButton.Left);
             await Frame();
             Check(Game.Hud.InformationVisible && Game.Hud.InformationText.Contains("1 Mothership resource"), "Resource information describes the selected shoal.");
             await Frame();
@@ -199,7 +199,9 @@ public partial class MenuChecks : Node
         Game.Hud.CloseMenus();
         var radar = Game.Battle.CaptureSnapshot();
         var hidden = radar.Ships.Single(s => s.Owner == Side.Enemy);
-        hidden.Position = new(26, 10);
+        // The new Lighthouse sees the old eastern fixture. Put the contact
+        // beyond the veteran tower's optical reach but within its radar.
+        hidden.Position = new(18, 15);
         radar.GodEye = false;
         Game.LoadScenario(DevAncientNaval.Core.Battle.BattleState.LoadJson(DevAncientNaval.Core.Battle.BattleState.SerializeSnapshot(radar)));
         Check(Game.Battle.Vision.IsRadarContact(Side.Player, hidden.Position) && !Game.Battle.Vision.IsVisible(Side.Player, hidden.Position), "Radar fixture is not directly observed");

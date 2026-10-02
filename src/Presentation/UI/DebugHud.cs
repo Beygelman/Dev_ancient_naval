@@ -15,9 +15,12 @@ public partial class DebugHud : CanvasLayer
     private Control _root = null !, _upgradeOverlay = null !;
     private RadialPapyrus _radial = null !, _resourceRoot = null !;
     private PanelContainer _metricsPaper = null !;
+    private PanelContainer _nationPaper = null!;
+    private Label _nationLabel = null!;
     private SectorButton _resourceInformation = null !;
     private readonly List<SectorButton> _actionSectors = new(12);
     private readonly List<SectorButton> _visibleSectors = new(12);
+    private readonly List<Vector2> _worldTargetHitPoints = new(16);
     private int _lastSectorCount;
     private bool _unfoldActions;
     private HBoxContainer _metrics = null !;
@@ -62,25 +65,35 @@ public partial class DebugHud : CanvasLayer
         {
             MouseFilter = Control.MouseFilterEnum.Stop
         };
-        _metrics.AddThemeConstantOverride("separation", 44);
+        _metrics.AddThemeConstantOverride("separation", 24);
         _metricsPaper.AddChild(_metrics);
         var money = new VBoxContainer();
         money.AddThemeConstantOverride("separation", 1);
         _metrics.AddChild(money);
-        _coinCaption = Label("Thors (+4)", 15, true);
+        _coinCaption = Label("Thors (+4)", 12, true);
         money.AddChild(_coinCaption);
-        _coins = Label("5", 32, true);
+        _coins = Label("5", 23, true);
         var coinRow = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
         coinRow.AddThemeConstantOverride("separation", 6);
         money.AddChild(coinRow);
-        coinRow.AddChild(new CoinIcon { Name = "ThorCoin", CustomMinimumSize = new(24, 32) });
+        coinRow.AddChild(new CoinIcon { Name = "ThorCoin", CustomMinimumSize = new(18, 23) });
         coinRow.AddChild(_coins);
         var turns = new VBoxContainer();
         turns.AddThemeConstantOverride("separation", 1);
         _metrics.AddChild(turns);
-        turns.AddChild(Label("Turn", 15, true));
-        _turn = Label("1", 32, true);
+        turns.AddChild(Label("Turn", 12, true));
+        _turn = Label("1", 23, true);
         turns.AddChild(_turn);
+        var compact = PapyrusStyle.Panel();
+        compact.ContentMarginTop = compact.ContentMarginBottom = 7;
+        compact.ContentMarginLeft = compact.ContentMarginRight = 11;
+        _metricsPaper.AddThemeStyleboxOverride("panel", compact);
+        _nationPaper = Panel(_root);
+        _nationPaper.Name = "ActingNation";
+        _nationPaper.MouseFilter = Control.MouseFilterEnum.Ignore;
+        _nationLabel = Label("Your turn", 12, true);
+        _nationPaper.AddChild(_nationLabel);
+        _nationPaper.Hide();
         _restart = TextButton("", () => SetMenuVisible(true));
         _restart.Name = "Menu";
         _restart.TooltipText = "Menu";
@@ -153,7 +166,8 @@ public partial class DebugHud : CanvasLayer
             (ShipClass.Invader, ActionSymbol.Standard),
             (ShipClass.Kolonel, ActionSymbol.Heavy),
             (ShipClass.Togus, ActionSymbol.Mortar),
-            (ShipClass.CannonTower, ActionSymbol.Tower)
+            (ShipClass.CannonTower, ActionSymbol.Tower),
+            (ShipClass.Lighthouse, ActionSymbol.Lighthouse)
         }
 
         )
@@ -207,8 +221,10 @@ public partial class DebugHud : CanvasLayer
 
         )
         {
-            var button = TextButton(UpgradeDescriptions.Description(choice), () => UpgradeRequested?.Invoke(choice));
-            button.TooltipText = UpgradeDescriptions.Title(choice);
+            var button = new MysticUpgradeButton { Text = MysticUpgradeButton.Title(choice) };
+            PapyrusStyle.Button(button);
+            button.Pressed += () => UpgradeRequested?.Invoke(choice);
+            button.TooltipText = UpgradeDescriptions.Description(choice);
             button.Name = "Upgrade" + choice;
             var group = new VBoxContainer();
             group.AddThemeConstantOverride("separation", 3);
@@ -223,6 +239,8 @@ public partial class DebugHud : CanvasLayer
 
         BuildGameMenu();
         BuildActionStories();
+        BuildSalvoChoice();
+        BuildHeavenlyAssistance();
         _upgradeOverlay.Hide();
         _radial.Hide();
         _shipCard.Hide();
@@ -266,10 +284,11 @@ public partial class DebugHud : CanvasLayer
         _upgradeOverlay.Visible = pending is not null && !busy && !finished;
         if (pending is not null)
         {
-            _upgradeTitle.Text = $"Mothership · level {pending.Level}";
+            _upgradeTitle.Text = $"Mothership · level {pending.Level} · +{battle.Rules.LevelCurrencyRewards[pending.Level - 2]} Thors";
             foreach (var(choice, button)in _choices)
             {
-                button.Text = UpgradeDescriptions.Description(choice, battle.Rules);
+                button.Text = MysticUpgradeButton.Title(choice);
+                button.TooltipText = UpgradeDescriptions.Description(choice, battle.Rules);
                 button.Visible = battle.UpgradeOptions(pending.Id).Contains(choice);
                 ((Control)button.GetParent()).Visible = button.Visible;
                 button.Disabled = busy;
@@ -312,7 +331,7 @@ public partial class DebugHud : CanvasLayer
         _repair.TooltipText = $"Repair: up to +{battle.Rules.RepairAmount} HP";
         _radar.TooltipText = selected?.HasRadar == true ? $"Radar installed · range {selected.RadarRange}" : $"Install radar · {selected?.Definition.RadarPrice} Thors";
         _yard.SetMeta("applicable", selected?.Owner == Side.Player && selected?.IsMothership == true || village?.Owner == Side.Player);
-        _radar.SetMeta("applicable", selected?.Owner == Side.Player && selected?.Definition.Class is ShipClass.Mothership or ShipClass.Kolonel or ShipClass.CannonTower);
+        _radar.SetMeta("applicable", selected?.Owner == Side.Player && selected?.Definition.Class is ShipClass.Mothership or ShipClass.Kolonel or ShipClass.CannonTower or ShipClass.Lighthouse);
         _bomb.SetMeta("applicable", selected?.Owner == Side.Player && selected?.IsAirborne == true);
         Availability(_bomb, ownShip && battle.CanDropBomb(selected!.Id), selected?.BombCooldown > 0 ? selected.BombCooldown.ToString() : $"{battle.Rules.Balloon.BombDamage}+{battle.Rules.Balloon.SplashDamage}");
         _bomb.TooltipText = selected?.BombCooldown > 0 ? $"Bomb recharging: {selected.BombCooldown} turns" : $"Move, then bomb: {battle.Rules.Balloon.BombDamage} direct + {battle.Rules.Balloon.SplashDamage} to adjacent cells, including allies. Recharges in {battle.Rules.Balloon.CooldownTurns} turns.";
@@ -327,7 +346,7 @@ public partial class DebugHud : CanvasLayer
         {
             var definition = battle.Rules.Get(kind);
             var reason = village is not null ? battle.VillageBuildBlockReason(Side.Player, village.Id, kind) : selected is null ? "Select a Mothership" : battle.BuildBlockReason(Side.Player, selected.Id, kind);
-            button.SetMeta("applicable", village is null || kind != ShipClass.CannonTower);
+            button.SetMeta("applicable", (village is null || kind != ShipClass.CannonTower) && (kind != ShipClass.Lighthouse || battle.Rules.LighthousesEnabled));
             int price = village is null ? battle.BuildPrice(Side.Player, kind) : battle.VillageBuildPrice(village.Id, kind);
             button.Cost = price;
             Availability(button, _hasRadial && reason is null, price.ToString());
@@ -343,11 +362,10 @@ public partial class DebugHud : CanvasLayer
 
     public void CloseMenus()
     {
+        HideSalvoChoice();
         _productionOpen = false;
         _resourceRoot.Hide();
         _informationPanel.Hide();
-        _claimPapyrus.SetReady(false);
-        _treasuryPapyrus.SetReady(false);
     }
 
     public void HideResource() => _resourceRoot.Hide();
@@ -417,7 +435,7 @@ public partial class DebugHud : CanvasLayer
         _radial.Visible = _visibleSectors.Count > 0;
     }
 
-    public void PositionActions(Vector2? shipScreen)
+    public void PositionActions(Vector2? shipScreen, float progressOffset = 39)
     {
         if (!_hasRadial || shipScreen is not { } point || _mode != OrderMode.None)
         {
@@ -426,22 +444,43 @@ public partial class DebugHud : CanvasLayer
         }
 
         _radial.Visible = _visibleSectors.Count > 0;
-        _radial.Position = ClampWorldUi(point - SectorButton.Center + new Vector2(0, 36), _radial.Size);
+        // Keep the ring's center attached to the selected object. Larger objects reserve
+        // enough space inside the parchment for their hull and progress cells.
+        float scale = Mathf.Clamp((progressOffset + 10) / SectorButton.Inner, 1, 1.9f);
+        _radial.Scale = Vector2.One * scale;
+        var origin = point;
+        var viewport = GetViewport().GetVisibleRect().Size;
+        float margin = SectorButton.Outer * scale + 9;
+        origin.X = Mathf.Clamp(origin.X, margin, Math.Max(margin, viewport.X - margin));
+        origin.Y = Mathf.Clamp(origin.Y, margin, Math.Max(margin, viewport.Y - margin));
+        _radial.Position = origin - SectorButton.Center * scale;
+    }
+
+    internal void SetActionTargetHitExclusions(IReadOnlyList<Vector2> screenPoints)
+    {
+        _worldTargetHitPoints.Clear();
+        var toLocal = _radial.GetGlobalTransform().AffineInverse();
+        foreach (var point in screenPoints)
+            _worldTargetHitPoints.Add(toLocal * point);
+        float localRadius = 15 / Math.Max(.1f, _radial.Scale.X);
+        foreach (var command in _actionSectors)
+            command.SetWorldTargetHitExclusions(_worldTargetHitPoints, localRadius);
     }
 
     public void ShowOpponentTurn(Side side = Side.Enemy)
     {
-        _banner.Text = side == Side.Pirates ? "Pirates on the move" : $"{_namedBattle?.FactionName(side)}'s turn";
-        _bannerTime = -2;
-        _banner.Show();
+        bool known = _namedBattle?.HasMet(side) == true;
+        _nationLabel.Text = known ? $"{_namedBattle!.FactionName(side)}'s turn" : "Other nations are taking their turns";
+        StyleNation(known ? Map.FleetPalette.For(_namedBattle!, side) : PapyrusStyle.Paper.Darkened(.14f));
+        _banner.Hide();
+        _notice.Hide();
         Layout();
     }
 
     public void ShowPlayerTurn()
     {
-        _banner.Text = "Your turn";
-        _bannerTime = 2.1f;
-        _banner.Show();
+        _nationLabel.Text = "Your turn";
+        StyleNation(_namedBattle is null ? PapyrusStyle.Paper : Map.FleetPalette.For(_namedBattle, Side.Player));
         Layout();
     }
 
@@ -449,10 +488,22 @@ public partial class DebugHud : CanvasLayer
     {
         _bannerTime = 0;
         _banner.Hide();
+        _nationPaper.Hide();
+    }
+    private void StyleNation(Color color)
+    {
+        var style = PapyrusStyle.Panel();
+        style.BgColor = new Color(color, .92f);
+        style.ContentMarginTop = style.ContentMarginBottom = 4;
+        style.ContentMarginLeft = style.ContentMarginRight = 9;
+        _nationPaper.AddThemeStyleboxOverride("panel", style);
+        _nationPaper.ResetSize();
+        _nationPaper.Show();
     }
 
     public void ShowMessage(string message)
     {
+        if (_namedBattle is { ActiveSide: not Side.Player }) message = "";
         _combatPreview.Hide();
         _message.Show();
         _message.Text = message;
@@ -466,7 +517,7 @@ public partial class DebugHud : CanvasLayer
         _message.Hide();
         _combatPreview.Show();
         _damagePreview.Text = $"Damage {damage:0.##}";
-        _counterPreview.Text = $"Counterattack {counter:0.##}";
+        _counterPreview.Text = $"−{counter:0}";
         _noticeTime = 3.8f;
         _notice.Show();
         Layout();
@@ -505,6 +556,7 @@ public partial class DebugHud : CanvasLayer
 
     public override void _Process(double delta)
     {
+        PositionHeavenlyAssistance();
         if (_noticeTime > 0)
         {
             _noticeTime -= (float)delta;
@@ -520,6 +572,7 @@ public partial class DebugHud : CanvasLayer
         }
 
         Layout();
+        _nationPaper.Position = new((_root.GetViewportRect().Size.X - _nationPaper.Size.X) / 2, _metricsPaper.Position.Y + _metricsPaper.Size.Y + 3);
     }
 
     private void Layout()

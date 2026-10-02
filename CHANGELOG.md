@@ -1,5 +1,46 @@
 # Ancient Naval change history
 
+## v020.2 — corrected build — 2026-10-03
+
+- Galleon gains one attack tile. Continuous rounded island surfaces remove water cuts and pointed sand wedges; enclosed lakes remain water. Larger summits and smaller connecting peaks form inland ridges; denser groves use a continuous field rather than tile borders.
+- Retained shader-driven sea waves rebuild only with visibility changes, removing per-frame wave tessellation/uploads; selecting a hull redraws only the old/new selection.
+- Native frame-pacing gates; bounded terrain regions, batched sea/wake geometry, cached town artwork and OpenGL Compatibility rendering.
+- Circular parchment length follows command count; target clicks take priority; mystical upgrade names have localized effect tooltips.
+- Compact land-fitted towns, taller square walls with corner towers, detailed mortar carriages.
+- Admiral concentration of fire and Captain route recovery; one-tile sight reduction.
+- Dismissible victory/defeat, deletion of finished saves, right-side voyage setup.
+- English/Ukrainian/Dutch live language controls and grammatical message catalogs.
+- Sea Lighthouses with radar upgrades and port links; deduplicated dashed trade routes; layered spaced towns.
+- Icon-only single/double choice on a target parchment, simultaneous double launch and matching claim/treasury parchment sizing.
+- Historical 0.20.2 packages preserved; new version naming v020, v020.1…v020.9, v021.
+
+
+## 0.20.2 — 2026-10-02 — Bays and Blessings
+
+This user-requested version label builds on the completed 0.21 checkpoint and retains its salvos, camera flights, claim banners, ports and save compatibility.
+
+- Fish resources use approximately 70% of the previous map budget, with one guaranteed first catch per fleet. Resources and coastal settlements concentrate toward the center; Pangaea retains its inland river/lake emphasis.
+- Mothership improvements require **3 / 4 / 5 / 6 resources**. New maps guarantee two black, fortified level-3 pirate bays; ordinary neutral towns sometimes start at level 2 or 3.
+- Each fifth personal turn grants the player **2 Thors per living owned town and Mothership**. Rivals receive **2 Thors per enemy Mothership they directly destroyed**. A top plaque and finite rays announce the reward without revealing unknown nations.
+- Brig and Fishing Schooner evade radar. Mountains cast optical shadows, while radar coverage remains unaffected.
+- Sparse groves alternate with plains. Inset mountain ranges follow island geometry, beaches vary in width and fill rounded land cutouts, and deeper sea is slightly darker. Town soil is irregular and clipped away from beaches; wheat sits nearer houses, walls divide it from the houses, taller towns gain taller monuments, and flags remain attached to their poles.
+- Expanded Latin-letter captain and town names follow six color themes: colonial British, Egyptian, Japanese, German, woodland fantasy and Andean fantasy; pirate bays have their own names. Continue retains saved identities and rules.
+
+[Validation and compatibility](docs/MILESTONE-0.20.2.md).
+
+## 0.21 — 2026-10-02 — Encounters and Salvos
+
+- Place symmetric command papyri beneath ship/town progress, with size-dependent hull progress distance and a compact arc inset. Keep Info on the right.
+- Ready claim/treasury artwork unfolds once as a straight horizontal hovering banner. Selection, temporary locks and camera visibility do not restart it. Activation burns immediately for 0.42 seconds before the one validated commit.
+- New voyage balance: Mothership move 2, Fishing Schooner move 3, Brig range 2, Galleon price 7, Kolonel price 12 and cannon damage 4.
+- Hold a cannon target for at least 0.4 seconds, then release to spend two shots: Kolonel fires twice for 4 base damage each; a Mothership needs Second Attack and uses its own cannon damage. The salvo receives one nonrecursive counterattack. Radar outcomes stay anonymous.
+- Pay Mothership level rewards of 2 / 4 / 5 / 7 Thors at levels 2 / 3 / 4 / 5. First optical contact with each rival nation grants 5 Thors once. Radar and God's eye do not identify nations or generate encounter income.
+- Lead visible attacks/counterattacks/outpost shots/bombs with a 0.25-second camera flight; focus a first encounter in 0.5 seconds. Quintic easing starts and stops at zero speed, independent of distance; manual pan cancels a flight safely.
+- Compact the currency/turn plaque. A separate colored top plaque names met captains and uses “Other nations are taking their turns” until contact. Remove central opponent messages.
+- Coalesce hover input to one frame, retain sea submission buffers and build local radius forecasts rather than whole-map distance tables. Synchronize world UI with the final camera transform; save directly to UTF-8 without intermediate string/JSON-document clones.
+
+[Validation and compatibility](docs/MILESTONE-0.21.md).
+
 ## 0.20 — 2026-10-01 — River Kingdoms
 
 - Automatically show ready claim/treasury scenes at their world targets. Dark-burgundy dry-brush artwork opens downward from a top hinge, floats, rolls inward and burns before capture/rewards commit. Remove yellow capture/loot action icons and the old capture-marker click region.

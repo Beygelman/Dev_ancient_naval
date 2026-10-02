@@ -44,11 +44,11 @@ internal static partial class BattleScenarios
         int funds = battle.Credits(Side.Player), income = battle.GrossIncome(Side.Player);
         Check(battle.BuildPort(Side.Player, town.Id).Success && battle.Credits(Side.Player) == funds - 6 && town.HasProduced, "Port purchase consumes currency and shipyard work");
         Check(battle.GrossIncome(Side.Player) == income + battle.VillageIncome(town) + 1, "Port adds exactly one town income");
-        Check(battle.VillageBuildPrice(town.Id, ShipClass.Invader) == 8 && battle.BuildPrice(Side.Player, ShipClass.Invader) == 10, "Discount belongs only to the port's shipyard");
+        Check(battle.VillageBuildPrice(town.Id, ShipClass.Invader) == 5 && battle.BuildPrice(Side.Player, ShipClass.Invader) == 7, "Discount belongs only to the port's shipyard");
         town.HasProduced = false;
         funds = battle.Credits(Side.Player);
         var built = battle.BuildFromVillage(Side.Player, town.Id, ShipClass.Invader, battle.VillageSpawnCells(town.Id).First());
-        Check(built.Success && battle.Credits(Side.Player) == funds - 8, "Displayed port price equals actual debit");
+        Check(built.Success && battle.Credits(Side.Player) == funds - 5, "Displayed port price equals actual debit");
         foreach (var next in battle.Villages.Skip(1))
         {
             next.Owner = Side.Player;
@@ -102,7 +102,7 @@ internal static partial class BattleScenarios
         Check(battle.CaptureVillage(Side.Player, taken.Id).Success && taken.HasPort && taken.Owner == Side.Player && brig.IsExhausted, "Actual delayed capture transfers a port and spends the crew");
         Check(battle.TradeRoutes(Side.Player).Routes.Count == 1, "Captured port rejoins only the new owner's network");
 
-        battle = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(5, 5)), (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)), (Side.Player, ShipClass.CannonTower, new GridPosition(5, 6)), (Side.Enemy, ShipClass.Garrison, new GridPosition(9, 5)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
+        battle = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(5, 5)), (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)), (Side.Player, ShipClass.CannonTower, new GridPosition(5, 6)), (Side.Enemy, ShipClass.Invader, new GridPosition(9, 5)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
         battle.Find(1)!.HasRadar = true;
         battle.Vision.Recompute(battle.Ships, 1);
         Check(!battle.Find(3)!.HasRadar && battle.FindObserved(Side.Player, 4)is null && battle.CanAttack(3, 4) && battle.TargetCells(3).Contains(new(9, 5)), "Shared radar permits an armed tower without revealing enemy stats");

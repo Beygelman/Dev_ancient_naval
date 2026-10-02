@@ -69,6 +69,7 @@ public partial class StartScreen : CanvasLayer
         _continue = MakeButton("HomeContinue", "Continue", () => ContinueRequested?.Invoke());
         _actions.AddChild(_continue);
         _actions.AddChild(MakeButton("HomeExit", "Exit game", () => ExitRequested?.Invoke()));
+        _actions.AddChild(new LanguageButtons());
         _colors = new VBoxContainer
         {
             Name = "ColorSelection"
@@ -291,6 +292,7 @@ public partial class StartScreen : CanvasLayer
         Show();
         _root.Show();
         _continue.Disabled = !canContinue;
+        _continue.Visible = canContinue;
         _actions.Show();
         _colors.Hide();
         _notice.Text = notice;
@@ -324,7 +326,7 @@ public partial class StartScreen : CanvasLayer
         float panelHeight = Math.Max(580, _colors.GetCombinedMinimumSize().Y + 24);
         float choicesScale = Math.Clamp((size.Y - 132) / panelHeight, .6f, 1);
         _setupPaper.Scale = Vector2.One * choicesScale;
-        _setupPaper.Position = new((size.X - 500 * choicesScale) / 2, Math.Max(80, (size.Y - panelHeight * choicesScale) / 2));
+        _setupPaper.Position = new(Math.Max(16, size.X - 500 * choicesScale - 24), Math.Max(80, (size.Y - panelHeight * choicesScale) / 2));
         _setupPaper.Size = new(500, panelHeight);
         _setupPaper.Visible = choosing;
         _notice.Position = new(x, size.Y * .82f);

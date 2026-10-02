@@ -35,12 +35,16 @@ public sealed partial class BattleState
         return remaining == 0 || !CanCounterattack(defender, attacker) ? 0 : Math.Max(1, Ship.Whole(defender.FullDamage * (0.5 + 0.5 * remaining / defender.MaxHealth)) + defender.CounterDamageBonus - attacker.Definition.Armor);
     }
 
-    public CommandResult AttackAt(Side requester, int id, GridPosition cell)
+    public bool CanDoubleSalvo(int id, GridPosition cell) => Rules.DoubleSalvo && Find(id) is { AttacksRemaining: >= 2 } ship
+        && (ship.Definition.Class == ShipClass.Kolonel || ship.IsMothership && ship.SecondAttackUpgrade)
+        && !UsesMortar(ship, cell) && TargetCells(id).Contains(cell);
+
+    public CommandResult AttackAt(Side requester, int id, GridPosition cell, bool doubleSalvo = false)
     {
         var target = _ships.FirstOrDefault(s => s.Position == cell && CanAttack(id, s.Id));
         if (target is not null)
-            return Attack(requester, id, target.Id);
-        return VillageAt(cell)is { } village ? AttackVillage(requester, id, village.Id) : CommandResult.Rejected("There is no available target here.");
+            return Attack(requester, id, target.Id, doubleSalvo);
+        return VillageAt(cell)is { } village ? AttackVillage(requester, id, village.Id, doubleSalvo) : CommandResult.Rejected("There is no available target here.");
     }
 
     public IReadOnlyCollection<GridPosition> TargetCells(int id)
@@ -49,7 +53,7 @@ public sealed partial class BattleState
         return ship is null ? Array.Empty<GridPosition>() : _ships.Where(t => CanAttack(id, t.Id)).Select(t => t.Position).Concat(_villages.Where(v => CanAttackVillage(id, v.Id)).Select(v => v.Position)).ToArray();
     }
 
-    public CommandResult Attack(Side requester, int id, int targetId)
+    public CommandResult Attack(Side requester, int id, int targetId, bool doubleSalvo = false)
     {
         var error = ValidateActor(requester, id, out var ship);
         if (error is not null)
@@ -57,8 +61,10 @@ public sealed partial class BattleState
         if (!CanAttack(id, targetId))
             return CommandResult.Rejected("An observed target must be within weapon range, with an attack remaining.");
         var target = Find(targetId)!;
+        if (doubleSalvo && !CanDoubleSalvo(id, target.Position))
+            return CommandResult.Rejected("A double salvo needs two cannon shots remaining.");
         // A gunshot is not optical reconnaissance. Radar never reveals a ship's identity.
-        ship!.AttacksUsed++;
+        ship!.AttacksUsed += doubleSalvo ? 2 : 1;
         if (ship.Definition.ActionProfile == ActionProfile.Standard && ship.HasMoved)
             ship.MovementLocked = true;
         var shots = new List<CombatShot>
@@ -68,6 +74,11 @@ public sealed partial class BattleState
         var splash = shots[0].IsMortar ? MortarSplash(ship, target.Position, target.Id) : Array.Empty<CombatShot>();
         var area = shots[0].IsMortar ? MortarVillageSplash(ship, target.Position) : Array.Empty<AreaHit>();
         RecordImpact("attack");
+        if (doubleSalvo && !IsOver && target.Health > 0)
+        {
+            shots.Add(Fire(ship, target, false));
+            RecordImpact("attack2");
+        }
         // One reply to each incoming attack; replies never recursively trigger replies.
         if (!IsOver && CanCounterattack(target, ship))
         {
@@ -78,13 +89,16 @@ public sealed partial class BattleState
         UpdateVision();
         var first = shots[0];
         string message = first.TargetVisibleToPlayer ? $"{(first.AttackerVisibleToPlayer ? ship.Definition.Name : "Unknown ship")}: {first.Damage:0} damage" : "Fired at a radar contact · outcome not visible";
-        if (shots.Count > 1 && shots[1].TargetVisibleToPlayer)
-            message += $" · counterattack: {shots[1].Damage:0}";
+        if (doubleSalvo && first.TargetVisibleToPlayer)
+            message = $"Double salvo: {shots.Where(s => !s.IsCounterattack).Sum(s => s.Damage):0} damage";
+        if (shots.LastOrDefault() is { IsCounterattack: true, TargetVisibleToPlayer: true } reply)
+            message += $" · −{reply.Damage:0}";
         if (shots.Any(s => s.Promoted && s.AttackerVisibleToPlayer))
             message += " · VETERAN!";
         if (shots.Any(s => s.TargetSunk && s.TargetVisibleToPlayer))
             message += " · ship sunk";
-        return new(true, message, CommandKind.Attack, id, targetId, shots[0].Damage, Shots: shots, Splash: splash, AreaHits: area);
+        return new(true, message, CommandKind.Attack, id, targetId, shots[0].Damage, Shots: shots, Splash: splash, AreaHits: area)
+            { SalvoCharges = doubleSalvo ? 2 : 1 };
     }
 
     private CombatShot Fire(Ship attacker, Ship target, bool counter, double? fixedDamage = null)

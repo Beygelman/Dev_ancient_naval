@@ -45,3 +45,10 @@ Console.WriteLine($"PASS: {persistenceChecks} save compatibility and validation 
 Console.WriteLine($"PASS: {WorldGenerationScenarios.Run(persistenceRules)} four-world generation checks.");
 Console.WriteLine($"PASS: {VoyageStatisticsChecks.Run(persistenceRules)} voyage statistics checks.");
 Console.WriteLine($"PASS: {Refinement020Checks.Run(persistenceRules)} free-coast, anti-air, inland Pangaea and red-save checks.");
+Console.WriteLine($"PASS: {Refinement021Checks.Run(persistenceRules)} salvo, encounters, level rewards and compatibility checks.");
+Console.WriteLine($"PASS: {Rules0202Checks.Run(persistenceRules)} v0.20.2 progression, mountain shadows, radar and heavenly aid checks.");
+Console.WriteLine($"PASS: {World0202Checks.Run(persistenceRules)} v0.20.2 world placement and deterministic terrain checks.");
+Console.WriteLine($"PASS: {Culture0202Checks.Run(persistenceRules)} v0.20.2 themed Latin names and Continue checks.");
+
+Console.WriteLine($"PASS: {Lighthouse0202Checks.Run(persistenceRules)} lighthouse and merged trade checks.");
+Console.WriteLine($"PASS: {Admiral0203Checks.Run(persistenceRules)} v0.20.3 coordinated Admiral tactics and fog fairness checks.");
