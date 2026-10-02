@@ -28,6 +28,7 @@ public partial class WorldAmbience
     private BoardTerrainLayer? _sky;
     public override void _Ready()
     {
+        AddChild(_waves);
         _sky = new BoardTerrainLayer
         {
             Name = "HighClouds",

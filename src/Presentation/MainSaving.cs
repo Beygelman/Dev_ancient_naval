@@ -10,6 +10,11 @@ public partial class Main
     {
         if (!_saveEnabled || !_sessionStarted)
             return;
+        if (Battle.IsOver || Battle.PlayerDefeated)
+        {
+            await Task.Run(_saveStore.Delete);
+            return;
+        }
         BattleSave snapshot;
         using (Diagnostics.PerformanceTrace.Measure("Save.Capture"))
             snapshot = Battle.CaptureSnapshot();

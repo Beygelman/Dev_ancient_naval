@@ -18,6 +18,7 @@ internal readonly record struct ShipVisualProfile(float Size, float DeckWidth, f
         ShipClass.AncientGun => new(.9f,1,0,1,0),
         ShipClass.CannonTower => new(.8f,1,0,1,0),
         ShipClass.FishingDock => new(.8f, 1, 0, 0, 0),
+        ShipClass.Lighthouse => new(.85f, 1, 0, 0, 0),
         _ => new(.7f, 1, .20f, 0, 0)
     };
 }

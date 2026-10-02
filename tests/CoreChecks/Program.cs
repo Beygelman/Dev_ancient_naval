@@ -49,3 +49,6 @@ Console.WriteLine($"PASS: {Refinement021Checks.Run(persistenceRules)} salvo, enc
 Console.WriteLine($"PASS: {Rules0202Checks.Run(persistenceRules)} v0.20.2 progression, mountain shadows, radar and heavenly aid checks.");
 Console.WriteLine($"PASS: {World0202Checks.Run(persistenceRules)} v0.20.2 world placement and deterministic terrain checks.");
 Console.WriteLine($"PASS: {Culture0202Checks.Run(persistenceRules)} v0.20.2 themed Latin names and Continue checks.");
+
+Console.WriteLine($"PASS: {Lighthouse0202Checks.Run(persistenceRules)} lighthouse and merged trade checks.");
+Console.WriteLine($"PASS: {Admiral0203Checks.Run(persistenceRules)} v0.20.3 coordinated Admiral tactics and fog fairness checks.");

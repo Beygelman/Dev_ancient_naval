@@ -6,7 +6,16 @@ addition to the external `outputs` directory. Sources are edited directly in
 the repository's `src`, `assets`, `data`, `scenes` and `tests` folders; the root
 `README.md` describes the current version.
 
-## Current version: v0.20.2
+## Current version: v020.2 — corrected build
+
+- [Windows ZIP](v020.2/Ancient_Naval_v020.2_Windows.zip)
+- [Source ZIP](v020.2/Ancient_Naval_v020.2_Source.zip)
+- [Russian notes](v020.2/Ancient_Naval_v020.2_Notes_RU.md), [checksums](SHA256-v020.2.txt)
+- Local launch: `v020.2/playable/Ancient Naval.exe`.
+
+This correction uses a separate folder. Historical 0.20.2 archives and checksums remain unchanged.
+
+## Previous checkpoint: v0.20.2
 
 User-requested version number; this build includes the completed 0.21 work.
 

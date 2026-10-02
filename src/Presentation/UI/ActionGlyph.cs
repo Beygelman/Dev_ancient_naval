@@ -21,7 +21,10 @@ public enum ActionSymbol
     Fortify,
     Treasure,
     Information,
-    Tower
+    Tower,
+    Lighthouse,
+    SingleShot,
+    DoubleShot
 }
 
 /// <summary>Small vector icons drawn at screen resolution; no external art required.</summary>
@@ -54,6 +57,25 @@ public partial class ActionGlyph : Control
                 DrawArc(P(0, -5), 3, 0, Mathf.Tau, 12, ink, 1.7f, true);
                 Line(0, 1, 0, 8);
                 Line(-3, 8, 3, 8);
+                break;
+            case ActionSymbol.SingleShot:
+                DrawCircle(P(0, 0), 9, ink);
+                DrawArc(P(-2, -2), 5, Mathf.Pi, Mathf.Pi * 1.5f, 10, PapyrusStyle.Paper, 1.5f, true);
+                break;
+            case ActionSymbol.DoubleShot:
+                DrawCircle(P(-6, 3), 8, ink);
+                DrawCircle(P(7, -5), 8, ink);
+                DrawArc(P(-8, 1), 4, Mathf.Pi, Mathf.Pi * 1.5f, 10, PapyrusStyle.Paper, 1.5f, true);
+                DrawArc(P(5, -7), 4, Mathf.Pi, Mathf.Pi * 1.5f, 10, PapyrusStyle.Paper, 1.5f, true);
+                break;
+            case ActionSymbol.Lighthouse:
+                DrawPolyline(new[] { P(-9, 12), P(-5, -9), P(5, -9), P(9, 12), P(-9, 12) }, ink, 2, true);
+                DrawRect(new Rect2(P(-6, -15), new Vector2(12, 6)), ink, false, 2);
+                Line(-8, -16, 0, -21);
+                Line(0, -21, 8, -16);
+                Line(-9, -12, -16, -15);
+                Line(9, -12, 16, -15);
+                Line(-12, 15, 12, 15);
                 break;
             case ActionSymbol.Tower:
                 Line(-10, 13, -10, -11);

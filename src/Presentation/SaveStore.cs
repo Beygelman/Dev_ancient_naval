@@ -18,6 +18,32 @@ public sealed class SaveStore
     public bool Exists => File.Exists(Path) || File.Exists(BackupPath);
 
     public SaveStore(string path) => Path = System.IO.Path.GetFullPath(path);
+    public void Delete()
+    {
+        lock (_ioGate)
+        {
+            foreach (string file in new[] { Path, BackupPath, Path + ".tmp" })
+                if (File.Exists(file)) File.Delete(file);
+            _primaryKnownInvalid = null;
+        }
+    }
+
+    public bool HasUnfinishedVoyage()
+    {
+        if (!Exists) return false;
+        try
+        {
+            var battle = Read().Battle;
+            if (!battle.IsOver && !battle.PlayerDefeated) return true;
+            Delete();
+            return false;
+        }
+        catch (Exception error) when (IsInvalidSave(error))
+        {
+            // Retain corrupt files for recovery, but never advertise an unreadable slot.
+            return false;
+        }
+    }
     public void Write(BattleState battle, Vector2 camera, float zoom) => WriteSnapshot(battle.CaptureSnapshot(), camera, zoom);
 
     public void WriteNewGame(BattleSave snapshot, Vector2 camera, float zoom) => WriteSnapshot(snapshot, camera, zoom, newGame: true);

@@ -97,7 +97,12 @@ public partial class Main
         try
         {
             if (!FastChecks)
-                await Fleet.Animate(result, presentation: presentation);
+            {
+                Task animation;
+                using (Diagnostics.PerformanceTrace.Measure("Animation.Start"))
+                    animation = Fleet.Animate(result, presentation: presentation);
+                await animation;
+            }
             else
                 presentation?.Finish();
             Hud.ShowMessage(result.Message);

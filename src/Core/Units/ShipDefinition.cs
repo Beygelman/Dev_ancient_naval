@@ -2,7 +2,7 @@ namespace DevAncientNaval.Core.Units;
 
 // Released saves store the first three numeric identities. Never reorder them.
 public enum Side { Player = 0, Enemy = 1, Pirates = 2, Enemy2 = 3, Enemy3 = 4, Enemy4 = 5 }
-public enum ShipClass { Mothership, Garrison, Invader, Kolonel, Fishing, Balloon, Togus, FishingDock, AncientGun, PirateSchooner, CannonTower }
+public enum ShipClass { Mothership, Garrison, Invader, Kolonel, Fishing, Balloon, Togus, FishingDock, AncientGun, PirateSchooner, CannonTower, Lighthouse }
 public enum UpgradeChoice { Income, Mobility, SecondAttack, Balloon, Fortification, Shipwright, FishingBoat, Vision, Restoration, Firepower }
 public enum ActionProfile { Scout, Standard, Heavy }
 

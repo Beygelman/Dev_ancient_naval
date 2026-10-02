@@ -13,6 +13,8 @@ public partial class BoardView
     private Vector2[][] _islandContours = Array.Empty<Vector2[]>();
     private readonly Dictionary<GridPosition, Vector2[][]> _landShapes = new();
     private readonly List<BeachStrip> _beaches = new();
+    private readonly Dictionary<GridPosition, BeachStrip[]> _beachesByCell = new();
+    private readonly SeaGeometryBatch _shoreBatch = new();
     private readonly List<(GridPosition Cell, Vector2[] Edge, Vector2 Inside)> _shoreLines = new();
     private sealed record BeachStrip(GridPosition Cell, Vector2[] Polygon, Vector2[] Edge, Vector2 Inside, Vector2[][] WaterTriangles);
     internal IReadOnlyList<Vector2[]> IslandContours
@@ -71,7 +73,12 @@ public partial class BoardView
                 box = box.Expand(point);
             return box;
         }).ToArray();
-        foreach (var cell in land)
+        // The smooth contour is the shared visual shoreline. Clip it in every
+        // intersecting cell, including concave bends that cross a water seam,
+        // so later water tiles cannot punch holes behind the sand band.
+        var holes = contours.Select((points, i) => (Points: points, Bounds: bounds[i]))
+            .Where(entry => SignedCoastArea(entry.Points) < 0).ToArray();
+        foreach (var cell in Board.Tiles.Select(t => t.Position))
         {
             var tile = Projection.Diamond(cell);
             var tileBounds = new Rect2(tile[0], Vector2.Zero);
@@ -80,13 +87,31 @@ public partial class BoardView
             var shapes = new List<Vector2[]>();
             for (int i = 0; i < contours.Length; i++)
             {
-                if (!bounds[i].Intersects(tileBounds))
+                if (SignedCoastArea(contours[i]) < 0 || !bounds[i].Intersects(tileBounds))
                     continue;
                 foreach (var shape in Geometry2D.IntersectPolygons(tile, contours[i]))
-                    if (shape.Length >= 3)
+                    // Clipping a rounded bend tangent to a seam can return a
+                    // zero-area sliver. Retain only drawable surface pieces.
+                    if (shape.Length >= 3 && Geometry2D.TriangulatePolygon(shape).Length >= 3)
                         shapes.Add(shape);
             }
 
+            foreach (var hole in holes.Where(h => h.Bounds.Intersects(tileBounds)))
+            {
+                // Difference can return an outer ring and a lake hole. Draw
+                // independent pieces instead of filling the hole as a polygon.
+                foreach (var cut in Geometry2D.IntersectPolygons(tile, hole.Points))
+                {
+                    var indices = Geometry2D.TriangulatePolygon(cut);
+                    for (int triangle = 0; triangle < indices.Length; triangle += 3)
+                    {
+                        var lake = new[] { cut[indices[triangle]], cut[indices[triangle + 1]], cut[indices[triangle + 2]] };
+                        if (SignedCoastArea(lake) < 0) Array.Reverse(lake);
+                        shapes = shapes.SelectMany(shape => ConvexSoilClip.Subtract(shape, lake))
+                            .Where(shape => shape.Length >= 3 && Geometry2D.TriangulatePolygon(shape).Length >= 3).ToList();
+                    }
+                }
+            }
             _landShapes[cell] = shapes.ToArray();
         }
 
@@ -164,6 +189,24 @@ public partial class BoardView
                 _shoreLines.Add((_beaches[firstBeach + start].Cell, edge, inside / edge.Length));
             }
         }
+        _beachesByCell.Clear();
+        foreach (var group in _beaches.GroupBy(beach => beach.Cell))
+            _beachesByCell.Add(group.Key, group.ToArray());
+    }
+
+    internal bool VisualLandContains(Vector2 point)
+    {
+        EnsureIslandGeometry();
+        return _landShapes.TryGetValue(Projection.WorldToGrid(point), out var shapes) &&
+            shapes.Any(shape => Geometry2D.IsPointInPolygon(point, shape));
+    }
+    private static float SignedCoastArea(Vector2[] points)
+    {
+        float area = 0;
+        var origin = points[0];
+        for (int i = 1; i < points.Length - 1; i++)
+            area += (points[i] - origin).Cross(points[i + 1] - origin);
+        return area * .5f;
     }
 
     private static bool ValidBeachQuad(Vector2 a, Vector2 b, Vector2 c, Vector2 d) => (b - a).Cross(c - b) > .001f && (c - b).Cross(d - c) > .001f && (d - c).Cross(a - d) > .001f && (a - d).Cross(b - a) > .001f;
@@ -218,52 +261,37 @@ public partial class BoardView
                 yield return (shore.Edge, shore.Inside);
     }
 
-    private readonly Vector2[] _beachTriangle = new Vector2[3];
-    private readonly Color[] _beachColor = new Color[1];
     private void DrawBeaches(Node2D canvas, ISet<GridPosition> cells)
     {
-        foreach (var beach in _beaches)
+        _shoreBatch.Clear();
+        var color = new Color("e7d7a6");
+        foreach (var cell in cells)
         {
-            if (!cells.Contains(beach.Cell))
-                continue;
-            var color = new Color("e7d7a6");
-            if (beach.Polygon.Length > 0)
+            if (!_beachesByCell.TryGetValue(cell, out var beaches)) continue;
+            foreach (var beach in beaches)
             {
-                // Thin shore quads can be below the generic polygon triangulator's
-                // tolerance at large map coordinates. Their validated convex fan
-                // uses explicit triangles without asking it to solve them again.
-                _beachColor[0] = color;
-                _beachTriangle[0] = beach.Polygon[0];
-                for (int i = 1; i < beach.Polygon.Length - 1; i++)
-                {
-                    _beachTriangle[1] = beach.Polygon[i];
-                    _beachTriangle[2] = beach.Polygon[i + 1];
-                    canvas.DrawPrimitive(_beachTriangle, _beachColor, Array.Empty<Vector2>());
-                }
+                if (beach.Polygon.Length > 0) _shoreBatch.Polygon(beach.Polygon, color, Transform2D.Identity);
+                _shoreBatch.Polyline(beach.Edge, new Color(color, .7f));
             }
-
-            canvas.DrawPolyline(beach.Edge, new Color(color, .7f), 1.5f, true);
         }
+        _shoreBatch.Submit(canvas, 1.5f);
     }
 
     private void DrawCoastalWater(Node2D canvas, ISet<GridPosition> cells)
     {
-        var firstColors = new Color[3];
-        var secondColors = new Color[3];
-        foreach (var beach in _beaches)
+        _shoreBatch.Clear();
+        var shallow = new Color("80c7be") { A = .40f };
+        var sea = new Color(shallow, 0);
+        foreach (var cell in cells)
         {
-            if (!cells.Contains(beach.Cell))
-                continue;
-            var shallow = new Color("80c7be");
-            shallow.A = .40f;
-            var sea = new Color(shallow, 0);
-            firstColors[0] = firstColors[1] = secondColors[0] = shallow;
-            firstColors[2] = secondColors[1] = secondColors[2] = sea;
-            if (beach.WaterTriangles[0].Length > 0)
-                canvas.DrawPrimitive(beach.WaterTriangles[0], firstColors, Array.Empty<Vector2>());
-            if (beach.WaterTriangles[1].Length > 0)
-                canvas.DrawPrimitive(beach.WaterTriangles[1], secondColors, Array.Empty<Vector2>());
+            if (!_beachesByCell.TryGetValue(cell, out var beaches)) continue;
+            foreach (var beach in beaches)
+            {
+                _shoreBatch.Triangle(beach.WaterTriangles[0], shallow, shallow, sea);
+                _shoreBatch.Triangle(beach.WaterTriangles[1], shallow, sea, sea);
+            }
         }
+        _shoreBatch.Submit(canvas);
     }
 
     private void DrawTreasuries(Node2D canvas)

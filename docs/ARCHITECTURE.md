@@ -287,3 +287,26 @@ Resource placement uses an independent seeded central-weighted stream, approxima
 Personal-turn and direct flagship-kill counters are optional saved arrays. New rules enable payout at every fifth personal turn start, carried by `CommandResult.HeavenlyReceipts`. Staged snapshots include currency/counters; presentation only announces the committed receipt. The finite heavenly screen overlay never invalidates world geometry or accepts mouse input. Unknown rival aid omits the captain, amount and kill tally.
 
 `CultureNamePools` owns color-specific Latin-letter names. New voyages can retheme before their first command; restored voyages preserve saved identities. Missing old naming flags use the exact historical seeded naming stream. Optional rules default to their historical behavior, including no heavenly aid, no mountain shadows, no small-hull radar stealth and no additional flagship resource requirement. Start a New game to use the new gameplay rules.
+
+## Corrected v020.2 presentation
+
+`TerrainRasterCache` divides its bounded texture into 512-pixel regions with padded, disjoint atlas interiors. Discoveries retain one source per covered cell/layer and local fog changes enqueue affected GPU regions one per frame. Empty corner regions have no sprites. World identity resets the queue; hover and pan do not invalidate it. `SeaGeometryBatch` retains native triangle/line buffers and uses alpha-fringed triangle strips to submit many shore/trade lines together.
+
+`TownArtworkRaster` retains independent back/front snapshots for observed towns. Health changes do not rebuild artwork; a wall change rebuilds only the foreground. Hidden town changes cannot alter their last observed texture. `TownLayout` reserves a monument plaza and spaces house footprints on a deterministic warped lattice; animated mills remain between back houses and foreground walls/wheat.
+
+`MainSalvoChoice` stores the current battle, actor and target identity until an icon is chosen. `SalvoChoiceHud` positions two cost-free sectors under target progress. A valid double command carries `SalvoCharges=2`, even if its first impact is fatal. `FleetCommands` launches both charges together, commits active impact keys after the shared flight and presents one counterflight. Actual damage remains exclusively in Core.
+
+`Language` registers a Godot Translation bridge so native controls retain English-origin keys and render their active locale. `LocalizedMessages` validates placeholders, translates complete dynamic clauses and handles Ukrainian/Dutch plural forms. Catalog caches are bounded. Proper names remain Latin-letter identities. Language preferences are separate from battle saves; tests use explicit disposable companion paths.
+
+Lighthouse is an appended serialized class and optional saved rule. It has fixed sea-tile artwork, sight 4 and an optional paid radar. Mother/village production restrictions use the existing production facade. Trade routing exposes logical routes plus deduplicated rendering edge chains; rendering never changes navigation bonuses.
+
+
+### Circular command parchment and coastal towns
+
+Object command sectors share a proportional arc capped at one circle with a small seam. Their world target hit exclusions use only existing legal target coordinates, update with camera transforms and preserve radar anonymity. Target salvo and resource parchment remain separate. Mystic upgrade labels belong to Presentation; hover effects come from saved Core rules.
+
+TownPlacement fits the complete future-town ground envelope inside land minus beach with a 0.3-pixel clearance. All static art, mills and flags share that transform through level changes. Roofs remain upright; port piers intentionally bridge the shoreline. Fortification invalidates both raster layers because the closed square wall has rear and front halves.
+
+The released 2D renderer is OpenGL Compatibility after repeated native D3D12 first-move stalls. Frame-pacing gates run against the project's configured renderer. The timing harness rejects external GUI/map input while invoking production handlers; actual-pointer UI regressions run separately.
+
+The smooth island surface is clipped per cell across both land and adjacent sea seams; clockwise lake contours subtract triangulated holes. Sea beneath the contour replaces whole-tile sand fill. Large visual ridge summits can span adjacent land, and smaller connecting peaks retain their parent mountain cell for fog and optical obstacles. Forest sampling uses a continuous seeded field. Animated waves retain visibility-scoped mesh geometry and update a clock uniform; a new vision/world rebuilds it.

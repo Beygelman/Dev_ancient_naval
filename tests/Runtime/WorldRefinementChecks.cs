@@ -74,7 +74,9 @@ public partial class WorldRefinementChecks : Node
                     Game.Refresh();
                     await DrawFrame();
                     await DrawFrame();
-                    Check(Game.BoardView.TerrainDrawCount == beforeDiscovery + 1, "Discovering one unknown tile builds exactly that tile's terrain geometry.");
+                    await SettleTerrain();
+                    Check(Game.BoardView.TerrainDrawCount == beforeDiscovery + Game.BoardView.TerrainSourceCopies(unknown.Position),
+                        "Discovering one tile builds only its copies in overlapping raster borders.");
                 }
 
                 foreach (var tile in board.Tiles)
@@ -115,7 +117,8 @@ public partial class WorldRefinementChecks : Node
                     Check(Game.BoardView.TerrainTextureIdle, "Cached terrain viewport stops rendering after one update.");
                     GD.Print($"WORLD hover {opponents}");
                     Check(Game.BoardView.TreeCount > 0 && Game.BoardView.TreeCount < board.Tiles.Count(tile => tile.Terrain == TerrainType.Land) * 5, "Plain land alternates with bounded sparse groves.");
-                    Check(Game.BoardView.MountainCount == TerrainFeatures.For(board).MountainCells.Count, "Rendered mountains exactly match the shared inland terrain plan.");
+                    Check(Game.BoardView.RenderedMountainCells.ToHashSet().SetEquals(TerrainFeatures.For(board).MountainCells), "Large and connecting peaks remain owned by the shared sight-blocking inland ridge.");
+                    Check(Game.Ambience.WaveVertexCount is > 0 and < 250000, "Retained wave geometry has a bounded visible-water population.");
                     Check(Game.Fleet.YSortEnabled && Game.Fleet.GetNode<Node2D>("IslandDepth").YSortEnabled, "Ships and land objects share native screen-depth sorting.");
                     Check(Game.BoardView.DepthObjectCount == Game.BoardView.TreeCount + Game.BoardView.MountainCount + Game.Battle.Villages.Count * 2, "Every tall landscape object has its own ground anchor, rather than a tile-wide draw order; town labels use a separate front canvas.");
                     int atlasBuilds = Game.BoardView.SceneryAtlasBuildCount;
@@ -163,7 +166,8 @@ public partial class WorldRefinementChecks : Node
                     Game.BoardView.InvalidateWorld();
                     await DrawFrame();
                     await DrawFrame();
-                    Check(Game.BoardView.TerrainDrawCount == terrainBefore + Game.BoardView.TerrainRegionCount, "Explicit world changes redraw each bounded terrain region once.");
+                    Check(Game.BoardView.TerrainDrawCount == terrainBefore + Game.BoardView.TerrainSurfaceSourceCount,
+                        "Explicit world changes redraw every retained surface source exactly once.");
                     Check(Game.BoardView.TerrainTextureUpdateRequests == textureBefore + 1 && Game.BoardView.TerrainTextureIdle, "Explicit world changes request one bounded GPU raster update.");
                     if (opponents == 1)
                     {
@@ -172,6 +176,7 @@ public partial class WorldRefinementChecks : Node
                         Game.Refresh();
                         await DrawFrame();
                         await DrawFrame();
+                        await SettleTerrain();
                         int beforeReveal = Game.BoardView.TerrainDrawCount;
                         int visibilityBefore = Game.BoardView.TerrainVisibilityUpdateCount;
                         var revealed = board.Tiles.First(tile => !Game.Battle.Vision.IsVisible(Side.Player, tile.Position));
@@ -180,6 +185,7 @@ public partial class WorldRefinementChecks : Node
                         Game.Refresh();
                         await DrawFrame();
                         await DrawFrame();
+                        await SettleTerrain();
                         int affected = Game.BoardView.TerrainDrawCount - beforeReveal;
                         Check(affected == 0 && Game.BoardView.TerrainVisibilityUpdateCount == visibilityBefore + 1, "Restoring visibility tints exactly one retained cell without rebuilding geometry.");
                         Check(Game.BoardView.TerrainTextureIdle, "Incremental fog raster settles without continuous updates.");
@@ -232,6 +238,12 @@ public partial class WorldRefinementChecks : Node
             GD.PushError(error.ToString());
             GetTree().Quit(1);
         }
+    }
+
+    private async Task SettleTerrain()
+    {
+        for (int frame = 0; !Game.BoardView.TerrainTextureIdle && frame < 64; frame++) await DrawFrame();
+        Check(Game.BoardView.TerrainTextureIdle, "Region updates finish within their bounded frame budget.");
     }
 
     private async Task DrawFrame()

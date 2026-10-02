@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Godot;
 
 namespace DevAncientNaval.Presentation.UI;
-/// <summary>A symmetrical command arc below its world object's progress cells.</summary>
+/// <summary>Symmetric parchment unfurling around an object; its length follows command count.</summary>
 public partial class RadialPapyrus : Control
 {
     private readonly Vector2[] _paper = new Vector2[130];
@@ -11,6 +11,7 @@ public partial class RadialPapyrus : Control
     private float _time = 1;
     private float _span;
     public int ActionCount => _commands.Count;
+    internal float ArcLength => _span;
     public float Reveal { get; private set; } = 1;
     internal float TopInset => SectorButton.Inner * Mathf.Cos(_span / 2);
 
@@ -19,7 +20,7 @@ public partial class RadialPapyrus : Control
         _commands.Clear();
         for (int i = 0; i < commands.Count; i++)
             _commands.Add(commands[i]);
-        _span = Math.Min(Mathf.Pi, commands.Count * SectorButton.SectorStep);
+        _span = SectorButton.ArcLength(commands.Count);
         _time = unfold ? 0 : 1;
         Reveal = unfold ? 0 : 1;
         foreach (var command in _commands)

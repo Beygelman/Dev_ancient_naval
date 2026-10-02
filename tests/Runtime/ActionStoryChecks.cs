@@ -56,6 +56,8 @@ public partial class ActionStoryChecks : Node
 
     private void CheckSideLayout(ActionPapyrus papyrus)
     {
+        Check(papyrus.Size == SectorButton.PaperFootprint,
+            "Claim and treasury banners share the object command parchment size");
         var heading = Nodes(Game.Hud).OfType<Label>().Single(label => label.IsVisibleInTree()
             && label.Text == Game.Hud.ShipText);
         Node? ancestor = heading.GetParent();

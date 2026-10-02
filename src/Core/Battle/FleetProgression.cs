@@ -58,7 +58,7 @@ public sealed partial class BattleState
         var error = ValidateActor(requester, id, out var ship);
         if (error is not null)
             return error;
-        if (ship!.Definition.Class is not (ShipClass.Mothership or ShipClass.Kolonel or ShipClass.CannonTower))
+        if (ship!.Definition.Class is not (ShipClass.Mothership or ShipClass.Kolonel or ShipClass.CannonTower or ShipClass.Lighthouse))
             return "This class cannot equip radar.";
         if (ship.HasRadar)
             return "Radar is already installed.";

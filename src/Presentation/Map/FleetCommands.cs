@@ -28,6 +28,7 @@ public partial class FleetView
         EnsureVisualBattle();
         ShowIncome(result);
         CompletedSalvos.Clear();
+        CompletedLaunchSpreads.Clear();
         _playedWrecks.Clear();
         foreach (var doomed in presentation?.DestroyedShips ?? Array.Empty<ShipSnapshot>())
             if (doomed.Owner == Side.Player || Battle.Vision.IsVisible(Side.Player, doomed.Position))
@@ -70,46 +71,35 @@ public partial class FleetView
                 }
 
                 int activeShot = 0;
-                foreach (var shot in shots)
+                foreach (var flight in shots.GroupBy(shot => shot.IsCounterattack).OrderBy(group => group.Key))
                 {
-                    await AnimateSalvo(shot.Attacker, shot.Target.Position, shot.Target, shot.IsMortar, shot.AttackerVisibleToPlayer, shot.TargetVisibleToPlayer);
-                    presentation?.Impact(shot.IsCounterattack ? "counter" : ++activeShot == 1 ? "attack" : "attack2");
-                    var to = Projection.GridToWorld(shot.Target.Position) + new Vector2(0, -6);
-                    if (shot.TargetVisibleToPlayer)
-                        _snapshots[shot.Target.Id] = shot.Target with
-                        {
-                            Health = shot.TargetSunk ? 0 : shot.Target.Health - shot.Damage
-                        };
-                    if (shot.Promoted && shot.AttackerVisibleToPlayer)
-                        _snapshots[shot.Attacker.Id] = shot.Attacker with
-                        {
-                            IsVeteran = true,
-                            MaxHealth = Ship.Whole(shot.Attacker.MaxHealth * 1.25),
-                            Health = Ship.Whole(shot.Attacker.MaxHealth * 1.25),
-                            Progress = 3
-                        };
-                    _impact = shot.TargetVisibleToPlayer ? to : null;
-                    _feedbackPosition = HealthAnchor(Projection.GridToWorld(shot.Target.Position), shot.Target.Class);
-                    _feedbackColor = new(shot.IsCounterattack ? "ffe28c" : "ff8f85");
-                    _feedback = shot.TargetVisibleToPlayer ? (shot.IsCounterattack ? "Counter −" : "−") + shot.Damage.ToString("0") : "";
-                    if (!shot.IsCounterattack)
-                        ApplySplash(result);
-                    await TweenValue(0.38, t =>
+                    var first = flight.First();
+                    var last = flight.Last();
+                    await AnimateSalvo(first.Attacker, first.Target.Position, first.Target, first.IsMortar,
+                        first.AttackerVisibleToPlayer, first.TargetVisibleToPlayer, first.IsCounterattack ? 1 : result.SalvoCharges);
+                    // Both active impact frames resolve together after the shared flight.
+                    foreach (var shot in flight)
                     {
-                        _impactSize = 4 + 26 * t;
-                        _feedbackRise = t * 22;
-                    });
-                    _impact = null;
-                    _feedback = "";
-                    if (shot.TargetSunk)
-                        await Sink(shot.Target, shot.TargetVisibleToPlayer);
-                    if (!shot.IsCounterattack)
+                        presentation?.Impact(shot.IsCounterattack ? "counter" : ++activeShot == 1 ? "attack" : "attack2");
+                        if (shot.TargetVisibleToPlayer)
+                            _snapshots[shot.Target.Id] = shot.Target with { Health = shot.TargetSunk ? 0 : shot.Target.Health - shot.Damage };
+                        if (shot.Promoted && shot.AttackerVisibleToPlayer)
+                            _snapshots[shot.Attacker.Id] = shot.Attacker with { IsVeteran = true,
+                                MaxHealth = Ship.Whole(shot.Attacker.MaxHealth * 1.25),
+                                Health = Ship.Whole(shot.Attacker.MaxHealth * 1.25), Progress = 3 };
+                    }
+                    _impact = last.TargetVisibleToPlayer ? Projection.GridToWorld(last.Target.Position) + new Vector2(0, -6) : null;
+                    _feedbackPosition = HealthAnchor(Projection.GridToWorld(last.Target.Position), last.Target.Class);
+                    _feedbackColor = new(last.IsCounterattack ? "ffe28c" : "ff8f85");
+                    _feedback = last.TargetVisibleToPlayer ? "−" + flight.Sum(shot => shot.Damage).ToString("0") : "";
+                    if (!last.IsCounterattack) ApplySplash(result);
+                    await TweenValue(.38, t => { _impactSize = 4 + 26 * t; _feedbackRise = t * 22; });
+                    _impact = null; _feedback = "";
+                    if (last.TargetSunk) await Sink(last.Target, last.TargetVisibleToPlayer);
+                    if (!last.IsCounterattack)
                         foreach (var splash in result.Splash ?? Array.Empty<CombatShot>())
-                            if (splash.TargetSunk)
-                                await Sink(splash.Target, splash.TargetVisibleToPlayer);
+                            if (splash.TargetSunk) await Sink(splash.Target, splash.TargetVisibleToPlayer);
                     _blastDamage.Clear();
-                    _impact = null;
-                    _feedback = "";
                 }
             }
             else if (result.Kind == CommandKind.Attack && result.StructureHit is { } hit)
@@ -117,8 +107,7 @@ public partial class FleetView
                 if (hit.AttackerVisibleToPlayer)
                     _snapshots[hit.Attacker.Id] = hit.Attacker;
                 _suppressed.Add(hit.Attacker.Id);
-                for (int salvo = 0; salvo < hit.Salvos; salvo++)
-                    await AnimateSalvo(hit.Attacker, hit.Position, null, hit.IsMortar, hit.AttackerVisibleToPlayer, hit.TargetVisibleToPlayer);
+                await AnimateSalvo(hit.Attacker, hit.Position, null, hit.IsMortar, hit.AttackerVisibleToPlayer, hit.TargetVisibleToPlayer, hit.Salvos);
                 presentation?.Impact("village");
                 ApplySplash(result);
                 var town = Projection.GridToWorld(hit.Position) + new Vector2(0, -9);
@@ -138,7 +127,7 @@ public partial class FleetView
                         HitEffect(hit.Attacker, to, (to - town).Normalized(), false);
                         _feedbackPosition = HealthAnchor(Projection.GridToWorld(hit.Attacker.Position), hit.Attacker.Class);
                         _feedbackColor = new("ffe28c");
-                        _feedback = $"Counter −{hit.CounterDamage:0.##}";
+                        _feedback = $"−{hit.CounterDamage:0}";
                     }
 
                     if (Battle.Find(hit.Attacker.Id)is null)

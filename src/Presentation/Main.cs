@@ -46,6 +46,7 @@ public partial class Main : Node2D
     private readonly bool _mapPreview = Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--map-preview");
     public override void _Ready()
     {
+        Language.Initialize();
         _rules = BattleRules.FromJson(FileAccess.GetFileAsString("res://data/balance.json"));
         var board = PrototypeBoard.Create();
         var projection = new IsometricProjection(board);
@@ -87,7 +88,7 @@ public partial class Main : Node2D
             Camera = MapCamera
         };
         MapInput.Tapped += SelectAtScreen;
-        MapInput.Held += SalvoAtScreen;
+        MapInput.Held += SelectAtScreen;
         MapInput.Hovered += PreviewAtScreen;
         MapInput.Canceled += CancelOrder;
         AddChild(MapInput);
@@ -98,6 +99,7 @@ public partial class Main : Node2D
         Hud.EndTurnRequested += () => RunSafely(EndPlayerTurn);
         Hud.RepairRequested += () => RunSafely(RepairSelected);
         Hud.BuildRequested += BeginBuild;
+        Hud.SalvoRequested += twice => RunSafely(() => ChooseSalvo(twice));
         Hud.MortarRequested += () => RunSafely(BuyMortar);
         Hud.ResourceRequested += () => RunSafely(ConfirmResource);
         Hud.RadarRequested += () => RunSafely(BuyRadar);
@@ -137,6 +139,10 @@ public partial class Main : Node2D
         Refresh();
         Hud.ShowMessage("Select a ship, then a tile or highlighted target. Glowing fish can be collected directly.");
         InitializeSession();
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--language0202-test"))
+            AddChild(new Tests.Runtime.Language0202Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--lighthouse-town0202-test"))
+            AddChild(new Tests.Runtime.LighthouseTown0202Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--world-art0202-test"))
             AddChild(new Tests.Runtime.WorldArt0202Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--heavens0202-test"))

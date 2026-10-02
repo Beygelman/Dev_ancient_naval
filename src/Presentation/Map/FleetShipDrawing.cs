@@ -44,6 +44,14 @@ public partial class FleetView
             return;
         }
 
+        if (ship.Class == ShipClass.Lighthouse)
+        {
+            DrawLighthouse(center, FleetPalette.For(Battle, ship.Owner));
+            if (ship.Id == SelectedId)
+                Ink.DrawArc(center + LighthouseOffset, 20, 0, Mathf.Tau, 32, new Color("ffe298"), 1.7f, true);
+            return;
+        }
+
         var profile = ShipVisualProfile.For(ship.Class);
         float size = profile.Size;
         // Bob/roll use the retained hull canvas transform; floor geometry changes only with heading.

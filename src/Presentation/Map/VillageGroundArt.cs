@@ -32,7 +32,8 @@ public partial class BoardView
         return $"local={local}, world={point}, land={land}, sand={string.Join('|', sand)}";
     }
 
-    private TownGroundStamp TownGround(Village town)
+    private TownGroundStamp TownGround(Village town) => TownGround(ObserveTownArt(town));
+    private TownGroundStamp TownGround(TownArtState town)
     {
         EnsureIslandGeometry();
         if (!ReferenceEquals(_townGroundProjection, Projection))
@@ -43,12 +44,15 @@ public partial class BoardView
         var key = (town.Id, town.Level);
         if (_townGround.TryGetValue(key, out var cached)) return cached;
         var origin = Projection.GridToWorld(town.Position);
+        var placement = VillagePlacement(town);
         var land = _landShapes.GetValueOrDefault(town.Position) ?? Array.Empty<Vector2[]>();
-        var nearbySand = _beaches.Where(b => b.Polygon.Length > 0 && b.Polygon.Any(p => p.DistanceSquaredTo(origin) < 12_000))
-            .Select(b => (b.Polygon, Bounds: PolygonBounds(b.Polygon))).ToArray();
+        var neighborhood = new Rect2(origin - new Vector2(128, 128), new Vector2(256, 256));
+        var nearbySand = _beaches.Where(b => b.Polygon.Length > 0)
+            .Select(b => (b.Polygon, Bounds: PolygonBounds(b.Polygon)))
+            .Where(b => b.Bounds.Intersects(neighborhood)).ToArray();
         Vector2[][] ClipToSoil(Vector2[] local)
         {
-            var world = local.Select(p => p + origin).ToArray();
+            var world = local.Select(p => placement.Point(p) + origin).ToArray();
             var bounds = PolygonBounds(world);
             var pieces = new List<Vector2[]>();
             foreach (var shape in land.SelectMany(shape => Geometry2D.IntersectPolygons(world, shape)))
@@ -86,7 +90,7 @@ public partial class BoardView
         for (int field = 0; field < 2 + town.Level / 2; field++)
         {
             Vector2[][] shapes = Array.Empty<Vector2[]>();
-            var at = new Vector2(-24 + field * 13, 16 + field % 2 * 2);
+            var at = new Vector2(-23 + field * 12, 20 + field % 2 * 2);
             // A coast-facing town may have a very shallow front lawn. Move the
             // wheat up against its houses until a real land patch is available.
             for (int attempt = 0; attempt < 12 && shapes.Length == 0; attempt++)
@@ -96,7 +100,7 @@ public partial class BoardView
                 if (shapes.Sum(PolygonArea) < 15) shapes = Array.Empty<Vector2[]>();
                 if (shapes.Length > 0) at = anchor;
             }
-            var stalks = Enumerable.Range(0, 8).Select(i => at + new Vector2(3 + i % 4 * 3, i / 4 * 2)).Where(p =>
+            var stalks = Enumerable.Range(0, 8).Select(i => placement.Point(at + new Vector2(3 + i % 4 * 3, i / 4 * 2))).Where(p =>
                 shapes.Any(shape => Geometry2D.IsPointInPolygon(p, shape)) &&
                 OnSoil(p) && OnSoil(p + new Vector2(-1.1f, -5)) && OnSoil(p + new Vector2(1.1f, -5))).ToArray();
             fields.Add(new(shapes, stalks));
@@ -104,7 +108,7 @@ public partial class BoardView
         return _townGround[key] = new(patches.ToArray(), fields.ToArray());
     }
 
-    private void DrawTownGround(Node2D canvas, Village town, Vector2 center)
+    private void DrawTownGround(Node2D canvas, TownArtState town, Vector2 center)
     {
         int index = 0;
         foreach (var shape in TownGround(town).Texture)
@@ -117,7 +121,11 @@ public partial class BoardView
     private static float PolygonArea(Vector2[] points)
     {
         float twiceArea = 0;
-        for (int i = 0; i < points.Length; i++) twiceArea += points[i].Cross(points[(i + 1) % points.Length]);
+        // Subtract a common origin before multiplying. World coordinates can
+        // be thousands of pixels from zero while a clipped sliver is tiny.
+        // Local cross products avoid cancellation in native coast-fit checks.
+        var origin = points[0];
+        for (int i = 0; i < points.Length; i++) twiceArea += (points[i] - origin).Cross(points[(i + 1) % points.Length] - origin);
         return MathF.Abs(twiceArea) * .5f;
     }
 

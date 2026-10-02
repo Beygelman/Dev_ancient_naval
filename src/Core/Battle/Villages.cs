@@ -149,14 +149,16 @@ public sealed partial class BattleState
         return PendingUpgrade(side)is null ? null : "Choose the Mothership upgrade first.";
     }
 
-    public static int VillageRequiredLevel(ShipClass kind) => kind == ShipClass.Garrison ? 2 : RequiredLevel(kind);
+    public static int VillageRequiredLevel(ShipClass kind) => kind == ShipClass.Garrison ? 2 : kind == ShipClass.Lighthouse ? 3 : RequiredLevel(kind);
     public string? VillageBuildBlockReason(Side requester, int villageId, ShipClass kind)
     {
         var error = ValidateVillage(requester, villageId, out var village);
         if (error is not null)
             return error;
-        if (kind is not (ShipClass.Garrison or ShipClass.Fishing or ShipClass.Invader or ShipClass.Kolonel or ShipClass.Togus))
+        if (kind is not (ShipClass.Garrison or ShipClass.Fishing or ShipClass.Invader or ShipClass.Kolonel or ShipClass.Togus or ShipClass.Lighthouse))
             return "This class cannot be built by a village.";
+        if (kind == ShipClass.Lighthouse && !Rules.LighthousesEnabled)
+            return "Lighthouse construction is unavailable in this voyage.";
         if (village!.Level < VillageRequiredLevel(kind))
             return $"Available at village level {VillageRequiredLevel(kind)}.";
         if (village.HasProduced)

@@ -42,7 +42,7 @@ public partial class BattleChecks : Node
     }
 
     private Button Button(string name) => Descendants(Game.Hud).OfType<Button>().Single(b => b.Name == name);
-    private Vector2 ClickAt(Button b) => b is SectorButton s ? s.GlobalPosition + s.IconCenter : b.GetGlobalRect().GetCenter();
+    private Vector2 ClickAt(Button b) => b is SectorButton s ? s.GetGlobalTransform() * s.IconCenter : b.GetGlobalRect().GetCenter();
     private void Click(Button b)
     {
         var p = ClickAt(b);
@@ -147,7 +147,7 @@ public partial class BattleChecks : Node
         Check(Game.Hud.MenuPosition.DistanceTo(before) > 5, "Ship actions follow the hull while the camera moves");
         var resources = Game.Battle.CollectionCells(Side.Player).Concat(Game.Battle.DockCells(Side.Player)).ToHashSet();
         var destination = Game.Battle.Reachable(garrison.Id).First(p => p.Value == 10 && p.Key != garrison.Position && !resources.Contains(p.Key) &&
-            !Descendants(Game.Hud).OfType<SectorButton>().Any(s => s.IsVisibleInTree() && s._HasPoint(Screen(p.Key) - s.GlobalPosition))).Key;
+            !Descendants(Game.Hud).OfType<SectorButton>().Any(s => s.IsVisibleInTree() && s._HasPoint(s.GetGlobalTransform().AffineInverse() * Screen(p.Key)))).Key;
         Tap(Screen(destination));
         var order = Game.CurrentOrder;
         Check(Game.Busy, "Movement starts on tile click");
@@ -158,6 +158,7 @@ public partial class BattleChecks : Node
         Game.FastChecks = true;
         var mother = Game.Battle.Mothership(Side.Player)!;
         Game.SelectCell(mother.Position);
+        await ToSignal(GetTree().CreateTimer(.3), SceneTreeTimer.SignalName.Timeout);
         await Frame();
         var sectors = Descendants(Game.Hud).OfType<SectorButton>().Where(s => s.IsVisibleInTree()).ToArray();
         Check(sectors.Length == 5 && sectors.All(s => Mathf.IsEqualApprox(s.Sweep, SectorButton.SectorStep) && s._HasPoint(s.IconCenter) && !s._HasPoint(SectorButton.Center)), "Five readable papyrus sectors, including information, leave the map center transparent");
@@ -261,6 +262,12 @@ public partial class BattleChecks : Node
         Game.SelectCell(new(7, 7));
         Check(Game.BoardView.Targets.Contains(new GridPosition(9, 7)), "Selectable targets remain outlined");
         Game.SelectCell(new(9, 7));
+        if (Game.Battle.Rules.DoubleSalvo)
+        {
+            Check(Game.Hud.SalvoChoiceVisible, "Two-shot target opens the choice parchment");
+            await Frame();
+            Click(Button("SingleShot"));
+        }
         order = Game.CurrentOrder;
         Check(!Game.Fleet.TurningForShot && Game.Fleet.ProjectilePosition is null, "Camera leads the broadside and projectile");
         for (int frame = 0; frame < 120 && !Game.Fleet.TurningForShot && !order.IsCompleted; frame++)

@@ -70,7 +70,7 @@ public partial class SeaChecks : Node
                 NextTurn(); Game.SelectCell(ship.Position);await Frame();
                 Check(button.IsVisibleInTree(),"Treasury scroll appears next turn");
                 await ToSignal(GetTree().CreateTimer(.42),SceneTreeTimer.SignalName.Timeout);
-                var point=button.GlobalPosition+new Vector2(150,112);
+                var point=button.GlobalPosition+button.Size/2;
                 GetViewport().PushInput(new InputEventMouseButton{Position=point,GlobalPosition=point,ButtonIndex=MouseButton.Left,Pressed=true},true);
                 GetViewport().PushInput(new InputEventMouseButton{Position=point,GlobalPosition=point,ButtonIndex=MouseButton.Left,Pressed=false},true);
                 await Game.CurrentOrder; await Frame();

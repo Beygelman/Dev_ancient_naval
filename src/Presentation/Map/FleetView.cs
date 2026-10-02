@@ -34,8 +34,10 @@ public partial class FleetView : Node2D
     public override void _Draw()
     {
         using var trace = DevAncientNaval.Presentation.Diagnostics.PerformanceTrace.Measure("Fleet.Draw");
-        DrawWaterEffects();
-        RefreshHullCanvases();
+        using (Diagnostics.PerformanceTrace.Measure("Fleet.Water.Draw"))
+            DrawWaterEffects();
+        using (Diagnostics.PerformanceTrace.Measure("Fleet.Hulls.Refresh"))
+            RefreshHullCanvases();
     }
 
     private void DrawFrontEffects()
@@ -68,10 +70,17 @@ public partial class FleetView : Node2D
         }
 
         foreach (var label in _blastDamage.Values)
-            Ink.DrawString(ThemeDB.FallbackFont, label.Position + new Vector2(0, -_feedbackRise), label.Text, fontSize: 22, modulate: new Color("ff8f85"));
+            DrawHealthFeedback(label.Position, label.Text, new Color("ff8f85"));
         if (_feedback.Length > 0)
-            Ink.DrawString(ThemeDB.FallbackFont, _feedbackPosition + new Vector2(0, -_feedbackRise), _feedback, fontSize: 23, modulate: _feedbackColor);
+            DrawHealthFeedback(_feedbackPosition, _feedback, _feedbackColor);
         DrawIncome();
+    }
+
+    private void DrawHealthFeedback(Vector2 anchor, string text, Color color)
+    {
+        var font = ThemeDB.FallbackFont;
+        float width = font.GetStringSize(text, fontSize: 23).X;
+        Ink.DrawString(font, anchor + new Vector2(-width / 2, -22 - _feedbackRise), text, fontSize: 23, modulate: color);
     }
 
     // Rebuilt from current visibility on every draw: no stale fog or health cache.

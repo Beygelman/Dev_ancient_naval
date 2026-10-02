@@ -1,14 +1,18 @@
-# Ancient Naval — v0.20.2 — Bays and Blessings
+# Ancient Naval — v020.2 — Corrected edition
 
 A turn-based naval tactics game built with **Godot 4.7.2 .NET**, C# and .NET 8. Open `project.godot`, stop the previous run with **F8**, then press **F5**. The title screen offers **New game**, **Continue** and **Exit game**. New game opens a six-color fleet and emblem selector and a choice of 1–4 rival fleets and Boatswain, Captain or Admiral difficulty, plus **Sea World**, **Oceans**, **Continents** or **Pangaea**.
 
-Defeat the rival Motherships while exploring, collecting resources and capturing coastal villages. The entire interface is in English. Core gameplay remains independent of Godot; rendering and input live in Presentation.
+Defeat the rival Motherships while exploring, collecting resources and capturing coastal villages. The interface supports English, Ukrainian and Dutch; language buttons are available on the title screen and in the game menu. Core gameplay remains independent of Godot; rendering and input live in Presentation.
 
 ## Download and local release copies
 
 The working project, sources, assets, balance, tests and this README are edited
 directly in this Git repository. Delivered files are also copied to `releases/`
 inside the same project; the external `outputs` folder is an additional mirror.
+
+- [Windows v020.2 ZIP](releases/v020.2/Ancient_Naval_v020.2_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
+- [Source v020.2 ZIP](releases/v020.2/Ancient_Naval_v020.2_Source.zip), [Russian notes](releases/v020.2/Ancient_Naval_v020.2_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.2.txt).
+- Local launch copy: `releases/v020.2/playable/Ancient Naval.exe`.
 
 - [Windows v0.20.2 ZIP](releases/0.20.2/Ancient_Naval_0.20.2_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
 - [Source v0.20.2 ZIP](releases/0.20.2/Ancient_Naval_0.20.2_Source.zip), [Russian notes](releases/0.20.2/Ancient_Naval_0.20.2_Notes_RU.md), [SHA256 checksums](releases/SHA256-0.20.2.txt).
@@ -32,6 +36,21 @@ notes remain visible to Git. [GitHub size limits](https://docs.github.com/en/rep
 Godot ignores the release directory so copied exports never re-enter game assets.
 See [release-copy workflow](releases/README.md). Files reach GitHub after the
 repository changes are committed and pushed; copying files alone is not a push.
+
+## Corrected v020.2 — 2 October 2026
+
+- Selecting a cannon target with a two-shot ship opens an icon-only parchment under that target. Choose one cannonball or two; a double salvo launches both charges together and receives one reply. Claim and treasury banners use the same parchment size family as object commands.
+- Reduce existing unit sight by one tile. Admiral coordinates firing and same-turn advances against known targets, evaluates return fire and preserves charges on nearly sunk targets. Captain recovers when a newly discovered obstruction blocks its planned route.
+- Replace repeated per-line drawing with buffered sea geometry, split terrain into bounded raster regions and update local fog regions one per frame. Bake static town layers once; pan, zoom and hover reuse their caches. Use the verified OpenGL Compatibility renderer for the 2D game to avoid the repeated first-move D3D12 stall on this host. The release workflow now requires native frame-pacing checks before packaging.
+- Galleon cannon range increases from one to two tiles for new voyages. Shared smooth island surfaces remove pointed sand-tile corners and water cuts; internal lakes stay open. Larger inland summits have smaller connecting peaks, and denser continuous groves leave meadow regions.
+- Object commands wrap around the selected object in one-eighth-circle sectors, extending beyond a semicircle as command count grows. Mystical upgrade names reveal precise effects in hover parchment. Compact land-fitted towns gain taller square walls and four corner towers; ship and tower mortars have detailed short bombard carriages.
+- Number-only hit feedback floats above health amphorae. Victory and defeat screens can be dismissed to inspect the map. Leaving a finished voyage removes its save and backup; active voyages can still Continue.
+- Move voyage setup to the right and support live English/Ukrainian/Dutch switching with an active-language marker and a persisted language preference.
+- Add a buildable Lighthouse among rocks at a sea tile's upper-left corner: sight 4, optional radar, port trade links. Shared trade paths become a single dashed network. Towns use spaced, varied isometric buildings and separate rear-house, mill, wall and wheat layers.
+
+Use **New game** to adopt the new balance and optional rules. Existing saves keep their saved rule set. Historical `0.20.2` archives remain unchanged; this correction is delivered separately as `v020.2`. Future versions follow `v020`, `v020.1` through `v020.9`, then `v021`.
+
+[Validation and compatibility](docs/MILESTONE-v020.2.md).
 
 ## Changes in v0.20.2 — 2 October 2026
 

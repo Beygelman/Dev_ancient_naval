@@ -92,12 +92,13 @@ public sealed partial class BattleState
         if (doubleSalvo && first.TargetVisibleToPlayer)
             message = $"Double salvo: {shots.Where(s => !s.IsCounterattack).Sum(s => s.Damage):0} damage";
         if (shots.LastOrDefault() is { IsCounterattack: true, TargetVisibleToPlayer: true } reply)
-            message += $" · counterattack: {reply.Damage:0}";
+            message += $" · −{reply.Damage:0}";
         if (shots.Any(s => s.Promoted && s.AttackerVisibleToPlayer))
             message += " · VETERAN!";
         if (shots.Any(s => s.TargetSunk && s.TargetVisibleToPlayer))
             message += " · ship sunk";
-        return new(true, message, CommandKind.Attack, id, targetId, shots[0].Damage, Shots: shots, Splash: splash, AreaHits: area);
+        return new(true, message, CommandKind.Attack, id, targetId, shots[0].Damage, Shots: shots, Splash: splash, AreaHits: area)
+            { SalvoCharges = doubleSalvo ? 2 : 1 };
     }
 
     private CombatShot Fire(Ship attacker, Ship target, bool counter, double? fixedDamage = null)

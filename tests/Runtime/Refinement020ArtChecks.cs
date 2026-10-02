@@ -40,10 +40,36 @@ public partial class Refinement020ArtChecks : Node
         await Frame();
         Check(GetViewport().GetTexture().GetImage().SavePng(arg[10..].Replace(".png", "-" + suffix + ".png")) == Error.Ok,"capture "+suffix);
     }
+
+    private async Task ClickSector(SectorButton button)
+    {
+        var point = button.GetGlobalTransform() * button.IconCenter;
+        GetViewport().PushInput(new InputEventMouseMotion { Position = point, GlobalPosition = point }, true);
+        GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.Left, Position = point, GlobalPosition = point, Pressed = true }, true);
+        GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.Left, Position = point, GlobalPosition = point, Pressed = false }, true);
+        await Frame();
+    }
+
+    private void CheckTargetSafeInk()
+    {
+        var command = new SectorButton();
+        command.SetSector(0, 1);
+        var target = command.IconCenter;
+        command.SetWorldTargetHitExclusions(new[] { target }, 15);
+        Check(!command._HasPoint(target), "an enemy beneath command ink keeps target-click priority");
+        Check(command.IconCenter.DistanceTo(target) > 15 && command._HasPoint(command.IconCenter),
+            "command ink moves to a clickable place inside its own wedge");
+        Check(command.IconCenter.DistanceTo(SectorButton.Center) is > SectorButton.Inner and < SectorButton.Outer,
+            "displaced ink remains on the original parchment");
+        command.SetWorldTargetHitExclusions(Array.Empty<Vector2>(), 15);
+        Check(command.IconCenter == target, "ink returns to its ordinary position once the target is gone");
+        command.Free();
+    }
     public override async void _Ready()
     {
         try
         {
+            CheckTargetSafeInk();
             await Frame();
             Game.FastChecks = true;
             var rules = Game.Battle.Rules;
@@ -73,18 +99,25 @@ public partial class Refinement020ArtChecks : Node
                 await Frame();
                 var fan=Nodes(Game.Hud).OfType<RadialPapyrus>().Single(n=>n.Name=="ActionPapyrus");
                 var origin=GetViewport().GetCanvasTransform()*Game.BoardView.ToGlobal(Game.BoardView.Projection.GridToWorld(new(12,12)));
-                Check((fan.Position+SectorButton.Center-origin-new Vector2(0,ShipVisualProfile.ProgressY(ShipClass.Mothership)*Game.MapCamera.Zoom.Y+12-fan.TopInset)).Length()<1,"fan follows below the hull progress at "+color);
+                Check((fan.Position + SectorButton.Center * fan.Scale - origin).Length() < 1,
+                    "command parchment wraps around the selected hull at " + color);
                 var before=fan.Position;
                 Check(Nodes(Game.Hud).OfType<SectorButton>().Single(n=>n.Name=="ActionMortar").Cost==battle.MortarPrice,"mortar badge keeps its real equipment price in Creative");
                 Game.MapCamera.Pan(new(40,20));
                 await Frame();
                 Check(fan.Position.DistanceTo(before)>5,"fan responds to camera movement");
-                var yard=Nodes(Game.Hud).OfType<Button>().Single(n=>n.Name=="ActionBuild");
-                yard.EmitSignal(BaseButton.SignalName.Pressed);
+                var yard=Nodes(Game.Hud).OfType<SectorButton>().Single(n=>n.Name=="ActionBuild");
+                await ClickSector(yard);
                 await ToSignal(GetTree().CreateTimer(.4),SceneTreeTimer.SignalName.Timeout);
                 await Frame();
                 var build=Nodes(Game.Hud).OfType<SectorButton>().Where(n=>n.Name.ToString().StartsWith("Build") && n.IsVisibleInTree()).ToArray();
                 Check(build.Length>0 && build.All(n=>n.Cost==battle.BuildPrice(Side.Player,(ShipClass)Enum.Parse(typeof(ShipClass),n.Name.ToString()[5..]))),"all ship prices come from active rules");
+                Check(fan.ArcLength > Mathf.Pi, "a full shipyard unfolds beyond a semicircle");
+                var sectors = Nodes(fan).OfType<SectorButton>().Where(n => n.IsVisibleInTree()).ToArray();
+                foreach (var sector in sectors)
+                    Check(sectors.Count(other => other._HasPoint(sector.IconCenter)) == 1,
+                        "each command icon has exactly one circular input sector: " + sector.Name);
+                Check(sectors.Sum(sector => sector.Sweep) <= Mathf.Tau, "a crowded ring never overlaps its first and last sectors");
                 await Capture(color.ToString().ToLowerInvariant()+"-shipyard");
             }
             GD.Print($"PASS: {_checks} six-fleet monuments, growing towns, ports, anchored fans and coin prices.");

@@ -12,6 +12,7 @@ public sealed class TerrainFeatures
     private readonly Dictionary<GridPosition, float> _forest = new();
     private readonly Dictionary<GridPosition, IReadOnlyList<Vector2>> _footprints = new();
     private readonly HashSet<GridPosition> _mountains = new();
+    private readonly float _forestPhase;
 
     public static TerrainFeatures For(GameBoard board) => Cache.GetValue(board, b => new TerrainFeatures(b));
     public IReadOnlySet<GridPosition> MountainCells => _mountains;
@@ -24,6 +25,7 @@ public sealed class TerrainFeatures
 
     private TerrainFeatures(GameBoard board)
     {
+        _forestPhase = (board.Seed & 4095) * .0143f;
         BuildDepth(board);
         var remaining = board.Tiles.Where(t => t.Terrain == TerrainType.Land).Select(t => t.Position).ToHashSet();
         while (remaining.Count > 0)
@@ -41,20 +43,23 @@ public sealed class TerrainFeatures
             BuildRange(board, component);
         }
 
-        float phase = (board.Seed & 4095) * .0143f;
         foreach (var tile in board.Tiles.Where(t => t.Terrain == TerrainType.Land))
         {
             var center = board.Center(tile.Position);
-            // Broad correlated groves leave whole meadow regions, rather than gaps between dense trees.
-            float field = MathF.Sin(center.X * .42f + phase) + MathF.Cos(center.Y * .39f - phase * .7f)
-                + .45f * MathF.Sin((center.X + center.Y) * .21f + phase * 1.3f);
-            _forest[tile.Position] = _mountains.Contains(tile.Position) || field < .25f ? 0 :
-                Math.Clamp((field - .25f) * .48f, .12f, .85f);
+            _forest[tile.Position] = _mountains.Contains(tile.Position) ? 0 : ForestDensityAt(center);
             var points = board.Mesh is { } mesh ? mesh.Faces[tile.Position].Select(v => mesh.Vertices[v]) :
                 new[] { center + new Vector2(-.5f, -.5f), center + new Vector2(.5f, -.5f),
                     center + new Vector2(.5f, .5f), center + new Vector2(-.5f, .5f) };
             _footprints[tile.Position] = Array.AsReadOnly(points.Select(p => Vector2.Lerp(center, p, .66f)).ToArray());
         }
+    }
+
+    /// <summary>Continuous grove field; samples are not snapped to tile centers.</summary>
+    public float ForestDensityAt(Vector2 location)
+    {
+        float field = MathF.Sin(location.X * .42f + _forestPhase) + MathF.Cos(location.Y * .39f - _forestPhase * .7f)
+            + .45f * MathF.Sin((location.X + location.Y) * .21f + _forestPhase * 1.3f);
+        return field < .1f ? 0 : Math.Clamp((field - .1f) * .52f, .18f, .92f);
     }
 
     private void BuildDepth(GameBoard board)

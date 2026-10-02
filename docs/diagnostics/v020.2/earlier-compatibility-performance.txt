@@ -1,0 +1,108 @@
+PAN frames=119, p50_ms=16,938, p95_ms=21,696, max_ms=24,037
+INTERACTION world=Pangaea, wide_view=True, tiles=1371, opponents=4, live_fog=False, hover_calls=64, hover_p50_ms=0,071, hover_p95_ms=0,132, hover_max_ms=1,069, frame_p95_ms=21,787, frame_max_ms=48,693, process_p95_ms=58,200, draw_calls_p95=3240, movement_elapsed_ms=1521,108
+SLOW_FRAMES
+
+{
+  "Fleet.Draw": {
+    "Calls": 388,
+    "TotalMs": 37.878299999999996,
+    "MaxMs": 0.3454,
+    "Bytes": 908792
+  },
+  "Ambience.Waves": {
+    "Calls": 125,
+    "TotalMs": 705.0670000000002,
+    "MaxMs": 9.5272,
+    "Bytes": 14848056
+  },
+  "Ambience.Fish": {
+    "Calls": 125,
+    "TotalMs": 63.92279999999999,
+    "MaxMs": 0.7955,
+    "Bytes": 0
+  },
+  "Ambience.Draw": {
+    "Calls": 125,
+    "TotalMs": 782.1010000000001,
+    "MaxMs": 10.1525,
+    "Bytes": 14851152
+  },
+  "Hull.Draw": {
+    "Calls": 312,
+    "TotalMs": 97.40289999999997,
+    "MaxMs": 0.7514,
+    "Bytes": 748864
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 4.754399999999998,
+    "MaxMs": 0.616,
+    "Bytes": 93920
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 25.941999999999997,
+    "MaxMs": 1.5725,
+    "Bytes": 625336
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 4.1206,
+    "MaxMs": 4.1206,
+    "Bytes": 194416
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 0.9629,
+    "MaxMs": 0.9629,
+    "Bytes": 168464
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 0.5833999999999999,
+    "MaxMs": 0.3238,
+    "Bytes": 51480
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 2.4099,
+    "MaxMs": 1.3974,
+    "Bytes": 338560
+  },
+  "Animation.TravelRoute": {
+    "Calls": 1,
+    "TotalMs": 0.4532,
+    "MaxMs": 0.4532,
+    "Bytes": 2440
+  },
+  "Animation.Start": {
+    "Calls": 1,
+    "TotalMs": 6.8642,
+    "MaxMs": 6.8642,
+    "Bytes": 8968
+  },
+  "Selection.Dispatch": {
+    "Calls": 1,
+    "TotalMs": 13.6707,
+    "MaxMs": 13.6707,
+    "Bytes": 423264
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0101,
+    "MaxMs": 0.0101,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 2.1074,
+    "MaxMs": 1.347,
+    "Bytes": 10072
+  },
+  "Navigation.PreviewPlan": {
+    "Calls": 1,
+    "TotalMs": 0.194,
+    "MaxMs": 0.194,
+    "Bytes": 456
+  }
+}

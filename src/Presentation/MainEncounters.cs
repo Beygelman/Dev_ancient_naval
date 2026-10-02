@@ -33,22 +33,4 @@ public partial class Main
         if (Battle.ActiveSide != Side.Player) Hud.ShowOpponentTurn(Battle.ActiveSide);
     }
 
-    private void SalvoAtScreen(Vector2 screen)
-    {
-        if (!CanCommand) return;
-        if (Selected is not { Owner: Side.Player } ship || Mode != OrderMode.None)
-        {
-            SelectAtScreen(screen);
-            return;
-        }
-        var air = Battle.ObservedShips(Side.Player).FirstOrDefault(s => s.IsAirborne
-            && (GetViewport().GetCanvasTransform() * (BoardView.Projection.GridToWorld(s.Position) + new Vector2(0, -62))).DistanceTo(screen) < 24 * MapCamera.Zoom.X);
-        var cell = air?.Position ?? BoardView.Projection.WorldToGrid(BoardView.ToLocal(MapCamera.ScreenToWorld(screen)));
-        if (Battle.CanDoubleSalvo(ship.Id, cell))
-        {
-            int id = ship.Id;
-            RunSafely(() => Perform(b => air is null ? b.AttackAt(Side.Player, id, cell, true) : b.Attack(Side.Player, id, air.Id, true), deferImpacts: true));
-        }
-        else SelectAtScreen(screen);
-    }
 }

@@ -59,7 +59,7 @@ internal static class Refinement021Checks
         Check(!battle.CanDoubleSalvo(3,new(10,8)), "Galleon cannot use double salvo");
         battle = new BattleState(new GameBoard(22,22,_=>TerrainType.Water), rules,
             new[] {(Side.Player,ShipClass.Mothership,new GridPosition(8,8)),(Side.Enemy,ShipClass.Mothership,new GridPosition(20,20)),
-                (Side.Enemy,ShipClass.Kolonel,new GridPosition(10,8))},Array.Empty<GridPosition>(),villageSpots:Array.Empty<GridPosition>());
+                (Side.Enemy,ShipClass.Kolonel,new GridPosition(10,8)),(Side.Player,ShipClass.Fishing,new GridPosition(9,8))},Array.Empty<GridPosition>(),villageSpots:Array.Empty<GridPosition>());
         var snap=battle.CaptureSnapshot(); snap.Ships[0].SecondAttackUpgrade=true;
         battle=BattleState.LoadJson(BattleState.SerializeSnapshot(snap));
         Check(battle.CanDoubleSalvo(1,new(10,8)), "upgraded flagship can hold for two shots");
@@ -67,9 +67,9 @@ internal static class Refinement021Checks
         Check(motherShot.Success && motherShot.Shots!.Where(s=>!s.IsCounterattack).Sum(s=>s.Damage)==6, "flagship double salvo retains its own three-damage guns");
         // A radar coordinate is anonymous until it enters real optical sight.
         battle = new BattleState(new GameBoard(22,22,_=>TerrainType.Water),rules,
-            new[] {(Side.Player,ShipClass.Mothership,new GridPosition(3,3)),(Side.Enemy,ShipClass.Mothership,new GridPosition(20,20)),
-                (Side.Enemy,ShipClass.Invader,new GridPosition(7,3))},Array.Empty<GridPosition>(),villageSpots:Array.Empty<GridPosition>());
-        Check(battle.BuyRadar(Side.Player,1).Success && battle.Vision.IsRadarContact(Side.Player,new(7,3)) && !battle.HasMet(Side.Enemy), "radar doesn't identify a nation");
+            new[] {(Side.Player,ShipClass.Mothership,new GridPosition(4,3)),(Side.Enemy,ShipClass.Mothership,new GridPosition(20,20)),
+                (Side.Enemy,ShipClass.Invader,new GridPosition(6,3))},Array.Empty<GridPosition>(),villageSpots:Array.Empty<GridPosition>());
+        Check(battle.BuyRadar(Side.Player,1).Success && battle.Vision.IsRadarContact(Side.Player,new(6,3)) && !battle.HasMet(Side.Enemy), "radar doesn't identify a nation");
         money=battle.Credits(Side.Player);
         battle.SetGodEye(true);
         Check(!battle.HasMet(Side.Enemy) && battle.Credits(Side.Player)==money, "God's eye is not a paid discovery");

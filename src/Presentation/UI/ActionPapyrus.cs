@@ -21,7 +21,7 @@ public partial class ActionPapyrus : Control
     private Vector2 FloatOffset => new(0, Mathf.Sin(_floatTime * 1.8f) * 2);
     public override void _Ready()
     {
-        Size = new(300, 118);
+        Size = SectorButton.PaperFootprint;
         MouseFilter = MouseFilterEnum.Stop;
         _art = GD.Load<Texture2D>(ArtworkPath);
         MouseEntered += () => { _hovered = true; QueueRedraw(); };
@@ -110,7 +110,7 @@ public partial class ActionPapyrus : Control
         for (int i = 0; i < 24; i++)
         {
             float x = Size.X * ((i * .618f) % 1);
-            var at = new Vector2(x, 110 - burn * (45 + i % 5 * 12)) + FloatOffset;
+            var at = new Vector2(x, Size.Y - 8 - burn * (45 + i % 5 * 12)) + FloatOffset;
             float alpha = Math.Min(1, (1 - burn) * 3);
             DrawCircle(at, 2 + i % 4, new Color(1, .43f, .08f, alpha));
             DrawCircle(at + new Vector2(0, -4), 1.4f + i % 3, new Color(1, .82f, .26f, alpha));

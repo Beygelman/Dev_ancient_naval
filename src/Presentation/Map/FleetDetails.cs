@@ -26,6 +26,6 @@ public partial class FleetView
 
         foreach (var hit in result.AreaHits ?? Array.Empty<AreaHit>())
             if (hit.VisibleToPlayer)
-                _blastDamage[-1 - _blastDamage.Count] = (Projection.GridToWorld(hit.Position), $"−{hit.Damage:0.##}");
+                _blastDamage[-1 - _blastDamage.Count] = (BoardView.TownHealthAnchor(Projection.GridToWorld(hit.Position)), $"−{hit.Damage:0.##}");
     }
 }

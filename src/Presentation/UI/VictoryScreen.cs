@@ -14,10 +14,11 @@ public partial class VictoryScreen : CanvasLayer
     private PanelContainer _paper = null!;
     private Label _heading = null!, _currency = null!, _built = null!, _sunk = null!, _nations = null!, _footnote = null!;
     private Button _home = null!;
+    private Label _story = null!;
     private VictoryCelebration _celebration = null!;
     private float _age;
 
-    public event Action? HomeRequested, ExitRequested;
+    public event Action? HomeRequested, ExitRequested, CloseRequested;
     public bool IsOpen => Visible;
     internal int ShowCount { get; private set; }
     internal int ActiveSparkCount => _celebration?.ActiveSparkCount ?? 0;
@@ -68,7 +69,7 @@ public partial class VictoryScreen : CanvasLayer
         _heading.AddThemeConstantOverride("shadow_offset_y", 0);
         column.AddChild(_heading);
 
-        var story = Text("You preserved your people.\nThe ship of new hope sails on.", 20, new Color("e9d9b8"));
+        var story = _story = Text("You preserved your people.\nThe ship of new hope sails on.", 20, new Color("e9d9b8"));
         story.Name = "VictoryStory";
         story.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         column.AddChild(story);
@@ -86,6 +87,7 @@ public partial class VictoryScreen : CanvasLayer
         _footnote.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         column.AddChild(_footnote);
 
+        column.AddChild(Action("InspectMap", "View the map", () => CloseRequested?.Invoke()));
         var buttons = new HBoxContainer { Name = "VictoryActions", Alignment = BoxContainer.AlignmentMode.Center };
         buttons.AddThemeConstantOverride("separation", 14);
         column.AddChild(buttons);
@@ -137,8 +139,12 @@ public partial class VictoryScreen : CanvasLayer
         _heading.AddThemeFontSizeOverride("font_size", width < 560 ? 46 : 66);
     }
 
-    public void ShowVictory(VoyageStatistics statistics, int round)
+    public void ShowVictory(VoyageStatistics statistics, int round) => ShowOutcome(statistics, round, true);
+
+    public void ShowOutcome(VoyageStatistics statistics, int round, bool won)
     {
+        _heading.Text = won ? "VICTORY" : "DEFEAT";
+        _story.Text = won ? "You preserved your people.\nThe ship of new hope sails on." : "Your flagship has fallen.\nYour voyage will be remembered.";
         _currency.Text = statistics.CurrencyEarned.ToString("N0") + " Thors";
         _built.Text = statistics.ShipsBuilt.ToString("N0");
         _sunk.Text = statistics.EnemyShipsDestroyed.ToString("N0");
@@ -149,7 +155,7 @@ public partial class VictoryScreen : CanvasLayer
         Visible = true;
         _paper.Modulate = new Color(1, 1, 1, 0);
         _shade.Modulate = new Color(1, 1, 1, 0);
-        _celebration.Start();
+        if (won) _celebration.Start(); else _celebration.Stop();
         SetProcess(true);
         SetProcessInput(true);
         _home.GrabFocus();
@@ -179,7 +185,10 @@ public partial class VictoryScreen : CanvasLayer
     public override void _Input(InputEvent input)
     {
         if (IsOpen && input is InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape })
+        {
+            CloseRequested?.Invoke();
             GetViewport().SetInputAsHandled();
+        }
     }
 
     public override void _ExitTree() => GetViewport().SizeChanged -= Layout;

@@ -88,7 +88,7 @@ public partial class VictoryChecks : Node
             var victory = Game.Victory!;
             Check(victory.IsOpen && Game.Fleet.SinkingCount == 0 && !Game.Busy
                 && battle.PendingPresentation is null, "the modal result opens only after the completed command");
-            Check(victory.Layer > Game.Hud.Layer && victory.StatisticsText == "5 Thors|0|1|1",
+            Check(victory.Layer > Game.Hud.Layer && victory.StatisticsText == $"{battle.Statistics.CurrencyEarned:N0} Thors|0|1|1",
                 "foreground result uses actual direct combat totals");
             Check(!Game.MapInput.IsProcessingInput() && !Game.MapInput.IsProcessingUnhandledInput()
                 && !Game.Hud.Visible, "map gestures and underlying actions are blocked");
@@ -99,9 +99,6 @@ public partial class VictoryChecks : Node
                 await Frame();
             }
             Check(victory.ShowCount == shown, "routine refresh never restarts fireworks or result totals");
-            Input.ParseInputEvent(new InputEventKey { Pressed = true, Keycode = Key.Escape });
-            await Frame();
-            Check(victory.IsOpen && !Game.Hud.MenuVisible, "Escape does not open a second menu beneath the result");
             await ToSignal(GetTree().CreateTimer(.8), SceneTreeTimer.SignalName.Timeout);
             Check(victory.ActiveSparkCount is > 0 and <= 240, "celebration has a bounded visible particle population");
             var capture = OS.GetCmdlineUserArgs().FirstOrDefault(arg => arg.StartsWith("--capture="));
@@ -114,21 +111,45 @@ public partial class VictoryChecks : Node
             Check(victory.ActiveSparkCount == 0 && !victory.IsProcessing(),
                 "the finite celebration stops processing after its final spark");
 
+            Input.ParseInputEvent(new InputEventKey { Pressed = true, Keycode = Key.Escape });
+            await Frame();
+            Check(!victory.IsOpen && Game.MapInput.IsProcessingInput() && Game.Hud.Visible && !Game.Hud.MenuVisible,
+                "Escape dismisses the result and restores map inspection without opening another menu");
+            for (int i = 0; i < 4; i++) Game.Refresh();
+            Check(!victory.IsOpen && victory.ShowCount == shown, "dismissed result remains dismissed on refresh");
+            var camera = Game.MapCamera.Position;
+            Game.MapCamera.Pan(new Vector2(20, 12));
+            Check(Game.MapCamera.Position != camera, "the finished map can be panned");
             Game.Saves.Write(battle, Game.MapCamera.Position, Game.MapCamera.Zoom.X);
             Nodes(victory).OfType<Button>().Single(button => button.Name == "VictoryHome").EmitSignal(Button.SignalName.Pressed);
             await Frame();
             Check(Game.Home.IsOpen && !victory.IsOpen && !victory.IsProcessing(),
                 "Return to menu closes the result and all hidden celebration processing");
-            await Game.ContinueSession();
-            await Frame();
-            Check(victory.IsOpen && victory.ShowCount == shown + 1
-                && Game.Battle.Statistics == battle.Statistics,
-                "Continue reopens a won voyage without recounting combat");
+            Check(!Game.Saves.Exists && !Nodes(Game.Home).OfType<Button>().Single(button => button.Name == "HomeContinue").Visible,
+                "leaving a completed voyage deletes its primary and backup and hides Continue");
             Check(Nodes(victory).OfType<Button>().Single(button => button.Name == "VictoryExit").Text == "Exit game",
                 "result supplies the second requested exit action");
-            Nodes(victory).OfType<Button>().Single(button => button.Name == "VictoryHome").EmitSignal(Button.SignalName.Pressed);
+            var defeat = new BattleState(new GameBoard(12, 12, _ => TerrainType.Water), battle.Rules,
+                new[] { (Side.Player, ShipClass.Mothership, new GridPosition(3, 3)),
+                    (Side.Enemy, ShipClass.Mothership, new GridPosition(4, 3)) },
+                Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
+            var doomed = defeat.CaptureSnapshot();
+            doomed.Ships.Single(ship => ship.Owner == Side.Player).Health = 1;
+            defeat = BattleState.LoadJson(BattleState.SerializeSnapshot(doomed));
+            defeat.EndTurn(Side.Player);
+            Check(defeat.Attack(Side.Enemy, 2, 1).Success && defeat.PlayerDefeated, "defeat fixture resolves actual combat");
+            Game.Home.Hide();
+            Game.BoardView.Show();
+            Game.LoadScenario(defeat);
             await Frame();
-            Check(Game.Home.IsOpen && !victory.IsOpen, "a continued victory can return to menu again");
+            Check(victory.IsOpen && Nodes(victory).OfType<Label>().Single(label => label.Name == "VictoryHeading").Text == "DEFEAT",
+                "a defeated player receives the same dismissible result");
+            Nodes(victory).OfType<Button>().Single(button => button.Name == "InspectMap").EmitSignal(Button.SignalName.Pressed);
+            await Frame();
+            Check(!victory.IsOpen && Game.Hud.Visible, "defeat can also be dismissed for inspection");
+            Game.Saves.Write(defeat, Game.MapCamera.Position, Game.MapCamera.Zoom.X);
+            Game.ShowHome();
+            Check(!Game.Saves.Exists, "leaving defeat also removes Continue");
             GD.Print($"PASS: {_checks} staged victory/statistics/modal checks ({DisplayServer.GetName()}).");
             GetTree().Quit();
         }

@@ -70,7 +70,7 @@ public partial class Main
         SaveSession();
         HideOutcome();
         SetBattleVisible(false);
-        _home.ShowHome(_saveStore.Exists);
+        _home.ShowHome(_saveStore.HasUnfinishedVoyage());
     }
 
     private void ShowColorSelection()
@@ -119,6 +119,12 @@ public partial class Main
         try
         {
             var saved = await Task.Run(_saveStore.Read);
+            if (saved.Battle.IsOver || saved.Battle.PlayerDefeated)
+            {
+                _saveStore.Delete();
+                _home.ShowHome(false);
+                return;
+            }
             _home.Hide();
             SetBattleVisible(true);
             LoadScenario(saved.Battle);
@@ -148,7 +154,8 @@ public partial class Main
             return;
         try
         {
-            _saveStore.Write(Battle, MapCamera.Position, MapCamera.Zoom.X);
+            if (Battle.IsOver || Battle.PlayerDefeated) _saveStore.Delete();
+            else _saveStore.Write(Battle, MapCamera.Position, MapCamera.Zoom.X);
         }
         catch (Exception e)when (e is System.IO.IOException or UnauthorizedAccessException)
         {

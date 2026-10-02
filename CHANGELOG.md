@@ -1,5 +1,20 @@
 # Ancient Naval change history
 
+## v020.2 — corrected build — 2026-10-03
+
+- Galleon gains one attack tile. Continuous rounded island surfaces remove water cuts and pointed sand wedges; enclosed lakes remain water. Larger summits and smaller connecting peaks form inland ridges; denser groves use a continuous field rather than tile borders.
+- Retained shader-driven sea waves rebuild only with visibility changes, removing per-frame wave tessellation/uploads; selecting a hull redraws only the old/new selection.
+- Native frame-pacing gates; bounded terrain regions, batched sea/wake geometry, cached town artwork and OpenGL Compatibility rendering.
+- Circular parchment length follows command count; target clicks take priority; mystical upgrade names have localized effect tooltips.
+- Compact land-fitted towns, taller square walls with corner towers, detailed mortar carriages.
+- Admiral concentration of fire and Captain route recovery; one-tile sight reduction.
+- Dismissible victory/defeat, deletion of finished saves, right-side voyage setup.
+- English/Ukrainian/Dutch live language controls and grammatical message catalogs.
+- Sea Lighthouses with radar upgrades and port links; deduplicated dashed trade routes; layered spaced towns.
+- Icon-only single/double choice on a target parchment, simultaneous double launch and matching claim/treasury parchment sizing.
+- Historical 0.20.2 packages preserved; new version naming v020, v020.1…v020.9, v021.
+
+
 ## 0.20.2 — 2026-10-02 — Bays and Blessings
 
 This user-requested version label builds on the completed 0.21 checkpoint and retains its salvos, camera flights, claim banners, ports and save compatibility.

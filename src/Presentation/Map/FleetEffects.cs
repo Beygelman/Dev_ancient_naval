@@ -18,6 +18,7 @@ public partial class FleetView
     private readonly Dictionary<int, Impulse> _impulses = new();
     private readonly List<int> _expiredImpulses = new();
     private readonly List<(Vector2 Point, Vector2 Previous, float Radius, Vector2 Shadow)> _projectiles = new();
+    private readonly SeaGeometryBatch _waterEffectsBatch = new();
     private sealed record Smoke(Vector2 Origin, Vector2 Velocity, float Radius, float Born, float Lifetime, bool Dark);
     private sealed record Ripple(Vector2 Center, float Strength, float Born, float Angle, bool Wake);
     private sealed record Impulse(Vector2 Push, float Born, float Duration, float Roll);
@@ -38,6 +39,8 @@ public partial class FleetView
             _visualBattle = Battle;
             foreach (var hull in _hulls.Values)
             {
+                hull.Canvas.GetParent()?.RemoveChild(hull.Canvas);
+                hull.Badge.GetParent()?.RemoveChild(hull.Badge);
                 hull.Canvas.QueueFree();
                 hull.Badge.QueueFree();
             }
@@ -85,7 +88,7 @@ public partial class FleetView
 
     private (Vector2 Offset, float Roll) HullMotion(ShipSnapshot ship)
     {
-        if (ship.Class is ShipClass.FishingDock or ShipClass.AncientGun or ShipClass.CannonTower)
+        if (ship.Class is ShipClass.FishingDock or ShipClass.AncientGun or ShipClass.CannonTower or ShipClass.Lighthouse)
             return (Vector2.Zero, 0);
         float size = ShipVisualProfile.For(ship.Class).Size;
         float phase = _clock * (1.4f / size) + ship.Id * 2.37f;
@@ -165,6 +168,7 @@ public partial class FleetView
 
     private void DrawWaterEffects()
     {
+        _waterEffectsBatch.Clear();
         foreach (var ball in _projectiles)
         {
             Ink.DrawSetTransform(ball.Shadow, 0, new Vector2(1.2f, .5f));
@@ -198,17 +202,23 @@ public partial class FleetView
                 {
                     var start = origin + side * arm * (3 + age * 4) * ripple.Strength;
                     var end = origin + back * length + side * arm * length * .36f;
-                    Ink.DrawLine(start, end, new Color(.77f, .93f, .94f, alpha), 1.15f, true);
-                    Ink.DrawLine(start + back * 4, end + back * 4, new Color(.64f, .84f, .87f, alpha * .35f), .8f, true);
+                    _waterEffectsBatch.Line(start, end, new Color(.77f, .93f, .94f, alpha));
+                    _waterEffectsBatch.Line(start + back * 4, end + back * 4, new Color(.64f, .84f, .87f, alpha * .35f));
                 }
             }
             else
             {
-                Ink.DrawSetTransform(ripple.Center, 0, new Vector2(1, .48f));
-                Ink.DrawArc(Vector2.Zero, radius, 0, Mathf.Tau, 32, new Color(.8f, .93f, .94f, alpha), 1.2f, true);
-                Ink.DrawSetTransform(Vector2.Zero);
+                var previous = ripple.Center + new Vector2(radius, 0);
+                for (int step = 1; step <= 32; step++)
+                {
+                    float angle = step * Mathf.Tau / 32;
+                    var next = ripple.Center + new Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius * .48f);
+                    _waterEffectsBatch.Line(previous, next, new Color(.8f, .93f, .94f, alpha));
+                    previous = next;
+                }
             }
         }
+        _waterEffectsBatch.Submit(Ink, 1.15f);
     }
 
     private void DrawAirEffects()

@@ -70,5 +70,14 @@ internal static partial class BattleScenarios
         battle = Fixture();
         Check(battle.StepCost(3, new(8, 8), new(9, 9), false) == 20, "A diagonally reached hostile neighborhood retains its threat penalty");
         Check(battle.StepCost(3, new(8, 8), new(7, 7), false) == 10, "A clear diagonal costs exactly one tile");
+        battle = Fixture();
+        battle.Find(4)!.Health = 1;
+        var doubleKill = battle.Attack(Side.Player, 3, 4, true);
+        Check(doubleKill.Success && doubleKill.SalvoCharges == 2 && doubleKill.Shots!.Count == 1
+            && battle.Find(3)!.AttacksRemaining == 0,
+            "A double salvo still launches both charges when the first impact sinks its target");
+        battle = Fixture();
+        Check(battle.Attack(Side.Player, 3, 4).SalvoCharges == 1,
+            "A normal shot presents exactly one charge");
     }
 }

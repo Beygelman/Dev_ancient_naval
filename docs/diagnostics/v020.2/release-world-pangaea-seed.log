@@ -1,0 +1,9 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 581.29 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+WORLD begin 3
+WORLD geometry 3
+WORLD raster 3
+WORLD hover 3
+WORLD Pangaea seed=18073096, 3 enemies: 1116 cells; 13 smooth island contours; trees=496; peaks=70; sceneryPages=3; terrainTexture=(3652, 1981).
+PASS: 25588 world refinement checks (Windows).
