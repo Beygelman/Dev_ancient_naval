@@ -29,9 +29,9 @@ public sealed partial class BattleState
         }
 
         InitializeShoals(seed);
-        var candidates = Board.Tiles.Where(t => t.Terrain != TerrainType.Land && At(t.Position)is null).Select(t => t.Position).ToList();
+        var candidates = Board.Tiles.Where(t => t.Terrain != TerrainType.Land && At(t.Position)is null && (!Rules.EmptyOuterRim || !Board.IsOuterCell(t.Position))).Select(t => t.Position).ToList();
         int resourceCount = Math.Max(Rules.Economy.MinimumResourceSpots, Rules.Economy.ResourceTileInterval > 0 ? Board.Tiles.Count / Rules.Economy.ResourceTileInterval : 0);
-        resourceCount = Math.Max(1, (int)Math.Round(resourceCount * .70));
+        resourceCount = Math.Max(1, (int)Math.Round(resourceCount * Rules.Economy.ResourceDensityMultiplier));
         var resources = WorldResourcePlacement.Order(Board, candidates.Where(p => !_shoals.Contains(p)), seed);
         // One guaranteed first catch per fleet; further resources require exploration.
         foreach (var mother in Ships.Where(s => s.IsMothership))
@@ -157,7 +157,10 @@ public sealed partial class BattleState
                 RegisterShipIncome(fishing);
                 break;
             case UpgradeChoice.Balloon:
-                _ships.Add(new Ship(_nextId++, requester, Rules.Get(ShipClass.Balloon), mother.Position));
+                var balloonBerth = BalloonRewardBerth(mother);
+                if (balloonBerth is null)
+                    return CommandResult.Rejected("No free interior tile remains for the Balloon.");
+                _ships.Add(new Ship(_nextId++, requester, Rules.Get(ShipClass.Balloon), balloonBerth.Value));
                 break;
         }
 
@@ -177,7 +180,7 @@ public sealed partial class BattleState
         pending.Enqueue(mother.Position);
         while (pending.TryDequeue(out var cell))
         {
-            if (IsFreeWater(cell))
+            if (IsFreeWater(cell) && (!Rules.EmptyOuterRim || !Board.IsOuterCell(cell)))
                 return cell;
             foreach (var next in Board.GetSurrounding(cell))
                 if (!visited.Contains(next) && StepCost(scout, cell, next, false)is not null)
@@ -188,6 +191,21 @@ public sealed partial class BattleState
         }
 
         return null;
+    }
+
+    private GridPosition? BalloonRewardBerth(Ship mother)
+    {
+        // Old voyages retain delivery directly above the flagship. Surface
+        // ships and land are valid for the new airborne berth as well.
+        if (!Rules.EmptyOuterRim || !Board.IsOuterCell(mother.Position))
+            return mother.Position;
+        var occupiedAir = _ships.Where(s => s.IsAirborne).Select(s => s.Position).ToHashSet();
+        return Board.Tiles.Where(t => !Board.IsOuterCell(t.Position) && !occupiedAir.Contains(t.Position)
+                && !_forbidden.Contains(t.Position))
+            .OrderBy(t => Board.Distance(mother.Position, t.Position))
+            .ThenBy(t => System.Numerics.Vector2.DistanceSquared(Board.Center(mother.Position), Board.Center(t.Position)))
+            .ThenBy(t => t.Position.Y).ThenBy(t => t.Position.X)
+            .Select(t => (GridPosition?)t.Position).FirstOrDefault();
     }
 
     private (Dictionary<GridPosition, int> Costs, Dictionary<GridPosition, GridPosition> Previous) FlightRoutes(Ship ship)

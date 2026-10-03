@@ -82,6 +82,7 @@ public partial class DebugHud
         _menuSettings.AddChild(Label("Settings", 25, true));
         _menuSettings.AddChild(new LanguageButtons());
         _menuSettings.AddChild(new UiScaleSlider());
+        _menuSettings.AddChild(new UiHintsToggle());
         var back = TextButton("Back", () =>
         {
             _menuSettings.Hide();
@@ -120,7 +121,8 @@ public partial class DebugHud
     {
         if (input is InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape })
         {
-            SetMenuVisible(!MenuVisible);
+            if (TurnConfirmationVisible) CloseTurnConfirmation();
+            else SetMenuVisible(!MenuVisible);
             GetViewport().SetInputAsHandled();
         }
     }

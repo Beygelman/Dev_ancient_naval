@@ -10,7 +10,8 @@ public sealed partial class BattleState
     public bool HasAntiAir(Ship ship) => ship.IsMothership || Rules.Balloon.KolonelAntiAir && ship.Definition.Class == ShipClass.Kolonel;
     public bool AntiAirCovers(Ship ship, GridPosition origin, GridPosition target) => HasAntiAir(ship) && Board.InRadius(origin, target, Rules.Balloon.AntiAirRange) && Board.InRadius(origin, target, ship.CannonRange);
     public bool UsesMortar(Ship ship, GridPosition cell) => ship.Definition.Class == ShipClass.AncientGun || ship.HasMortar && (ship.Definition.Class == ShipClass.Togus || !Board.InRadius(ship.Position, cell, ship.CannonRange));
-    private bool WeaponCoversFrom(Ship ship, GridPosition origin, GridPosition cell, bool counter = false) => ship.IsArmed && (ship.Definition.Class == ShipClass.AncientGun ? !counter && Board.InRadius(origin, cell, 5) && (!Rules.Mortar.TowerDeadZone || !Board.InRadius(origin, cell, Rules.Mortar.DeadZone)) : (ship.Definition.Class != ShipClass.Togus && Board.InRadius(origin, cell, ship.CannonRange) || !counter && ship.HasMortar && !Board.InRadius(origin, cell, Rules.Mortar.DeadZone) && Board.InRadius(origin, cell, ship.MortarRange)));
+    public int MortarDeadZone(Ship ship) => ship.Definition.Class == ShipClass.Togus ? Rules.Mortar.GranadoDeadZone ?? Rules.Mortar.DeadZone : Rules.Mortar.DeadZone;
+    private bool WeaponCoversFrom(Ship ship, GridPosition origin, GridPosition cell, bool counter = false) => ship.IsArmed && (ship.Definition.Class == ShipClass.AncientGun ? !counter && Board.InRadius(origin, cell, 5) && (!Rules.Mortar.TowerDeadZone || !Board.InRadius(origin, cell, MortarDeadZone(ship))) : (ship.Definition.Class != ShipClass.Togus && Board.InRadius(origin, cell, ship.CannonRange) || !counter && ship.HasMortar && !Board.InRadius(origin, cell, MortarDeadZone(ship)) && Board.InRadius(origin, cell, ship.MortarRange)));
     public bool WeaponCovers(Ship ship, GridPosition cell, bool counter = false) => WeaponCoversFrom(ship, ship.Position, cell, counter);
     public double Damage(Ship attacker, Ship target, bool counter = false) => attacker.IsArmed && (!target.IsAirborne || AntiAirCovers(attacker, attacker.Position, target.Position)) ? Ship.Whole(Math.Max(1, (UsesMortar(attacker, target.Position) && !counter ? attacker.CurrentMortarDamage : attacker.CurrentDamage) + (counter ? attacker.CounterDamageBonus : attacker.ShotDamageBonus) - target.Definition.Armor)) : 0;
     public bool CanAttack(int id, int targetId)
@@ -67,6 +68,7 @@ public sealed partial class BattleState
         ship!.AttacksUsed += doubleSalvo ? 2 : 1;
         if (ship.Definition.ActionProfile == ActionProfile.Standard && ship.HasMoved)
             ship.MovementLocked = true;
+        double salvoDamage = Damage(ship, target);
         var shots = new List<CombatShot>
         {
             Fire(ship, target, false)
@@ -76,7 +78,7 @@ public sealed partial class BattleState
         RecordImpact("attack");
         if (doubleSalvo && !IsOver && target.Health > 0)
         {
-            shots.Add(Fire(ship, target, false));
+            shots.Add(Fire(ship, target, false, Rules.EqualDoubleSalvoDamage ? salvoDamage : null));
             RecordImpact("attack2");
         }
         // One reply to each incoming attack; replies never recursively trigger replies.

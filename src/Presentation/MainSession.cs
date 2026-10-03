@@ -70,6 +70,8 @@ public partial class Main
         if (_sessionLoading || Busy)
             return;
         SaveSession();
+        SuspendTutorials();
+        Hud.CloseTurnConfirmation();
         _rewards?.Close();
         _voyageWelcome.Close();
         HideOutcome();
@@ -106,6 +108,7 @@ public partial class Main
             _home.CompleteVoyage();
             _sessionStarted = true;
             await SaveSessionAsync(newGame: true);
+            BeginTutorialVoyage(newGame: true);
             Hud.ShowPlayerTurn();
             Hud.ShowMessage("Your voyage begins. Explore, collect resources and protect your Mothership.");
         }
@@ -139,6 +142,7 @@ public partial class Main
             _home.Hide();
             SetBattleVisible(true);
             LoadScenario(saved.Battle);
+            BeginTutorialVoyage(newGame: false);
             _sessionStarted = true;
             MapCamera.Position = saved.Camera;
             MapCamera.Zoom = Vector2.One * Mathf.Clamp(saved.Zoom, Camera.MapCamera.MinZoom, Camera.MapCamera.MaxZoom);

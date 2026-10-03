@@ -118,13 +118,18 @@ public partial class BoardView
         foreach (var contour in contours)
         {
             int firstBeach = _beaches.Count;
+            var islandBounds=PolygonBounds(contour);
+            // A fixed broad rim consumed the whole interior of small islets.
+            // Keep their original shared coast and navigation shape; limit
+            // only the inward sand band so medium settlement bases fit grass.
+            float maximumInset=Math.Clamp(Math.Min(islandBounds.Size.X,islandBounds.Size.Y)*.12f,1.2f,20);
             var inner = new Vector2[contour.Length];
             var outer = new Vector2[contour.Length];
             for (int i = 0; i < contour.Length; i++)
             {
                 var direction = (contour[(i + 1) % contour.Length] - contour[(i + contour.Length - 1) % contour.Length]).Normalized();
                 var normal = new Vector2(-direction.Y, direction.X);
-                inner[i] = contour[i] + normal * BeachWidth(contour[i]);
+                inner[i] = contour[i] + normal * Math.Min(BeachWidth(contour[i]),maximumInset);
                 float shallows = 22 + 10 * (.5f + .5f * MathF.Sin(contour[i].X * .013f + contour[i].Y * .018f));
                 outer[i] = contour[i] - normal * shallows;
             }
@@ -235,7 +240,18 @@ public partial class BoardView
             reduced = Enumerable.Range(0, samples).Select(index => points[index * points.Length / samples]).ToList();
         }
 
-        var result = reduced.ToArray();
+        var rippled = new List<Vector2>();
+        for (int i = 0; i < reduced.Count; i++)
+        {
+            var a = reduced[i]; var b = reduced[(i+1)%reduced.Count];
+            rippled.Add(a);
+            if (a.DistanceTo(b) < 48) continue;
+            var normal = (b-a).Normalized().Orthogonal();
+            float wave = MathF.Sin((a.X+b.X)*.018f+(a.Y+b.Y)*.027f);
+            rippled.Add(a.Lerp(b,.34f) + normal * wave * 3.6f);
+            rippled.Add(a.Lerp(b,.67f) - normal * wave * 2.8f);
+        }
+        var result = rippled.ToArray();
         for (int pass = 0; pass < 4; pass++)
         {
             var next = new Vector2[result.Length * 2];

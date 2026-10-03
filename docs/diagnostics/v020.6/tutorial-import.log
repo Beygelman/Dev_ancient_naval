@@ -1,0 +1,451 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Ініціалізація проекту (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Сканування структури файлу...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Завантаження глобальних назв класів...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Перевірка GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Створення сценаріїв автозавантаження...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Ініціалізація плагінів...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Початок сканування файлів...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started Реєстрація глобальних класів... (56 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[   1% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[   3% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[   5% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[   7% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[   8% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  10% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  12% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  14% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  15% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  17% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  19% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  21% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  22% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  24% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  26% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  28% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  29% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  31% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  33% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  35% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  36% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  38% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  40% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  42% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  43% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  45% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  47% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  49% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  50% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  52% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  54% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  56% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  57% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  59% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  61% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  63% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  64% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  66% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  68% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  70% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  71% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  73% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  75% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  77% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  78% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  80% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  82% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  84% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  85% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  87% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  89% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  91% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  92% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  94% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  96% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[92m[ DONE ][39m [1mupdate_scripts_classes[22m
+[0m
+[   0% ] [90m[1m_update_scan_actions[22m | Started Дії сканування... (120 steps)[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | tutorial-kolonel-0206.png[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | tutorial-radar-0206.png[39m[0m
+[   1% ] [90m[1m_update_scan_actions[22m | tutorial-repair-0206.png[39m[0m
+[   2% ] [90m[1m_update_scan_actions[22m | tutorial-resources-0206.png[39m[0m
+[   3% ] [90m[1m_update_scan_actions[22m | tutorial-trade-0206.png[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | exported-en.png[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | exported-map.png[39m[0m
+[   5% ] [90m[1m_update_scan_actions[22m | exported-nl.png[39m[0m
+[   6% ] [90m[1m_update_scan_actions[22m | exported-uk.png[39m[0m
+[   7% ] [90m[1m_update_scan_actions[22m | animation0206-immersed-invader.png[39m[0m
+[   8% ] [90m[1m_update_scan_actions[22m | animation0206-immersed-mothership.png[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | animation0206-pencil-lighthouse-route.png[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | animation0206-wreck-invader.png[39m[0m
+[  10% ] [90m[1m_update_scan_actions[22m | animation0206-wreck-mothership.png[39m[0m
+[  11% ] [90m[1m_update_scan_actions[22m | construction0205-blueprint-CannonTower.png[39m[0m
+[  12% ] [90m[1m_update_scan_actions[22m | construction0205-blueprint-Fishing.png[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | construction0205-blueprint-Garrison.png[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | construction0205-blueprint-Lighthouse.png[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | construction0205-support-and-ruins.png[39m[0m
+[  15% ] [90m[1m_update_scan_actions[22m | effects-city-yaw-0.png[39m[0m
+[  16% ] [90m[1m_update_scan_actions[22m | effects-city-yaw-6.png[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | effects-city-yaw-12.png[39m[0m
+[  18% ] [90m[1m_update_scan_actions[22m | effects-city-yaw-18.png[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | effects-city-yaw-24.png[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | effects-city-yaw-30.png[39m[0m
+[  20% ] [90m[1m_update_scan_actions[22m | effects-fleet-and-wildlife.png[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | effects-fleet-at-rest.png[39m[0m
+[  22% ] [90m[1m_update_scan_actions[22m | effects-impact-Garrison.png[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | effects-impact-Invader.png[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | effects-impact-Kolonel.png[39m[0m
+[  24% ] [90m[1m_update_scan_actions[22m | effects-impact-Mothership.png[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | effects-impact-Togus.png[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | effects-mothership-underway.png[39m[0m
+[  27% ] [90m[1m_update_scan_actions[22m | effects-salvo-Garrison.png[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | effects-salvo-Invader.png[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | effects-salvo-Kolonel.png[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | effects-salvo-Mothership.png[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | effects-salvo-Togus.png[39m[0m
+[  31% ] [90m[1m_update_scan_actions[22m | hints0206-end-turn-stamp.png[39m[0m
+[  32% ] [90m[1m_update_scan_actions[22m | hints0206-ready-objects.png[39m[0m
+[  33% ] [90m[1m_update_scan_actions[22m | language0202-lore-nl.png[39m[0m
+[  33% ] [90m[1m_update_scan_actions[22m | language0202-lore-uk.png[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | language0202-menu-en.png[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | language0202-menu-nl.png[39m[0m
+[  36% ] [90m[1m_update_scan_actions[22m | language0202-menu-uk.png[39m[0m
+[  37% ] [90m[1m_update_scan_actions[22m | language0202-setup-en.png[39m[0m
+[  38% ] [90m[1m_update_scan_actions[22m | language0202-setup-nl.png[39m[0m
+[  38% ] [90m[1m_update_scan_actions[22m | language0202-setup-uk.png[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | language0202-upgrade-hover-en.png[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | language0202-upgrade-hover-nl.png[39m[0m
+[  41% ] [90m[1m_update_scan_actions[22m | language0202-upgrade-hover-uk.png[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | menu-city-improvements.png[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | menu-city-lore.png[39m[0m
+[  43% ] [90m[1m_update_scan_actions[22m | menu-colors.png[39m[0m
+[  44% ] [90m[1m_update_scan_actions[22m | menu-fleet.png[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | menu-installed-lore.png[39m[0m
+[  46% ] [90m[1m_update_scan_actions[22m | menu-lore.png[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | menu-map.png[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | menu-papyrus.png[39m[0m
+[  48% ] [90m[1m_update_scan_actions[22m | menu-resource-lore.png[39m[0m
+[  49% ] [90m[1m_update_scan_actions[22m | menu-title.png[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | menu-upgraded-lore.png[39m[0m
+[  51% ] [90m[1m_update_scan_actions[22m | refinement021-first-encounter.png[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | refinement021-salvo-choice.png[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | refinement021-salvo-complete.png[39m[0m
+[  53% ] [90m[1m_update_scan_actions[22m | refinement021-salvo-ready.png[39m[0m
+[  54% ] [90m[1m_update_scan_actions[22m | refinement021-touch-choice.png[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | refinement021-touch-complete.png[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | refinement021-touch-ready.png[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | refinement021-town-salvo.png[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | refinement021-turn-status.png[39m[0m
+[  58% ] [90m[1m_update_scan_actions[22m | trade-glyph0204-shared-motifs.png[39m[0m
+[  59% ] [90m[1m_update_scan_actions[22m | trade-glyph0204-traffic-and-veteran.png[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | ui0203-bound-nation-claimed.png[39m[0m
+[  61% ] [90m[1m_update_scan_actions[22m | ui0203-bound-nation-pending.png[39m[0m
+[  61% ] [90m[1m_update_scan_actions[22m | ui0203-heavenly.png[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | ui0203-locked-movement-preview.png[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | ui0203-nation-en.png[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | ui0203-nation-nl.png[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | ui0203-nation-uk.png[39m[0m
+[  66% ] [90m[1m_update_scan_actions[22m | ui0203-target-hidden-radar.png[39m[0m
+[  66% ] [90m[1m_update_scan_actions[22m | ui0203-target-lethal-mask.png[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | ui0203-target-nonlethal-mask.png[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | ui0204-reward-618x1400.png[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | ui0204-reward-800x520.png[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | ui0204-reward-1280x720.png[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | ui0204-setup-618x1400.png[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | ui0204-setup-800x520.png[39m[0m
+[  72% ] [90m[1m_update_scan_actions[22m | ui0204-setup-1280x720.png[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | ui0204-town-scaled-80.png[39m[0m
+[  74% ] [90m[1m_update_scan_actions[22m | ui0204-town-scaled-125.png[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | ui0204-upgrade-618x1400-en.png[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | ui0204-upgrade-618x1400-nl.png[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | ui0204-upgrade-618x1400-uk.png[39m[0m
+[  77% ] [90m[1m_update_scan_actions[22m | ui0204-upgrade-800x520-en.png[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | ui0204-upgrade-800x520-nl.png[39m[0m
+[  79% ] [90m[1m_update_scan_actions[22m | ui0204-upgrade-800x520-uk.png[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | ui0204-upgrade-1280x720-en.png[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | ui0204-upgrade-1280x720-nl.png[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | ui0204-upgrade-1280x720-uk.png[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | ui0204-victory-618x1400.png[39m[0m
+[  83% ] [90m[1m_update_scan_actions[22m | ui0204-victory-800x520.png[39m[0m
+[  84% ] [90m[1m_update_scan_actions[22m | ui0204-victory-1280x720.png[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | ui0205-elders-welcome.png[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | ui0205-embark-before-click.png[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | ui0205-painted-nations.png[39m[0m
+[  87% ] [90m[1m_update_scan_actions[22m | ui0205-painted-worlds.png[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | victory.png[39m[0m
+[  89% ] [90m[1m_update_scan_actions[22m | world-visual0206-oceans-town-7.png[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | world-visual0206-oceans-town-8.png[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | world-visual0206-oceans.png[39m[0m
+[  91% ] [90m[1m_update_scan_actions[22m | world-visual0206-pangaea-town-7.png[39m[0m
+[  92% ] [90m[1m_update_scan_actions[22m | world-visual0206-pangaea-town-8.png[39m[0m
+[  93% ] [90m[1m_update_scan_actions[22m | world-visual0206-pangaea.png[39m[0m
+[  94% ] [90m[1m_update_scan_actions[22m | world-visual0206-sanctuary-blue.png[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | world-visual0206-sanctuary-green.png[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | world-visual0206-sanctuary-purple.png[39m[0m
+[  96% ] [90m[1m_update_scan_actions[22m | world-visual0206-sanctuary-red.png[39m[0m
+[  97% ] [90m[1m_update_scan_actions[22m | world-visual0206-sanctuary-white.png[39m[0m
+[  98% ] [90m[1m_update_scan_actions[22m | world-visual0206-sanctuary-yellow.png[39m[0m
+[92m[ DONE ][39m [1m_update_scan_actions[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Повторний) імпорт ресурсів (120 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   0% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   1% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   2% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   3% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   4% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   4% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   5% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   6% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   7% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   8% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   9% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   9% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  10% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  11% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  12% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  13% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  14% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  14% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  15% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  16% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  17% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  18% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  19% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  19% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  20% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  21% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  22% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  23% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  23% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  24% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  25% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  26% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  27% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  28% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  28% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  29% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  30% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  31% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  32% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  33% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  33% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  34% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  35% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  36% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  37% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  38% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  38% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  39% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  40% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  41% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  42% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  42% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  43% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  44% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  45% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  46% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  47% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  47% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  48% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  49% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  50% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  51% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  52% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  52% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  53% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  54% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  55% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  56% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  57% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  57% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  58% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  59% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  60% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  61% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  61% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  62% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  63% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  64% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  65% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  66% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  66% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  67% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  68% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  69% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  70% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  71% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  71% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  72% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  73% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  74% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  75% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  76% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  76% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  77% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  78% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  79% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  80% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  80% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  81% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  82% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  83% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  84% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  85% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  85% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  86% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  87% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  88% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  89% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  90% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  90% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  91% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  92% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  93% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  94% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  95% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  95% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  96% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  97% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[  98% ] [90m[1mreimport[22m | Підготовка файлів до повторного імпорту...[39m[0m
+[   0% ] [90m[1mreimport[22m | Виконання операцій перед повторним імпортом...[39m[0m
+[   0% ] [90m[1mreimport[22m | ui0204-town-scaled-80.png[39m[0m
+[   0% ] [90m[1mreimport[22m | ui0204-setup-1280x720.png[39m[0m
+[   1% ] [90m[1mreimport[22m | ui0204-setup-800x520.png[39m[0m
+[   2% ] [90m[1mreimport[22m | ui0204-setup-618x1400.png[39m[0m
+[   3% ] [90m[1mreimport[22m | ui0204-reward-1280x720.png[39m[0m
+[   4% ] [90m[1mreimport[22m | ui0204-reward-800x520.png[39m[0m
+[   4% ] [90m[1mreimport[22m | ui0204-reward-618x1400.png[39m[0m
+[   5% ] [90m[1mreimport[22m | ui0203-target-nonlethal-mask.png[39m[0m
+[   6% ] [90m[1mreimport[22m | ui0203-target-lethal-mask.png[39m[0m
+[   7% ] [90m[1mreimport[22m | ui0203-target-hidden-radar.png[39m[0m
+[   8% ] [90m[1mreimport[22m | ui0203-nation-uk.png[39m[0m
+[   9% ] [90m[1mreimport[22m | ui0203-nation-nl.png[39m[0m
+[   9% ] [90m[1mreimport[22m | ui0203-nation-en.png[39m[0m
+[  10% ] [90m[1mreimport[22m | ui0203-locked-movement-preview.png[39m[0m
+[  11% ] [90m[1mreimport[22m | ui0203-heavenly.png[39m[0m
+[  12% ] [90m[1mreimport[22m | ui0203-bound-nation-pending.png[39m[0m
+[  13% ] [90m[1mreimport[22m | ui0203-bound-nation-claimed.png[39m[0m
+[  14% ] [90m[1mreimport[22m | trade-glyph0204-traffic-and-veteran.png[39m[0m
+[  14% ] [90m[1mreimport[22m | trade-glyph0204-shared-motifs.png[39m[0m
+[  15% ] [90m[1mreimport[22m | refinement021-turn-status.png[39m[0m
+[  16% ] [90m[1mreimport[22m | refinement021-town-salvo.png[39m[0m
+[  17% ] [90m[1mreimport[22m | refinement021-touch-ready.png[39m[0m
+[  18% ] [90m[1mreimport[22m | refinement021-touch-complete.png[39m[0m
+[  19% ] [90m[1mreimport[22m | refinement021-touch-choice.png[39m[0m
+[  19% ] [90m[1mreimport[22m | refinement021-salvo-ready.png[39m[0m
+[  20% ] [90m[1mreimport[22m | refinement021-salvo-complete.png[39m[0m
+[  21% ] [90m[1mreimport[22m | refinement021-salvo-choice.png[39m[0m
+[  22% ] [90m[1mreimport[22m | refinement021-first-encounter.png[39m[0m
+[  23% ] [90m[1mreimport[22m | menu-upgraded-lore.png[39m[0m
+[  23% ] [90m[1mreimport[22m | menu-title.png[39m[0m
+[  24% ] [90m[1mreimport[22m | world-visual0206-sanctuary-yellow.png[39m[0m
+[  25% ] [90m[1mreimport[22m | world-visual0206-sanctuary-white.png[39m[0m
+[  26% ] [90m[1mreimport[22m | world-visual0206-sanctuary-red.png[39m[0m
+[  27% ] [90m[1mreimport[22m | world-visual0206-sanctuary-purple.png[39m[0m
+[  28% ] [90m[1mreimport[22m | world-visual0206-sanctuary-green.png[39m[0m
+[  28% ] [90m[1mreimport[22m | world-visual0206-sanctuary-blue.png[39m[0m
+[  29% ] [90m[1mreimport[22m | world-visual0206-pangaea.png[39m[0m
+[  30% ] [90m[1mreimport[22m | world-visual0206-pangaea-town-8.png[39m[0m
+[  31% ] [90m[1mreimport[22m | world-visual0206-pangaea-town-7.png[39m[0m
+[  32% ] [90m[1mreimport[22m | world-visual0206-oceans.png[39m[0m
+[  33% ] [90m[1mreimport[22m | world-visual0206-oceans-town-8.png[39m[0m
+[  33% ] [90m[1mreimport[22m | world-visual0206-oceans-town-7.png[39m[0m
+[  34% ] [90m[1mreimport[22m | victory.png[39m[0m
+[  35% ] [90m[1mreimport[22m | ui0205-painted-worlds.png[39m[0m
+[  36% ] [90m[1mreimport[22m | ui0205-painted-nations.png[39m[0m
+[  37% ] [90m[1mreimport[22m | ui0205-embark-before-click.png[39m[0m
+[  38% ] [90m[1mreimport[22m | ui0205-elders-welcome.png[39m[0m
+[  38% ] [90m[1mreimport[22m | ui0204-victory-1280x720.png[39m[0m
+[  39% ] [90m[1mreimport[22m | ui0204-victory-800x520.png[39m[0m
+[  40% ] [90m[1mreimport[22m | ui0204-victory-618x1400.png[39m[0m
+[  41% ] [90m[1mreimport[22m | ui0204-upgrade-1280x720-uk.png[39m[0m
+[  42% ] [90m[1mreimport[22m | ui0204-upgrade-1280x720-nl.png[39m[0m
+[  42% ] [90m[1mreimport[22m | ui0204-upgrade-1280x720-en.png[39m[0m
+[  43% ] [90m[1mreimport[22m | ui0204-upgrade-800x520-uk.png[39m[0m
+[  44% ] [90m[1mreimport[22m | ui0204-upgrade-800x520-nl.png[39m[0m
+[  45% ] [90m[1mreimport[22m | ui0204-upgrade-800x520-en.png[39m[0m
+[  46% ] [90m[1mreimport[22m | ui0204-upgrade-618x1400-uk.png[39m[0m
+[  47% ] [90m[1mreimport[22m | ui0204-upgrade-618x1400-nl.png[39m[0m
+[  47% ] [90m[1mreimport[22m | ui0204-upgrade-618x1400-en.png[39m[0m
+[  48% ] [90m[1mreimport[22m | ui0204-town-scaled-125.png[39m[0m
+[  49% ] [90m[1mreimport[22m | effects-impact-Kolonel.png[39m[0m
+[  50% ] [90m[1mreimport[22m | effects-impact-Invader.png[39m[0m
+[  51% ] [90m[1mreimport[22m | effects-impact-Garrison.png[39m[0m
+[  52% ] [90m[1mreimport[22m | effects-fleet-at-rest.png[39m[0m
+[  52% ] [90m[1mreimport[22m | effects-fleet-and-wildlife.png[39m[0m
+[  53% ] [90m[1mreimport[22m | effects-city-yaw-30.png[39m[0m
+[  54% ] [90m[1mreimport[22m | effects-city-yaw-24.png[39m[0m
+[  55% ] [90m[1mreimport[22m | effects-city-yaw-18.png[39m[0m
+[  56% ] [90m[1mreimport[22m | effects-city-yaw-12.png[39m[0m
+[  57% ] [90m[1mreimport[22m | effects-city-yaw-6.png[39m[0m
+[  57% ] [90m[1mreimport[22m | effects-city-yaw-0.png[39m[0m
+[  58% ] [90m[1mreimport[22m | construction0205-support-and-ruins.png[39m[0m
+[  59% ] [90m[1mreimport[22m | construction0205-blueprint-Lighthouse.png[39m[0m
+[  60% ] [90m[1mreimport[22m | construction0205-blueprint-Garrison.png[39m[0m
+[  61% ] [90m[1mreimport[22m | construction0205-blueprint-Fishing.png[39m[0m
+[  61% ] [90m[1mreimport[22m | construction0205-blueprint-CannonTower.png[39m[0m
+[  62% ] [90m[1mreimport[22m | animation0206-wreck-mothership.png[39m[0m
+[  63% ] [90m[1mreimport[22m | animation0206-wreck-invader.png[39m[0m
+[  64% ] [90m[1mreimport[22m | animation0206-pencil-lighthouse-route.png[39m[0m
+[  65% ] [90m[1mreimport[22m | animation0206-immersed-mothership.png[39m[0m
+[  66% ] [90m[1mreimport[22m | animation0206-immersed-invader.png[39m[0m
+[  66% ] [90m[1mreimport[22m | exported-uk.png[39m[0m
+[  67% ] [90m[1mreimport[22m | exported-nl.png[39m[0m
+[  68% ] [90m[1mreimport[22m | exported-map.png[39m[0m
+[  69% ] [90m[1mreimport[22m | exported-en.png[39m[0m
+[  70% ] [90m[1mreimport[22m | tutorial-trade-0206.png[39m[0m
+[  71% ] [90m[1mreimport[22m | tutorial-resources-0206.png[39m[0m
+[  71% ] [90m[1mreimport[22m | tutorial-repair-0206.png[39m[0m
+[  72% ] [90m[1mreimport[22m | tutorial-radar-0206.png[39m[0m
+[  73% ] [90m[1mreimport[22m | tutorial-kolonel-0206.png[39m[0m
+[  74% ] [90m[1mreimport[22m | menu-resource-lore.png[39m[0m
+[  75% ] [90m[1mreimport[22m | menu-papyrus.png[39m[0m
+[  76% ] [90m[1mreimport[22m | menu-map.png[39m[0m
+[  76% ] [90m[1mreimport[22m | menu-lore.png[39m[0m
+[  77% ] [90m[1mreimport[22m | menu-installed-lore.png[39m[0m
+[  78% ] [90m[1mreimport[22m | menu-fleet.png[39m[0m
+[  79% ] [90m[1mreimport[22m | menu-colors.png[39m[0m
+[  80% ] [90m[1mreimport[22m | menu-city-lore.png[39m[0m
+[  80% ] [90m[1mreimport[22m | menu-city-improvements.png[39m[0m
+[  81% ] [90m[1mreimport[22m | language0202-upgrade-hover-uk.png[39m[0m
+[  82% ] [90m[1mreimport[22m | language0202-upgrade-hover-nl.png[39m[0m
+[  83% ] [90m[1mreimport[22m | language0202-upgrade-hover-en.png[39m[0m
+[  84% ] [90m[1mreimport[22m | language0202-setup-uk.png[39m[0m
+[  85% ] [90m[1mreimport[22m | language0202-setup-nl.png[39m[0m
+[  85% ] [90m[1mreimport[22m | language0202-setup-en.png[39m[0m
+[  86% ] [90m[1mreimport[22m | language0202-menu-uk.png[39m[0m
+[  87% ] [90m[1mreimport[22m | language0202-menu-nl.png[39m[0m
+[  88% ] [90m[1mreimport[22m | language0202-menu-en.png[39m[0m
+[  89% ] [90m[1mreimport[22m | language0202-lore-uk.png[39m[0m
+[  90% ] [90m[1mreimport[22m | language0202-lore-nl.png[39m[0m
+[  90% ] [90m[1mreimport[22m | hints0206-ready-objects.png[39m[0m
+[  91% ] [90m[1mreimport[22m | hints0206-end-turn-stamp.png[39m[0m
+[  92% ] [90m[1mreimport[22m | effects-salvo-Togus.png[39m[0m
+[  93% ] [90m[1mreimport[22m | effects-salvo-Mothership.png[39m[0m
+[  94% ] [90m[1mreimport[22m | effects-salvo-Kolonel.png[39m[0m
+[  95% ] [90m[1mreimport[22m | effects-salvo-Invader.png[39m[0m
+[  95% ] [90m[1mreimport[22m | effects-salvo-Garrison.png[39m[0m
+[  96% ] [90m[1mreimport[22m | effects-mothership-underway.png[39m[0m
+[  97% ] [90m[1mreimport[22m | effects-impact-Togus.png[39m[0m
+[  98% ] [90m[1mreimport[22m | effects-impact-Mothership.png[39m[0m
+[  99% ] [90m[1mreimport[22m | Завершення імпорту активів...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Повторний) імпорт ресурсів (120 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Виконання операцій після повторного імпорту...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Started Завантаження редактора (5 steps)[39m[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Завантаження макета редактора...[39m[0m
+[  16% ] [90m[1mloading_editor_layout[22m | Завантаження доків...[39m[0m
+[  33% ] [90m[1mloading_editor_layout[22m | Повторне відкриття сцен...[39m[0m
+[  50% ] [90m[1mloading_editor_layout[22m | Завантаження макета центрального редактора...[39m[0m
+[  66% ] [90m[1mloading_editor_layout[22m | Завантаження макета вікна плагіна...[39m[0m
+[  83% ] [90m[1mloading_editor_layout[22m | Макет редактора готовий.[39m[0m
+[92m[ DONE ][39m [1mloading_editor_layout[22m
+[0m

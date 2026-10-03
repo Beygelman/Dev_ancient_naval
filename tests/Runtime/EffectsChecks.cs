@@ -32,6 +32,9 @@ public partial class EffectsChecks : Node
         foreach (var tile in Game.Battle.Board.Tiles)
             Game.Battle.Vision.RevealCombat(Side.Player, tile.Position);
         Game.Battle.Vision.Recompute(Game.Battle.Ships, 1, Game.Battle.Villages);
+        foreach(var award in Game.Battle.PendingAwards.ToArray())Game.Battle.ClaimAward(award.Owner,award.Id);
+        // The rendering fixture tests gun choreography, not the encounter modal.
+        Game.LoadScenario(Game.Battle);
         Game.Refresh();
     }
 
@@ -177,13 +180,8 @@ public partial class EffectsChecks : Node
         }
 
         Check(Game.Battle.CaptureVillage(Side.Player, town.Id).Success && Game.Battle.FortifyVillage(Side.Player, town.Id).Success, "Captured village raises its outpost");
-        for (int turn = 0; turn < 2; turn++)
-        {
-            Game.Battle.EndTurn(Side.Player);
-            Game.Battle.EndTurn(Side.Enemy);
-        }
-
-        Check(town.Level == 2, "Outpost fixture reaches firing level");
+        Check(Game.Battle.UpgradeVillage(Side.Player,town.Id).Success && town.Level==2,
+            "Outpost fixture pays for firing level instead of obsolete timed growth");
         Reveal();
         Game.CancelOrder();
         Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(new(6, 6));

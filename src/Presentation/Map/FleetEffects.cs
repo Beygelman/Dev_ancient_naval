@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DevAncientNaval.Core.Battle;
 using DevAncientNaval.Core.Units;
 using Godot;
@@ -46,6 +47,7 @@ public partial class FleetView
                 hull.Badge.QueueFree();
             }
             _hulls.Clear();
+            foreach (int wreck in _wreckArt.Keys.ToArray()) RemoveWreck(wreck);
             _smoke.Clear();
             _ripples.Clear();
             _debris.Clear();

@@ -63,7 +63,7 @@ public partial class VoyageWelcome : CanvasLayer
             FleetColor.Blue => "May the golden dome's celestial light guide your sails.",
             FleetColor.Purple => "May the moonlit spirits of our silver shrine guard your voyage.",
             FleetColor.Yellow => "May the rose pyramid's radiant sun shine upon your course.",
-            FleetColor.White => "May the sacred black cross stand firm above your fleet.",
+            FleetColor.White => "May the sacred crimson R shine above your fleet.",
             FleetColor.Green => "May the great tree and its ancient roots shelter your people.",
             _ => "May the crimson crystals and mountain spirits lend you their fire."
         };

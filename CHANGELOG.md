@@ -1,5 +1,15 @@
 # Ancient Naval change history
 
+## v020.6 — 2026-10-04
+
+- Add persisted hints, accurate ready-object guidance, five-column turn confirmation and a hand-stamped end-turn parchment.
+- Remove new-voyage combat upkeep, add settlement income/dock sight, revise Granado reach/movement and equal double-charge damage.
+- Add pencil construction ghosts with future lighthouse lanes, treasury demolition, separated starts and size-dependent pirate counts.
+- Keep medium settlement buildings; refine bay rivers, shore curves and delta tint; add faction shrine effects and red R.
+- Increase bounded gulls with gunfire alarms; add retained wave relief and solid debris: separate decks, buildings, shrine pieces, falling masts and rolling cannon carriages with opaque immersion.
+- Place hint captions below their paper and add closeable event advice with native game screenshots, once per voyage and retained across Continue.
+- Preserve historical rules/save defaults and previous releases; ship native functional and frame-pacing evidence.
+
 ## v020.5 — 3 October 2026 — The Painted Voyage
 
 New voyages open on an aged rolling parchment: fleet emblem, independent Lake/Bay/Sea/Ocean size, 1–4 rival figures, painted difficulty signs and four world illustrations. Wheel scrolling has no visible scrollbar. Embark leaves a four-finger handprint, folds the scroll, fades the view and descends toward the flagship before the elders' welcome. Language and interface scale are in Settings on both menus; English, Ukrainian and Dutch remain available.

@@ -13,6 +13,33 @@ public partial class FleetView
     private readonly Dictionary<int, float> _sinking = new();
     private readonly HashSet<int> _playedWrecks = new();
     internal int SinkingCount => _sinking.Count;
+    private sealed record WreckArt(BoardTerrainLayer Root, WreckRenderer Geometry);
+    private readonly Dictionary<int, WreckArt> _wreckArt = new();
+    internal int WreckPieceCount => _wreckArt.Values.Sum(w => w.Geometry.Parts.Length);
+    internal bool WrecksOpaque => _wreckArt.Values.All(w => w.Geometry.Opaque && w.Root.Modulate.A == 1);
+    internal int WreckPartCount(WreckPartKind kind) => _wreckArt.Values.Sum(w => w.Geometry.Parts.Count(p => p.Kind == kind));
+    internal int ImmersedWreckFaces => _wreckArt.Values.Sum(w => w.Geometry.ImmersedFaces);
+
+    private WreckArt CreateWreck(ShipSnapshot ship, Vector2 center)
+    {
+        var parts = WreckModels.Build(ship, FleetPalette.For(Battle, ship.Owner), Battle.ColorFor(ship.Owner));
+        var geometry = new WreckRenderer(parts, BaseHeading(ship.Class, ship.Owner) + DeckAngle(ship.Id),
+            ShipVisualProfile.For(ship.Class), ship.Class == ShipClass.Mothership);
+        var root = new BoardTerrainLayer
+        {
+            Name = "ImmersingWreck" + ship.Id,
+            Position = center,
+            DrawWorld = canvas => geometry.Draw(canvas)
+        };
+        AddChild(root);
+        return new(root, geometry);
+    }
+
+    private void RemoveWreck(int id)
+    {
+        if (!_wreckArt.Remove(id, out var art)) return;
+        art.Root.QueueFree();
+    }
 
     private async Task Sink(ShipSnapshot ship, bool visible)
     {
@@ -27,8 +54,19 @@ public partial class FleetView
             _suppressed.Add(ship.Id);
             _sinking[ship.Id] = 0;
             var center = Projection.GridToWorld(ship.Position);
+            _wreckArt[ship.Id] = CreateWreck(ship, center);
             EmitRipple(center, ShipVisualProfile.For(ship.Class).Size * 1.4f);
-            await TweenValue(ship.Class == ShipClass.Mothership ? 1.65 : .95, t => _sinking[ship.Id] = t);
+            float previous = 0;
+            float duration = ship.Class == ShipClass.Mothership ? 3.05f : 2.2f;
+            await TweenValue(duration, t =>
+            {
+                _sinking[ship.Id] = t;
+                var art = _wreckArt[ship.Id];
+                art.Geometry.Seconds = t * duration;
+                art.Root.QueueRedraw();
+                if (t - previous > .14f) { EmitRipple(center, ShipVisualProfile.For(ship.Class).Size * (1.2f + t)); previous = t; }
+            });
+            RemoveWreck(ship.Id);
             _sinking.Remove(ship.Id);
             _snapshots.Remove(ship.Id);
         }
@@ -43,23 +81,4 @@ public partial class FleetView
         await Task.WhenAll(followers.Select(follower => Sink(follower.Ship, follower.Visible)));
     }
 
-    private void DrawWreck(ShipSnapshot ship, Vector2 center)
-    {
-        float t = _sinking[ship.Id];
-        float size = ShipVisualProfile.For(ship.Class).Size;
-        // Broken hull slabs lean apart while a water-colored veil climbs upward.
-        if (ship.Class == ShipClass.Mothership)
-        {
-            for (int side = -1; side <= 1; side += 2)
-            {
-                var p = center + new Vector2(side * (12 + t * 22) * size, t * 15);
-                Ink.DrawColoredPolygon(new[] { p + new Vector2(-17, -9), p + new Vector2(17, -6), p + new Vector2(13, 7), p + new Vector2(-15, 5) }, new Color(.57f, .43f, .27f, 1 - t));
-            }
-        }
-
-        Ink.DrawSetTransform(center + new Vector2(0, 10), 0, new Vector2(1, .43f));
-        Ink.DrawCircle(Vector2.Zero, 37 * size, new Color(.19f, .35f, .42f, t * .86f));
-        Ink.DrawArc(Vector2.Zero, (28 + t * 20) * size, 0, Mathf.Tau, 32, new Color(.70f, .88f, .89f, (1 - t) * .65f), 1.6f, true);
-        Ink.DrawSetTransform(Vector2.Zero);
-    }
 }

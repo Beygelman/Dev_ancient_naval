@@ -77,6 +77,11 @@ public sealed class GameBoard
         return closest;
     }
 
+    /// <summary>A face touching the outside boundary, rather than a coastal tile.</summary>
+    public bool IsOuterCell(GridPosition position) => Contains(position) && (Mesh is { } mesh
+        ? mesh.Neighbors(position).Count < mesh.Faces[position].Count
+        : position.OrthogonalNeighbors().Any(p => !Contains(p)));
+
     public bool Contains(GridPosition position) =>
         position.X >= 0 && position.Y >= 0 && position.X < Width && position.Y < Height && _playable[position.Y * Width + position.X];
 

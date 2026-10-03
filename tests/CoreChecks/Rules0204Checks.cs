@@ -71,7 +71,7 @@ internal static class Rules0204Checks
             };
             Check(development.VillageBuildBlockReason(Side.Player, townId, unlocked) is null,
                 "paid town level unlocks its matching shipyard class on the fresh turn");
-            Check(development.VillageIncome(development.Villages.Single()) == (level + 2) / 2,
+            Check(development.VillageIncome(development.Villages.Single()) == rules.Economy.VillageIncomeBonus + (level + 2) / 2,
                 "village income refresh follows the upgraded level");
         }
         Check(!development.CanUpgradeVillage(Side.Player, townId) && development.VillageUpgradePrice(Side.Player, townId) == 0,

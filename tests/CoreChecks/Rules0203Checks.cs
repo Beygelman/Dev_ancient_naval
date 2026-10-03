@@ -36,6 +36,8 @@ internal static class Rules0203Checks
             (Side.Player,ShipClass.Garrison,new(1,2)),(Side.Player,ShipClass.Fishing,new(2,2)),
             (Side.Player,ShipClass.Balloon,new(1,1)),(Side.Player,ShipClass.Lighthouse,new(5,5)),
             (Side.Player,ShipClass.CannonTower,new(6,6)),(Side.Player,ShipClass.AncientGun,new(7,7)));
+        // Keep this capacity fixture away from the new empty outer spawn ring.
+        fleet.Find(1)!.Position = new(3,3);
         Check(fleet.FleetUsed(Side.Player)==4 && fleet.FleetCapacity(Side.Player)==4,
             "flagship, armed hulls and fishing vessels count; air and buildings do not");
         Check(fleet.BuildBlockReason(Side.Player,1,ShipClass.Fishing)?.StartsWith("Fleet limit:")==true
@@ -98,11 +100,11 @@ internal static class Rules0203Checks
         foreach(var id in new[] {3,4})
         {
             var gun=mortars.Find(id)!;
-            Check(!mortars.WeaponCovers(gun,new(gun.Position.X+2,gun.Position.Y))
+            Check(!mortars.WeaponCovers(gun,new(gun.Position.X+mortars.MortarDeadZone(gun),gun.Position.Y))
                 && mortars.WeaponCovers(gun,new(gun.Position.X+3,gun.Position.Y))
                 && mortars.WeaponCovers(gun,new(gun.Position.X+5,gun.Position.Y))
                 && !mortars.WeaponCovers(gun,new(gun.Position.X+6,gun.Position.Y)),
-                "mortar-only hull and ancient tower exclude inner two tiles and stop at five");
+                "mortar-only hull and ancient tower exclude their configured inner radius and stop at five");
             Check(!mortars.WeaponCovers(gun,new(gun.Position.X+3,gun.Position.Y),true),"mortar-only weapons never counterattack");
         }
         var mother=mortars.Find(1)!; mother.HasMortar=true;

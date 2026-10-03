@@ -127,7 +127,7 @@
       "maxHealth": 5,
       "armor": 0,
       "damage": 8,
-      "movement": 2,
+      "movement": 3,
       "visualRange": 1,
       "radarRange": 6,
       "attackRange": 5,
@@ -146,7 +146,7 @@
       "armor": 0,
       "damage": 0,
       "movement": 0,
-      "visualRange": 1,
+      "visualRange": 2,
       "radarRange": 0,
       "attackRange": 0,
       "price": 8,
@@ -256,7 +256,8 @@
     "splashDamage": 2,
     "villageDamageBonus": 2,
     "deadZone": 2,
-    "towerDeadZone": true
+    "towerDeadZone": true,
+    "granadoDeadZone": 1
   },
   "balloon": {
     "kolonelAntiAir": true,
@@ -278,10 +279,12 @@
     "mothershipIncomePerLevel": 0,
     "villageLevelsPerIncome": 2,
     "freeCombatShips": 2,
-    "combatShipsPerUpkeep": 2,
+    "combatShipsPerUpkeep": 0,
     "adjacentCollectionOnly": true,
     "minimumResourceSpots": 24,
-    "resourceTileInterval": 24
+    "resourceTileInterval": 24,
+    "villageIncomeBonus": 1,
+    "resourceDensityMultiplier": 0.8
   },
   "villageCombat": {
     "automaticAttack": true,
@@ -316,5 +319,10 @@
   "ports": {
     "maximumRouteLength": 6
   },
-  "villageAutoRepairAmount": 4
+  "villageAutoRepairAmount": 4,
+  "constructionClearsRuins": true,
+  "emptyOuterRim": true,
+  "separatedStartingEscorts": true,
+  "mapSizePirateSettlements": true,
+  "equalDoubleSalvoDamage": true
 }

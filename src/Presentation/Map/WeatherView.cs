@@ -101,7 +101,7 @@ public partial class WorldAmbience
         foreach (var gull in _gulls)
         {
             float age = _time - gull.Born;
-            var water = gull.Circling ? gull.Start + new Vector2(MathF.Cos(age * .38f + gull.Phase) * 28, MathF.Sin(age * .38f + gull.Phase) * 12) : gull.Start + gull.Velocity * age + new Vector2(MathF.Sin(age * .24f + gull.Phase) * 13, 0);
+            var water = GullPosition(gull);
             if (!_drawBounds.HasPoint(water) || !VisibleWater(water))
                 continue;
             float fade = Math.Min(1, Math.Min(age, gull.Lifetime - age));
@@ -114,7 +114,7 @@ public partial class WorldAmbience
             else
             {
                 var bird = water + new Vector2(0, -38 - MathF.Sin(age * .4f + gull.Phase) * 5);
-                SetGullWings(bird, MathF.Sin(age * 4.2f + gull.Phase) * 2.6f, 7, 3);
+                SetGullWings(bird, MathF.Sin(age * 4.2f * (gull.Scared ? 1.5f : 1) + gull.Phase) * 2.6f, 7, 3);
                 canvas.DrawPolyline(_gullWings, new Color(.95f, .96f, .86f, .85f * fade), 1.8f, true);
             }
         }
@@ -122,25 +122,33 @@ public partial class WorldAmbience
         foreach (var dock in _docks)
         {
             var center = dock.Center;
-            if (!_drawBounds.HasPoint(center))
-                continue;
+            bool startled = _dockAlarms.TryGetValue(dock.Id, out var alarm) && _time - alarm.Born < 18;
             for (int i = 0; i < 3; i++)
             {
-                float phase = _time * .43f + i * 1.7f + dock.Id;
+                float phase = (startled ? alarm.Born : _time) * .43f + i * 1.7f + dock.Id;
                 var water = center + new Vector2(MathF.Cos(phase) * (25 + i * 4), MathF.Sin(phase) * 14);
-                if (!VisibleWater(water))
+                float opacity = 1;
+                if (startled)
+                {
+                    float elapsed = _time - alarm.Born;
+                    var away = (water - alarm.Origin).Normalized();
+                    if (away == Vector2.Zero) away = Vector2.Right;
+                    water += away * elapsed * (20 + i * 2);
+                    opacity = Math.Clamp((18 - elapsed) / 2, 0, 1);
+                }
+                if (!_drawBounds.HasPoint(water) || !VisibleWater(water))
                     continue;
                 if (shadows)
                 {
                     canvas.DrawSetTransform(water, 0, new Vector2(1, .32f));
-                    canvas.DrawCircle(Vector2.Zero, 4, new Color(0, .08f, .1f, .2f));
+                    canvas.DrawCircle(Vector2.Zero, 4, new Color(0, .08f, .1f, .2f * opacity));
                     canvas.DrawSetTransform(Vector2.Zero);
                 }
                 else
                 {
                     var bird = water + new Vector2(0, -37 - i * 4);
-                    SetGullWings(bird, MathF.Sin(_time * 4.8f + i) * 2.4f, 6, 2);
-                    canvas.DrawPolyline(_gullWings, new Color("f2f0dc"), 1.7f, true);
+                    SetGullWings(bird, MathF.Sin(_time * 4.8f * (startled ? 1.5f : 1) + i) * 2.4f, 6, 2);
+                    canvas.DrawPolyline(_gullWings, new Color(new Color("f2f0dc"), opacity), 1.7f, true);
                 }
             }
         }

@@ -54,8 +54,7 @@ internal static class FactionSanctuaryArt
                 Crystal(canvas, p, 0, 0, 24, 1.8f, 4, new("fff5ef"));
                 break;
             case FleetColor.White:
-                Box(canvas, p, 0, 0, 16, 1.7f, 1.8f, 11, new("262728"));
-                Box(canvas, p, 0, 0, 22, 7, 1.8f, 1.8f, new("333436"));
+                DrawLetter(canvas, p, new("aa3047"));
                 break;
             default:
                 var dome = p(0, 0, 18.5f);
@@ -64,6 +63,98 @@ internal static class FactionSanctuaryArt
                 canvas.DrawArc(dome, 3.8f * scale, Mathf.Pi, Mathf.Tau, 16, new("ffe298"), 1, true);
                 canvas.DrawLine(dome - new Vector2(0, 3.8f*scale), dome - new Vector2(0, 6*scale), new("f5d67d"), 1, true);
                 break;
+        }
+    }
+    private static Vector2[] Letter(Func<float, float, float, Vector2> p)
+    {
+        var top = p(0, 0, 27);
+        float height = top.DistanceTo(p(0, 0, 16));
+        float width = Math.Max(2.8f, (p(3.5f, 0, 0) - p(-3.5f, 0, 0)).Length());
+        var points = new[] { new Vector2(-.5f,1), new Vector2(-.5f,0), new Vector2(.25f,0),
+            new Vector2(.5f,.15f), new Vector2(.5f,.38f), new Vector2(.2f,.52f),
+            new Vector2(-.5f,.52f), new Vector2(.2f,.52f), new Vector2(.58f,1) };
+        return Array.ConvertAll(points, at => top + new Vector2(at.X * width, at.Y * height));
+    }
+    private static void DrawLetter(CanvasItem canvas, Func<float, float, float, Vector2> p, Color color)
+    {
+        var letter = Letter(p);
+        var shade = Array.ConvertAll(letter, at => at + new Vector2(1.2f, 1));
+        canvas.DrawPolyline(shade, color.Darkened(.35f), 3.2f, true);
+        canvas.DrawPolyline(letter, color, 2.8f, true);
+    }
+
+    // Bounded foreground light and foliage; static buildings remain retained.
+    // Call only for a visible town/hull, never for its explored fog snapshot.
+    internal static void DrawEffects(CanvasItem canvas, Func<float, float, float, Vector2> p,
+        FleetColor faction, float time, int seed = 0)
+    {
+        float clock = time + seed * .37f;
+        if (faction == FleetColor.Blue)
+        {
+            var dome = p(0,0,18.5f);
+            for (int wave = 0; wave < 2; wave++)
+            {
+                float phase = (clock * .18f + wave * .5f) % 1;
+                var light = new Color(1,.88f,.5f,.24f * MathF.Sin(phase * Mathf.Pi));
+                canvas.DrawArc(dome, 4 + phase * 11, 0, Mathf.Tau, 24, light, .9f, true);
+            }
+        }
+        else if (faction == FleetColor.Purple)
+        {
+            var at = p(-3 + (clock * .45f % 1) * 6,0,19);
+            float light = MathF.Pow(Math.Max(0, MathF.Sin(clock * 1.1f)), 6);
+            var tint = new Color(.91f,.98f,1,light * .72f);
+            canvas.DrawLine(at - new Vector2(2.2f,0),at + new Vector2(2.2f,0),tint,.9f,true);
+            canvas.DrawLine(at - new Vector2(0,3),at + new Vector2(0,3),tint,.9f,true);
+        }
+        else if (faction == FleetColor.Red)
+        {
+            for (int mote = 0; mote < 6; mote++)
+            {
+                float phase = (clock * .22f + mote * .167f) % 1;
+                var at = p(MathF.Sin(mote * 2.4f + phase * 3) * 4,MathF.Cos(mote) * 3,9 + phase * 21);
+                canvas.DrawCircle(at,.55f + phase * .65f,new Color(1,.19f,.29f,(1-phase)*.55f));
+            }
+        }
+        else if (faction == FleetColor.Yellow)
+        {
+            float glow = .22f + .12f * MathF.Sin(clock * .85f);
+            var tip = p(0,0,24);
+            var left = p(-5,-5,16);
+            var right = p(5,-5,16);
+            canvas.DrawPrimitive(new[] {left,right,tip},new[] {new Color(1,.66f,.82f,glow)},Array.Empty<Vector2>());
+            canvas.DrawLine(tip,p(0,0,28),new Color(1,.93f,.96f,.5f),.8f,true);
+        }
+        else if (faction == FleetColor.Green)
+        {
+            float sway = MathF.Sin(clock * .65f) * .85f;
+            for (int leaf = 0; leaf < 9; leaf++)
+            {
+                float phase = (clock * .09f + leaf * .113f) % 1;
+                var at = p(MathF.Sin(leaf*2.7f)*5 + phase * 12 + sway,
+                    MathF.Cos(leaf*1.8f)*5,19 - phase * 17);
+                canvas.DrawLine(at,at + new Vector2(1.3f,MathF.Sin(clock+leaf)*.65f),
+                    new Color(.43f,.68f,.35f,MathF.Sin(phase*Mathf.Pi)*.7f),1.2f,true);
+            }
+            for (int tier = 0; tier < 3; tier++)
+                canvas.DrawArc(p(sway,0,12 + tier * 4),3.8f-tier*.7f,Mathf.Pi,Mathf.Tau,8,
+                    new Color(.35f,.59f,.29f,.36f),1.1f,true);
+        }
+        else if (faction == FleetColor.White)
+        {
+            var letter = Letter(p);
+            float top = p(0,0,27).Y, height = Math.Max(1,p(0,0,16).Y-top);
+            float wave = (clock * .22f % 1) * height + top;
+            for (int edge = 1; edge < letter.Length; edge++)
+            {
+                var a = letter[edge-1]; var b = letter[edge];
+                for (int step = 0; step < 5; step++)
+                {
+                    var from = a.Lerp(b,step/5f); var to = a.Lerp(b,(step+1)/5f);
+                    float light = Math.Max(0,1-MathF.Abs((from.Y+to.Y)*.5f-wave)/3);
+                    if (light > 0) canvas.DrawLine(from,to,new Color(1,.54f,.58f,light*.65f),2.7f,true);
+                }
+            }
         }
     }
     internal static void Box(CanvasItem canvas, Func<float, float, float, Vector2> p, float x, float y, float z, float w, float d, float h, Color color)

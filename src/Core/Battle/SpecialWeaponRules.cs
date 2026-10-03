@@ -2,6 +2,7 @@ namespace DevAncientNaval.Core.Battle;
 /// <summary>Defaults also apply when loading version 1 saves without this section.</summary>
 public sealed record MortarRules
 {
+    public int? GranadoDeadZone { get; init; } // Null keeps the historical shared mortar annulus.
     public int DeadZone { get; init; } = 3;
     public bool TowerDeadZone { get; init; }
     public int PurchasePrice { get; init; } = 10;
@@ -10,7 +11,7 @@ public sealed record MortarRules
 
     internal void Validate()
     {
-        if (DeadZone is < 0 or > 4 || PurchasePrice < 0 || SplashDamage < 0 || VillageDamageBonus < 0)
+        if (GranadoDeadZone is < 0 or > 4 || DeadZone is < 0 or > 4 || PurchasePrice < 0 || SplashDamage < 0 || VillageDamageBonus < 0)
             throw new ArgumentException("Mortar prices and damage must not be negative.");
     }
 }

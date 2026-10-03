@@ -110,8 +110,12 @@ public partial class FleetView
         var random = new Random(attacker.Id * 7919 + ++_salvoSequence * 173 + targetCell.X * 31 + targetCell.Y);
         var from = Projection.GridToWorld(attacker.Position) + new Vector2(0, -8);
         var center = Projection.GridToWorld(targetCell) + new Vector2(0, target?.Class == ShipClass.Balloon ? -62 : -5);
+        if (target is null && targetVisible && Landscape is not null && Battle.VillageAt(targetCell) is { } townTarget)
+            center = Landscape.VillageWorldAnchor(townTarget) + new Vector2(0, -10);
         var direction = (center - from).Normalized();
         await AimBattery(attacker, direction, mortar, attackerVisible);
+        // Wildlife reacts only to observable firing; it cannot reveal a hidden gun.
+        if (attackerVisible) GunFired?.Invoke(attacker.Position);
         from += direction * profile.Size * 13;
         var ends = new Vector2[count];
         var starts = new Vector2[count];

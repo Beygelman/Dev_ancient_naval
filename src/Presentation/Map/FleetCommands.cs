@@ -110,8 +110,10 @@ public partial class FleetView
                 await AnimateSalvo(hit.Attacker, hit.Position, null, hit.IsMortar, hit.AttackerVisibleToPlayer, hit.TargetVisibleToPlayer, hit.Salvos);
                 presentation?.Impact("village");
                 ApplySplash(result);
-                var town = Projection.GridToWorld(hit.Position) + new Vector2(0, -9);
-                _feedbackPosition = BoardView.TownHealthAnchor(Projection.GridToWorld(hit.Position));
+                var town = (Landscape is not null && Battle.VillageAt(hit.Position) is { } attackedTown
+                    ? Landscape.VillageWorldAnchor(attackedTown) : Projection.GridToWorld(hit.Position)) + new Vector2(0, -9);
+                _feedbackPosition = Landscape is not null && Battle.VillageAt(hit.Position) is { } hitTown
+                    ? Landscape.TownHealthAnchor(hitTown) : BoardView.TownHealthAnchor(Projection.GridToWorld(hit.Position));
                 _feedback = hit.TargetVisibleToPlayer ? $"−{result.Amount:0.##}" : "";
                 if (hit.CounterDamage > 0 && (hit.AttackerVisibleToPlayer || hit.TargetVisibleToPlayer))
                 {
@@ -147,7 +149,9 @@ public partial class FleetView
             {
                 _feedbackColor = new("85e6a0");
                 _feedback = $"+{result.Amount:0.##}";
-                _feedbackPosition = actor is not null ? HealthAnchor(Projection.GridToWorld(actor.Position), actor.Definition.Class) : BoardView.TownHealthAnchor(Projection.GridToWorld(Battle.Villages.First(v => v.Id == result.TargetId).Position));
+                _feedbackPosition = actor is not null ? HealthAnchor(Projection.GridToWorld(actor.Position), actor.Definition.Class)
+                    : Landscape?.TownHealthAnchor(Battle.Villages.First(v => v.Id == result.TargetId))
+                        ?? BoardView.TownHealthAnchor(Projection.GridToWorld(Battle.Villages.First(v => v.Id == result.TargetId).Position));
                 await TweenValue(0.25, t => _feedbackRise = t * 20);
             }
 
@@ -158,7 +162,9 @@ public partial class FleetView
             foreach (var heal in result.HealingReceipts ?? Array.Empty<HealingReceipt>())
                 if (heal.VisibleToPlayer)
                 {
-                    _feedbackPosition = heal.IsVillage ? BoardView.TownHealthAnchor(Projection.GridToWorld(heal.Position)) : HealthAnchor(Projection.GridToWorld(heal.Position), Battle.At(heal.Position)?.Definition.Class ?? ShipClass.Garrison);
+                    _feedbackPosition = heal.IsVillage ? Landscape is not null && Battle.VillageAt(heal.Position) is { } healedTown
+                        ? Landscape.TownHealthAnchor(healedTown) : BoardView.TownHealthAnchor(Projection.GridToWorld(heal.Position))
+                        : HealthAnchor(Projection.GridToWorld(heal.Position), Battle.At(heal.Position)?.Definition.Class ?? ShipClass.Garrison);
                     _feedbackColor = new("85e6a0");
                     _feedback = $"+{heal.Amount:0}";
                     await TweenValue(.3, t => _feedbackRise = t * 20);
@@ -168,6 +174,7 @@ public partial class FleetView
         {
             presentation?.Finish();
             _sinking.Clear();
+            foreach (int wreck in _wreckArt.Keys.ToArray()) RemoveWreck(wreck);
             _movingId = 0;
             _movingShip = null;
             _movingVisible = false;

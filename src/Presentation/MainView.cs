@@ -65,13 +65,15 @@ public partial class Main
         Fleet.QueueRedraw();
         RefreshOutcome();
         PresentPendingRewards();
+        RefreshTutorials();
     }
 
     private void PositionActions()
     {
         Vector2 Screen(GridPosition p) => GetViewport().GetCanvasTransform() * BoardView.ToGlobal(BoardView.Projection.GridToWorld(p));
-        Hud.PositionActions(_resourceCell is null ? (Selected is { } ship ? Screen(ship.Position) : SelectedVillage is { } village ? Screen(village.Position) : BoardView.Selected is { } inspected ? Screen(inspected) : null) : null,
-            (Selected is { } selected ? ShipVisualProfile.ProgressY(selected.Definition.Class) : SelectedVillage is not null ? 69 : 0) * MapCamera.Zoom.Y);
+        Vector2 TownScreen(Village town) => GetViewport().GetCanvasTransform() * BoardView.ToGlobal(BoardView.VillageWorldAnchor(town));
+        Hud.PositionActions(_resourceCell is null ? (Selected is { } ship ? Screen(ship.Position) : SelectedVillage is { } village ? TownScreen(village) : BoardView.Selected is { } inspected ? Screen(inspected) : null) : null,
+            (Selected is { } selected ? ShipVisualProfile.ProgressY(selected.Definition.Class) : SelectedVillage is not null ? 34 : 0) * MapCamera.Zoom.Y);
         _actionTargetScreens.Clear();
         foreach (var attackCell in BoardView.Targets)
             _actionTargetScreens.Add(Screen(attackCell));
@@ -84,10 +86,11 @@ public partial class Main
                     (observed.IsAirborne ? new Vector2(0, -62) * MapCamera.Zoom : Vector2.Zero));
         foreach (var town in Battle.ObservedVillages(Side.Player))
             if (town.Id != SelectedVillageId)
-                _actionTargetScreens.Add(Screen(town.Position));
+                _actionTargetScreens.Add(TownScreen(town));
         Hud.SetActionTargetHitExclusions(_actionTargetScreens);
         Hud.PositionResource(_resourceCell is { } cell ? Screen(cell) : null);
-        Hud.PositionStories(Screen);
+        Hud.PositionStories(p => Battle.ObservedVillages(Side.Player).FirstOrDefault(v => v.Position == p) is { } storyTown
+            ? TownScreen(storyTown) : Screen(p));
         if (_salvoCell is { } target)
         {
             var targetShip = Battle.ObservedAt(Side.Player, target);

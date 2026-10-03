@@ -18,6 +18,14 @@ public partial class BoardView
     private readonly Dictionary<int, Vector2> _portShoreAnchors = new();
     private IsometricProjection? _portShoreProjection;
     internal static Vector2[] TownMills(Village town) => TownMills(town.Level);
+    internal Vector2[] VillageMills(Village town) => VillagePlacement(town).Compact ? Array.Empty<Vector2>() : TownMills(town);
+    internal void DrawSanctuaryOverlay(Node2D canvas, Village town, Vector2 center, float time)
+    {
+        if (town.Owner is null or Side.Pirates) return;
+        Vector2 Monument(float x, float y, float z) => center + new Vector2((x - y + 4) * .85f,
+            (x + y - 4) * .42f - z * SanctuaryHeightScale(town.Level) - 1);
+        FactionSanctuaryArt.DrawEffects(canvas, Monument, Battle.ColorFor(town.Owner.Value), time, town.Id);
+    }
     private static Vector2[] TownMills(int level) => level < 2 ? Array.Empty<Vector2>() : level < 4 ? new[]
     {
         new Vector2(-18, 0)
@@ -38,6 +46,9 @@ public partial class BoardView
     private void DrawVillage(Node2D canvas, TownArtState town, Vector2 center)
     {
         var homes = TownVisibleHomes(TownHomes(town.Id), town.Level);
+        if (VillagePlacement(town).Compact)
+            homes = homes.Take(3).Select((h, i) => h with { Position = new[]
+                { new Vector2(0, -4), new Vector2(-7, -2), new Vector2(7, -2) }[i] }).ToArray();
 
         var accent = town.Accent;
         DrawTownPlaza(canvas, town, center);
@@ -86,7 +97,7 @@ public partial class BoardView
         }
 
         if (!shrineDrawn) Shrine();
-        foreach (var mill in TownMills(town.Level))
+        foreach (var mill in VillagePlacement(town).Compact ? Array.Empty<Vector2>() : TownMills(town.Level))
         {
             var p = center + mill;
             canvas.DrawColoredPolygon(new[] { p + new Vector2(-5, 0), p + new Vector2(6, 0), p + new Vector2(4, -16), p + new Vector2(-3, -16) }, new Color("d6c6a3"));
@@ -122,9 +133,10 @@ public partial class BoardView
         float irregular = 1 + .065f * MathF.Sin(angle * 3 + seed * .017f) + .035f * MathF.Cos(angle * 5);
         return new Vector2(3.4f, -1.7f) + new Vector2(MathF.Cos(angle) * 12, MathF.Sin(angle) * 4.6f) * irregular;
     }).ToArray();
-    private static void DrawTownPlaza(Node2D canvas, TownArtState town, Vector2 center)
+    private void DrawTownPlaza(Node2D canvas, TownArtState town, Vector2 center)
     {
         var edge = TownPlaza(town.Id);
+        if(VillagePlacement(town).Compact)edge=edge.Select(p=>new Vector2(p.X*.72f,p.Y*.65f)).ToArray();
         canvas.DrawColoredPolygon(edge.Select(p => p + center).ToArray(), new Color("c9c0a4"));
         canvas.DrawPolyline(edge.Append(edge[0]).Select(p => p + center).ToArray(), new Color("a8a187"), .7f, true);
         // Irregular paving joints frame the church without filling its open
@@ -225,13 +237,15 @@ public partial class BoardView
         TownInterfaceDrawCount++;
         var accent = FleetPalette.For(Battle, town.Owner);
         float width = ThemeDB.FallbackFont.GetStringSize(town.Name, fontSize: 13).X;
-        canvas.DrawString(ThemeDB.FallbackFont, new Vector2(-width * .5f, 61), town.Name, fontSize: 13, modulate: Colors.Black);
+        var placement = VillagePlacement(town);
+        float below = placement.Offset.Y + (placement.Compact ? 19 : 26);
+        canvas.DrawString(ThemeDB.FallbackFont, new Vector2(placement.Offset.X - width * .5f, below), town.Name, fontSize: 13, modulate: Colors.Black);
         for (int i = 0; i < 5; i++)
-            canvas.DrawRect(new Rect2(new Vector2(-18 + i * 8, 65), new Vector2(5, 4)), i < town.Level ? accent : new Color("475857"));
+            canvas.DrawRect(new Rect2(new Vector2(placement.Offset.X -18 + i * 8, below + 4), new Vector2(5, 4)), i < town.Level ? accent : new Color("475857"));
         if (!_townHealth.TryGetValue(town.Id, out var animation))
             _townHealth[town.Id] = animation = new AmphoraHealthAnimation();
         float time = TownAnimationTime;
         animation.Observe(town.Health, town.MaxHealth, time);
-        AmphoraBadgeArt.Draw(canvas, new Vector2(38, -35), town.Health, town.MaxHealth, accent, null, animation.Motion(time));
+        AmphoraBadgeArt.Draw(canvas, placement.Offset + new Vector2(38, -35), town.Health, town.MaxHealth, accent, null, animation.Motion(time));
     }
 }

@@ -199,6 +199,7 @@ public partial class StartScreen : CanvasLayer
         _settings.AddChild(Heading("Settings", 23));
         _settings.AddChild(new LanguageButtons());
         _settings.AddChild(new UiScaleSlider());
+        _settings.AddChild(new UiHintsToggle());
         _settings.AddChild(HomeButton("CloseHomeSettings", "Back", () => ShowHome(!_continue.Disabled)));
         _settingsPaper.Hide();
     }

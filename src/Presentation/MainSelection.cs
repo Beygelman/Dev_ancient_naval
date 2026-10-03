@@ -18,7 +18,7 @@ public partial class Main
 {
     public void SelectAtScreen(Vector2 screen)
     {
-        if (_rewards?.IsOpen == true || _victory?.IsOpen == true || Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player)is not null)
+        if (_endingStamp || Hud.TurnConfirmationVisible || _rewards?.IsOpen == true || _victory?.IsOpen == true || Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player)is not null)
             return;
         var air = Battle.ObservedShips(Side.Player).Where(s => s.IsAirborne).FirstOrDefault(s => (GetViewport().GetCanvasTransform() * (BoardView.Projection.GridToWorld(s.Position) + new Vector2(0, -62))).DistanceTo(screen) < 24 * MapCamera.Zoom.X);
         if (air is not null && CanCommand && Selected is { Owner: Side.Player } attacker && Battle.CanAttack(attacker.Id, air.Id))
@@ -38,13 +38,30 @@ public partial class Main
             return;
         }
 
-        SelectCell(BoardView.Projection.WorldToGrid(BoardView.ToLocal(MapCamera.ScreenToWorld(screen))));
+        // Decorative town plans may sit inland of their functional coast cell.
+        // Pick the actual buildings and translate the hit to their Core identity.
+        var rawCell = BoardView.Projection.WorldToGrid(BoardView.ToLocal(MapCamera.ScreenToWorld(screen)));
+        if (Battle.ObservedAt(Side.Player, rawCell) is { } surface)
+        {
+            var floor = GetViewport().GetCanvasTransform() * BoardView.ToGlobal(BoardView.Projection.GridToWorld(rawCell));
+            var point = (screen - floor) / MapCamera.Zoom;
+            float size = ShipVisualProfile.For(surface.Definition.Class).Size;
+            if (new Rect2(-35 * size, -17 * size, 70 * size, 32 * size).HasPoint(point))
+            { SelectCell(rawCell); return; }
+        }
+        var townHit = Battle.ObservedVillages(Side.Player).FirstOrDefault(town =>
+        {
+            var anchor = GetViewport().GetCanvasTransform() * BoardView.ToGlobal(BoardView.VillageWorldAnchor(town));
+            var offset = (screen - anchor) / MapCamera.Zoom;
+            return new Rect2(-31, -57, 62, 73).HasPoint(offset);
+        });
+        SelectCell(townHit?.Position ?? rawCell);
     }
 
     public void SelectCell(GridPosition cell)
     {
         using var trace = Diagnostics.PerformanceTrace.Measure("Selection.Dispatch");
-        if (_rewards?.IsOpen == true || _victory?.IsOpen == true || Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player)is not null)
+        if (_endingStamp || Hud.TurnConfirmationVisible || _rewards?.IsOpen == true || _victory?.IsOpen == true || Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player)is not null)
             return;
         _salvoCell = null;
         Hud.HideSalvoChoice();
@@ -169,7 +186,7 @@ public partial class Main
 
     public void CancelOrder()
     {
-        if (Busy)
+        if (_endingStamp || Hud.TurnConfirmationVisible || Busy)
             return;
         ClearMode();
         SelectedShipId = null;

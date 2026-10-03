@@ -15,11 +15,13 @@ internal partial class ConstructionPreview : Node2D
     private ShipClass? _kind;
     private GridPosition? _cell;
     private Vector2[][] _coverage = Array.Empty<Vector2[]>();
+    private Vector2[][] _tradePaths = Array.Empty<Vector2[]>();
+    internal int TradePreviewEdges => _tradePaths.Length;
     internal GridPosition? Cell => _cell;
     internal ShipClass? Kind => _kind;
     internal int CoverageEdges => _coverage.Length;
     internal int Rebuilds { get; private set; }
-    private readonly Color _ink = new(.65f, .91f, 1, .83f);
+    private readonly Color _ink = new(1, .99f, .95f, .88f);
 
     internal void ShowAt(BoardView board, ShipClass? kind, GridPosition? cell)
     {
@@ -27,6 +29,7 @@ internal partial class ConstructionPreview : Node2D
         _board = board; _kind = kind; _cell = cell;
         Visible = kind is not null && cell is not null;
         _coverage = Array.Empty<Vector2[]>();
+        _tradePaths = Array.Empty<Vector2[]>();
         if (Visible && kind is ShipClass.CannonTower or ShipClass.Lighthouse)
         {
             var definition = board.Battle.Rules.Get(kind.Value);
@@ -34,6 +37,13 @@ internal partial class ConstructionPreview : Node2D
             var known = board.Board.Tiles.Where(t => board.Battle.Vision.IsExplored(Side.Player, t.Position)
                 && board.Board.InRadius(cell!.Value, t.Position, range)).Select(t => t.Position);
             _coverage = board.Projection.BoundaryEdges(known).ToArray();
+            if (kind == ShipClass.Lighthouse)
+            {
+                var prior = board.Battle.TradeRoutes(Side.Player);
+                _tradePaths = board.Battle.PreviewLighthouseTradeRoutes(Side.Player, cell!.Value).Edges
+                    .Where(e => !prior.Contains(e.From, e.To))
+                    .Select(e => new[] { board.Projection.GridToWorld(e.From), board.Projection.GridToWorld(e.To) }).ToArray();
+            }
         }
         Rebuilds++;
         QueueRedraw();
@@ -43,23 +53,27 @@ internal partial class ConstructionPreview : Node2D
     {
         if (_cell is not { } cell || _kind is not { } kind) return;
         foreach (var edge in _coverage)
-            DrawPolyline(edge, kind == ShipClass.Lighthouse ? new Color(.81f, .94f, .63f, .65f)
-                : new Color(.97f, .59f, .56f, .65f), 1.4f, true);
-        DrawPolyline(_board.Projection.ClosedOutline(cell), new Color(_ink, .4f), 1.3f, true);
+            for (int i = 1; i < edge.Length; i++) PencilLine(edge[i - 1], edge[i], .8f, false);
+        foreach (var edge in _tradePaths)
+        {
+            float length = edge[0].DistanceTo(edge[1]);
+            for (float at = 0; at < length; at += 12)
+                PencilLine(edge[0].Lerp(edge[1], at / length), edge[0].Lerp(edge[1], Math.Min(length, at + 7) / length), 1.2f, false);
+        }
+        DrawPolyline(_board.Projection.ClosedOutline(cell), new Color(_ink, .4f), .8f, true);
         var center = _board.Projection.GridToWorld(cell);
         var profile = ShipVisualProfile.For(kind);
         Vector2 P(float x, float y, float z) => center + DeckProjection.Point(x,y,z,-.35f,profile.Size,profile.DeckWidth);
-        void Line(Vector2 a, Vector2 b, float width = 1) => DrawLine(a,b,_ink,width,true);
+        void Line(Vector2 a, Vector2 b, float width = 1) => PencilLine(a,b,width);
         void Ring(float rx,float ry,float height)
         {
             var points = Enumerable.Range(0,25).Select(i => P(MathF.Cos(i*Mathf.Tau/24)*rx,MathF.Sin(i*Mathf.Tau/24)*ry,height)).ToArray();
-            DrawPolyline(points,_ink,1.2f,true);
+            for (int i = 1; i < points.Length; i++) PencilLine(points[i - 1], points[i], 1.1f, i % 6 == 0);
         }
         void Box(float x,float y,float z,float width,float depth,float height)
         {
             var floor = new[] { P(x-width/2,y-depth/2,z),P(x+width/2,y-depth/2,z),P(x+width/2,y+depth/2,z),P(x-width/2,y+depth/2,z) };
             var roof = new[] { P(x-width/2,y-depth/2,z+height),P(x+width/2,y-depth/2,z+height),P(x+width/2,y+depth/2,z+height),P(x-width/2,y+depth/2,z+height) };
-            DrawColoredPolygon(roof, new Color(.36f,.73f,.88f,.10f));
             for(int i=0;i<4;i++) { Line(floor[i],floor[(i+1)%4]);Line(roof[i],roof[(i+1)%4]);Line(floor[i],roof[i]); }
             Line(roof[0],roof[2],.6f);
         }
@@ -102,5 +116,20 @@ internal partial class ConstructionPreview : Node2D
                 Line(P(x+3,-9,12),P(x+3,9,12));Line(P(x+3,9,12),P(x,9,29));
             }
         }
+    }
+
+    private void PencilLine(Vector2 a, Vector2 b, float width, bool notches = true)
+    {
+        var delta = b - a;
+        if (delta.LengthSquared() < .01f) return;
+        var normal = delta.Normalized().Orthogonal();
+        float seed = a.X * .37f + b.Y * .71f;
+        var middle = (a + b) * .5f + normal * MathF.Sin(seed) * .45f;
+        DrawLine(a, middle, _ink, Math.Min(1.4f, width), true);
+        DrawLine(middle, b, _ink, Math.Min(1.4f, width), true);
+        DrawLine(a + normal * .6f, b + normal * .35f, new Color(_ink, .22f), .5f, true);
+        if (!notches || delta.LengthSquared() < 36) return;
+        DrawLine(a - normal * 2, a + normal * 2, new Color(_ink, .6f), .65f, true);
+        DrawLine(b - normal * 2, b + normal * 2, new Color(_ink, .6f), .65f, true);
     }
 }

@@ -54,7 +54,7 @@ public sealed partial class BattleState
             _pirateHomes[pirate.Id] = pirate.Position;
         if (!populate)
             return;
-        var candidates = Board.Tiles.Where(t => t.Terrain == TerrainType.Water && IsFreeWater(t.Position) && Ships.Where(s => s.Owner != Side.Pirates).All(s => Board.Distance(s.Position, t.Position) > 4) && Board.BlastCells(t.Position).Count == 9 && Board.BlastCells(t.Position).All(p => Board.GetTile(p).Terrain != TerrainType.Land)).Select(t => t.Position).OrderBy(_ => NextEvent()).ToArray();
+        var candidates = Board.Tiles.Where(t => t.Terrain == TerrainType.Water && IsFreeWater(t.Position) && (!Rules.EmptyOuterRim || !Board.IsOuterCell(t.Position)) && Ships.Where(s => s.Owner != Side.Pirates).All(s => Board.Distance(s.Position, t.Position) > 4) && Board.BlastCells(t.Position).Count == 9 && Board.BlastCells(t.Position).All(p => Board.GetTile(p).Terrain != TerrainType.Land)).Select(t => t.Position).OrderBy(_ => NextEvent()).ToArray();
         var chosen = Enumerable.Range(0, _factions.Count).Select(_ => new List<GridPosition>()).ToArray();
         foreach (var cell in candidates)
         {
@@ -81,6 +81,17 @@ public sealed partial class BattleState
             var pirate = new Ship(_nextId++, Side.Pirates, Rules.Get(ShipClass.PirateSchooner), position);
             _ships.Add(pirate);
             _pirateHomes[pirate.Id] = position;
+        }
+    }
+
+    private void ClearRuinsForConstruction(ShipClass kind, GridPosition position)
+    {
+        if (!Rules.ConstructionClearsRuins || kind is not (ShipClass.CannonTower or ShipClass.Lighthouse)) return;
+        foreach (var ruin in _treasuries.Where(t => t.Position == position).ToArray())
+        {
+            _treasuries.Remove(ruin);
+            _treasuryWaits.Remove(ruin.Id);
+            _treasuryOutcomes.Remove(ruin.Id);
         }
     }
 
@@ -124,7 +135,7 @@ public sealed partial class BattleState
         GridPosition? berth = null;
         if (reward == TreasuryReward.AncientGun)
         {
-            berth = Board.Tiles.Where(t => IsFreeWater(t.Position)).OrderBy(t => Board.Distance(ship.Position, t.Position)).Select(t => (GridPosition? )t.Position).FirstOrDefault();
+            berth = Board.Tiles.Where(t => IsFreeWater(t.Position) && (!Rules.EmptyOuterRim || !Board.IsOuterCell(t.Position))).OrderBy(t => Board.Distance(ship.Position, t.Position)).Select(t => (GridPosition? )t.Position).FirstOrDefault();
             if (berth is null)
                 return CommandResult.Rejected("No free water remains for an ancient tower.");
         }

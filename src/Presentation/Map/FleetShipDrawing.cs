@@ -11,7 +11,7 @@ public partial class FleetView
 {
     private readonly CityShipArt _cityShip = new();
     private readonly VesselArt _vesselArt = new();
-    private void DrawShip(ShipSnapshot ship, Vector2 center, bool silhouette = false)
+    private void DrawShip(ShipSnapshot ship, Vector2 center, bool silhouette = false, bool wreckSource = false)
     {
         if (ship.Class == ShipClass.Balloon)
         {
@@ -57,7 +57,7 @@ public partial class FleetView
         // Bob/roll use the retained hull canvas transform; floor geometry changes only with heading.
         var bob = Vector2.Zero;
         float roll = 0;
-        float sinking = _sinking.GetValueOrDefault(ship.Id);
+        float sinking = wreckSource ? 0 : _sinking.GetValueOrDefault(ship.Id);
         bob.Y += sinking * 32;
         roll += sinking * .13f;
         float yaw = BaseHeading(ship.Class, ship.Owner) + DeckAngle(ship.Id) + roll;
@@ -68,7 +68,7 @@ public partial class FleetView
         Ink.DrawSetTransform(center + new Vector2(0, 4), 0, new Vector2(1, 0.45f));
         if (!silhouette) Ink.DrawCircle(Vector2.Zero, 30 * size, new Color(0, 0, 0, 0.3f));
         Ink.DrawSetTransform(Vector2.Zero);
-        if (ship.Id == SelectedId)
+        if (!silhouette && ship.Id == SelectedId)
             Ink.DrawArc(center, 34 * size, 0, Mathf.Tau, 40, new Color("ffe298"), 2, true);
         if (ship.Class == ShipClass.AncientGun)
         {

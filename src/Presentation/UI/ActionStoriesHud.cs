@@ -27,6 +27,10 @@ public partial class DebugHud
             TooltipText = capture ? "Claim this harbor" : "Awaken the sunken treasury"
         };
         _root.AddChild(scroll);
+        var guidance = new GuidanceLabel { Name = "ActionGuidance",
+            Text = capture ? "Click to capture the town." : "Click to collect relics.",
+            Position = new(0, SectorButton.PaperFootprint.Y + 4), Size = new(SectorButton.PaperFootprint.X, 32) };
+        scroll.AddChild(guidance);
         scroll.Pressed += () =>
         {
             var entry = _stories.FirstOrDefault(pair => ReferenceEquals(pair.Value, scroll));

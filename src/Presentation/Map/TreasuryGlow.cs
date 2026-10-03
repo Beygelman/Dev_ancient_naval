@@ -92,7 +92,7 @@ internal partial class RetainedTreasuryGlow : MeshInstance2D
             for (int ray = -3; ray <= 3; ray++)
             {
                 float x = ray * 4;
-                float height = 28 + (3 - Math.Abs(ray)) * 9;
+                float height = 36 + (3 - Math.Abs(ray)) * 12;
                 var bottom = glow.Center + new Vector2(x, -2 + Math.Abs(ray) * .45f);
                 var top = bottom + new Vector2(ray * 1.5f, -height);
                 int at = vertices.Count;
@@ -101,7 +101,7 @@ internal partial class RetainedTreasuryGlow : MeshInstance2D
                 for (int i = 0; i < 4; i++)
                 {
                     phases.Add(new Vector2(Math.Max(0, glow.Fade), glow.Fade >= 0 ? 1 : 0));
-                    colors.Add(new Color(.94f, .88f, .60f, i < 2 ? .25f : 0));
+                    colors.Add(new Color(1, .93f, .66f, i < 2 ? .46f : 0));
                 }
                 indices.Add(at); indices.Add(at + 1); indices.Add(at + 2);
                 indices.Add(at + 1); indices.Add(at + 3); indices.Add(at + 2);

@@ -78,7 +78,7 @@ internal static class AncientLore
                 rows.Add(new("Cannons", $"{ship.CurrentDamage + ship.ShotDamageBonus:0.##} damage · {ship.CannonRange} tiles"));
             if (ship.HasMortar)
             {
-                int minimum = ship.Definition.Class == ShipClass.AncientGun && !battle.Rules.Mortar.TowerDeadZone ? 1 : battle.Rules.Mortar.DeadZone + 1;
+                int minimum = ship.Definition.Class == ShipClass.AncientGun && !battle.Rules.Mortar.TowerDeadZone ? 1 : battle.MortarDeadZone(ship) + 1;
                 string range = $"{minimum}–{ship.MortarRange}";
                 rows.Add(new("Mortar", $"{ship.CurrentMortarDamage + ship.ShotDamageBonus:0.##} damage · {range} tiles"));
                 rows.Add(new("Blast", $"{battle.Rules.Mortar.SplashDamage} to adjacent enemies; allies spared"));

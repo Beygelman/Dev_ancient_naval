@@ -135,7 +135,7 @@ public sealed partial class BattleState
             SetIncomeSource(new IncomeSource($"village:{village.Id}", owner, VillageIncome(village) + (village.HasPort ? Rules.Ports.Income : 0)));
     }
 
-    public IReadOnlyList<GridPosition> VillageSpawnCells(int villageId) => _villages.FirstOrDefault(v => v.Id == villageId)is { } village ? Board.GetNeighbors(village.Position).Where(IsFreeWater).ToArray() : Array.Empty<GridPosition>();
+    public IReadOnlyList<GridPosition> VillageSpawnCells(int villageId) => _villages.FirstOrDefault(v => v.Id == villageId)is { } village ? Board.GetNeighbors(village.Position).Where(p => IsFreeWater(p) && (!Rules.EmptyOuterRim || !Board.IsOuterCell(p))).ToArray() : Array.Empty<GridPosition>();
     private string? ValidateVillage(Side side, int villageId, out Village? village)
     {
         village = _villages.FirstOrDefault(v => v.Id == villageId);
@@ -192,6 +192,7 @@ public sealed partial class BattleState
         _ships.Add(ship);
         RecordShipConstruction(ship);
         RegisterShipIncome(ship);
+        ClearRuinsForConstruction(kind, spawn);
         _credits[(int)requester] -= VillageBuildPrice(villageId, kind);
         _everProduced[(int)requester] = true;
         village.HasProduced = true;
@@ -243,7 +244,9 @@ public sealed partial class BattleState
         bool mortar = UsesMortar(ship, village.Position);
         double counterDamage = 0;
         double raw = (mortar ? ship.CurrentMortarDamage + Rules.Mortar.VillageDamageBonus : ship.CurrentDamage) + ship.ShotDamageBonus;
-        double damage = Math.Min(village.Health, raw * (village.IsFortified ? .75 : 1) * (doubleSalvo ? 2 : 1));
+        double oneShot = raw * (village.IsFortified ? .75 : 1);
+        if (Rules.EqualDoubleSalvoDamage) oneShot = Ship.Whole(oneShot);
+        double damage = Math.Min(village.Health, oneShot * (doubleSalvo ? 2 : 1));
         village.Health = Math.Max(0, village.Health - damage);
         ship.AttacksUsed += doubleSalvo ? 2 : 1;
         var splash = mortar ? MortarSplash(ship, village.Position) : Array.Empty<CombatShot>();

@@ -45,6 +45,19 @@ public sealed partial class BattleState
     }
 
     public GridPosition PortBerth(Village town) => Board.GetNeighbors(town.Position).Where(p => Board.GetTile(p).Terrain != TerrainType.Land).OrderBy(p => p.Y).ThenBy(p => p.X).First();
+    /// <summary>Read-only pencil planning: never crosses undiscovered terrain or exposes a hidden hazard.</summary>
+    public TradeNetwork PreviewLighthouseTradeRoutes(Side side, GridPosition proposed)
+    {
+        if (!Board.Contains(proposed) || !Vision.IsVisible(side, proposed) || !IsFreeWater(proposed))
+            return new TradeNetwork();
+        var ports = _villages.Where(v => v.Owner == side && v.HasPort && v.Health > 0).OrderBy(v => v.Id)
+            .Select(PortBerth).Concat(_ships.Where(s => s.Owner == side && s.Definition.Class == ShipClass.Lighthouse
+                && s.Health > 0).OrderBy(s => s.Id).Select(s => s.Position)).Append(proposed).Distinct().ToArray();
+        var knownHazards = _forbidden.Where(p => Vision.IsVisible(side, p)).ToHashSet();
+        return TradeNetwork.Create(Board, ports, knownHazards, Rules.Ports.MaximumRouteLength,
+            p => Vision.KnownTerrain(side, p) is { } terrain && terrain != TerrainType.Land);
+    }
+
     public TradeNetwork TradeRoutes(Side side)
     {
         var towns = _villages.Where(v => v.Owner == side && v.HasPort && v.Health > 0).OrderBy(v => v.Id).ToArray();

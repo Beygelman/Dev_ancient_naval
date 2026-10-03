@@ -55,7 +55,7 @@ public partial class WorldAmbience : Node2D
     private readonly List<Dolphin> _dolphins = new();
     private Random _random = new(1701);
     private float _time, _frame, _nextGull = 2, _nextDolphin = 48;
-    private sealed record Gull(Vector2 Start, Vector2 Velocity, float Born, float Phase, float Lifetime, bool Circling);
+    private sealed record Gull(Vector2 Start, Vector2 Velocity, float Born, float Phase, float Lifetime, bool Circling, bool Scared = false);
     private sealed record Dolphin(Vector2 Center, float Born, float Facing);
     internal int WildlifeCount => _gulls.Count + _dolphins.Count;
 
@@ -67,6 +67,7 @@ public partial class WorldAmbience : Node2D
         {
             _battle = battle;
             _gulls.Clear();
+            _dockAlarms.Clear();
             _dolphins.Clear();
             _time = 0;
             _seaBounds = BoardView.Projection.BoardBounds(battle.Board);
@@ -83,6 +84,7 @@ public partial class WorldAmbience : Node2D
         _visibleWater.UnionWith(_water);
         _harborWater = _towns.SelectMany(town => battle.Board.GetSurrounding(town.Position)).Where(_visibleWater.Contains).Distinct().ToArray();
         _docks = battle.ObservedShips(Side.Player).Where(ship => ship.Definition.Class == ShipClass.FishingDock).Select(ship => (ship.Id, BoardView.Projection.GridToWorld(ship.Position))).ToArray();
+        foreach (int gone in _dockAlarms.Keys.Where(id => !_docks.Any(dock => dock.Id == id)).ToArray()) _dockAlarms.Remove(gone);
         _shores.Clear();
         foreach (var(edge, inside)in BoardView.VisibleShoreSegments())
         {
@@ -144,8 +146,8 @@ public partial class WorldAmbience : Node2D
         _dolphins.RemoveAll(d => _time - d.Born > 3.2f);
         if (_time >= _nextGull)
         {
-            _nextGull = _time + 4 + (float)_random.NextDouble() * 3;
-            if (_water.Length > 0 && _gulls.Count < 18)
+            _nextGull = _time + 2.4f + (float)_random.NextDouble() * 2;
+            if (_water.Length > 0 && _gulls.Count < 30)
             {
                 var candidates = _towns.Length > 0 && _harborWater.Length > 0 && _random.Next(3) == 0 ? _harborWater : _fish.Length > 0 && _random.Next(10) != 0 ? _fish : _water;
                 SpawnGulls(candidates[_random.Next(candidates.Length)], _random.Next(3) == 0 ? 3 : 1);
@@ -173,7 +175,7 @@ public partial class WorldAmbience : Node2D
             return;
         float angle = (float)_random.NextDouble() * Mathf.Tau;
         var velocity = Vector2.FromAngle(angle) * new Vector2(10, 5);
-        for (int i = 0; i < Math.Min(count, 18 - _gulls.Count); i++)
+        for (int i = 0; i < Math.Min(count, 30 - _gulls.Count); i++)
             _gulls.Add(new(BoardView.Projection.GridToWorld(cell) + new Vector2(-i * 13, i * 6), velocity, _time, i * 1.8f, 24, _fish.Contains(cell)));
     }
 
@@ -238,7 +240,7 @@ public partial class WorldAmbience : Node2D
 
     internal void DrawTownLife(Node2D canvas, Village town, Vector2 center)
     {
-        foreach (var mill in BoardView.TownMills(town))
+        foreach (var mill in BoardView.VillageMills(town))
         {
             var hub = center + mill + new Vector2(0, -10);
             float rotation = _time * .48f + town.Id;
@@ -250,6 +252,7 @@ public partial class WorldAmbience : Node2D
             }
             canvas.DrawCircle(hub, 2.2f, new Color("807858"));
         }
+        BoardView.DrawSanctuaryOverlay(canvas, town, center, _time);
         if (town.Owner is null)
             return;
         var flag = center + BoardView.VillageFlagOffset;

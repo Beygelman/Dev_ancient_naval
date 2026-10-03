@@ -5,7 +5,7 @@ namespace DevAncientNaval.Core.World;
 /// <summary>Seeded islands on a boundary-fitted hexagonal cell complex.</summary>
 public static class ArchipelagoGenerator
 {
-    public static GameBoard Create(int seed, int opponentCount = 3, WorldKind kind = WorldKind.Oceans, MapSize? mapSize = null)
+    public static GameBoard Create(int seed, int opponentCount = 3, WorldKind kind = WorldKind.Oceans, MapSize? mapSize = null, bool roomySettlements = true)
     {
         if (opponentCount is < 1 or > 4)
             throw new ArgumentOutOfRangeException(nameof(opponentCount));
@@ -34,7 +34,7 @@ public static class ArchipelagoGenerator
                 : WorldLandscapeGenerator.Create(mesh, seed, opponentCount + 1, kind, mapSize, terrainSeed);
             try
             {
-                if (WorldSettlementPlacement.Create(board, opponentCount + 1).Count == (opponentCount + 1) * 3)
+                if (WorldSettlementPlacement.Create(board, opponentCount + 1, requireLandNeighbor: roomySettlements).Count == (opponentCount + 1) * 3)
                     return board;
             }
             catch (InvalidOperationException)

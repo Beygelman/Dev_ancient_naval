@@ -15,9 +15,10 @@ public partial class BoardView
     };
     internal static float TownWallHeight(int level) => 11 + level * .8f;
 
-    private static void DrawTownWall(Node2D canvas, TownArtState town, Vector2 center, bool front)
+    private void DrawTownWall(Node2D canvas, TownArtState town, Vector2 center, bool front)
     {
-        var corners = TownWallCorners;
+        var corners = VillagePlacement(town).Compact ? new[]
+            { new Vector2(0,-3), new Vector2(13,-1), new Vector2(0,1), new Vector2(-13,-1) } : TownWallCorners;
         float height = TownWallHeight(town.Level);
         var stone = new Color(town.Owner == Side.Pirates ? "69716c" : "beb99d");
         var joint = stone.Darkened(.27f);

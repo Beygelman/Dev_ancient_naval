@@ -1,4 +1,4 @@
-# Ancient Naval — v020.5 — The Painted Voyage
+# Ancient Naval — v020.6 — The Watchful Voyage
 
 A turn-based naval tactics game built with **Godot 4.7.2 .NET**, C# and .NET 8. Open `project.godot`, stop the previous run with **F8**, then press **F5**. The title screen offers **New game**, **Continue**, **Settings** and **Exit game**. New game opens a six-color fleet and emblem selector and a choice of 1–4 rival fleets and Boatswain, Captain or Admiral difficulty, plus **Sea World**, **Oceans**, **Continents** or **Pangaea**.
 
@@ -9,6 +9,10 @@ Defeat the rival Motherships while exploring, collecting resources and capturing
 The working project, sources, assets, balance, tests and this README are edited
 directly in this Git repository. Delivered files are also copied to `releases/`
 inside the same project; the external `outputs` folder is an additional mirror.
+
+- [Windows v020.6 ZIP](releases/v020.6/Ancient_Naval_v020.6_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
+- [Source v020.6 ZIP](releases/v020.6/Ancient_Naval_v020.6_Source.zip), [Russian notes](releases/v020.6/Ancient_Naval_v020.6_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.6.txt).
+- Local launch copy: `releases/v020.6/playable/Ancient Naval.exe`.
 
 - [Windows v020.5 ZIP](releases/v020.5/Ancient_Naval_v020.5_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
 - [Source v020.5 ZIP](releases/v020.5/Ancient_Naval_v020.5_Source.zip), [Russian notes](releases/v020.5/Ancient_Naval_v020.5_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.5.txt).
@@ -48,6 +52,16 @@ notes remain visible to Git. [GitHub size limits](https://docs.github.com/en/rep
 Godot ignores the release directory so copied exports never re-enter game assets.
 See [release-copy workflow](releases/README.md). Files reach GitHub after the
 repository changes are committed and pushed; copying files alone is not a push.
+
+## v020.6 — 4 October 2026 — The Watchful Voyage
+
+Optional guidance shows a nation-colored amphora counting objects with useful affordable actions. Ending the turn stamps a left-unrolled parchment and, with hints enabled, opens a five-column object confirmation. Reward, capture and relic guidance sits below the scrolls. Five closeable upper-left advice cards use native game screenshots and appear once per voyage for resources, Kolonel, trade, repair and radar. Both Settings menus contain the toggle; disabling hints bypasses confirmation. English, Ukrainian and Dutch are supported.
+
+New voyages remove combat ship upkeep, increase settlement income and dock sight, give Granado three movement and mortar range two through five. Double salvo uses two equal damage charges. Starting escorts leave a tile between themselves and the flagship; the outer ring stays empty, fish are slightly more frequent and pirate counts follow area size. Tower/lighthouse construction removes a treasury without looting it. White pencil construction ghosts include prospective lighthouse trade links.
+
+Uniform house scale and compact inland plans prevent miniature settlements. Rivers favor coves and avoid narrow necks/beaches away from mouths; estuaries retain ocean tint. Faction shrines emit different light/foliage effects, including the white nation's red R. More bounded gulls flee nearby gunfire; waves gain subtle relief. Solid wreck parts rotate and submerge independently: decks, houses, broken sanctuaries, falling masts and rolling guns.
+
+[Validation and compatibility](docs/MILESTONE-v020.6.md). Start a new voyage for revised rules; older saves retain their embedded balance.
 
 ## v020.5 — 3 October 2026 — The Painted Voyage
 

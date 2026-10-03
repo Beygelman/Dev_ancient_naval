@@ -10,7 +10,7 @@ public sealed partial class BattleState
     public IReadOnlyList<GridPosition> SpawnCells(int mothershipId)
     {
         var ship = Find(mothershipId);
-        return ship is null || !ship.IsMothership && !((Rules.FishingLighthouses || Rules.FishingCannonTowers) && ship.Definition.Class == ShipClass.Fishing) ? Array.Empty<GridPosition>() : Board.GetNeighbors(ship.Position).Where(IsFreeWater).ToArray();
+        return ship is null || !ship.IsMothership && !((Rules.FishingLighthouses || Rules.FishingCannonTowers) && ship.Definition.Class == ShipClass.Fishing) ? Array.Empty<GridPosition>() : Board.GetNeighbors(ship.Position).Where(p => IsFreeWater(p) && (!Rules.EmptyOuterRim || !Board.IsOuterCell(p))).ToArray();
     }
 
     public static int RequiredLevel(ShipClass kind) => kind switch
@@ -63,6 +63,7 @@ public sealed partial class BattleState
         _ships.Add(ship);
         RecordShipConstruction(ship);
         RegisterShipIncome(ship);
+        ClearRuinsForConstruction(shipClass, spawn);
         _credits[(int)requester] -= BuildPrice(requester, shipClass);
         _everProduced[(int)requester] = true;
         var mother = Find(mothershipId)!;

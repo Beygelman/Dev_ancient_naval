@@ -74,6 +74,7 @@ public partial class Main : Node2D
             Projection = projection
         };
         AddChild(Fleet);
+        Fleet.GunFired = Ambience.ScareGulls;
         MapCamera = new MapCamera
         {
             Name = "MapCamera",
@@ -91,16 +92,16 @@ public partial class Main : Node2D
         MapInput.Held += SelectAtScreen;
         MapInput.Hovered += PreviewAtScreen;
         MapInput.Canceled += CancelOrder;
-        MapInput.KeyboardEnabled = () => _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && Battle.PendingUpgrade(Side.Player) is null;
+        MapInput.KeyboardEnabled = () => !_endingStamp && !Hud.TurnConfirmationVisible && _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && Battle.PendingUpgrade(Side.Player) is null;
         MapInput.GameplayShortcutsEnabled = () => CanCommand && Battle.PendingUpgrade(Side.Player) is null;
-        MapInput.EndTurnRequested += () => RunSafely(EndPlayerTurn);
+        MapInput.EndTurnRequested += () => RunSafely(RequestEndPlayerTurn);
         MapInput.RepairRequested += () => RunSafely(RepairSelected);
         AddChild(MapInput);
         Hud = new DebugHud
         {
             Name = "DebugHud"
         };
-        Hud.EndTurnRequested += () => RunSafely(EndPlayerTurn);
+        Hud.EndTurnRequested += () => RunSafely(RequestEndPlayerTurn);
         Hud.RepairRequested += () => RunSafely(RepairSelected);
         Hud.BuildRequested += BeginBuild;
         Hud.CanScuttleShip = ship => CanCommand && Battle.CanScuttle(Side.Player, ship.Id);
@@ -139,6 +140,7 @@ public partial class Main : Node2D
         Hud.HomeRequested += ShowHome;
         Hud.RestartRequested += ShowColorSelection;
         AddChild(Hud);
+        InitializeTurnGuidance();
         InitializeRewards();
         Fleet.FocusTarget = FocusVisibleTarget;
         MapCamera.ViewChanged += PositionActions;
@@ -147,7 +149,18 @@ public partial class Main : Node2D
         Refresh();
         Hud.ShowMessage("Select a ship, then a tile or highlighted target. Glowing fish can be collected directly.");
         InitializeSession();
+        InitializeTutorials();
         UiScale.Changed += Refresh;
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--tutorial-capture0206-test"))
+            AddChild(new Tests.Runtime.TutorialCapture0206Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--tutorial0206-test"))
+            AddChild(new Tests.Runtime.Tutorial0206Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--hints0206-test"))
+            AddChild(new Tests.Runtime.Hints0206Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--world-visual0206-test"))
+            AddChild(new Tests.Runtime.NativeWorld0206Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--animation0206-test"))
+            AddChild(new Tests.Runtime.Animation0206Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--ui0205-test"))
             AddChild(new Tests.Runtime.Ui0205Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--construction0205-test"))
@@ -224,7 +237,7 @@ public partial class Main : Node2D
         }
     }
 
-    private bool CanCommand => _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && !Battle.IsOver && !Battle.PlayerDefeated && Battle.ActiveSide == Side.Player;
+    private bool CanCommand => !_endingStamp && !Hud.TurnConfirmationVisible && _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && !Battle.IsOver && !Battle.PlayerDefeated && Battle.ActiveSide == Side.Player;
     private Ship? Selected => SelectedShipId is { } id ? Battle.FindObserved(Side.Player, id) : null;
     private Village? SelectedVillage => SelectedVillageId is { } id ? Battle.ObservedVillages(Side.Player).FirstOrDefault(v => v.Id == id) : null;
 
@@ -241,6 +254,8 @@ public partial class Main : Node2D
 
     internal void LoadScenario(BattleState battle)
     {
+        SuspendTutorials();
+        Hud.CloseTurnConfirmation();
         HideOutcome();
         Hud.HideHeavenlyAssistance();
         var projection = new IsometricProjection(battle.Board);

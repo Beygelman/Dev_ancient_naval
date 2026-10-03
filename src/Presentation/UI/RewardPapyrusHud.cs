@@ -12,6 +12,7 @@ public partial class RewardPapyrusHud : CanvasLayer
     private VBoxContainer _body = null!;
     private bool _layingOut;
     private Label _title = null!, _nation = null!, _first = null!, _second = null!;
+    private GuidanceLabel _guidance = null!;
     private Button _claim = null!;
     private ColorRect _accent = null!;
     private string? _pendingId;
@@ -52,6 +53,8 @@ public partial class RewardPapyrusHud : CanvasLayer
         PapyrusStyle.Button(_claim, 16);
         _claim.Pressed += RequestClaim;
         body.AddChild(_claim);
+        _guidance = new GuidanceLabel { Name = "RewardGuidance", Text = "Accept the reward to continue." };
+        _root.AddChild(_guidance);
         _paper.Resized += Layout;
         _body.MinimumSizeChanged += Layout;
         _root.Resized += Layout;
@@ -129,6 +132,8 @@ public partial class RewardPapyrusHud : CanvasLayer
         float scale = 1;
         _paper.PivotOffset = _paper.Size * .5f;
         _paper.Position = (viewport - _paper.Size) * .5f;
+        _guidance.Position = _paper.Position + new Vector2(0, _paper.Size.Y + 8);
+        _guidance.Size = new Vector2(_paper.Size.X, 36);
         float reveal = 1 - Mathf.Pow(1 - _age, 3);
         _paper.Scale = new Vector2(scale, Math.Max(.01f, reveal) * scale);
         _layingOut = false;

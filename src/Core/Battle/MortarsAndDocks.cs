@@ -14,7 +14,7 @@ public sealed partial class BattleState
     private void InitializeShoals(int seed)
     {
         var water = WorldResourcePlacement.Order(Board, Board.Tiles.Where(t => t.Terrain != TerrainType.Land &&
-            At(t.Position) is null && !_fish.Contains(t.Position)).Select(t => t.Position), seed ^ 0x5367);
+            At(t.Position) is null && !_fish.Contains(t.Position) && (!Rules.EmptyOuterRim || !Board.IsOuterCell(t.Position))).Select(t => t.Position), seed ^ 0x5367);
         foreach (var mother in Ships.Where(s => s.IsMothership))
         {
             var near = water.Where(p => Board.InRadius(mother.Position, p, 2)).ToArray();

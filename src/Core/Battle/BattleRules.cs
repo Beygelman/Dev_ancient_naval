@@ -14,6 +14,11 @@ public sealed class BattleRules
         }
     };
     public int StartingCredits { get; init; }
+    public bool ConstructionClearsRuins { get; init; }
+    public bool EmptyOuterRim { get; init; }
+    public bool SeparatedStartingEscorts { get; init; }
+    public bool MapSizePirateSettlements { get; init; }
+    public bool EqualDoubleSalvoDamage { get; init; }
     public bool FreeCoastalNavigation { get; init; } // Missing in old saves: retain their coastal rules.
     public bool DoubleSalvo { get; init; }
     public bool MountainSightShadows { get; init; }

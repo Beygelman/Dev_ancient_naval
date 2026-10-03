@@ -117,7 +117,8 @@ public partial class DebugHud : CanvasLayer
         _restart.Size = new(48, 48);
         _root.AddChild(_restart);
         _restart.AddChild(new ActionGlyph { Symbol = ActionSymbol.Menu, Position = new(10, 10), Size = new(28, 28), MouseFilter = Control.MouseFilterEnum.Ignore });
-        _end = TextButton("End turn  →", () => EndTurnRequested?.Invoke());
+        _end = new EndTurnPaper { Text = "End turn" };
+        _end.Pressed += () => EndTurnRequested?.Invoke();
         _end.Name = "EndTurn";
         _end.TooltipText = "End turn · Space";
         _root.AddChild(_end);
@@ -268,6 +269,7 @@ public partial class DebugHud : CanvasLayer
         _upgradeOverlay.Hide();
         _radial.Hide();
         _shipCard.Hide();
+        BuildTurnGuidance();
         UiScale.Bind(this, _root, () => { _layoutSizes = null; Layout(); });
         Layout();
     }
@@ -325,6 +327,7 @@ public partial class DebugHud : CanvasLayer
 
         bool canAct = !busy && !finished && battle.ActiveSide == Side.Player && pending is null && !MenuVisible;
         _end.Disabled = !canAct;
+        UpdateReadyActions(battle, canAct);
         _restart.Disabled = busy;
         _shipCard.Visible = selected is not null || village is not null;
         if (selected is not null)
@@ -334,7 +337,7 @@ public partial class DebugHud : CanvasLayer
             _health.Text = $"Health {selected.Health:0.##}/{selected.MaxHealth:0.##}";
             _details.Text = selected.IsAirborne ? $"Vision {selected.VisualRange} · Move {selected.MovementRemaining:0}/{selected.MovementAllowance} · 1 HP · Flagship/Kolonel guns can hit within {battle.Rules.Balloon.AntiAirRange} tiles\n{(selected.BombCooldown > 0 ? $"Bomb ready in {selected.BombCooldown} turn(s)" : $"Bomb ready: {battle.Rules.Balloon.BombDamage} direct + {battle.Rules.Balloon.SplashDamage} splash")}" : $"Damage {selected.CurrentDamage + selected.ShotDamageBonus:0} · Range {selected.CannonRange} · Vision {selected.VisualRange} · Radar {selected.RadarRange}";
             if (selected.HasMortar && selected.Definition.Class != ShipClass.AncientGun)
-                _details.Text += $" · Mortar {battle.Rules.Mortar.DeadZone + 1}–{selected.MortarRange}: {selected.CurrentMortarDamage + selected.ShotDamageBonus:0}";
+                _details.Text += $" · Mortar {battle.MortarDeadZone(selected!) + 1}–{selected.MortarRange}: {selected.CurrentMortarDamage + selected.ShotDamageBonus:0}";
             if (selected.Definition.Class == ShipClass.FishingDock)
                 _details.Text = $"Income +{selected.Definition.IncomePerTurn} · Stationary Fishing Dock";
             if (selected.Definition.Class is ShipClass.AncientGun or ShipClass.CannonTower)
@@ -356,7 +359,7 @@ public partial class DebugHud : CanvasLayer
         Availability(_yard, (ownShip && (selected!.IsMothership || fishingBuilder) && !selected.HasProduced) || (ownVillage && !village!.HasProduced), "");
         Availability(_radar, ownShip && battle.RadarBlockReason(Side.Player, selected!.Id)is null, selected?.HasRadar == true ? "✓" : selected?.Definition.RadarPrice.ToString() ?? "");
         Availability(_mortar, ownShip && battle.MortarBlockReason(Side.Player, selected!.Id)is null, selected?.HasMortar == true ? "✓" : battle.Rules.Mortar.PurchasePrice.ToString());
-        _mortar.TooltipText = selected?.HasMortar == true ? $"Mortar installed · minimum range {battle.Rules.Mortar.DeadZone + 1}" : $"Mortar · {battle.Rules.Mortar.PurchasePrice} Thors · {(selected is null ? "" : battle.MortarBlockReason(Side.Player, selected.Id))}";
+        _mortar.TooltipText = selected?.HasMortar == true ? $"Mortar installed · minimum range {battle.MortarDeadZone(selected!) + 1}" : $"Mortar · {battle.Rules.Mortar.PurchasePrice} Thors · {(selected is null ? "" : battle.MortarBlockReason(Side.Player, selected.Id))}";
         _mortar.SetMeta("applicable", selected?.Owner == Side.Player && selected?.IsMothership == true);
         _repair.TooltipText = $"Repair: up to +{battle.Rules.RepairAmount} HP · R";
         _radar.TooltipText = selected?.HasRadar == true ? $"Radar installed · range {selected.RadarRange}" : $"Install radar · {selected?.Definition.RadarPrice} Thors";
@@ -630,6 +633,7 @@ public partial class DebugHud : CanvasLayer
             PapyrusModal.Layout(_upgradePanel, _upgradeScroll, _upgradeBody, size);
         if (_menuPanel is not null && _menuScroll is not null)
             PapyrusModal.Layout(_menuPanel, _menuScroll, _menuBody, size);
+        LayoutTurnGuidance();
         var sizes = (size, _metricsPaper.Size, _restart.Size, _end.Size, _banner.Size, _shipCard.Size, _notice.Size, _upgradePanel?.Size ?? Vector2.Zero, _menuPanel?.Size ?? Vector2.Zero);
         if (_layoutSizes == sizes)
             return;
@@ -637,6 +641,7 @@ public partial class DebugHud : CanvasLayer
         _metricsPaper.Position = new((size.X - _metricsPaper.Size.X) / 2, 12);
         _restart.Position = new(size.X - _restart.Size.X - 18, 16);
         _end.Position = new(size.X - _end.Size.X - 18, size.Y - _end.Size.Y - 18);
+        LayoutTurnGuidance();
         _banner.Position = new((size.X - _banner.Size.X) / 2, (size.Y - _banner.Size.Y) / 2);
         _shipCard.Position = new(18, size.Y - _shipCard.Size.Y - 18);
         float noticeBottom = _shipCard.Visible ? Math.Max(106, _shipCard.Size.Y + 36) : 106;

@@ -132,7 +132,9 @@ public partial class BoardView
                 float outside = Math.Clamp((t - shoreFraction) / Math.Max(.01f, 1 - shoreFraction), 0, 1);
                 // The ocean already contains a luminous shallow-water layer.
                 // Fade the river over it instead of covering it with dark fans.
-                var tint = new Color("467a85").Lerp(sea.Lightened(.12f), Mathf.SmoothStep(0, 1, t));
+                // The inland half retains the river tone. Blending starts at
+                // the shoreline, so no dark gradient road cuts through grass.
+                var tint = new Color("467a85").Lerp(sea.Lightened(.10f), Mathf.SmoothStep(0, 1, outside));
                 tint.A = 1 - Mathf.SmoothStep(0, .90f, outside);
                 return tint;
             }
@@ -150,6 +152,12 @@ public partial class BoardView
                 var cell = tile.Cell;
                 if (!tile.Bounds.Intersects(bounds)) continue;
                 var pieces = Geometry2D.IntersectPolygons(shape, tile.Shape).Where(p => p.Length >= 3).ToList();
+                if (bank)
+                    // Estuary banks reshape the existing sand rim. Never lay
+                    // a beige road uphill from the beach into river grass.
+                    pieces = pieces.SelectMany(piece => _beaches.Where(beach => beach.Polygon.Length >= 3 &&
+                        PolygonBounds(beach.Polygon).Intersects(bounds)).SelectMany(beach =>
+                            Geometry2D.IntersectPolygons(piece, beach.Polygon))).Where(piece => piece.Length >= 3).ToList();
                 foreach (var obstacle in obstacles.Where(o => o.Bounds.Intersects(bounds)))
                     pieces = pieces.SelectMany(p => ConvexSoilClip.Subtract(p, obstacle.Shape, .4f)).ToList();
                 foreach (var piece in pieces.Where(p => PolygonArea(p) > .03f && Geometry2D.TriangulatePolygon(p).Length >= 3))

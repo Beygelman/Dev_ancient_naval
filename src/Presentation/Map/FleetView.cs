@@ -12,6 +12,7 @@ public partial class FleetView : Node2D
     public int? SelectedId { get; set; }
     public Vector2? ProjectilePosition { get; private set; }
     public Func<Core.Grid.GridPosition, System.Threading.Tasks.Task>? FocusTarget { get; set; }
+    public Action<Core.Grid.GridPosition>? GunFired { get; set; }
 
     private readonly Dictionary<int, ShipSnapshot> _snapshots = new();
     private readonly HashSet<int> _suppressed = new();

@@ -77,7 +77,7 @@ public sealed partial class BattleState
     }
 
     public int Income(Side side) => Math.Max(0, GrossIncome(side) - Upkeep(side));
-    public int VillageIncome(Village village) => (village.Level + Rules.Economy.VillageLevelsPerIncome - 1) / Rules.Economy.VillageLevelsPerIncome;
+    public int VillageIncome(Village village) => Rules.Economy.VillageIncomeBonus + (village.Level + Rules.Economy.VillageLevelsPerIncome - 1) / Rules.Economy.VillageLevelsPerIncome;
     private IReadOnlyList<IncomeReceipt> CreditTurnIncome(Side side)
     {
         var receipts = new List<IncomeReceipt>();
