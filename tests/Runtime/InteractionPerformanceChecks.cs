@@ -72,7 +72,9 @@ public partial class InteractionPerformanceChecks : Node
             var args = OS.GetCmdlineUserArgs();
             int opponents = int.Parse(args.FirstOrDefault(a => a.StartsWith("--opponents="))?[12..] ?? "1");
             var kind = Enum.Parse<WorldKind>(args.FirstOrDefault(a => a.StartsWith("--world-kind="))?[13..] ?? "Oceans");
-            var board = ArchipelagoGenerator.Create(731, args.Contains("--scaled-map") ? opponents : 3, kind);
+            var sizeArgument = args.FirstOrDefault(a => a.StartsWith("--map-size="));
+            MapSize? size = sizeArgument is null ? null : Enum.Parse<MapSize>(sizeArgument[11..]);
+            var board = ArchipelagoGenerator.Create(731, args.Contains("--scaled-map") ? opponents : 3, kind, size);
             var battle = SkirmishSetup.Create(board, Game.Battle.Rules, opponents);
             Game.LoadScenario(battle);
             // The timing harness calls the production selection/preview paths

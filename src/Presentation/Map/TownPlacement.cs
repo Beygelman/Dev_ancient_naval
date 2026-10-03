@@ -44,7 +44,11 @@ public partial class BoardView
         }
         if (_townPlacements.TryGetValue(town.Id, out var cached)) return cached;
         var origin = Projection.GridToWorld(town.Position);
-        var land = _landShapes.GetValueOrDefault(town.Position) ?? Array.Empty<Vector2[]>();
+        // A settlement is anchored to one functional cell, but its decorative
+        // streets may cross a seam into contiguous inland ground. Confining a
+        // whole future city to a half-beach cell made every building miniature.
+        var soilCells = Board.GetSurrounding(town.Position).Append(town.Position).ToHashSet();
+        var land = _landShapes.Where(pair => soilCells.Contains(pair.Key)).SelectMany(pair => pair.Value).ToArray();
         var neighborhood = new Rect2(origin - new Vector2(128, 128), new Vector2(256, 256));
         var sand = _beaches.Where(b => b.Polygon.Length > 0)
             .Select(b => (b.Polygon, Bounds: PolygonBounds(b.Polygon)))
@@ -73,13 +77,13 @@ public partial class BoardView
             return !sand.Any(b => b.Bounds.Intersects(bounds) &&
                 Geometry2D.IntersectPolygons(envelope, b.Polygon).Sum(PolygonArea) > .01f);
         }
-        var offsets = Enumerable.Range(-4, 9).SelectMany(x => Enumerable.Range(-5, 10)
+        var offsets = Enumerable.Range(-8, 17).SelectMany(x => Enumerable.Range(-10, 21)
             .Select(y => new Vector2(x * 4, y * 3))).OrderBy(p => p.LengthSquared()).ToArray();
         // All levels share the fit of the complete future town, so upgrades
         // cannot shift houses, disconnect mill blades or push walls onto sand.
         for (int step = 0; step < 16; step++)
         {
-            float scale = .82f - step * .035f;
+            float scale = .64f - step * .025f;
             foreach (var offset in offsets)
                 if (Fits(offset, scale))
                     return _townPlacements[town.Id] = new(offset, scale);

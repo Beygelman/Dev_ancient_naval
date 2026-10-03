@@ -144,8 +144,10 @@ public partial class Ui0203Checks : Node
             yard.EmitSignal(BaseButton.SignalName.Pressed);
             var builds = Nodes(Game.Hud).OfType<SectorButton>().Where(n => n.Visible
                 && n.Name.ToString().StartsWith("Build")).ToArray();
-            Check(builds.Length == 1 && builds[0].Name == "BuildLighthouse",
-                "a fishing ship's construction choices contain only Lighthouse");
+            var expected = Game.Battle.Rules.FishingCannonTowers
+                ? new[] { "BuildCannonTower", "BuildLighthouse" } : new[] { "BuildLighthouse" };
+            Check(builds.Select(b => b.Name.ToString()).OrderBy(n => n).SequenceEqual(expected.OrderBy(n => n)),
+                "support construction choices match this voyage's tower and lighthouse policy");
         }
         Game.Hud.CloseMenus();
     }

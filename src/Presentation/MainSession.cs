@@ -22,7 +22,7 @@ public partial class Main
     {
         var args = OS.GetCmdlineUserArgs();
         bool tests = args.Any(a => a.EndsWith("-test"));
-        bool menuTest = args.Contains("--menu-test");
+        bool menuTest = args.Contains("--menu-test") || args.Contains("--ui0205-test");
         bool victoryTest = (args.Contains("--victory-test") || args.Contains("--world-mode-test")) && args.Any(a => a.StartsWith("--save-file="));
         string save = args.FirstOrDefault(a => a.StartsWith("--save-file="))?[12..] ?? ProjectSettings.GlobalizePath("user://last_battle.json");
         bool performanceSave = (args.Contains("--performance-test") || args.Contains("--ui0203-test")) && args.Any(a => a.StartsWith("--save-file="));
@@ -35,6 +35,8 @@ public partial class Main
             Name = "StartScreen"
         };
         AddChild(_home);
+        _voyageWelcome = new VoyageWelcome { Name = "VoyageWelcome" };
+        AddChild(_voyageWelcome);
         _home.StartRequested += color => RunSafely(() => StartNewSession(color));
         _home.ContinueRequested += () => RunSafely(ContinueSession);
         _home.ExitRequested += ExitSession;
@@ -69,6 +71,7 @@ public partial class Main
             return;
         SaveSession();
         _rewards?.Close();
+        _voyageWelcome.Close();
         HideOutcome();
         SetBattleVisible(false);
         _home.ShowHome(_saveStore.HasUnfinishedVoyage());
@@ -90,12 +93,17 @@ public partial class Main
             _home.SetNotice("Charting a new sea…");
             int opponents = _home.OpponentCount;
             var kind = _home.WorldKind;
-            var battle = await Task.Run(() => SkirmishSetup.Create(PrototypeBoard.Create(opponentCount: opponents, kind: kind), _rules, opponents));
+            var size = _home.MapSize;
+            var collapse = _home.CloseForVoyage(FastChecks);
+            var battle = await Task.Run(() => SkirmishSetup.Create(PrototypeBoard.Create(opponentCount: opponents, kind: kind, mapSize: size), _rules, opponents));
             battle.SetPlayerColor(color);
             battle.SetDifficulty(_home.Difficulty);
-            _home.Hide();
+            await collapse;
             SetBattleVisible(true);
             LoadScenario(battle);
+            await DescendToFlagship(color);
+            _home.Hide();
+            _home.CompleteVoyage();
             _sessionStarted = true;
             await SaveSessionAsync(newGame: true);
             Hud.ShowPlayerTurn();
@@ -103,6 +111,8 @@ public partial class Main
         }
         catch (Exception e)
         {
+            _voyageWelcome.Close();
+            SetBattleVisible(false);
             _home.ShowHome(_saveStore.Exists, "Could not start the battle: " + e.Message);
         }
         finally

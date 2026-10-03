@@ -19,7 +19,7 @@ foreach ($taskCase in $taskCases) {
     $taskLog = Join-Path $taskReports "$taskName.log"
     $taskError = Join-Path $taskReports "$taskName.err"
     $taskArguments = @('--path', ('"'+$taskRoot+'"'), '--', '--performance-test', '--verify-smoothness',
-        '--scaled-map', '--opponents=4', ('"--report='+$taskReport+'"'))
+        '--scaled-map', '--opponents=4', '--map-size=Ocean', ('"--report='+$taskReport+'"'))
     $taskArguments += $taskCase.Extra | ForEach-Object { '"'+$_+'"' }
     $taskProcess = Start-Process -FilePath $taskGodot -ArgumentList $taskArguments -WindowStyle Hidden -PassThru `
         -RedirectStandardOutput $taskLog -RedirectStandardError $taskError

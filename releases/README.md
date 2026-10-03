@@ -6,7 +6,16 @@ addition to the external `outputs` directory. Sources are edited directly in
 the repository's `src`, `assets`, `data`, `scenes` and `tests` folders; the root
 `README.md` describes the current version.
 
-## Current version: v020.4 — Harbors and Blessings
+## Current version: v020.5 — The Painted Voyage
+
+- [Windows ZIP](v020.5/Ancient_Naval_v020.5_Windows.zip)
+- [Source ZIP](v020.5/Ancient_Naval_v020.5_Source.zip)
+- [Russian notes](v020.5/Ancient_Naval_v020.5_Notes_RU.md), [checksums](SHA256-v020.5.txt)
+- Local launch: `v020.5/playable/Ancient Naval.exe`.
+
+Painted rolling voyage setup, independent map areas, Support Brig, construction blueprints, limited direct port connections and natural estuaries. Historical saves retain embedded rules.
+
+## Previous checkpoint: v020.4 — Harbors and Blessings
 
 - [Windows ZIP](v020.4/Ancient_Naval_v020.4_Windows.zip)
 - [Source ZIP](v020.4/Ancient_Naval_v020.4_Source.zip)

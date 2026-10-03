@@ -8,6 +8,7 @@ public partial class DebugHud
     private PanelContainer _menuPanel = null !;
     private ScrollContainer _menuScroll = null!;
     private VBoxContainer _menuBody = null!;
+    private VBoxContainer _menuMain = null!, _menuSettings = null!;
     private Button _godEyeButton = null !;
     private Button _creativeButton = null !;
     public bool MenuVisible => _menuOverlay?.Visible == true;
@@ -31,13 +32,13 @@ public partial class DebugHud
         shade.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         _menuPanel = Panel(_menuOverlay);
         _menuPanel.CustomMinimumSize = new(340, 0);
+        _menuBody = new VBoxContainer();
+        _menuScroll = PapyrusModal.Wrap(_menuPanel, _menuBody, "GameMenuScroll");
         var column = new VBoxContainer();
-        _menuBody = column;
+        _menuMain = column;
         column.AddThemeConstantOverride("separation", 12);
-        _menuScroll = PapyrusModal.Wrap(_menuPanel, column, "GameMenuScroll");
+        _menuBody.AddChild(column);
         column.AddChild(Label("Menu", 25, true));
-        column.AddChild(new LanguageButtons());
-        column.AddChild(new UiScaleSlider());
         void Add(string name, string title, Action action)
         {
             var button = TextButton(title, action);
@@ -49,6 +50,12 @@ public partial class DebugHud
         {
             SetMenuVisible(false);
             RestartRequested?.Invoke();
+        });
+        Add("GameSettings", "Settings", () =>
+        {
+            _menuMain.Hide();
+            _menuSettings.Show();
+            Layout();
         });
         _creativeButton = TextButton("Creative: off", () => CreativeRequested?.Invoke());
         _creativeButton.Name = "Creative";
@@ -69,6 +76,21 @@ public partial class DebugHud
             HomeRequested?.Invoke();
         });
         Add("ExitGame", "Exit game", () => ExitRequested?.Invoke());
+        _menuSettings = new VBoxContainer { Name = "GameSettingsBody" };
+        _menuSettings.AddThemeConstantOverride("separation", 12);
+        _menuBody.AddChild(_menuSettings);
+        _menuSettings.AddChild(Label("Settings", 25, true));
+        _menuSettings.AddChild(new LanguageButtons());
+        _menuSettings.AddChild(new UiScaleSlider());
+        var back = TextButton("Back", () =>
+        {
+            _menuSettings.Hide();
+            _menuMain.Show();
+            Layout();
+        });
+        back.Name = "CloseGameSettings";
+        _menuSettings.AddChild(back);
+        _menuSettings.Hide();
         _menuOverlay.Hide();
     }
 
@@ -77,6 +99,7 @@ public partial class DebugHud
         if (visible && _restart.Disabled)
             return;
         _menuOverlay.Visible = visible;
+        if (visible) { _menuMain.Show(); _menuSettings.Hide(); }
         MenuChanged?.Invoke();
         Layout();
     }

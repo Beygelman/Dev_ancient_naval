@@ -42,7 +42,7 @@ public partial class BoardView
     {
         // Tall front corner towers extend above the compact walls; the rear
         // tower lives in the back layer. Leave room for every coastal fit.
-        var bounds = front ? new Rect2(-58, -64, 116, 108) : new Rect2(-56, -92, 112, 106);
+        var bounds = front ? new Rect2(-92, -104, 184, 156) : new Rect2(-92, -132, 184, 166);
         if (town.HasPort)
         {
             var shore = PortShore(ObserveTownArt(town));

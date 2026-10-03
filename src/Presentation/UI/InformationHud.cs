@@ -84,7 +84,7 @@ public partial class DebugHud
             SetLore(village.Name, AncientLore.Village(battle, village));
         else if (_inspectionCell is { } cell && battle.Board.Contains(cell)
             && (battle.Vision.IsRadarContact(Side.Player, cell)
-                || battle.Vision.IsVisible(Side.Player, cell) && (battle.TreasuryAt(cell) is not null
+                || battle.Vision.IsVisible(Side.Player, cell) && (battle.TreasuryAt(cell) is { IsCollected: false }
                     || battle.Shoals.Contains(cell) || battle.FishSpots.Contains(cell))))
         {
             if (battle.Vision.State(Side.Player, cell) == VisibilityState.RadarContact)

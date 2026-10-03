@@ -89,7 +89,11 @@ internal static class UiPapyrusChecks
         Check(lore.Contains($"{mother.Definition.AttackRange} tiles"), "Chart uses active weapon range.");
         Check(lore.Contains($"Passive repair: +{game.Battle.Rules.AutoRepairAmount} HP"), "Chart uses active passive repair value.");
         var fisher = game.Battle.OwnShips(Side.Player).First(s => s.Definition.Class == ShipClass.Fishing);
-        Check(AncientLore.Ship(game.Battle, fisher).PlainText.Contains($"+{fisher.Definition.IncomePerTurn} Thors"), "Fishing income comes from active rules.");
+        var supportRows = AncientLore.Ship(game.Battle, fisher).Sections.SelectMany(s => s.Rows);
+        Check(fisher.Definition.IncomePerTurn == 0
+            ? supportRows.All(row => row.Label != "Income")
+            : supportRows.Any(row => row.Label == "Income" && row.Value.Contains($"+{fisher.Definition.IncomePerTurn} Thors")),
+            "Support income counsel matches active rules, including no passive income.");
         game.Hud.ShowInformation(game.Battle, mother.Position);
         Check(game.Hud.InformationVisible && game.Hud.InformationText.Contains(mother.Name == "Mothership" ? "city may sail" : "Health"), "Information button opens a readable chart.");
         game.Hud.CloseMenus();

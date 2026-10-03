@@ -127,8 +127,8 @@ public partial class WorldVisual0204Checks : Node
                     "deformed round paving stays on land and encloses the church base");
                 var homes = view.TownHomes(town);
                 Check(homes.All(h => BoardView.TownHouseHeight(h, 1) >= 12 &&
-                    BoardView.TownHouseHeight(h, 5) / BoardView.TownHouseHeight(h, 1) <= 1.3f),
-                    "low-level buildings are substantial and upper levels grow without an extreme scale contrast");
+                    BoardView.TownHouseHeight(h, 5) / BoardView.TownHouseHeight(h, 1) <= 1.9f),
+                    "low-level buildings are substantial and upper levels gain the requested taller houses without changing the ground footprint");
                 if (town.HasPort)
                 {
                     var road = view.PortRoad(town);

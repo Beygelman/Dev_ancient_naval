@@ -47,7 +47,7 @@ public partial class TradeGlyph0204Checks : Node
                 (Side.Player,ShipClass.Fishing,new GridPosition(13,10)),
                 (Side.Player,ShipClass.Togus,new GridPosition(15,10)),
                 (Side.Player,ShipClass.CannonTower,new GridPosition(17,10)) },
-                Array.Empty<GridPosition>(),villageSpots:new[] {new GridPosition(6,5),new(14,5),new(23,5)});
+                Array.Empty<GridPosition>(),villageSpots:new[] {new GridPosition(6,5),new(11,5),new(16,5)});
             var snapshot=battle.CaptureSnapshot();
             snapshot.Villages=snapshot.Villages.Select(town=>town with { Owner=Side.Player,Level=3,Health=15,Port=true }).ToArray();
             var veteran=snapshot.Ships.Single(s=>s.Kind==ShipClass.Garrison);
@@ -80,7 +80,7 @@ public partial class TradeGlyph0204Checks : Node
             Game.Ambience.Hide(); await Frame();
             Check(!traffic.IsProcessing(),"hidden title-map traffic stops processing");
             Game.Ambience.Show();
-            Check(NavalGlyphArt.Symbol(ShipClass.Fishing)==ActionSymbol.Fishing,"fishing health seal uses the shipyard fish motif");
+            Check(NavalGlyphArt.Symbol(ShipClass.Fishing)==ActionSymbol.Support,"support health seal uses the shipyard workshop motif");
             Check(NavalGlyphArt.Symbol(ShipClass.Garrison)==ActionSymbol.Scout && NavalGlyphArt.Symbol(ShipClass.Kolonel)==ActionSymbol.Heavy,
                 "clay and production icons share class identities");
             Check(NavalGlyphArt.Symbol(ShipClass.Togus)==ActionSymbol.Mortar && NavalGlyphArt.Symbol(ShipClass.AncientGun)==ActionSymbol.Mortar,
@@ -89,7 +89,7 @@ public partial class TradeGlyph0204Checks : Node
             var art=new BoardTerrainLayer { Position=new Vector2(20,20), ZIndex=100, DrawWorld=canvas=>
             {
                 canvas.DrawRect(new Rect2(0,0,600,190),PapyrusStyle.Paper);
-                var symbols=new[] {ActionSymbol.Fishing,ActionSymbol.Scout,ActionSymbol.Standard,ActionSymbol.Heavy,ActionSymbol.Mortar,ActionSymbol.Tower,ActionSymbol.Dock,ActionSymbol.Lighthouse};
+                var symbols=new[] {ActionSymbol.Support,ActionSymbol.Scout,ActionSymbol.Standard,ActionSymbol.Heavy,ActionSymbol.Mortar,ActionSymbol.Tower,ActionSymbol.Dock,ActionSymbol.Lighthouse};
                 for(int i=0;i<symbols.Length;i++) NavalGlyphArt.Draw(canvas,new Vector2(35+i*65,38),symbols[i],PapyrusStyle.Ink,3);
                 var motion=AmphoraMotion.Still(10,10);
                 AmphoraBadgeArt.Draw(canvas,new Vector2(85,125),10,10,new Color("7e98a7"),ShipClass.Garrison,motion);

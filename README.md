@@ -1,14 +1,18 @@
-# Ancient Naval — v020.4 — Harbors and Blessings
+# Ancient Naval — v020.5 — The Painted Voyage
 
-A turn-based naval tactics game built with **Godot 4.7.2 .NET**, C# and .NET 8. Open `project.godot`, stop the previous run with **F8**, then press **F5**. The title screen offers **New game**, **Continue** and **Exit game**. New game opens a six-color fleet and emblem selector and a choice of 1–4 rival fleets and Boatswain, Captain or Admiral difficulty, plus **Sea World**, **Oceans**, **Continents** or **Pangaea**.
+A turn-based naval tactics game built with **Godot 4.7.2 .NET**, C# and .NET 8. Open `project.godot`, stop the previous run with **F8**, then press **F5**. The title screen offers **New game**, **Continue**, **Settings** and **Exit game**. New game opens a six-color fleet and emblem selector and a choice of 1–4 rival fleets and Boatswain, Captain or Admiral difficulty, plus **Sea World**, **Oceans**, **Continents** or **Pangaea**.
 
-Defeat the rival Motherships while exploring, collecting resources and capturing coastal villages. The interface supports English, Ukrainian and Dutch; language buttons are available on the title screen and in the game menu. Core gameplay remains independent of Godot; rendering and input live in Presentation.
+Defeat the rival Motherships while exploring, collecting resources and capturing coastal villages. The interface supports English, Ukrainian and Dutch; language buttons and interface scale are available in Settings on the title screen and in the game menu. Core gameplay remains independent of Godot; rendering and input live in Presentation.
 
 ## Download and local release copies
 
 The working project, sources, assets, balance, tests and this README are edited
 directly in this Git repository. Delivered files are also copied to `releases/`
 inside the same project; the external `outputs` folder is an additional mirror.
+
+- [Windows v020.5 ZIP](releases/v020.5/Ancient_Naval_v020.5_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
+- [Source v020.5 ZIP](releases/v020.5/Ancient_Naval_v020.5_Source.zip), [Russian notes](releases/v020.5/Ancient_Naval_v020.5_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.5.txt).
+- Local launch copy: `releases/v020.5/playable/Ancient Naval.exe`.
 
 - [Windows v020.4 ZIP](releases/v020.4/Ancient_Naval_v020.4_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
 - [Source v020.4 ZIP](releases/v020.4/Ancient_Naval_v020.4_Source.zip), [Russian notes](releases/v020.4/Ancient_Naval_v020.4_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.4.txt).
@@ -44,6 +48,18 @@ notes remain visible to Git. [GitHub size limits](https://docs.github.com/en/rep
 Godot ignores the release directory so copied exports never re-enter game assets.
 See [release-copy workflow](releases/README.md). Files reach GitHub after the
 repository changes are committed and pushed; copying files alone is not a push.
+
+## v020.5 — 3 October 2026 — The Painted Voyage
+
+New voyages open on an aged rolling parchment: fleet emblem, independent Lake/Bay/Sea/Ocean size, 1–4 rival figures, painted difficulty signs and four world illustrations. Wheel scrolling has no visible scrollbar. Embark leaves a four-finger handprint, folds the scroll, fades the view and descends toward the flagship before the elders' welcome. Language and interface scale are in Settings on both menus; English, Ukrainian and Dutch remain available.
+
+Fishing is now displayed as Support Brig, with workshop houses and a shared workshop icon. It collects supplies and builds docks, cannon towers and lighthouses without passive income. Repair restores 3 HP and spends the turn's remaining actions. New paid town levels cost 5/7/10/15 Thors; fishing docks yield +2. Direct port routes span at most six navigable tile transitions. Hovering a legal construction site shows a wireframe volume; cannon towers show fire range and lighthouses optical sight. Hidden/illegal sites have no blueprint.
+
+Towns use a consistent medium footprint fitted to adjoining inland ground, with five to seventeen homes and taller buildings as levels rise. Stronger within-cell river bends have variable banks and translucent estuaries cutting the painted beach. These illustrations do not change navigation. Uncollected sea ruins shine upward; collection extinguishes their glow and removes their information/actions while their scenery remains.
+
+The actual two-Thor flagship level reward is retained; its redundant upgrade-choice label is removed. Older saves retain their embedded balance; absent new size/port/support fields preserve legacy behavior. Start a new voyage for the complete new rules.
+
+Validation and captured native frames: [v020.5 milestone](docs/MILESTONE-v020.5.md). The working checkout had committed merge markers; complete pre-repair copies were preserved externally and current released code was recovered before development. No user Git checkout/index or historical release archive was replaced.
 
 ## v020.4 — 3 October 2026
 

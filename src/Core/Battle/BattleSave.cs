@@ -32,7 +32,7 @@ public sealed partial class BattleState
     public string SaveJson() => SerializeSnapshot(CaptureSnapshot());
     private BattleSave CreateSnapshot(SavedBoard? board = null) => new()
     {
-        Board = board ?? new(Board.Width, Board.Height, Board.Seed, Board.Tiles.Where(t => t.Terrain == TerrainType.Land).Select(t => t.Position).ToArray(), Board.Mesh?.Save(), Board.Kind),
+        Board = board ?? new(Board.Width, Board.Height, Board.Seed, Board.Tiles.Where(t => t.Terrain == TerrainType.Land).Select(t => t.Position).ToArray(), Board.Mesh?.Save(), Board.Kind, Board.MapSize),
         Statistics = Statistics,
         Rules = Rules,
         Ships = _ships.Select(SavedShip.From).ToArray(),
@@ -99,7 +99,7 @@ public sealed partial class BattleState
     {
         var mesh = saved.Mesh is null ? null : OrganicMesh.Restore(saved.Mesh);
         var land = saved.Land.ToHashSet();
-        var board = new GameBoard(saved.Width, saved.Height, p => land.Contains(p) ? TerrainType.Land : TerrainType.Water, saved.Seed, mesh is null ? null : mesh.Faces.ContainsKey, mesh?.Boundary, mesh, saved.Kind);
+        var board = new GameBoard(saved.Width, saved.Height, p => land.Contains(p) ? TerrainType.Land : TerrainType.Water, saved.Seed, mesh is null ? null : mesh.Faces.ContainsKey, mesh?.Boundary, mesh, saved.Kind, saved.MapSize);
         if (saved.Land.Any(p => !board.Contains(p)) || mesh is not null && mesh.Faces.Keys.Any(p => !board.Contains(p)))
             throw new ArgumentException("Saved terrain lies outside the board.");
         return board;

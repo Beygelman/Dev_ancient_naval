@@ -68,7 +68,9 @@ internal static class LoreChecks
         var unmodified = example.Mothership(Side.Enemy)!;
         Check(!AncientLore.Ship(example, unmodified).Sections.Any(s => s.Title == "Installed improvements"), "Base ship has no invented improvements");
         Check(AncientLore.Ship(example, unmodified).Sections.Single(s => s.Title == "Crew & economy").Rows.Single(r => r.Label == "Shipyard").Value
-            == (rules.LighthousesEnabled ? "Fishing Schooner, Brig, Lighthouse" : "Fishing Schooner, Brig"), "Shipyard lists only presently available names");
+            == string.Join(", ", new[] { rules.Get(ShipClass.Fishing).Name, rules.Get(ShipClass.Garrison).Name }
+                .Concat(rules.LighthousesEnabled ? new[] { rules.Get(ShipClass.Lighthouse).Name } : Array.Empty<string>())),
+            "Shipyard lists only presently available names");
         var tower = example.OwnShips(Side.Player).Single(s => s.Definition.Class == ShipClass.CannonTower);
         Check(AncientLore.Ship(example, tower).Sections.Single(s => s.Title == "Installed improvements").Rows.Any(r => r.Label == "Veteran"), "Tower veterancy is an installed improvement");
         var bareTown = AncientLore.Village(example, example.Villages[0]);

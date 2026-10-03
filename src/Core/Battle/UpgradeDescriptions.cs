@@ -19,7 +19,9 @@ public static class UpgradeDescriptions
     public static string Description(UpgradeChoice choice, BattleRules? rules = null) => choice switch
     {
         UpgradeChoice.Mobility => "+1 movement",
-        UpgradeChoice.FishingBoat => rules?.DynamicFleetCapacity == true
+        UpgradeChoice.FishingBoat => rules?.FishingCannonTowers == true
+            ? "Receive one free Support Brig. Collects resources and builds docks, cannon towers and lighthouses; no passive income. Requires a free fleet slot."
+            : rules?.DynamicFleetCapacity == true
             ? "Receive one free Fishing Schooner. Requires a free fleet slot."
             : "Receive one free Fishing Schooner",
         UpgradeChoice.Vision => "+2 vision and +2 radar range, including future radar",

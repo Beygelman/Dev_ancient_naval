@@ -19,7 +19,7 @@ internal static class AncientLore
             ShipClass.Invader => "The galleon carries a patient broadside, ready when the enemy draws near.",
             ShipClass.Kolonel => "The Kolonel speaks twice with iron, though its mighty hull turns slowly.",
             ShipClass.Togus => "The Granado casts iron high; let its mortar speak before its keel moves.",
-            ShipClass.Fishing => "The quiet schooner feeds a fleet more faithfully than a loud cannon.",
+            ShipClass.Fishing => "A floating workshop gathers supplies and raises quays, towers and guiding lights.",
             ShipClass.FishingDock => "A quay draws wealth from the shoal; the fish endure when its timbers fall.",
             ShipClass.AncientGun => "The old tower watches without a keel; its stone shelters a distant bombard.",
             ShipClass.CannonTower => "A small tower keeps an unwavering watch over the nearby sea.",
@@ -126,8 +126,12 @@ internal static class AncientLore
             rows.Add(new("Passive repair", $"+{battle.Rules.AncientAutoRepairAmount} HP after a turn without an active attack"));
         if (ship.IsMothership)
             rows.Add(new("Shipyard", CurrentShipyard(battle, ship.Level, false)));
-        else if (ship.Definition.Class == ShipClass.Fishing && battle.Rules.FishingLighthouses && battle.Rules.LighthousesEnabled)
-            rows.Add(new("Shipyard", battle.Rules.Get(ShipClass.Lighthouse).Name));
+        else if (ship.Definition.Class == ShipClass.Fishing)
+            rows.Add(new("Shipyard", string.Join(", ", new[] {
+                battle.Rules.Get(ShipClass.FishingDock).Name,
+                battle.Rules.FishingCannonTowers ? battle.Rules.Get(ShipClass.CannonTower).Name : "",
+                battle.Rules.FishingLighthouses && battle.Rules.LighthousesEnabled ? battle.Rules.Get(ShipClass.Lighthouse).Name : ""
+            }.Where(name => name.Length > 0))));
         if (battle.Rules.SmallHullRadarStealth && (ship.Definition.Class == ShipClass.Garrison
             || ship.Definition.Class == ShipClass.Fishing && !battle.Rules.FishingRadarVisible))
             rows.Add(new("Low profile", "Hidden from radar; visible to nearby lookouts"));
@@ -190,7 +194,7 @@ internal static class AncientLore
                 new("Next level", village.Level >= 5 ? "Maximum level" : battle.Rules.PaidVillageUpgrades
                     ? $"{battle.VillageUpgradePrice(village.Owner ?? Side.Player, village.Id)} Thors" : "Automatic growth"),
                 new("Repair", $"+{battle.Rules.RepairAmount} HP; replaces production and fire"),
-                new("Passive repair", $"+{battle.Rules.RepairAmount} HP after a turn without an active attack")
+                new("Passive repair", $"+{battle.Rules.VillageAutoRepairAmount ?? battle.Rules.RepairAmount} HP after a turn without an active attack")
             }),
             new("Capture", new LoreRow[]
             {
@@ -242,7 +246,7 @@ internal static class AncientLore
                 new LoreSection("Hazard", new LoreRow[] { new("Area", "9 impassable tiles"), new("Passage", "Forbidden") })
             }));
         bool visible = battle.Vision.IsVisible(Side.Player, cell);
-        if (visible && battle.TreasuryAt(cell) is not null)
+        if (visible && battle.TreasuryAt(cell) is { IsCollected: false })
         {
             var rule = battle.Rules.Treasury;
             return ("Ancient treasury", new("Old riches wait for a patient crew; the sea keeps one dark bargain among its gifts.", new[]

@@ -1,5 +1,15 @@
 # Ancient Naval architecture
 
+## v020.5 voyage and construction contracts
+
+`MapSize` is optional saved board metadata. Explicit Lake/Bay/Sea/Ocean areas scale the mesh independently of rival count. Generation validates the existing separated-coastal-settlement quota and retries a bounded deterministic terrain salt on the same mesh; a missing size follows the historical generation path exactly. `FishingCannonTowers` defaults false, `PortRules.MaximumRouteLength` defaults zero (unlimited), and nullable `VillageAutoRepairAmount` falls back to historical active repair for older snapshots. Serialized `ShipClass.Fishing` remains unchanged; its current display/model is Support Brig.
+
+`ConstructionPreview` retains noninteractive wireframe commands for a legal, visible build cell. It never mutates the simulation, terrain cache or random state. Tower fire and lighthouse sight outlines filter to explored cells. Main clears it whenever command context or observation changes. Town and ship producers use the same legal-cell facade.
+
+`RollingVoyagePaper` uses a clipped native scroll with a hidden scrollbar, retained grain, and short-lived rolled-edge/choice animations. Settings owns language and UI scale in both menus. Generation runs on the existing session worker while the handprint/roll/fade owns input. `VoyageWelcome` guards map commands during the camera descent and elder acceptance; Continue resumes without replaying the ceremony.
+
+Town decoration fits continuous adjacent inland soil while Core town coordinates and port berths stay fixed. Beach/hole/obstacle clipping applies to the full ground footprint. River mouths are retained cosmetic gradients crossing the painted beach and fading into existing shallows; neither they nor their wider meanders change navigation or simulation terrain. Sea ruin glow depends on uncollected observed ruins, then fades after collection while scenery remains noninteractive.
+
 ## Dependency direction
 
 ```text

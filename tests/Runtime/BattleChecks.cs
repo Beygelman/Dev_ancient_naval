@@ -414,3 +414,4 @@ public partial class BattleChecks : Node
         Game.FastChecks = true;
     }
 }
+

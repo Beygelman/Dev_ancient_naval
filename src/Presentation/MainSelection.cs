@@ -57,6 +57,12 @@ public partial class Main
         BoardView.Select(cell);
         Hud.ShowTile(Battle, cell);
         var hit = Battle.ObservedAt(Side.Player, cell);
+        if (hit is null && Mode == OrderMode.None && Battle.ObservedTreasuryRuins(Side.Player)
+            .Any(ruin => ruin.Position == cell && ruin.IsCollected))
+        {
+            CancelOrder();
+            return;
+        }
         var selected = Selected;
         _resourceCell = null;
         Hud.HideResource();
@@ -138,9 +144,16 @@ public partial class Main
     private void PreviewAtScreen(Vector2 screen)
     {
         using var trace = DevAncientNaval.Presentation.Diagnostics.PerformanceTrace.Measure("Hover.Handler");
-        if (!CanCommand || Selected is not { Owner: Side.Player } ship)
-            return;
+        if (!CanCommand) { ClearConstruction(); return; }
         var cell = BoardView.Projection.WorldToGrid(BoardView.ToLocal(MapCamera.ScreenToWorld(screen)));
+        if (Mode == OrderMode.Build)
+        {
+            PreviewConstructionAt(cell);
+            return;
+        }
+        ClearConstruction();
+        if (Selected is not { Owner: Side.Player } ship)
+            return;
         if (_previewCell == cell)
             return;
         _previewCell = cell;
@@ -169,6 +182,7 @@ public partial class Main
 
     private void ClearMode()
     {
+        ClearConstruction();
         _salvoCell = null;
         _salvoBattle = null;
         Mode = OrderMode.None;

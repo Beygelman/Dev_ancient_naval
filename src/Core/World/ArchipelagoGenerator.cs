@@ -5,18 +5,51 @@ namespace DevAncientNaval.Core.World;
 /// <summary>Seeded islands on a boundary-fitted hexagonal cell complex.</summary>
 public static class ArchipelagoGenerator
 {
-    public static GameBoard Create(int seed, int opponentCount = 3, WorldKind kind = WorldKind.Oceans)
+    public static GameBoard Create(int seed, int opponentCount = 3, WorldKind kind = WorldKind.Oceans, MapSize? mapSize = null)
     {
         if (opponentCount is < 1 or > 4)
             throw new ArgumentOutOfRangeException(nameof(opponentCount));
         if (!Enum.IsDefined(kind))
             throw new ArgumentOutOfRangeException(nameof(kind));
-        float scale = MathF.Sqrt((opponentCount + 1) / 4f);
+        if (mapSize is { } requestedSize && !Enum.IsDefined(requestedSize))
+            throw new ArgumentOutOfRangeException(nameof(mapSize));
+        float scale = mapSize switch
+        {
+            MapSize.Lake => .87f, MapSize.Bay => 1f, MapSize.Sea => 1.12f, MapSize.Ocean => 1.25f,
+            _ => MathF.Sqrt((opponentCount + 1) / 4f)
+        };
         var mesh = OrganicMesh.Create(seed, scale);
-        if (kind != WorldKind.Oceans)
-            return WorldLandscapeGenerator.Create(mesh, seed, opponentCount + 1, kind);
-        var random = new Random(seed ^ 91417);
-        GameBoard Board(HashSet<GridPosition> land) => new(mesh.Width, mesh.Height, p => land.Contains(p) ? TerrainType.Land : TerrainType.Water, seed, mesh.Faces.ContainsKey, mesh.Boundary, mesh);
+        if (mapSize is null)
+            return kind == WorldKind.Oceans
+                ? OceanBoard(mesh, seed, opponentCount, scale, mapSize, seed)
+                : WorldLandscapeGenerator.Create(mesh, seed, opponentCount + 1, kind);
+        // A chosen area must serve up to five fleets without reducing coastal-town
+        // quotas or clearance. Retry only the landscape, keeping this exact mesh,
+        // original world seed and map-size metadata stable.
+        for (int attempt = 0; attempt < 24; attempt++)
+        {
+            int terrainSeed = unchecked(seed + attempt * 104729);
+            var board = kind == WorldKind.Oceans
+                ? OceanBoard(mesh, seed, opponentCount, scale, mapSize, terrainSeed)
+                : WorldLandscapeGenerator.Create(mesh, seed, opponentCount + 1, kind, mapSize, terrainSeed);
+            try
+            {
+                if (WorldSettlementPlacement.Create(board, opponentCount + 1).Count == (opponentCount + 1) * 3)
+                    return board;
+            }
+            catch (InvalidOperationException)
+            {
+                // The terrain candidate has too little separated coastline.
+            }
+        }
+        throw new InvalidOperationException("Cannot generate a fair coastline for this map size.");
+    }
+
+    private static GameBoard OceanBoard(OrganicMesh mesh, int seed, int opponentCount,
+        float scale, MapSize? mapSize, int terrainSeed)
+    {
+        var random = new Random(terrainSeed ^ 91417);
+        GameBoard Board(HashSet<GridPosition> land) => new(mesh.Width, mesh.Height, p => land.Contains(p) ? TerrainType.Land : TerrainType.Water, seed, mesh.Faces.ContainsKey, mesh.Boundary, mesh, WorldKind.Oceans, mapSize);
         var water = Board(new());
         var anchors = Enumerable.Range(0, opponentCount + 1).Select(index => water.Center(water.FleetAnchor(index, opponentCount + 1))).ToArray();
         var center = mesh.Boundary.Aggregate(Vector2.Zero, (a, b) => a + b) / 6;

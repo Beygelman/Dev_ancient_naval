@@ -15,7 +15,6 @@ public partial class DebugHud : CanvasLayer
     private Control _root = null !, _upgradeOverlay = null !;
     private ScrollContainer _upgradeScroll = null!;
     private VBoxContainer _upgradeBody = null!;
-    private Label _upgradeReward = null!;
     private RadialPapyrus _radial = null !, _resourceRoot = null !;
     private PanelContainer _metricsPaper = null !;
     private PanelContainer _nationPaper = null!;
@@ -180,7 +179,7 @@ public partial class DebugHud : CanvasLayer
         });
         foreach (var(kind, symbol)in new[]
         {
-            (ShipClass.Fishing, ActionSymbol.Fishing),
+            (ShipClass.Fishing, ActionSymbol.Support),
             (ShipClass.Garrison, ActionSymbol.Scout),
             (ShipClass.Invader, ActionSymbol.Standard),
             (ShipClass.Kolonel, ActionSymbol.Heavy),
@@ -229,14 +228,6 @@ public partial class DebugHud : CanvasLayer
         _upgradeTitle.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _upgradeTitle.CustomMinimumSize = Vector2.Zero;
         column.AddChild(_upgradeTitle);
-        var levelReward = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
-        levelReward.AddChild(new CoinIcon { CustomMinimumSize = new(20, 20) });
-        _upgradeReward = Label("", 14, true);
-        _upgradeReward.Name = "UpgradeLevelReward";
-        _upgradeReward.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _upgradeReward.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        levelReward.AddChild(_upgradeReward);
-        column.AddChild(levelReward);
         var upgradePrompt = Label("Choose one upgrade", 17, true);
         upgradePrompt.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         column.AddChild(upgradePrompt);
@@ -320,7 +311,6 @@ public partial class DebugHud : CanvasLayer
         if (pending is not null)
         {
             _upgradeTitle.Text = $"Mothership · level {pending.Level}";
-            _upgradeReward.Text = $"+{battle.Rules.LevelCurrencyRewards[pending.Level - 2]} · Level reward";
             foreach (var(choice, button)in _choices)
             {
                 button.Text = MysticUpgradeButton.Title(choice);
@@ -356,7 +346,8 @@ public partial class DebugHud : CanvasLayer
 
         bool ownShip = canAct && selected?.Owner == Side.Player;
         bool ownVillage = canAct && village?.Owner == Side.Player;
-        bool fishingBuilder = selected?.Definition.Class == ShipClass.Fishing && battle.Rules.FishingLighthouses && battle.Rules.LighthousesEnabled;
+        bool fishingBuilder = selected?.Definition.Class == ShipClass.Fishing &&
+            (battle.Rules.FishingCannonTowers || battle.Rules.FishingLighthouses && battle.Rules.LighthousesEnabled);
         _hasRadial = selected is not null || village is not null;
         Availability(_repair, ownShip && selected!.CanRepair || ownVillage && battle.CanRepairVillage(Side.Player, village!.Id), $"+{battle.Rules.RepairAmount}");
         _repair.SetMeta("applicable", (selected is { Owner: Side.Player, IsAirborne: false } && selected.Definition.Class != ShipClass.AncientGun) || village?.Owner == Side.Player);
@@ -387,7 +378,7 @@ public partial class DebugHud : CanvasLayer
             var definition = battle.Rules.Get(kind);
             var reason = village is not null ? battle.VillageBuildBlockReason(Side.Player, village.Id, kind) : selected is null ? "Select a Mothership" : battle.BuildBlockReason(Side.Player, selected.Id, kind);
             button.SetMeta("applicable", (village is null || kind != ShipClass.CannonTower)
-                && (!fishingBuilder || kind == ShipClass.Lighthouse)
+                && (!fishingBuilder || kind == ShipClass.Lighthouse || kind == ShipClass.CannonTower && battle.Rules.FishingCannonTowers)
                 && (kind != ShipClass.Lighthouse || battle.Rules.LighthousesEnabled && (village is null || !battle.Rules.FishingLighthouses)));
             int price = village is null ? battle.BuildPrice(Side.Player, kind) : battle.VillageBuildPrice(village.Id, kind);
             button.Cost = price;

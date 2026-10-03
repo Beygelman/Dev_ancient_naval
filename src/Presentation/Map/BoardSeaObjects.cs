@@ -256,9 +256,11 @@ public partial class BoardView
     internal IEnumerable<(Vector2[] Edge, Vector2 Inside)> VisibleShoreSegments()
     {
         EnsureIslandGeometry();
+        EnsureCosmeticRivers();
         foreach (var shore in _shoreLines)
             if (Battle.Vision.IsVisible(Side.Player, shore.Cell))
-                yield return (shore.Edge, shore.Inside);
+                foreach (var edge in RiverMouthShoreEdges(shore.Edge))
+                    yield return (edge, shore.Inside);
     }
 
     private void DrawBeaches(Node2D canvas, ISet<GridPosition> cells)

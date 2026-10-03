@@ -28,7 +28,8 @@ public enum ActionSymbol
     Scuttle,
     City,
     Balloon,
-    Upgrade
+    Upgrade,
+    Support
 }
 
 /// <summary>Small vector icons drawn at screen resolution; no external art required.</summary>

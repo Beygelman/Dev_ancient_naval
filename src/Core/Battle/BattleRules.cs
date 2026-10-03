@@ -25,6 +25,7 @@ public sealed class BattleRules
     public bool DeferredRewards { get; init; }
     public bool FishingRadarVisible { get; init; }
     public bool FishingLighthouses { get; init; }
+    public bool FishingCannonTowers { get; init; } // Missing in old voyages: preserve schooner construction limits.
     public bool FrozenUnownedVillages { get; init; }
     public bool PersistTreasuryRuins { get; init; }
     public bool PaidVillageUpgrades { get; init; } // Missing in old saves: retain automatic town growth.
@@ -35,6 +36,7 @@ public sealed class BattleRules
     public int IncomePerMothership { get; init; }
     public int RepairAmount { get; init; }
     public int AutoRepairAmount { get; init; } = 2;
+    public int? VillageAutoRepairAmount { get; init; } // Null retains the older town passive-heal rule.
     public int FleetLimit { get; init; }
     public int VillageFortificationPrice { get; init; } = 5;
     public int DockResourceReward { get; init; } = 2;
@@ -72,7 +74,7 @@ public sealed class BattleRules
 
     public void Validate()
     {
-        if (StartingCredits < 0 || IncomePerMothership < 0 || RepairAmount <= 0 || AutoRepairAmount < 0 || AncientAutoRepairAmount < 0 || FleetLimit < 4 || VillageFortificationPrice < 0 || DockResourceReward < 0 || PirateCurrencyReward < 0 || PirateResourceReward < 0)
+        if (VillageAutoRepairAmount is < 0 || StartingCredits < 0 || IncomePerMothership < 0 || RepairAmount <= 0 || AutoRepairAmount < 0 || AncientAutoRepairAmount < 0 || FleetLimit < 4 || VillageFortificationPrice < 0 || DockResourceReward < 0 || PirateCurrencyReward < 0 || PirateResourceReward < 0)
             throw new ArgumentException("Invalid economy rules.");
         if (EncounterCurrencyReward < 0 || LevelCurrencyRewards is null || LevelCurrencyRewards.Count != 4 || LevelCurrencyRewards.Any(r => r < 0))
             throw new ArgumentException("Invalid voyage reward rules.");

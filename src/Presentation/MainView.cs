@@ -24,6 +24,7 @@ public partial class Main
     {
         using var trace = DevAncientNaval.Presentation.Diagnostics.PerformanceTrace.Measure("Main.Refresh");
         bool worldChanged = !ReferenceEquals(_presentedBattle, Battle) || _presentedVision != Battle.Vision.Revision;
+        ClearConstruction();
         if (_mapPreview && worldChanged)
         {
             foreach (var tile in Battle.Board.Tiles)
