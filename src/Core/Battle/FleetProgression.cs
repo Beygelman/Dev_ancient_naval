@@ -29,24 +29,28 @@ public sealed partial class BattleState
         }
 
         InitializeShoals(seed);
-        var random = new Random(seed);
         var candidates = Board.Tiles.Where(t => t.Terrain != TerrainType.Land && At(t.Position)is null).Select(t => t.Position).ToList();
-        for (int i = candidates.Count - 1; i > 0; i--)
-        {
-            int j = random.Next(i + 1);
-            (candidates[i], candidates[j]) = (candidates[j], candidates[i]);
-        }
-
         int resourceCount = Math.Max(Rules.Economy.MinimumResourceSpots, Rules.Economy.ResourceTileInterval > 0 ? Board.Tiles.Count / Rules.Economy.ResourceTileInterval : 0);
-        var resources = candidates.Where(p => !_shoals.Contains(p));
-        if (Board.Kind == WorldKind.Pangaea)
-            resources = resources.OrderByDescending(p => PangaeaWaters.IsInterior(Board, p));
-        foreach (var cell in resources.Take(Math.Min(resourceCount, candidates.Count)))
-            _fish.Add(cell);
-        // Every starting fleet can demonstrate collection without relying on a lucky seed.
+        resourceCount = Math.Max(1, (int)Math.Round(resourceCount * .70));
+        var resources = WorldResourcePlacement.Order(Board, candidates.Where(p => !_shoals.Contains(p)), seed);
+        // One guaranteed first catch per fleet; further resources require exploration.
         foreach (var mother in Ships.Where(s => s.IsMothership))
-            foreach (var cell in candidates.Where(p => !_shoals.Contains(p) && Board.InRadius(p, mother.Position, mother.Definition.CollectionRange)).Take(2))
+            foreach (var cell in resources.Where(p => Board.InRadius(mother.Position, p, mother.Definition.CollectionRange)).Take(1))
                 _fish.Add(cell);
+        if (Board.Kind == WorldKind.Pangaea)
+        {
+            int interiorTarget = resourceCount / 2 + 1;
+            foreach (var cell in resources.Where(p => PangaeaWaters.IsInterior(Board, p)))
+            {
+                if (_fish.Count >= resourceCount || _fish.Count(p => PangaeaWaters.IsInterior(Board, p)) >= interiorTarget) break;
+                if (_fish.All(p => !Board.GetNeighbors(p).Contains(cell))) _fish.Add(cell);
+            }
+        }
+        foreach (var cell in resources)
+        {
+            if (_fish.Count >= Math.Min(resourceCount, resources.Count)) break;
+            if (_fish.All(p => !Board.GetNeighbors(p).Contains(cell))) _fish.Add(cell);
+        }
     }
 
     public string? RadarBlockReason(Side requester, int id)
@@ -54,7 +58,7 @@ public sealed partial class BattleState
         var error = ValidateActor(requester, id, out var ship);
         if (error is not null)
             return error;
-        if (ship!.Definition.Class is not (ShipClass.Mothership or ShipClass.Kolonel or ShipClass.CannonTower))
+        if (ship!.Definition.Class is not (ShipClass.Mothership or ShipClass.Kolonel or ShipClass.CannonTower or ShipClass.Lighthouse))
             return "This class cannot equip radar.";
         if (ship.HasRadar)
             return "Radar is already installed.";
@@ -79,7 +83,7 @@ public sealed partial class BattleState
     public IReadOnlyCollection<GridPosition> CollectionCells(int id)
     {
         var ship = Find(id);
-        if (ship is null || ship.IsExhausted || ship.Definition.CollectionRange <= 0 || IsOver || ship.Owner != ActiveSide || PendingUpgrade(ship.Owner)is not null || Mothership(ship.Owner)is not { Level: < 5 })
+        if (ship is null || ship.IsExhausted || ship.HasRepaired || ship.Definition.CollectionRange <= 0 || IsOver || ship.Owner != ActiveSide || PendingUpgrade(ship.Owner)is not null || Mothership(ship.Owner)is not { Level: < 5 })
             return Array.Empty<GridPosition>();
         return _fish.Where(p => Vision.IsVisible(ship.Owner, p) && WithinCollectionReach(ship, p)).ToArray();
     }
@@ -113,8 +117,10 @@ public sealed partial class BattleState
     public CommandResult ChooseUpgrade(Side requester, int id, UpgradeChoice choice)
     {
         var mother = Find(id);
-        if (IsOver || requester != ActiveSide || mother?.Owner != requester || !UpgradeOptions(id).Contains(choice))
+        if (PendingPresentation is not null || IsOver || requester != ActiveSide || mother?.Owner != requester || !UpgradeOptions(id).Contains(choice))
             return CommandResult.Rejected("This upgrade is not available now.");
+        if (mother.HasRepaired && choice is UpgradeChoice.FishingBoat or UpgradeChoice.Balloon)
+            return CommandResult.Rejected("A repaired ship cannot build again this turn.");
         switch (choice)
         {
             case UpgradeChoice.Restoration:
@@ -137,7 +143,9 @@ public sealed partial class BattleState
                 mother.SecondAttackUpgrade = true;
                 break;
             case UpgradeChoice.FishingBoat:
-                // A level reward is always deliverable, even when all adjacent berths are occupied.
+                if (UsesFleetSlot(ShipClass.Fishing) && FleetUsed(requester) >= FleetCapacity(requester))
+                    return CommandResult.Rejected($"Fishing expedition requires a free fleet slot. Fleet limit: {FleetCapacity(requester)}.");
+                // Occupied adjacent berths do not block delivery to other reachable water.
                 var berth = FishingRewardBerth(mother);
                 if (berth is null)
                     return CommandResult.Rejected("There is no reachable free water for the fishing boat.");

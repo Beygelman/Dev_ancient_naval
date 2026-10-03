@@ -21,7 +21,14 @@ public enum ActionSymbol
     Fortify,
     Treasure,
     Information,
-    Tower
+    Tower,
+    Lighthouse,
+    SingleShot,
+    DoubleShot,
+    Scuttle,
+    City,
+    Balloon,
+    Upgrade
 }
 
 /// <summary>Small vector icons drawn at screen resolution; no external art required.</summary>
@@ -33,6 +40,11 @@ public partial class ActionGlyph : Control
     {
         var ink = PapyrusStyle.Ink;
         var center = Size / 2;
+        if (NavalGlyphArt.IsNaval(Symbol))
+        {
+            NavalGlyphArt.Draw(this, center, Symbol, ink, 2.25f);
+            return;
+        }
         Vector2 P(float x, float y) => center + new Vector2(x, y);
         void Line(float x1, float y1, float x2, float y2)
         {
@@ -46,6 +58,23 @@ public partial class ActionGlyph : Control
 
         switch (Symbol)
         {
+            case ActionSymbol.Upgrade:
+                Line(-10, 9, 10, 9);
+                Line(-6, 4, 6, 4);
+                Line(0, 3, 0, -12);
+                Line(-6, -6, 0, -12);
+                Line(0, -12, 6, -6);
+                break;
+            case ActionSymbol.Scuttle:
+                DrawPolyline(new[] { P(-13, 2), P(-7, 11), P(7, 11), P(13, 2) }, ink, 2, true);
+                Line(-10, 3, 10, 3);
+                Line(0, -13, 0, 0);
+                Line(-5, -5, 0, 0);
+                Line(5, -5, 0, 0);
+                Line(-12, 15, -5, 13);
+                Line(-5, 13, 3, 16);
+                Line(3, 16, 11, 13);
+                break;
             case ActionSymbol.Information:
                 Line(-9, -12, 9, -12);
                 Line(-9, 12, 9, 12);
@@ -54,6 +83,25 @@ public partial class ActionGlyph : Control
                 DrawArc(P(0, -5), 3, 0, Mathf.Tau, 12, ink, 1.7f, true);
                 Line(0, 1, 0, 8);
                 Line(-3, 8, 3, 8);
+                break;
+            case ActionSymbol.SingleShot:
+                DrawCircle(P(0, 0), 9, ink);
+                DrawArc(P(-2, -2), 5, Mathf.Pi, Mathf.Pi * 1.5f, 10, PapyrusStyle.Paper, 1.5f, true);
+                break;
+            case ActionSymbol.DoubleShot:
+                DrawCircle(P(-6, 3), 8, ink);
+                DrawCircle(P(7, -5), 8, ink);
+                DrawArc(P(-8, 1), 4, Mathf.Pi, Mathf.Pi * 1.5f, 10, PapyrusStyle.Paper, 1.5f, true);
+                DrawArc(P(5, -7), 4, Mathf.Pi, Mathf.Pi * 1.5f, 10, PapyrusStyle.Paper, 1.5f, true);
+                break;
+            case ActionSymbol.Lighthouse:
+                DrawPolyline(new[] { P(-9, 12), P(-5, -9), P(5, -9), P(9, 12), P(-9, 12) }, ink, 2, true);
+                DrawRect(new Rect2(P(-6, -15), new Vector2(12, 6)), ink, false, 2);
+                Line(-8, -16, 0, -21);
+                Line(0, -21, 8, -16);
+                Line(-9, -12, -16, -15);
+                Line(9, -12, 16, -15);
+                Line(-12, 15, 12, 15);
                 break;
             case ActionSymbol.Tower:
                 Line(-10, 13, -10, -11);

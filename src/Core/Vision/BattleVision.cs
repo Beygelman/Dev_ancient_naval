@@ -23,7 +23,16 @@ public sealed partial class BattleVision
     private readonly HashSet<GridPosition>[] _contacts = Enumerable.Range(0, BattleState.SideSlots).Select(_ => new HashSet<GridPosition>()).ToArray();
     private readonly HashSet<GridPosition>[] _flashes = Enumerable.Range(0, BattleState.SideSlots).Select(_ => new HashSet<GridPosition>()).ToArray();
     private readonly Dictionary<GridPosition, int>[] _lastSeen = Enumerable.Range(0, BattleState.SideSlots).Select(_ => new Dictionary<GridPosition, int>()).ToArray();
-    public BattleVision(GameBoard board) => _board = board;
+    private readonly MountainSight? _mountainSight;
+    private readonly bool _smallHullRadarStealth;
+    private readonly bool _fishingRadarVisible;
+    public BattleVision(GameBoard board, bool mountainSightShadows = false, bool smallHullRadarStealth = false, bool fishingRadarVisible = false)
+    {
+        _board = board;
+        _mountainSight = mountainSightShadows ? new MountainSight(board) : null;
+        _smallHullRadarStealth = smallHullRadarStealth;
+        _fishingRadarVisible = fishingRadarVisible;
+    }
     public long Revision { get; private set; }
     private bool _allSeeingPlayer;
     public void SetAllSeeingPlayer(bool enabled)
@@ -41,6 +50,7 @@ public sealed partial class BattleVision
     }
 
     public bool IsVisible(Side side, GridPosition cell) => AllSeeing(side, cell) || _visible[(int)side].Contains(cell);
+    public bool IsOpticallyVisible(Side side, GridPosition cell) => _visible[(int)side].Contains(cell);
     public bool IsExplored(Side side, GridPosition cell) => AllSeeing(side, cell) || _explored[(int)side].Contains(cell);
     public int ExploredCount(Side side) => side == Side.Player && _allSeeingPlayer ? _board.Tiles.Count : _explored[(int)side].Count;
     public int LastSeen(Side side, GridPosition cell) => _lastSeen[(int)side].GetValueOrDefault(cell, -1);
@@ -66,7 +76,9 @@ public sealed partial class BattleVision
             _contacts[index].Clear();
             foreach (var ship in ships.Where(s => s.Owner == side))
             {
-                if (ship.Definition.Class == ShipClass.Fishing)
+                if (_mountainSight is not null && !ship.IsAirborne)
+                    _visible[index].UnionWith(_mountainSight.Coverage(ship.Position, ship.VisualRange, ship.Definition.Class == ShipClass.Fishing));
+                else if (ship.Definition.Class == ShipClass.Fishing)
                     FillSquare(_visible[index], ship.Position, ship.VisualRange);
                 else
                     FillCircle(_visible[index], ship.Position, ship.VisualRange);
@@ -76,12 +88,16 @@ public sealed partial class BattleVision
 
             if (villages is not null)
                 foreach (var village in villages.Where(v => v.Owner == side))
-                    FillCircle(_visible[index], village.Position, village.VisualRange);
+                    if (_mountainSight is not null)
+                        _visible[index].UnionWith(_mountainSight.Coverage(village.Position, village.VisualRange, false));
+                    else
+                        FillCircle(_visible[index], village.Position, village.VisualRange);
             _visible[index].UnionWith(_flashes[index]);
             _explored[index].UnionWith(_visible[index]);
             foreach (var cell in _visible[index])
                 _lastSeen[index][cell] = stamp;
-            foreach (var enemy in ships.Where(s => s.Owner != side && !s.IsAirborne))
+            foreach (var enemy in ships.Where(s => s.Owner != side && !s.IsAirborne
+                && (!_smallHullRadarStealth || s.Definition.Class != ShipClass.Garrison && (s.Definition.Class != ShipClass.Fishing || _fishingRadarVisible))))
                 if (_radar[index].Contains(enemy.Position) && !_visible[index].Contains(enemy.Position))
                     _contacts[index].Add(enemy.Position);
         }

@@ -7,7 +7,7 @@ internal static partial class BattleScenarios
 {
     private static void PresentedCombat()
     {
-        var rules = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json")));
         BattleState Fixture() => new(new GameBoard(24, 24, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(2, 2)), (Side.Enemy, ShipClass.Mothership, new GridPosition(20, 20)), (Side.Player, ShipClass.Kolonel, new GridPosition(8, 8)), (Side.Enemy, ShipClass.Garrison, new GridPosition(9, 8)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
         var battle = Fixture();
         double original = battle.Find(4)!.Health;
@@ -54,7 +54,10 @@ internal static partial class BattleScenarios
         Check(battle.Find(3)is null, "Only flagship sinking completion releases the remaining fleet");
         prepared.Finish();
         Check(battle.Winner == Side.Player, "The surviving flagship wins after a staged collapse");
-        Check(WorldNames.Captains.Count == 20 && WorldNames.Towns.Count == 40 && WorldNames.Captains.Distinct().Count() == 20 && WorldNames.Towns.Distinct().Count() == 40, "Name catalogs contain exactly 20 captains and 40 towns");
+        Check(WorldNames.Captains.Count > 20 && WorldNames.Towns.Count > 40 &&
+            WorldNames.Captains.Distinct().Count() == WorldNames.Captains.Count &&
+            WorldNames.Towns.Distinct().Count() == WorldNames.Towns.Count,
+            "Expanded captain and town catalogs retain unique identities");
         var mapped = SkirmishSetup.Create(DevAncientNaval.Presentation.PrototypeBoard.Create(opponentCount: 1), rules, 1);
         var scout = mapped.OwnShips(Side.Player).First(s => s.Definition.Class == ShipClass.Fishing);
         var beforeShip = scout;
@@ -67,5 +70,14 @@ internal static partial class BattleScenarios
         battle = Fixture();
         Check(battle.StepCost(3, new(8, 8), new(9, 9), false) == 20, "A diagonally reached hostile neighborhood retains its threat penalty");
         Check(battle.StepCost(3, new(8, 8), new(7, 7), false) == 10, "A clear diagonal costs exactly one tile");
+        battle = Fixture();
+        battle.Find(4)!.Health = 1;
+        var doubleKill = battle.Attack(Side.Player, 3, 4, true);
+        Check(doubleKill.Success && doubleKill.SalvoCharges == 2 && doubleKill.Shots!.Count == 1
+            && battle.Find(3)!.AttacksRemaining == 0,
+            "A double salvo still launches both charges when the first impact sinks its target");
+        battle = Fixture();
+        Check(battle.Attack(Side.Player, 3, 4).SalvoCharges == 1,
+            "A normal shot presents exactly one charge");
     }
 }

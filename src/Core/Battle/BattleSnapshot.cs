@@ -54,6 +54,11 @@ public sealed class BattleSave
     public Side[] Factions { get; set; } = Array.Empty<Side>();
     public FactionIdentity[] FactionNames { get; set; } = Array.Empty<FactionIdentity>();
     public FactionColor[] FactionColors { get; set; } = Array.Empty<FactionColor>();
+    public PendingAward[] PendingAwards { get; set; } = Array.Empty<PendingAward>();
+    public NationEncounter[] Encounters { get; set; } = Array.Empty<NationEncounter>();
+    public SavedFlagshipSighting[] FlagshipSightings { get; set; } = Array.Empty<SavedFlagshipSighting>();
+    public int[] PersonalTurnStarts { get; set; } = Array.Empty<int>();
+    public int[] FlagshipKills { get; set; } = Array.Empty<int>();
     public int EventSeed { get; set; }
     public int EventDraws { get; set; }
     public TreasuryReward? LastReward { get; set; }

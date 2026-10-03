@@ -1,0 +1,24 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward Mobile - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+WORLD begin 1
+WORLD geometry 1
+WORLD raster 1
+WORLD hover 1
+WORLD Oceans seed=731, 1 enemies: 611 cells; 8 smooth island contours; trees=56; peaks=3; sceneryPages=1; terrainTexture=(2926, 1428).
+WORLD begin 2
+WORLD geometry 2
+WORLD raster 2
+WORLD hover 2
+WORLD Oceans seed=731, 2 enemies: 879 cells; 12 smooth island contours; trees=82; peaks=5; sceneryPages=1; terrainTexture=(3466, 1680).
+WORLD begin 3
+WORLD geometry 3
+WORLD raster 3
+WORLD hover 3
+WORLD Oceans seed=731, 3 enemies: 1110 cells; 16 smooth island contours; trees=48; peaks=5; sceneryPages=1; terrainTexture=(3609, 2022).
+WORLD begin 4
+WORLD geometry 4
+WORLD raster 4
+WORLD hover 4
+WORLD Oceans seed=731, 4 enemies: 1371 cells; 20 smooth island contours; trees=242; peaks=10; sceneryPages=1; terrainTexture=(4095, 1969).
+PASS: 61447 world refinement checks (Windows).

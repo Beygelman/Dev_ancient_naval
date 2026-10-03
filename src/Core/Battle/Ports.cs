@@ -48,11 +48,15 @@ public sealed partial class BattleState
     public TradeNetwork TradeRoutes(Side side)
     {
         var towns = _villages.Where(v => v.Owner == side && v.HasPort && v.Health > 0).OrderBy(v => v.Id).ToArray();
+        var lighthouses = _ships.Where(s => s.Owner == side && s.Definition.Class == ShipClass.Lighthouse && s.Health > 0)
+            .OrderBy(s => s.Id).ToArray();
         // Topology depends on ports and permanent hazards, never cursor/camera position.
-        string key = string.Join(',', towns.Select(v => v.Id)) + ":" + _forbidden.Count;
+        string key = string.Join(',', towns.Select(v => v.Id)) + ":" + string.Join(',', lighthouses.Select(s => s.Id)) + ":" +
+            string.Join(';', _forbidden.OrderBy(p => p.Y).ThenBy(p => p.X).Select(p => $"{p.X},{p.Y}"));
         if (_tradeNetworks.TryGetValue(side, out var cached) && cached.Key == key)
             return cached.Network;
-        var network = TradeNetwork.Create(Board, towns.Select(PortBerth).ToArray(), _forbidden);
+        var network = TradeNetwork.Create(Board, towns.Select(PortBerth).Concat(lighthouses.Select(s => s.Position))
+            .Distinct().ToArray(), _forbidden);
         _tradeNetworks[side] = (key, network);
         return network;
     }

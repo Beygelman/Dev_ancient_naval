@@ -14,6 +14,7 @@ public partial class DebugHud
     private ActionPapyrus _claimPapyrus = null!, _treasuryPapyrus = null!;
     private readonly Dictionary<(bool Capture, int Id), ActionPapyrus> _stories = new();
     private readonly Dictionary<(bool Capture, int Id), GridPosition> _storyCells = new();
+    private BattleState? _storyBattle;
     internal ActionPapyrus ClaimPapyrus => _claimPapyrus;
     internal ActionPapyrus TreasuryPapyrus => _treasuryPapyrus;
     public event Action<int>? CaptureStoryRequested, TreasuryStoryRequested;
@@ -42,6 +43,20 @@ public partial class DebugHud
     }
     private void UpdateActionStories(BattleState battle, Ship? ship, Village? village, bool canAct)
     {
+        if (!ReferenceEquals(_storyBattle, battle))
+        {
+            foreach (var scroll in _stories.Values)
+            {
+                scroll.SetReady(false);
+                if (scroll != _claimPapyrus && scroll != _treasuryPapyrus) scroll.QueueFree();
+            }
+            _stories.Clear();
+            _storyCells.Clear();
+            _storyBattle = battle;
+        }
+        foreach (var scroll in _stories.Values) scroll.ActivationEnabled = canAct;
+        // Temporary order/menu/opponent locks do not restart an opened banner.
+        if (!canAct && !battle.IsOver && !battle.PlayerDefeated) return;
         var ready = new Dictionary<(bool Capture, int Id), GridPosition>();
         if (canAct)
         {
@@ -68,6 +83,7 @@ public partial class DebugHud
                 _stories.Add(key, scroll);
             }
             _storyCells[key] = cell;
+            scroll.ActivationEnabled = canAct;
             scroll.SetReady(true);
         }
     }
@@ -79,12 +95,12 @@ public partial class DebugHud
             var scroll = _stories[key];
             var point = screen(cell);
             scroll.SetOnScreen(GetViewport().GetVisibleRect().Grow(30).HasPoint(point));
-            scroll.Position = ClampWorldUi(point - new Vector2(scroll.Size.X / 2, 210), scroll.Size);
+            scroll.Position = ClampWorldUi(UiScale.ScreenToUi(point) - new Vector2(scroll.Size.X / 2, 195 / UiScale.Value), scroll.Size);
         }
     }
     private Vector2 ClampWorldUi(Vector2 position, Vector2 size)
     {
-        var viewport = GetViewport().GetVisibleRect().Size;
+        var viewport = UiScale.LogicalViewport(this);
         return new(Mathf.Clamp(position.X, 8, Math.Max(8, viewport.X - size.X - 8)),
             Mathf.Clamp(position.Y, 90, Math.Max(90, viewport.Y - size.Y - 70)));
     }

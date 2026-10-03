@@ -29,7 +29,9 @@ public partial class StartScreen : CanvasLayer
     public MapKind WorldKind { get; private set; } = MapKind.Oceans;
     private OptionButton _worldChoice = null!;
     private PanelContainer _setupPaper = null!;
+    private ScrollContainer _setupScroll = null!;
     private Label _worldHint = null!;
+    private bool _layingOut;
 
     public void SetNotice(string text) => _notice.Text = text;
     public override void _Ready()
@@ -69,6 +71,8 @@ public partial class StartScreen : CanvasLayer
         _continue = MakeButton("HomeContinue", "Continue", () => ContinueRequested?.Invoke());
         _actions.AddChild(_continue);
         _actions.AddChild(MakeButton("HomeExit", "Exit game", () => ExitRequested?.Invoke()));
+        _actions.AddChild(new LanguageButtons());
+        _actions.AddChild(new UiScaleSlider { OverArtwork = true });
         _colors = new VBoxContainer
         {
             Name = "ColorSelection"
@@ -76,9 +80,11 @@ public partial class StartScreen : CanvasLayer
         _colors.AddThemeConstantOverride("separation", 7);
         _setupPaper = new PanelContainer { Name = "VoyageSetupPaper" };
         _setupPaper.AddThemeStyleboxOverride("panel", PapyrusStyle.Panel(.97f));
+        PapyrusGrain.Apply(_setupPaper);
         _root.AddChild(_setupPaper);
-        _setupPaper.AddChild(_colors);
-        var heading = new Label { Text = "CHART YOUR VOYAGE", HorizontalAlignment = HorizontalAlignment.Center };
+        _setupScroll = PapyrusModal.Wrap(_setupPaper, _colors, "VoyageSetupScroll");
+        var heading = new Label { Text = "CHART YOUR VOYAGE", HorizontalAlignment = HorizontalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart };
         heading.AddThemeFontSizeOverride("font_size", 25);
         heading.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
         _colors.AddChild(heading);
@@ -88,16 +94,19 @@ public partial class StartScreen : CanvasLayer
         _colorTitle = new Label
         {
             Text = "Your fleet & its emblem",
-            HorizontalAlignment = HorizontalAlignment.Center
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart
         };
         _colorTitle.AddThemeFontSizeOverride("font_size", 23);
         _colorTitle.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
         _colors.AddChild(_colorTitle);
-        var row = new HBoxContainer
+        var row = new GridContainer
         {
-            Alignment = BoxContainer.AlignmentMode.Center
+            Columns = 3,
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter
         };
-        row.AddThemeConstantOverride("separation", 5);
+        row.AddThemeConstantOverride("h_separation", 5);
+        row.AddThemeConstantOverride("v_separation", 5);
         _colors.AddChild(row);
         foreach (var color in Enum.GetValues<FleetColor>())
         {
@@ -121,7 +130,8 @@ public partial class StartScreen : CanvasLayer
         var opponentTitle = new Label
         {
             Text = "Rival fleets",
-            HorizontalAlignment = HorizontalAlignment.Center
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart
         };
         opponentTitle.AddThemeFontSizeOverride("font_size", 19);
         opponentTitle.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
@@ -136,40 +146,45 @@ public partial class StartScreen : CanvasLayer
         {
             int choice = count;
             var button = MakeButton("OpponentCount" + count, count.ToString(), () => ChooseOpponents(choice));
-            button.CustomMinimumSize = new(62, 44);
+            button.CustomMinimumSize = new(50, 44);
             _opponents[count] = button;
             rivals.AddChild(button);
         }
 
         _opponentNote = new Label
         {
-            HorizontalAlignment = HorizontalAlignment.Center
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart
         };
         _opponentNote.AddThemeFontSizeOverride("font_size", 14);
         _opponentNote.AddThemeColorOverride("font_color", PapyrusStyle.FaintInk);
         _colors.AddChild(_opponentNote);
-        var difficultyTitle = new Label { Text = "Rival seamanship", HorizontalAlignment = HorizontalAlignment.Center };
+        var difficultyTitle = new Label { Text = "Rival seamanship", HorizontalAlignment = HorizontalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart };
         difficultyTitle.AddThemeFontSizeOverride("font_size", 19);
         difficultyTitle.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
         _colors.AddChild(difficultyTitle);
-        var difficultyRow = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        var difficultyRow = new VBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
         difficultyRow.AddThemeConstantOverride("separation", 6);
         _colors.AddChild(difficultyRow);
         foreach (var choice in Enum.GetValues<AiDifficulty>())
         {
             var button = MakeButton("Difficulty" + choice, choice.ToString(), () => ChooseDifficulty(choice));
-            button.CustomMinimumSize = new(106, 42);
+            button.CustomMinimumSize = new(88, 42);
+            button.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
             button.AddThemeFontSizeOverride("font_size", 16);
             button.TooltipText = choice switch { AiDifficulty.Boatswain => "A forgiving sailor: simple attacks and modest fleets", AiDifficulty.Captain => "An experienced captain: the previous tactical rules", _ => "An admiral: coordinated guns, cautious scouts and economic recovery" };
             _difficultyButtons[choice] = button;
             difficultyRow.AddChild(button);
         }
         ChooseDifficulty(Difficulty);
-        var worldTitle = new Label { Text = "Shape of the world", HorizontalAlignment = HorizontalAlignment.Center };
+        var worldTitle = new Label { Text = "Shape of the world", HorizontalAlignment = HorizontalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart };
         worldTitle.AddThemeFontSizeOverride("font_size", 19);
         worldTitle.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
         _colors.AddChild(worldTitle);
-        _worldChoice = new OptionButton { Name = "WorldGeneration", CustomMinimumSize = new(340, 42) };
+        _worldChoice = new OptionButton { Name = "WorldGeneration", CustomMinimumSize = new(0, 42) };
         PapyrusStyle.Button(_worldChoice, 18);
         AddWorldChoice("Sea World", MapKind.SeaWorld);
         AddWorldChoice("Oceans", MapKind.Oceans);
@@ -182,13 +197,13 @@ public partial class StartScreen : CanvasLayer
             UpdateWorldHint();
         };
         _colors.AddChild(_worldChoice);
-        _worldHint = new Label { Name = "WorldDescription", HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new(400, 34) };
+        _worldHint = new Label { Name = "WorldDescription", HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new(0, 34) };
         _worldHint.AddThemeFontSizeOverride("font_size", 13);
         _worldHint.AddThemeColorOverride("font_color", PapyrusStyle.FaintInk);
         _colors.AddChild(_worldHint);
         UpdateWorldHint();
         _start = MakeButton("StartBattle", "Sail with the blue fleet", () => StartRequested?.Invoke(_selected));
-        _start.CustomMinimumSize = new(340, 48);
+        _start.CustomMinimumSize = new(0, 48);
         _colors.AddChild(_start);
         var back = MakeButton("CancelColor", "Back", () =>
         {
@@ -196,7 +211,7 @@ public partial class StartScreen : CanvasLayer
             _actions.Show();
             Layout();
         });
-        back.CustomMinimumSize = new(340, 44);
+        back.CustomMinimumSize = new(0, 44);
         _colors.AddChild(back);
         _colors.Hide();
         _notice = new Label
@@ -216,8 +231,11 @@ public partial class StartScreen : CanvasLayer
         _footer.AddThemeColorOverride("font_color", new Color(.9f, .93f, .84f, 1));
         _root.AddChild(_footer);
         _root.Resized += Layout;
+        _colors.MinimumSizeChanged += Layout;
+        Language.Changed += Layout;
         Choose(_selected);
         ChooseOpponents(OpponentCount);
+        UiScale.Bind(this, _root, Layout);
         Layout();
     }
 
@@ -227,7 +245,8 @@ public partial class StartScreen : CanvasLayer
         {
             Name = name,
             Text = text,
-            CustomMinimumSize = new(340, 56),
+            CustomMinimumSize = new(0, 56),
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
             FocusMode = Control.FocusModeEnum.All
         };
         PapyrusStyle.Button(b, 21);
@@ -291,6 +310,7 @@ public partial class StartScreen : CanvasLayer
         Show();
         _root.Show();
         _continue.Disabled = !canContinue;
+        _continue.Visible = canContinue;
         _actions.Show();
         _colors.Hide();
         _notice.Text = notice;
@@ -310,25 +330,26 @@ public partial class StartScreen : CanvasLayer
 
     private void Layout()
     {
-        if (_root is null || _footer is null)
+        if (_root is null || _footer is null || _layingOut)
             return;
+        _layingOut = true;
         LayoutPasses++;
-        var size = GetViewport().GetVisibleRect().Size;
-        float width = Math.Clamp(size.X * .37f, 330, 470);
-        float x = Math.Clamp(size.X * .73f - width * .5f, 20, size.X - width - 20);
+        var size = UiScale.LogicalViewport(this);
+        float width = Math.Min(Math.Clamp(size.X * .37f, 300, 470), Math.Max(220, size.X - 32));
+        float x = Mathf.Clamp(size.X * .73f - width * .5f, 16, Math.Max(16, size.X - width - 16));
         bool choosing = _colors.Visible;
         _title.Position = new(x - 90, choosing ? 8 : size.Y * .105f);
         _title.Size = new(width + 180, choosing ? Math.Min(90, size.Y * .13f) : size.Y * .23f);
-        _actions.Position = new(x, size.Y * .395f);
+        _actions.Position = new(x, Math.Min(size.Y * .395f, Math.Max(24, size.Y - _actions.GetCombinedMinimumSize().Y - 42)));
         _actions.Size = new(width, 0);
-        float panelHeight = Math.Max(580, _colors.GetCombinedMinimumSize().Y + 24);
-        float choicesScale = Math.Clamp((size.Y - 132) / panelHeight, .6f, 1);
-        _setupPaper.Scale = Vector2.One * choicesScale;
-        _setupPaper.Position = new((size.X - 500 * choicesScale) / 2, Math.Max(80, (size.Y - panelHeight * choicesScale) / 2));
-        _setupPaper.Size = new(500, panelHeight);
+        PapyrusModal.Layout(_setupPaper, _setupScroll, _colors, size);
+        _setupPaper.Scale = Vector2.One;
+        _setupPaper.Position = new(Math.Max(12, size.X - _setupPaper.Size.X - 24), (size.Y - _setupPaper.Size.Y) / 2);
         _setupPaper.Visible = choosing;
         _notice.Position = new(x, size.Y * .82f);
         _notice.Size = new(width, 65);
         _footer.Position = new(22, size.Y - 32);
+        _layingOut = false;
     }
+    public override void _ExitTree() => Language.Changed -= Layout;
 }

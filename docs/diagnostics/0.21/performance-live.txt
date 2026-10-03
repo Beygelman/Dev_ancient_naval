@@ -1,0 +1,117 @@
+PAN frames=119, p50_ms=16,648, p95_ms=22,480, max_ms=101,703
+INTERACTION world=Pangaea, wide_view=False, tiles=1371, opponents=4, live_fog=True, hover_calls=64, hover_p50_ms=0,041, hover_p95_ms=0,117, hover_max_ms=0,774, frame_p95_ms=22,636, frame_max_ms=453,501, process_p95_ms=458,264, draw_calls_p95=901, movement_elapsed_ms=2036,285
+SLOW_FRAMES
+phase=pan, frame_ms=65,091, GC_delta=0/0/0, process_ms=62,081
+phase=pan, frame_ms=101,703, GC_delta=0/0/0, process_ms=62,081
+phase=move/encounter/save, frame_ms=453,501, GC_delta=0/0/0, process_ms=21,946
+phase=move/encounter/save, frame_ms=93,574, GC_delta=0/0/0, process_ms=93,517
+{
+  "Ambience.Waves": {
+    "Calls": 143,
+    "TotalMs": 22.888699999999996,
+    "MaxMs": 0.513,
+    "Bytes": 0
+  },
+  "Ambience.Fish": {
+    "Calls": 143,
+    "TotalMs": 27.168800000000005,
+    "MaxMs": 1.2074,
+    "Bytes": 12600
+  },
+  "Ambience.Draw": {
+    "Calls": 143,
+    "TotalMs": 65.60900000000001,
+    "MaxMs": 2.0215,
+    "Bytes": 16128
+  },
+  "Fleet.Draw": {
+    "Calls": 396,
+    "TotalMs": 20.971199999999993,
+    "MaxMs": 1.5385,
+    "Bytes": 133480
+  },
+  "Hull.Draw": {
+    "Calls": 138,
+    "TotalMs": 60.63499999999999,
+    "MaxMs": 1.1553,
+    "Bytes": 140544
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 2.9764000000000013,
+    "MaxMs": 0.4625,
+    "Bytes": 93920
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 39.008100000000006,
+    "MaxMs": 1.7798,
+    "Bytes": 549808
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 4.1799,
+    "MaxMs": 4.1799,
+    "Bytes": 194424
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 0.201,
+    "MaxMs": 0.201,
+    "Bytes": 11552
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 0.5658,
+    "MaxMs": 0.296,
+    "Bytes": 47344
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 2.3919,
+    "MaxMs": 1.2954,
+    "Bytes": 172848
+  },
+  "Board.Terrain.Draw": {
+    "Calls": 38,
+    "TotalMs": 3.0745999999999998,
+    "MaxMs": 0.1714,
+    "Bytes": 1216
+  },
+  "Board.Terrain.Shore.Draw": {
+    "Calls": 38,
+    "TotalMs": 20.727800000000002,
+    "MaxMs": 1.9964,
+    "Bytes": 5472
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0066,
+    "MaxMs": 0.0066,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 0.2496,
+    "MaxMs": 0.1817,
+    "Bytes": 3400
+  },
+  "Save.Capture": {
+    "Calls": 1,
+    "TotalMs": 0.632,
+    "MaxMs": 0.632,
+    "Bytes": 261712
+  },
+  "Save.Write": {
+    "Calls": 1,
+    "TotalMs": 87.7613,
+    "MaxMs": 87.7613,
+    "Bytes": 788864
+  },
+  "Navigation.PreviewPlan": {
+    "Calls": 1,
+    "TotalMs": 0.2266,
+    "MaxMs": 0.2266,
+    "Bytes": 456
+  }
+}

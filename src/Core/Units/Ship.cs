@@ -11,7 +11,7 @@ public sealed class Ship
     public int Kills { get; internal set; }
     public bool IsVeteran { get; internal set; }
     public bool CanEarnVeterancy => !IsMothership && !IsAirborne && IsArmed && Definition.Class != ShipClass.FishingDock;
-    public bool IsStructure => Definition.Class is ShipClass.FishingDock or ShipClass.AncientGun or ShipClass.CannonTower;
+    public bool IsStructure => Definition.Class is ShipClass.FishingDock or ShipClass.AncientGun or ShipClass.CannonTower or ShipClass.Lighthouse;
     public bool IsAncient { get; internal set; }
     public int BombCooldown { get; internal set; }
     public bool HasRepaired { get; internal set; }
@@ -20,7 +20,7 @@ public sealed class Ship
     public bool IsAirborne => Definition.Class == ShipClass.Balloon;
     public int Level { get; internal set; } = 1;
     public int Resources { get; internal set; }
-    public int ResourcesRequired => IsMothership && Level < 5 ? Level + 1 : 0;
+    public int ResourcesRequired => IsMothership && Level < 5 ? Level + 1 + Definition.ResourceRequirementIncrease : 0;
     public int PendingUpgradeLevel { get; internal set; }
     public bool IncomeUpgrade { get; internal set; }
     public bool MobilityUpgrade { get; internal set; }
@@ -35,7 +35,8 @@ public sealed class Ship
     public bool HasRadar { get; internal set; }
     public int RadarRange => HasRadar ? Definition.RadarRange + (VisionUpgrade ? 2 : 0) : 0;
     public int VisualRange => Definition.VisualRange + (VisionUpgrade ? 2 : 0);
-    public int AttackRange => IsArmed ? Math.Max(Definition.AttackRange, HasMortar ? MortarRange : 0) : 0;
+    public int CannonRange => Definition.AttackRange + (IsVeteran ? Definition.VeteranRangeBonus : 0);
+    public int AttackRange => IsArmed ? Math.Max(CannonRange, HasMortar ? MortarRange : 0) : 0;
     public int MortarRange => HasMortar ? 5 : 0;
     public double CurrentMortarDamage => Definition.Class == ShipClass.AncientGun ? Whole(Definition.Damage * (IsVeteran ? 1.25 : 1)) : Whole((8 * (IsVeteran ? 1.25 : 1)) * (0.5 + 0.5 * HealthRatio));
 
@@ -58,14 +59,14 @@ public sealed class Ship
     public bool IsExhausted { get; internal set; }
     public bool HasProduced { get; internal set; }
     public bool MovementLocked { get; internal set; }
-    public bool CanMove => IsAirborne ? !IsExhausted && MovementRemainingUnits >= 10 : !IsStructure && !IsExhausted && !MovementLocked && MovementRemainingUnits >= 1 && (Definition.ActionProfile switch
+    public bool CanMove => IsAirborne ? !IsExhausted && !HasRepaired && MovementRemainingUnits >= 10 : !IsStructure && !IsExhausted && !HasRepaired && !MovementLocked && MovementRemainingUnits >= 1 && (Definition.ActionProfile switch
     {
         ActionProfile.Scout => true,
         ActionProfile.Standard => !MovementLocked,
         ActionProfile.Heavy => AttacksUsed == 0,
         _ => false
     });
-    public int AttacksRemaining => IsExhausted || !IsArmed || HasMortar && HasMoved ? 0 : Math.Max(0, (Definition.ActionProfile == ActionProfile.Heavy ? 2 : 1) + (SecondAttackUpgrade ? 1 : 0) - AttacksUsed);
+    public int AttacksRemaining => IsExhausted || HasRepaired || !IsArmed || HasMortar && HasMoved ? 0 : Math.Max(0, (Definition.ActionProfile == ActionProfile.Heavy ? 2 : 1) + (SecondAttackUpgrade ? 1 : 0) - AttacksUsed);
     public bool CanRepair => !IsAirborne && Definition.Class != ShipClass.AncientGun && !IsExhausted && !HasRepaired && AttacksUsed == 0 && Health < MaxHealth;
 
     internal Ship(int id, Side owner, ShipDefinition definition, GridPosition position)

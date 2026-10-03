@@ -1,0 +1,11 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 581.29 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+Movie Maker mode enabled, recording movie in 1280×720 @ 60 FPS...
+--------------------------------------------------------------------------------
+Done recording movie at path: C:\Users\User\Documents\Codex\2026-09-29\x20\work\refinement0204\export-capture-uk\frame.png
+8 frames at 60 FPS (movie length: 00:00:00:08), recorded in 00:00:05 (20% of real-time speed).
+CPU render time: 0.00 seconds (average: 0.19 ms/frame)
+GPU render time: 0.00 seconds (average: 0.14 ms/frame)
+Encoding time: 2.34 seconds (average: 292.84 ms/frame)
+--------------------------------------------------------------------------------

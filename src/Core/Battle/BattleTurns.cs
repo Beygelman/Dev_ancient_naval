@@ -18,6 +18,7 @@ public sealed partial class BattleState
         ship.Health = Ship.Whole(ship.Health + amount);
         ship.IsExhausted = true;
         ship.HasRepaired = true;
+        ship.MovementLocked = true;
         return new(true, $"{ship.Definition.Name}: repaired +{amount:0.##} HP", CommandKind.Repair, id, Amount: amount);
     }
 
@@ -53,8 +54,9 @@ public sealed partial class BattleState
 
         StartVillageTurn(ActiveSide);
         var receipts = CreditTurnIncome(ActiveSide);
+        var heavenly = StartHeavenlyTurn(ActiveSide);
         UpdateVision();
-        return new(true, ActiveSide == Side.Player ? "Your turn." : $"{FactionName(ActiveSide)}'s turn.", CommandKind.EndTurn, IncomeReceipts: receipts, OutpostShots: outpostShots, HealingReceipts: healing);
+        return new(true, ActiveSide == Side.Player ? "Your turn." : $"{FactionName(ActiveSide)}'s turn.", CommandKind.EndTurn, IncomeReceipts: receipts, OutpostShots: outpostShots, HealingReceipts: healing, HeavenlyReceipts: heavenly);
     }
 
     private void RegisterShipIncome(Ship ship)

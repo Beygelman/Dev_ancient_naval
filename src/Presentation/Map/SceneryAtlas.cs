@@ -40,6 +40,7 @@ public partial class BoardView
             _sceneryAtlasRoot.QueueFree();
         }
         _sceneryPages.Clear();
+        _treasuryRuinSprites.Clear();
         SceneryAtlasRegionCount = 0;
         SceneryAtlasBuildCount++;
         _sceneryAtlasRoot = new Node { Name = "SceneryAtlases" };
@@ -57,10 +58,14 @@ public partial class BoardView
             float s = item.Size;
             var min = item.Kind == 1
                 ? new Vector2(-s - 4, -s * 2.85f - 4)
-                : new Vector2(-s - 3, -s * 1.65f - 3);
+                : item.Kind == 4 ? new Vector2(-38, -55)
+                : item.Kind == 3 ? new Vector2(-s * 1.55f - 4, -s * 2.5f - 4)
+                : new Vector2(-s * 1.15f - 3, -s * item.HeightRatio - 3);
             var max = item.Kind == 1
                 ? new Vector2(Math.Max(s * 1.3f + 4, 9 + s * .6f), 5 + s * .24f)
-                : new Vector2(s + 3, s * .35f + 3);
+                : item.Kind == 4 ? new Vector2(38, 22)
+                : item.Kind == 3 ? new Vector2(s * 1.55f + 4, s * .7f + 4)
+                : new Vector2(s * 1.15f + 3, s * .44f + 3);
             var pixelMin = new Vector2I(Mathf.FloorToInt(min.X * SceneryBakeScale), Mathf.FloorToInt(min.Y * SceneryBakeScale));
             var pixelMax = new Vector2I(Mathf.CeilToInt(max.X * SceneryBakeScale), Mathf.CeilToInt(max.Y * SceneryBakeScale));
             var size = pixelMax - pixelMin;
@@ -109,7 +114,7 @@ public partial class BoardView
             stamps!.Add(new SceneryStamp(item, new Vector2(x - pixelMin.X, y - pixelMin.Y)));
             var sprite = new Sprite2D
             {
-                Name = item.Kind == 1 ? "Tree" : "Mountain",
+                Name = item.Kind == 1 ? "Tree" : item.Kind == 3 ? "PassiveRuin" : item.Kind == 4 ? "TreasuryRuin" : "Mountain",
                 Position = item.Point,
                 Centered = false,
                 Offset = pixelMin,
@@ -119,6 +124,7 @@ public partial class BoardView
                 Texture = new AtlasTexture { Atlas = page.GetTexture(), Region = new Rect2(region.Position, region.Size), FilterClip = true }
             };
             _depthGroup!.AddChild(sprite);
+            if (item.Kind == 4) _treasuryRuinSprites[item.Cell] = sprite;
             _depthObjects.Add((item.Cell, sprite));
             SceneryAtlasRegionCount++;
             shelf.X += size.X;

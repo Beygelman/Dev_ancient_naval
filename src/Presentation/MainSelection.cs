@@ -18,11 +18,12 @@ public partial class Main
 {
     public void SelectAtScreen(Vector2 screen)
     {
-        if (_victory?.IsOpen == true || Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player)is not null)
+        if (_rewards?.IsOpen == true || _victory?.IsOpen == true || Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player)is not null)
             return;
         var air = Battle.ObservedShips(Side.Player).Where(s => s.IsAirborne).FirstOrDefault(s => (GetViewport().GetCanvasTransform() * (BoardView.Projection.GridToWorld(s.Position) + new Vector2(0, -62))).DistanceTo(screen) < 24 * MapCamera.Zoom.X);
         if (air is not null && CanCommand && Selected is { Owner: Side.Player } attacker && Battle.CanAttack(attacker.Id, air.Id))
         {
+            if (OfferSalvoChoice(attacker, air.Position, air.Id)) return;
             RunSafely(() => Perform(b => b.Attack(Side.Player, attacker.Id, air.Id), deferImpacts: true));
             return;
         }
@@ -42,8 +43,11 @@ public partial class Main
 
     public void SelectCell(GridPosition cell)
     {
-        if (_victory?.IsOpen == true || Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player)is not null)
+        using var trace = Diagnostics.PerformanceTrace.Measure("Selection.Dispatch");
+        if (_rewards?.IsOpen == true || _victory?.IsOpen == true || Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player)is not null)
             return;
+        _salvoCell = null;
+        Hud.HideSalvoChoice();
         if (!Battle.Board.Contains(cell))
         {
             CancelOrder();
@@ -85,6 +89,7 @@ public partial class Main
 
             if (Battle.TargetCells(selected.Id).Contains(cell))
             {
+                if (OfferSalvoChoice(selected, cell)) return;
                 int id = selected.Id;
                 RunSafely(() => Perform(b => b.AttackAt(Side.Player, id, cell), deferImpacts: true));
                 return;
@@ -164,6 +169,8 @@ public partial class Main
 
     private void ClearMode()
     {
+        _salvoCell = null;
+        _salvoBattle = null;
         Mode = OrderMode.None;
         _building = null;
         _resourceCell = null;

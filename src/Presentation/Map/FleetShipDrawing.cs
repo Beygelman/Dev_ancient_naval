@@ -11,13 +11,13 @@ public partial class FleetView
 {
     private readonly CityShipArt _cityShip = new();
     private readonly VesselArt _vesselArt = new();
-    private void DrawShip(ShipSnapshot ship, Vector2 center)
+    private void DrawShip(ShipSnapshot ship, Vector2 center, bool silhouette = false)
     {
         if (ship.Class == ShipClass.Balloon)
         {
             var balloon = center + new Vector2(0, -62);
             var color = ship.IsAncient ? new Color("c7aa65") : FleetPalette.For(Battle, ship.Owner);
-            Ink.DrawCircle(center, 12, new Color(0, 0, 0, 0.2f));
+            if (!silhouette) Ink.DrawCircle(center, 12, new Color(0, 0, 0, 0.2f));
             Ink.DrawLine(balloon + new Vector2(-12, 10), balloon + new Vector2(-6, 32), color, 2, true);
             Ink.DrawLine(balloon + new Vector2(12, 10), balloon + new Vector2(6, 32), color, 2, true);
             DrawBalloonEnvelope(balloon, color);
@@ -44,6 +44,14 @@ public partial class FleetView
             return;
         }
 
+        if (ship.Class == ShipClass.Lighthouse)
+        {
+            DrawLighthouse(center, FleetPalette.For(Battle, ship.Owner));
+            if (ship.Id == SelectedId)
+                Ink.DrawArc(center + LighthouseOffset, 20, 0, Mathf.Tau, 32, new Color("ffe298"), 1.7f, true);
+            return;
+        }
+
         var profile = ShipVisualProfile.For(ship.Class);
         float size = profile.Size;
         // Bob/roll use the retained hull canvas transform; floor geometry changes only with heading.
@@ -58,7 +66,7 @@ public partial class FleetView
         Vector2 StructurePoint(float x, float y) => center + new Vector2(x, y) * size;
         var accent = FleetPalette.For(Battle, ship.Owner);
         Ink.DrawSetTransform(center + new Vector2(0, 4), 0, new Vector2(1, 0.45f));
-        Ink.DrawCircle(Vector2.Zero, 30 * size, new Color(0, 0, 0, 0.3f));
+        if (!silhouette) Ink.DrawCircle(Vector2.Zero, 30 * size, new Color(0, 0, 0, 0.3f));
         Ink.DrawSetTransform(Vector2.Zero);
         if (ship.Id == SelectedId)
             Ink.DrawArc(center, 34 * size, 0, Mathf.Tau, 40, new Color("ffe298"), 2, true);
@@ -97,34 +105,33 @@ public partial class FleetView
 
         if (ship.IsVeteran && ship.Class is ShipClass.CannonTower or ShipClass.AncientGun)
         {
-            Ink.DrawArc(center + new Vector2(0, -21 * size), 12 * size, Mathf.Pi, Mathf.Tau, 12, new Color("e2e9df"), 2, true);
-            Ink.DrawCircle(center + new Vector2(0, -34 * size), 3 * size, new Color("e9d39b"));
+            Ink.DrawLine(StructurePoint(-10,-20), StructurePoint(10,-20), new Color("783541"), 2.2f, true);
+            Ink.DrawLine(StructurePoint(-10,-16), StructurePoint(10,-16), new Color("783541"), 1.4f, true);
         }
         else if (ship.IsVeteran)
         {
-            DrawProjectedPolygon(new[] { P(-25, -5, 4), P(-12, -5, 4), P(-12, 5, 4), P(-25, 5, 4) }, new Color("d5c69a"));
-            DrawProjectedPolygon(new[] { P(-25, 5, 0), P(-12, 5, 0), P(-12, 5, 4), P(-25, 5, 4) }, new Color("8e805f"));
-            Ink.DrawLine(P(-25, 5, 8), P(-12, 5, 8), new Color("dce2d6"), 1.4f, true);
-            Ink.DrawLine(P(-25, 5, 4), P(-25, 5, 8), new Color("dce2d6"), 1.4f, true);
-            Ink.DrawLine(P(-12, 5, 4), P(-12, 5, 8), new Color("dce2d6"), 1.4f, true);
-            Ink.DrawLine(P(27, 0, 1), P(31, 0, 8), new Color("cedbdf"), 2.5f, true);
-            Ink.DrawCircle(P(31, 0, 9), 2 * size, new Color("f1f3e9"));
-            DrawProjectedPolygon(new[] { P(30, 0, 6), P(25, -5, 10), P(28, 0, 7), P(34, 5, 10) }, new Color("b9cbd1"));
+            // Painted stern ribbons identify veteran crews without bolting an oversized structure to the deck.
+            var burgundy = new Color("783541");
+            for (int edge = 0; edge < 2; edge++)
+            {
+                float side = edge == 0 ? -5 : 5;
+                DrawProjectedPolygon(new[] { P(-22,side,2), P(-9,side,2), P(-9,side,3.5f), P(-22,side,3.5f) }, burgundy);
+                Ink.DrawLine(P(-22,side,5), P(-9,side,5), burgundy, 1.2f, true);
+            }
         }
 
-        if (!_sinking.ContainsKey(ship.Id))
+        if (!silhouette && !_sinking.ContainsKey(ship.Id))
         {
             for (int slot = 0; slot < ship.ProgressGoal; slot++)
             {
-                float angle = Mathf.Pi / 2 + (slot - (ship.ProgressGoal - 1) * .5f) * .22f;
-                var point = center + Vector2.FromAngle(angle) * 39;
+                var point = center + new Vector2((slot - (ship.ProgressGoal - 1) * .5f) * 9, ShipVisualProfile.ProgressY(ship.Class));
                 var rect = new Rect2(point - new Vector2(4, 3), new Vector2(8, 6));
                 Ink.DrawRect(rect, slot < ship.Progress ? new Color(ship.Class == ShipClass.Mothership ? "83e9ba" : "ffd66e") : new Color("17333e"));
                 Ink.DrawRect(rect, new Color("b2c8bc"), false, 1);
             }
         }
 
-        if (ship.IsExhausted)
+        if (!silhouette && ship.IsExhausted)
             Ink.DrawCircle(center + new Vector2(28, 14), 4, new Color("c8c4b4"));
     }
 }

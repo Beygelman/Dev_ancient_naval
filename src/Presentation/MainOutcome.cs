@@ -22,13 +22,14 @@ public partial class Main
             ShowHome();
         };
         _victory.ExitRequested += ExitSession;
+        _victory.CloseRequested += HideOutcome;
     }
 
     private void RefreshOutcome()
     {
         if (_victory is null)
             return;
-        bool finished = Battle.Winner == Side.Player && !Busy && !_sessionLoading
+        bool finished = (Battle.IsOver || Battle.PlayerDefeated) && !Busy && !_sessionLoading
             && Battle.PendingPresentation is null && _home?.IsOpen != true
             && BoardView.Visible;
         if (!finished)
@@ -38,7 +39,7 @@ public partial class Main
                 _celebratedBattle = null;
             return;
         }
-        if (ReferenceEquals(_celebratedBattle, Battle) && _victory.IsOpen)
+        if (ReferenceEquals(_celebratedBattle, Battle))
             return;
 
         // Busy spans shell flight, flagship fracture and the remaining fleet's
@@ -50,7 +51,7 @@ public partial class Main
         Hud.Hide();
         _outcomeOwnsInput = true;
         _celebratedBattle = Battle;
-        _victory.ShowVictory(Battle.Statistics, Battle.Round);
+        _victory.ShowOutcome(Battle.Statistics, Battle.Round, Battle.Winner == Side.Player);
     }
 
     private void HideOutcome()

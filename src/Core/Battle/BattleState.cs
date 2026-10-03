@@ -27,13 +27,13 @@ public sealed partial class BattleState
     {
         Board = board;
         Rules = rules;
-        Vision = new BattleVision(board);
+        Vision = new BattleVision(board, rules.MountainSightShadows, rules.SmallHullRadarStealth, rules.FishingRadarVisible);
         _credits = new int[SideSlots];
         Ships = _ships.AsReadOnly();
         IncomeSources = _incomeSources.AsReadOnly();
     }
 
-    public BattleState(GameBoard board, BattleRules rules, IEnumerable<(Side Owner, ShipClass Class, GridPosition Position)> setup, IEnumerable<GridPosition>? fishSpots = null, int resourceSeed = 1729, IEnumerable<GridPosition>? villageSpots = null, bool seaEvents = false) : this(board, rules)
+    public BattleState(GameBoard board, BattleRules rules, IEnumerable<(Side Owner, ShipClass Class, GridPosition Position)> setup, IEnumerable<GridPosition>? fishSpots = null, int resourceSeed = 1729, IEnumerable<GridPosition>? villageSpots = null, bool seaEvents = false, bool generatedSettlements = false) : this(board, rules)
     {
         foreach (var side in PlayableSides)
             _credits[(int)side] = rules.StartingCredits;
@@ -47,9 +47,12 @@ public sealed partial class BattleState
         }
 
         InitializeFactions();
+        _personalTurnStarts[(int)Side.Player] = 1;
         UpdateVision();
         InitializeFishing(fishSpots, resourceSeed);
         InitializeVillages(villageSpots, resourceSeed);
+        if (generatedSettlements)
+            InitializeSettlementLevels();
         InitializeSeaEvents(seaEvents, resourceSeed);
         AssignWorldNames();
         UpdateVision();
@@ -73,6 +76,8 @@ public sealed partial class BattleState
     {
         Vision.SetAllSeeingPlayer(GodEye || Winner == Side.Player);
         Vision.Recompute(Ships, TurnSerial, _villages);
+        ObserveFlagships();
+        DiscoverNations();
     }
     private string? ValidateActor(Side requester, int id, out Ship? ship)
     {
@@ -85,7 +90,7 @@ public sealed partial class BattleState
             return "It is the other side's turn.";
         if (ship is null || ship.Owner != requester)
             return "Select one of your ships.";
-        if (ship.IsExhausted)
+        if (ship.IsExhausted || ship.HasRepaired)
             return "This ship has no actions remaining this turn.";
         if (PendingUpgrade(requester)is not null)
             return "Choose the Mothership upgrade first.";

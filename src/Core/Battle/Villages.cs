@@ -101,8 +101,9 @@ public sealed partial class BattleState
 
             if (village.Owner == side && village.Health > 0)
             {
+                if (Rules.FrozenUnownedVillages && side == Side.Pirates) continue;
                 village.TurnsOwned++;
-                if (village.TurnsOwned % 2 == 0 && village.Level < 5)
+                if (!Rules.PaidVillageUpgrades && village.TurnsOwned % 2 == 0 && village.Level < 5)
                 {
                     village.Level++;
                     village.Health += 5;
@@ -138,6 +139,8 @@ public sealed partial class BattleState
     private string? ValidateVillage(Side side, int villageId, out Village? village)
     {
         village = _villages.FirstOrDefault(v => v.Id == villageId);
+        if (PendingPresentation is not null)
+            return "A projectile is still in flight.";
         if (IsOver)
             return "The battle is over.";
         if (side != ActiveSide)
@@ -146,23 +149,29 @@ public sealed partial class BattleState
             return "Select one of your villages.";
         if (village.Health <= 0)
             return "This town is defeated and its shipyard is inactive.";
+        if (village.HasRepaired)
+            return "This town has already repaired this turn.";
         return PendingUpgrade(side)is null ? null : "Choose the Mothership upgrade first.";
     }
 
-    public static int VillageRequiredLevel(ShipClass kind) => kind == ShipClass.Garrison ? 2 : RequiredLevel(kind);
+    public static int VillageRequiredLevel(ShipClass kind) => kind == ShipClass.Garrison ? 2 : kind == ShipClass.Lighthouse ? 3 : RequiredLevel(kind);
     public string? VillageBuildBlockReason(Side requester, int villageId, ShipClass kind)
     {
         var error = ValidateVillage(requester, villageId, out var village);
         if (error is not null)
             return error;
-        if (kind is not (ShipClass.Garrison or ShipClass.Fishing or ShipClass.Invader or ShipClass.Kolonel or ShipClass.Togus))
+        if (kind is not (ShipClass.Garrison or ShipClass.Fishing or ShipClass.Invader or ShipClass.Kolonel or ShipClass.Togus or ShipClass.Lighthouse))
             return "This class cannot be built by a village.";
+        if (kind == ShipClass.Lighthouse && Rules.FishingLighthouses)
+            return "Villages cannot build lighthouses.";
+        if (kind == ShipClass.Lighthouse && !Rules.LighthousesEnabled)
+            return "Lighthouse construction is unavailable in this voyage.";
         if (village!.Level < VillageRequiredLevel(kind))
             return $"Available at village level {VillageRequiredLevel(kind)}.";
         if (village.HasProduced)
             return "This village has already built a ship this turn.";
-        if (kind != ShipClass.CannonTower && Rules.Get(kind).Damage > 0 && _ships.Count(s => s.Owner == requester && s.CountsTowardFleet) >= Rules.FleetLimit)
-            return $"Fleet limit: {Rules.FleetLimit}.";
+        if (UsesFleetSlot(kind) && FleetUsed(requester) >= FleetCapacity(requester))
+            return $"Fleet limit: {FleetCapacity(requester)}.";
         if (Credits(requester) < VillageBuildPrice(villageId, kind))
             return "Not enough Thors.";
         return VillageSpawnCells(villageId).Count == 0 ? "No adjacent water tile is free." : null;
@@ -218,7 +227,7 @@ public sealed partial class BattleState
         return !IsOver && ship is not null && village is not null && ship.Owner == ActiveSide && village.Health > 0 && village.Owner != ship.Owner && ship.AttacksRemaining > 0 && Vision.IsVisible(ship.Owner, village.Position) && WeaponCovers(ship, village.Position);
     }
 
-    public CommandResult AttackVillage(Side requester, int shipId, int villageId)
+    public CommandResult AttackVillage(Side requester, int shipId, int villageId, bool doubleSalvo = false)
     {
         var error = ValidateActor(requester, shipId, out var ship);
         if (error is not null)
@@ -226,15 +235,17 @@ public sealed partial class BattleState
         if (!CanAttackVillage(shipId, villageId))
             return CommandResult.Rejected("A visible village must be within weapon range.");
         var village = _villages.First(v => v.Id == villageId);
+        if (doubleSalvo && !CanDoubleSalvo(shipId, village.Position))
+            return CommandResult.Rejected("A double salvo needs two cannon shots remaining.");
         var attackerBefore = ShipSnapshot.From(ship!);
         bool attackerVisible = ship!.Owner == Side.Player || Vision.IsVisible(Side.Player, ship.Position);
         bool townVisible = Vision.IsVisible(Side.Player, village.Position);
         bool mortar = UsesMortar(ship, village.Position);
         double counterDamage = 0;
         double raw = (mortar ? ship.CurrentMortarDamage + Rules.Mortar.VillageDamageBonus : ship.CurrentDamage) + ship.ShotDamageBonus;
-        double damage = Math.Min(village.Health, raw * (village.IsFortified ? .75 : 1));
+        double damage = Math.Min(village.Health, raw * (village.IsFortified ? .75 : 1) * (doubleSalvo ? 2 : 1));
         village.Health = Math.Max(0, village.Health - damage);
-        ship.AttacksUsed++;
+        ship.AttacksUsed += doubleSalvo ? 2 : 1;
         var splash = mortar ? MortarSplash(ship, village.Position) : Array.Empty<CombatShot>();
         var area = mortar ? MortarVillageSplash(ship, village.Position, village.Id) : Array.Empty<AreaHit>();
         if (ship.Definition.ActionProfile == ActionProfile.Standard && ship.HasMoved)
@@ -262,6 +273,6 @@ public sealed partial class BattleState
 
         RecordImpact("village-counter");
         UpdateVision();
-        return new(true, $"Town hit for {damage:0.##} damage." + (village.Health <= 0 ? " Defenses defeated: hold alongside until next turn to capture." : ""), CommandKind.Attack, shipId, villageId, damage, Path: new[] { ship.Position, village.Position }, StructureHit: new(attackerBefore, village.Position, counterDamage, mortar, attackerVisible, townVisible), Splash: splash, AreaHits: area);
+        return new(true, $"Town hit for {damage:0.##} damage." + (village.Health <= 0 ? " Defenses defeated: hold alongside until next turn to capture." : ""), CommandKind.Attack, shipId, villageId, damage, Path: new[] { ship.Position, village.Position }, StructureHit: new(attackerBefore, village.Position, counterDamage, mortar, attackerVisible, townVisible, doubleSalvo ? 2 : 1), Splash: splash, AreaHits: area);
     }
 }

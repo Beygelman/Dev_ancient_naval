@@ -25,7 +25,10 @@ public partial class FleetView
         internal float Heading = float.NaN;
         internal float Barrel = float.NaN;
         internal float LastDraw = -1;
-        internal int? Selection;
+        internal bool Selected;
+        internal Sprite2D? Glow;
+        internal SceneryAtlasPage? Mask;
+        internal string MaskKey = "";
         internal bool HealthAnimating;
     }
 
@@ -66,6 +69,7 @@ public partial class FleetView
                 _retiredHulls.Add(pair.Key);
         foreach (int id in _retiredHulls)
         {
+            ReleaseTargetMask(_hulls[id].Mask);
             _hulls[id].Canvas.QueueFree();
             _hulls[id].Badge.QueueFree();
             _hulls.Remove(id);
@@ -104,7 +108,7 @@ public partial class FleetView
                 Name = "HealthAmphorae" + ship.Id,
                 ZIndex = 7,
                 DrawWorld = canvas => AmphoraBadgeArt.Draw(canvas, Vector2.Zero, hull.Ship.Health, hull.Ship.MaxHealth,
-                    FleetPalette.For(Battle, hull.Ship.Owner), hull.Ship.Class, hull.Health.Motion(_clock))
+                    FleetPalette.For(Battle, hull.Ship.Owner), hull.Ship.Class, hull.Health.Motion(_clock), hull.Ship.IsVeteran)
             };
             AddChild(hull.Badge);
             _hulls.Add(ship.Id, hull);
@@ -113,14 +117,16 @@ public partial class FleetView
         _shownHulls.Add(ship.Id);
         float heading = DeckAngle(ship.Id);
         float barrel = _barrelAngles.GetValueOrDefault(ship.Id);
-        bool redraw = hull.Ship != ship || hull.Heading != heading || hull.Barrel != barrel || hull.Selection != SelectedId ||
+        bool selected = ship.Id == SelectedId;
+        bool redraw = hull.Ship != ship || hull.Heading != heading || hull.Barrel != barrel || hull.Selected != selected ||
             _sinking.ContainsKey(ship.Id) || ship.Class == Core.Units.ShipClass.Mothership && _clock - hull.LastDraw >= .10f;
         bool healthChanged = hull.Ship != ship;
         hull.Health.Observe(ship.Health, ship.MaxHealth, _clock);
         hull.Ship = ship;
         hull.Heading = heading;
         hull.Barrel = barrel;
-        hull.Selection = SelectedId;
+        hull.Selected = selected;
+        UpdateAttackHighlight(hull, AttackHighlight(ship, out bool lethal), lethal);
         var (bob, roll) = HullMotion(ship);
         hull.Canvas.Position = point + bob;
         hull.Canvas.Rotation = roll;

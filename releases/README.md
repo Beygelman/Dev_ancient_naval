@@ -6,7 +6,52 @@ addition to the external `outputs` directory. Sources are edited directly in
 the repository's `src`, `assets`, `data`, `scenes` and `tests` folders; the root
 `README.md` describes the current version.
 
-## Current version: 0.20
+## Current version: v020.4 — Harbors and Blessings
+
+- [Windows ZIP](v020.4/Ancient_Naval_v020.4_Windows.zip)
+- [Source ZIP](v020.4/Ancient_Naval_v020.4_Source.zip)
+- [Russian notes](v020.4/Ancient_Naval_v020.4_Notes_RU.md), [checksums](SHA256-v020.4.txt)
+- Local launch: `v020.4/playable/Ancient Naval.exe`.
+
+Paid town levels, compact scalable parchment, cosmetic merchant traffic and shared naval icons. Historical saves preserve their economic rules.
+
+## Previous checkpoint: v020.3
+
+- [Windows ZIP](v020.3/Ancient_Naval_v020.3_Windows.zip)
+- [Source ZIP](v020.3/Ancient_Naval_v020.3_Source.zip)
+- [Russian notes](v020.3/Ancient_Naval_v020.3_Notes_RU.md), [checksums](SHA256-v020.3.txt)
+- Local launch: `v020.3/playable/Ancient Naval.exe`.
+
+## Previous checkpoint: v020.2 — corrected build
+
+- [Windows ZIP](v020.2/Ancient_Naval_v020.2_Windows.zip)
+- [Source ZIP](v020.2/Ancient_Naval_v020.2_Source.zip)
+- [Russian notes](v020.2/Ancient_Naval_v020.2_Notes_RU.md), [checksums](SHA256-v020.2.txt)
+- Local launch: `v020.2/playable/Ancient Naval.exe`.
+
+This correction uses a separate folder. Historical 0.20.2 archives and checksums remain unchanged.
+
+## Previous checkpoint: v0.20.2
+
+User-requested version number; this build includes the completed 0.21 work.
+
+- [Windows ZIP](0.20.2/Ancient_Naval_0.20.2_Windows.zip)
+- [Source ZIP](0.20.2/Ancient_Naval_0.20.2_Source.zip)
+- [Russian notes](0.20.2/Ancient_Naval_0.20.2_Notes_RU.md), [checksums](SHA256-0.20.2.txt)
+- [Landscape](0.20.2/Ancient_Naval_0.20.2_landscape.png), [pirate bay](0.20.2/Ancient_Naval_0.20.2_pirate-bay.png), [heavenly blessing](0.20.2/Ancient_Naval_0.20.2_blessing.png)
+
+Local launch: `0.20.2/playable/Ancient Naval.exe`. Keep the whole runtime folder together.
+
+## Previous checkpoint: 0.21
+
+- [Windows ZIP](0.21/Ancient_Naval_0.21_Windows.zip)
+- [Source ZIP](0.21/Ancient_Naval_0.21_Source.zip)
+- [Russian notes](0.21/Ancient_Naval_0.21_Notes_RU.md), [checksums](SHA256-0.21.txt)
+- [Actions](0.21/Ancient_Naval_0.21_actions.png), [claim banner](0.21/Ancient_Naval_0.21_claim.png), [first encounter](0.21/Ancient_Naval_0.21_encounter.png)
+
+Local launch: `0.21/playable/Ancient Naval.exe`. Keep the whole runtime folder together.
+
+## Previous version: 0.20
 
 - [Windows ZIP](0.20/Ancient_Naval_0.20_Windows.zip)
 - [Source checkpoint ZIP](0.20/Ancient_Naval_0.20_Source.zip)

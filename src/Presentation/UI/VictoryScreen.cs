@@ -12,12 +12,16 @@ public partial class VictoryScreen : CanvasLayer
     private Control _root = null!;
     private ColorRect _shade = null!;
     private PanelContainer _paper = null!;
+    private ScrollContainer _scroll = null!;
+    private VBoxContainer _body = null!;
     private Label _heading = null!, _currency = null!, _built = null!, _sunk = null!, _nations = null!, _footnote = null!;
     private Button _home = null!;
+    private Label _story = null!;
     private VictoryCelebration _celebration = null!;
     private float _age;
+    private bool _layingOut;
 
-    public event Action? HomeRequested, ExitRequested;
+    public event Action? HomeRequested, ExitRequested, CloseRequested;
     public bool IsOpen => Visible;
     internal int ShowCount { get; private set; }
     internal int ActiveSparkCount => _celebration?.ActiveSparkCount ?? 0;
@@ -51,13 +55,14 @@ public partial class VictoryScreen : CanvasLayer
         var parchment = PapyrusStyle.Panel(.95f);
         parchment.BgColor = new Color("192c32");
         parchment.BorderColor = new Color("b89a61");
-        parchment.ContentMarginLeft = parchment.ContentMarginRight = 38;
-        parchment.ContentMarginTop = parchment.ContentMarginBottom = 28;
+        parchment.ContentMarginLeft = parchment.ContentMarginRight = 16;
+        parchment.ContentMarginTop = parchment.ContentMarginBottom = 12;
         _paper.AddThemeStyleboxOverride("panel", parchment);
         center.AddChild(_paper);
         var column = new VBoxContainer { Name = "VictoryContent" };
+        _body = column;
         column.AddThemeConstantOverride("separation", 17);
-        _paper.AddChild(column);
+        _scroll = PapyrusModal.Wrap(_paper, column, "VictoryScroll");
 
         _heading = Text("VICTORY", 66, new Color("f8e7b0"));
         _heading.Name = "VictoryHeading";
@@ -68,7 +73,7 @@ public partial class VictoryScreen : CanvasLayer
         _heading.AddThemeConstantOverride("shadow_offset_y", 0);
         column.AddChild(_heading);
 
-        var story = Text("You preserved your people.\nThe ship of new hope sails on.", 20, new Color("e9d9b8"));
+        var story = _story = Text("You preserved your people.\nThe ship of new hope sails on.", 20, new Color("e9d9b8"));
         story.Name = "VictoryStory";
         story.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         column.AddChild(story);
@@ -86,13 +91,15 @@ public partial class VictoryScreen : CanvasLayer
         _footnote.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         column.AddChild(_footnote);
 
-        var buttons = new HBoxContainer { Name = "VictoryActions", Alignment = BoxContainer.AlignmentMode.Center };
+        column.AddChild(Action("InspectMap", "View the map", () => CloseRequested?.Invoke()));
+        var buttons = new VBoxContainer { Name = "VictoryActions" };
         buttons.AddThemeConstantOverride("separation", 14);
         column.AddChild(buttons);
         _home = Action("VictoryHome", "Return to menu", () => HomeRequested?.Invoke());
         buttons.AddChild(_home);
         buttons.AddChild(Action("VictoryExit", "Exit game", () => ExitRequested?.Invoke()));
-        GetViewport().SizeChanged += Layout;
+        UiScale.Bind(this, _root, Layout);
+        _body.MinimumSizeChanged += Layout;
         Layout();
         Close();
     }
@@ -102,6 +109,7 @@ public partial class VictoryScreen : CanvasLayer
         var label = new Label
         {
             Text = text,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
             HorizontalAlignment = HorizontalAlignment.Center,
             MouseFilter = Control.MouseFilterEnum.Ignore
         };
@@ -124,7 +132,8 @@ public partial class VictoryScreen : CanvasLayer
 
     private static Button Action(string name, string text, System.Action action)
     {
-        var button = new Button { Name = name, Text = text, CustomMinimumSize = new(192, 47) };
+        var button = new Button { Name = name, Text = text, CustomMinimumSize = new(0, 47),
+            AutowrapMode = TextServer.AutowrapMode.WordSmart };
         PapyrusStyle.Button(button, 17);
         button.Pressed += action;
         return button;
@@ -132,13 +141,20 @@ public partial class VictoryScreen : CanvasLayer
 
     private void Layout()
     {
-        float width = GetViewport().GetVisibleRect().Size.X;
-        _paper.CustomMinimumSize = new(Math.Clamp(width - 44, 380, 650), 0);
-        _heading.AddThemeFontSizeOverride("font_size", width < 560 ? 46 : 66);
+        if (_layingOut || _heading is null) return;
+        _layingOut = true;
+        var viewport = UiScale.LogicalViewport(this);
+        _heading.AddThemeFontSizeOverride("font_size", 42);
+        PapyrusModal.Layout(_paper, _scroll, _body, viewport);
+        _layingOut = false;
     }
 
-    public void ShowVictory(VoyageStatistics statistics, int round)
+    public void ShowVictory(VoyageStatistics statistics, int round) => ShowOutcome(statistics, round, true);
+
+    public void ShowOutcome(VoyageStatistics statistics, int round, bool won)
     {
+        _heading.Text = won ? "VICTORY" : "DEFEAT";
+        _story.Text = won ? "You preserved your people.\nThe ship of new hope sails on." : "Your flagship has fallen.\nYour voyage will be remembered.";
         _currency.Text = statistics.CurrencyEarned.ToString("N0") + " Thors";
         _built.Text = statistics.ShipsBuilt.ToString("N0");
         _sunk.Text = statistics.EnemyShipsDestroyed.ToString("N0");
@@ -149,7 +165,7 @@ public partial class VictoryScreen : CanvasLayer
         Visible = true;
         _paper.Modulate = new Color(1, 1, 1, 0);
         _shade.Modulate = new Color(1, 1, 1, 0);
-        _celebration.Start();
+        if (won) _celebration.Start(); else _celebration.Stop();
         SetProcess(true);
         SetProcessInput(true);
         _home.GrabFocus();
@@ -179,10 +195,12 @@ public partial class VictoryScreen : CanvasLayer
     public override void _Input(InputEvent input)
     {
         if (IsOpen && input is InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape })
+        {
+            CloseRequested?.Invoke();
             GetViewport().SetInputAsHandled();
+        }
     }
 
-    public override void _ExitTree() => GetViewport().SizeChanged -= Layout;
 }
 
 internal partial class VictoryCelebration : Control

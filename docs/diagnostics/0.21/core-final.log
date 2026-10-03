@@ -1,0 +1,27 @@
+PASS: 1535 core checks
+NAVIGATION ships=16 iterations=3 before_bytes=42098928 after_bytes=2117184 before_ms=24,454 after_ms=1,719
+NAVIGATION ships=128 iterations=3 before_bytes=94398960 after_bytes=2040264 before_ms=117,21 after_ms=1,712
+NAVIGATION ships=256 iterations=3 before_bytes=129229224 after_bytes=1967664 before_ms=184,899 after_ms=1,736
+MULTI_AI opponents=2 winner=Player round=33 commands=491
+MULTI_AI opponents=4 winner=Enemy2 round=46 commands=910
+REFINEMENT016: tower radar/veterancy, outpost targeting, AA, retreat and fish density passed
+DIFFICULTY Boatswain round=8 ships=6 elapsed_ms=154,7
+DIFFICULTY Captain round=10 ships=16 elapsed_ms=693,3
+DIFFICULTY Admiral round=11 ships=31 elapsed_ms=1776,9
+COMPLETE_AI Boatswain winner=Enemy round=19 orders=295
+COMPLETE_AI Captain winner=Enemy round=20 orders=445
+COMPLETE_AI Admiral winner=Player round=29 orders=693
+AI 0: Player, round 12, actions 241
+AI 1: Player, round 14, actions 268
+AI 2: Enemy, round 22, actions 348
+AI 3: Player, round 13, actions 262
+AI 4: Enemy, round 16, actions 286
+AI 5: Player, round 19, actions 315
+AI 6: Player, round 16, actions 526
+AI 7: Enemy, round 20, actions 713
+PASS: 1201143 Thor/progression/combat checks; 8 complete AI matches.
+PASS: 18 save compatibility and validation checks.
+PASS: 368 four-world generation checks.
+PASS: 23 voyage statistics checks.
+PASS: 79 free-coast, anti-air, inland Pangaea and red-save checks.
+PASS: 38 salvo, encounters, level rewards and compatibility checks.

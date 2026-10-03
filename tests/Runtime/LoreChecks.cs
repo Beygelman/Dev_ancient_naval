@@ -67,18 +67,26 @@ internal static class LoreChecks
         Check(!installed.Any(r => r.Label is "Heavy shot" or "Reinforced hull"), "Unchosen level rewards remain absent");
         var unmodified = example.Mothership(Side.Enemy)!;
         Check(!AncientLore.Ship(example, unmodified).Sections.Any(s => s.Title == "Installed improvements"), "Base ship has no invented improvements");
-        Check(AncientLore.Ship(example, unmodified).Sections.Single(s => s.Title == "Crew & economy").Rows.Single(r => r.Label == "Shipyard").Value == "Fishing Schooner, Brig", "Shipyard lists only presently available classes");
+        Check(AncientLore.Ship(example, unmodified).Sections.Single(s => s.Title == "Crew & economy").Rows.Single(r => r.Label == "Shipyard").Value
+            == (rules.LighthousesEnabled ? "Fishing Schooner, Brig, Lighthouse" : "Fishing Schooner, Brig"), "Shipyard lists only presently available names");
         var tower = example.OwnShips(Side.Player).Single(s => s.Definition.Class == ShipClass.CannonTower);
         Check(AncientLore.Ship(example, tower).Sections.Single(s => s.Title == "Installed improvements").Rows.Any(r => r.Label == "Veteran"), "Tower veterancy is an installed improvement");
         var bareTown = AncientLore.Village(example, example.Villages[0]);
         Check(!bareTown.Sections.Any(s => s.Title == "Installed improvements") && !bareTown.PlainText.Contains("Port"), "Unbuilt town upgrades are not advertised");
         Check(Field(bareTown, "Income") == "+0 Thors per turn", "Unowned town has no active income");
         var city = AncientLore.Village(example, example.Villages[1]);
+        var cityShipyard = Field(city, "Shipyard");
+        Check(cityShipyard.Split(", ").All(name => rules.Ships.Any(definition => definition.Name == name)),
+            "producer counsel lists class names without ship statistics or descriptions");
+        Check(cityShipyard.Contains("Lighthouse") == (rules.LighthousesEnabled && !rules.FishingLighthouses),
+            "town shipyard follows the voyage's Lighthouse producer policy");
         Check(city.Sections.Single(s => s.Title == "Installed improvements").Rows.Any(r => r.Label == "Port"), "Built port has its own row");
         Check(Field(city, "Local shipyard") == $"{rules.Ports.Discount:P0} cheaper ships", "Port discount follows voyage rules");
         Check(Field(city, "Automatic guns").StartsWith($"{example.VillageAttackDamage(example.Villages[1])} damage"), "Outpost reports this level's guns");
-        var shoal = AncientLore.Cell(example, new(4, 12)).Page;
+        var shoal = AncientLore.Cell(example, new(4, 12))!.Value.Page;
         Check(Field(shoal, "Reward") == "1 Mothership resource", "Resource reward stays concise and correct");
+        Check(AncientLore.Cell(example, new(1, 1)) is null, "Empty sea has no terrain counsel page");
+        Check(AncientLore.Cell(example, new(8, 5)) is null, "Land has no terrain counsel page");
         var changed = example.CaptureSnapshot();
         changed.Rules = new BattleRules
         {

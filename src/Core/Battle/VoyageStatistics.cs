@@ -48,6 +48,9 @@ public sealed partial class BattleState
 
     private void RecordEnemyLoss(Side attacker, Ship target)
     {
+        if (target.IsMothership && target.Health <= 0 && _ships.Contains(target)
+            && attacker != target.Owner && PlayableSides.Contains(attacker) && PlayableSides.Contains(target.Owner))
+            _flagshipKills[(int)attacker]++;
         if (attacker != Side.Player || target.Owner == Side.Player
             || target.Health > 0 || !_ships.Contains(target))
             return;

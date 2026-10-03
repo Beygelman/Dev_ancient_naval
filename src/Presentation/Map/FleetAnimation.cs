@@ -13,17 +13,23 @@ public partial class FleetView
 {
     private int _salvoSequence;
     internal int LastSalvoCount { get; private set; }
+    internal float LastSalvoLaunchSpread { get; private set; }
 
     internal readonly List<(int Launched, int Landed)> CompletedSalvos = new();
+    internal readonly List<float> CompletedLaunchSpreads = new();
     private readonly record struct RouteSample(Vector2 Position, float Distance, bool Visible);
     private async Task AnimateTravel(int shipId, IReadOnlyList<MovementFrame> frames)
     {
+        var routeTrace = Diagnostics.PerformanceTrace.Measure("Animation.TravelRoute");
         var moving = Battle.Find(shipId)!;
         _movingShip = ShipSnapshot.From(moving);
         _movingId = shipId;
         _movingPosition = Projection.GridToWorld(frames[0].Position);
         if (!frames.Any(f => f.VisibleToPlayer))
+        {
+            routeTrace.Dispose();
             return;
+        }
         var profile = ShipVisualProfile.For(moving.Definition.Class);
         var route = new List<RouteSample>
         {
@@ -55,6 +61,7 @@ public partial class FleetView
         _sailingPitch = 0;
         _wakeClock = _clock;
         double duration = Math.Max(.3, profile.TravelSeconds * (frames.Count - 1) + profile.Size * .42f);
+        routeTrace.Dispose();
         await TweenValue(duration, t =>
         {
             float distance = MotionProgress(t) * length;
@@ -91,12 +98,14 @@ public partial class FleetView
         _sailingBank = 0;
     }
 
-    private async Task AnimateSalvo(ShipSnapshot attacker, GridPosition targetCell, ShipSnapshot? target, bool mortar, bool attackerVisible, bool targetVisible)
+    private async Task AnimateSalvo(ShipSnapshot attacker, GridPosition targetCell, ShipSnapshot? target, bool mortar, bool attackerVisible, bool targetVisible, int charges = 1)
     {
         if (!attackerVisible && !targetVisible)
             return;
+        if (targetVisible && FocusTarget is not null) await FocusTarget(targetCell);
         var profile = ShipVisualProfile.For(attacker.Class);
-        int count = mortar ? 1 : Math.Max(1, profile.Cannonballs);
+        int guns = mortar ? 1 : Math.Max(1, profile.Cannonballs);
+        int count = guns * charges;
         LastSalvoCount = count;
         var random = new Random(attacker.Id * 7919 + ++_salvoSequence * 173 + targetCell.X * 31 + targetCell.Y);
         var from = Projection.GridToWorld(attacker.Position) + new Vector2(0, -8);
@@ -113,13 +122,14 @@ public partial class FleetView
         {
             // Bounded impacts on the deck, never a random miss around the tile.
             ends[i] = center + new Vector2((float)random.NextDouble() * 24 - 12, (float)random.NextDouble() * 7 - 3.5f) * targetSize;
-            starts[i] = from + direction.Orthogonal() * ((i - (count - 1) * .5f) * 5 * profile.Size);
+            starts[i] = from + direction.Orthogonal() * (((i % guns) - (guns - 1) * .5f) * 5 * profile.Size + i / guns * 1.8f);
         }
 
         float distance = from.DistanceTo(center);
         float flight = mortar ? Math.Clamp(distance / 330f, .76f, 1.16f) : Math.Clamp(distance / 560f, .32f, .62f);
         float height = mortar ? Math.Clamp(distance * .95f, 130, 270) : Math.Clamp(1900f * flight * flight / 8, 28, 95);
-        const float interval = .035f;
+        float interval = charges > 1 ? 0 : .035f;
+        LastSalvoLaunchSpread = (count - 1) * interval;
         float duration = flight + (count - 1) * interval;
         Vector2 Ball(int i, float t) => starts[i].Lerp(ends[i], t) + new Vector2(0, -4 * height * t * (1 - t));
         await TweenValue(duration, progress =>
@@ -161,5 +171,6 @@ public partial class FleetView
         ProjectilePosition = null;
         _muzzle = null;
         CompletedSalvos.Add((launched.Count(value => value), landed.Count(value => value)));
+        CompletedLaunchSpreads.Add((count - 1) * interval);
     }
 }

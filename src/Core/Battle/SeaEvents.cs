@@ -12,7 +12,7 @@ public enum TreasuryReward
     Whirlpool
 }
 
-public sealed record Treasury(int Id, GridPosition Position);
+public sealed record Treasury(int Id, GridPosition Position, bool IsCollected = false);
 public sealed record Whirlpool(GridPosition Position, IReadOnlyCollection<GridPosition> Cells);
 public sealed partial class BattleState
 {
@@ -35,12 +35,14 @@ public sealed partial class BattleState
     private static readonly TreasuryRules DefaultTreasuryRules = new();
     public static TreasuryReward RewardForRoll(int roll) => DefaultTreasuryRules.RewardForRoll(roll);
     public int TurnSerial { get; private set; }
-    public IReadOnlyList<Treasury> Treasuries => _treasuries.AsReadOnly();
+    public IReadOnlyList<Treasury> Treasuries => _treasuries.Where(t => !t.IsCollected).ToArray();
+    public IReadOnlyList<Treasury> TreasuryRuins => _treasuries.AsReadOnly();
     public IReadOnlyList<Whirlpool> Whirlpools => _whirlpools.AsReadOnly();
 
     public bool IsForbidden(GridPosition cell) => _forbidden.Contains(cell);
-    public Treasury? TreasuryAt(GridPosition cell) => _treasuries.FirstOrDefault(t => t.Position == cell);
-    public IEnumerable<Treasury> ObservedTreasuries(Side side) => _treasuries.Where(t => Vision.IsVisible(side, t.Position));
+    public Treasury? TreasuryAt(GridPosition cell) => _treasuries.FirstOrDefault(t => t.Position == cell && !t.IsCollected);
+    public IEnumerable<Treasury> ObservedTreasuries(Side side) => _treasuries.Where(t => !t.IsCollected && Vision.IsVisible(side, t.Position));
+    public IEnumerable<Treasury> ObservedTreasuryRuins(Side side) => _treasuries.Where(t => Vision.IsVisible(side, t.Position));
     public TreasuryReward? LastTreasuryReward { get; private set; }
 
     private void InitializeSeaEvents(bool populate, int seed)
@@ -90,10 +92,10 @@ public sealed partial class BattleState
             _captureWaits.Remove(key);
     }
 
-    private bool ReadyCrew(WaitingCrew crew, Side side) => crew.Since < TurnSerial && Find(crew.ShipId)is { } ship && ship.Owner == side && ship.Position == crew.Position && !ship.IsExhausted && !ship.HasMoved && ship.AttacksUsed == 0;
+    private bool ReadyCrew(WaitingCrew crew, Side side) => crew.Since < TurnSerial && Find(crew.ShipId)is { } ship && ship.Owner == side && ship.Position == crew.Position && !ship.IsExhausted && !ship.HasRepaired && !ship.HasMoved && ship.AttacksUsed == 0;
     private void EndSeaEventTurn(Side side)
     {
-        foreach (var treasury in _treasuries)
+        foreach (var treasury in _treasuries.Where(t => !t.IsCollected))
         {
             var ship = At(treasury.Position);
             if (ship?.Owner == side && side != Side.Pirates && IsCapturingShip(ship))
@@ -127,7 +129,8 @@ public sealed partial class BattleState
                 return CommandResult.Rejected("No free water remains for an ancient tower.");
         }
 
-        _treasuries.Remove(treasury);
+        if (Rules.PersistTreasuryRuins) _treasuries[_treasuries.IndexOf(treasury)] = treasury with { IsCollected = true };
+        else _treasuries.Remove(treasury);
         _treasuryWaits.Remove(treasury.Id);
         LastTreasuryReward = reward;
         _treasuryOutcomes.Remove(treasury.Id);
@@ -181,10 +184,10 @@ public sealed partial class BattleState
     {
         var healed = new List<HealingReceipt>();
         foreach (var ship in OwnShips(side))
-            if (ship.CanRepair)
+            if (ship.CanRepair || ship.Definition.Class == ShipClass.AncientGun && !ship.IsExhausted && ship.AttacksUsed == 0 && !ship.HasRepaired && ship.Health < ship.MaxHealth && Rules.AncientAutoRepairAmount > 0)
             {
                 double before = ship.Health;
-                ship.Health = Math.Min(ship.MaxHealth, ship.Health + Rules.AutoRepairAmount);
+                ship.Health = Math.Min(ship.MaxHealth, ship.Health + (ship.Definition.Class == ShipClass.AncientGun ? Rules.AncientAutoRepairAmount : Rules.AutoRepairAmount));
                 if (ship.Health > before)
                     healed.Add(new(ship.Position, ship.Health - before, ship.Owner == Side.Player || Vision.IsVisible(Side.Player, ship.Position)));
                 ship.HasRepaired = true;

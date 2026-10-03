@@ -25,8 +25,12 @@ public partial class WorldAmbience : Node2D
     private readonly HashSet<GridPosition> _visibleWater = new();
     private GridPosition[] _harborWater = Array.Empty<GridPosition>();
     private (int Id, Vector2 Center)[] _docks = Array.Empty<(int, Vector2)>();
-    private readonly SeaGeometryBatch _wavesBatch = new();
-    private readonly Vector2[] _waterWave = new Vector2[4];
+    private readonly RetainedSeaWaves _waves = new() { Name = "RetainedWaves", ShowBehindParent = true };
+    private TradeTraffic? _tradeTraffic;
+    internal TradeTraffic TradeTraffic => _tradeTraffic!;
+    private (BattleState Battle, IsometricProjection Projection, long Vision)? _waveContext;
+    internal int WaveMeshBuildCount => _waves.BuildCount;
+    internal int WaveVertexCount => _waves.VertexCount;
     private readonly Vector2[] _gullWings = new Vector2[5];
     private Rect2 _drawBounds;
     private sealed class ShoreWave
@@ -34,14 +38,12 @@ public partial class WorldAmbience : Node2D
         public Vector2[] Edge { get; }
         public Vector2 Land { get; }
         public Vector2[] Directions { get; }
-        public Vector2[] Points { get; }
 
         public ShoreWave(Vector2[] edge, Vector2 land)
         {
             Edge = edge;
             Land = land;
             Directions = new Vector2[edge.Length];
-            Points = new Vector2[edge.Length];
             for (int i = 0; i < edge.Length; i++)
             {
                 Directions[i] = (edge[i] - land).Normalized();
@@ -91,7 +93,44 @@ public partial class WorldAmbience : Node2D
                 _shores.Add(new ShoreWave(edge, inside));
         }
 
+        BuildWaves();
+        RefreshTreasuryGlow();
+        if (_tradeTraffic is null)
+        {
+            _tradeTraffic = new TradeTraffic { Name="MerchantTraffic", Board=BoardView };
+            AddChild(_tradeTraffic);
+        }
+        _tradeTraffic.Refresh();
         QueueRedraw();
+    }
+
+    private void BuildWaves()
+    {
+        var context = (BoardView.Battle, BoardView.Projection, BoardView.Battle.Vision.Revision);
+        if (_waveContext is { } prior && prior == context) return;
+        _waveContext = context;
+        using var trace = PerformanceTrace.Measure("Ambience.Waves.Build");
+        _waves.Begin();
+        var points = new Vector2[4];
+        foreach (var cell in _water)
+        {
+            if ((cell.X * 7 + cell.Y * 13) % 4 != 0) continue;
+            var center = BoardView.Projection.GridToWorld(cell);
+            points[0] = center + new Vector2(-11, 1);
+            points[1] = center + new Vector2(-4, -1);
+            points[2] = center + new Vector2(4, -1);
+            points[3] = center + new Vector2(11, 1);
+            for (int i = 1; i < points.Length; i++)
+                _waves.Segment(points[i - 1], points[i], Vector2.Down, Vector2.Down,
+                    cell.X * .31f + cell.Y * .19f, false);
+        }
+        foreach (var shore in _shores)
+            for (int wave = 0; wave < 2; wave++)
+                for (int i = 1; i < shore.Edge.Length; i++)
+                    _waves.Segment(shore.Edge[i - 1], shore.Edge[i], shore.Directions[i - 1], shore.Directions[i],
+                        shore.Land.X * .001f + wave * .5f, true);
+        _waves.Finish();
+        _waves.SetClock(_time);
     }
 
     public override void _Process(double delta)
@@ -99,6 +138,8 @@ public partial class WorldAmbience : Node2D
         if (_battle is null)
             return;
         _time += (float)delta;
+        _waves.SetClock(_time);
+        _treasuryGlow.SetClock(_time);
         _gulls.RemoveAll(g => _time - g.Born > g.Lifetime);
         _dolphins.RemoveAll(d => _time - d.Born > 3.2f);
         if (_time >= _nextGull)
@@ -159,44 +200,6 @@ public partial class WorldAmbience : Node2D
         _drawBounds = _drawBounds.Expand(inverse * new Vector2(viewport.End.X, viewport.Position.Y));
         _drawBounds = _drawBounds.Expand(inverse * viewport.End);
         _drawBounds = _drawBounds.Expand(inverse * new Vector2(viewport.Position.X, viewport.End.Y)).Grow(150);
-        using (PerformanceTrace.Measure("Ambience.Waves"))
-        {
-            _wavesBatch.Clear();
-            foreach (var cell in _water)
-            {
-                if ((cell.X * 7 + cell.Y * 13) % 4 != 0)
-                    continue;
-                float phase = (_time * .17f + cell.X * .31f + cell.Y * .19f) % 1;
-                var center = BoardView.Projection.GridToWorld(cell) + new Vector2(0, (phase - .5f) * 7);
-                if (!_drawBounds.HasPoint(center))
-                    continue;
-                float alpha = MathF.Sin(phase * Mathf.Pi) * .085f;
-                _waterWave[0] = center + new Vector2(-11, 1);
-                _waterWave[1] = center + new Vector2(-4, -1);
-                _waterWave[2] = center + new Vector2(4, -1);
-                _waterWave[3] = center + new Vector2(11, 1);
-                _wavesBatch.Polyline(_waterWave, new Color(.75f, .9f, .91f, alpha));
-            }
-
-            foreach (var shore in _shores)
-            {
-                if (!_drawBounds.HasPoint(shore.Edge[shore.Edge.Length / 2]))
-                    continue;
-                var land = shore.Land;
-                for (int wave = 0; wave < 2; wave++)
-                {
-                    float phase = (_time * .27f + land.X * .001f + wave * .5f) % 1;
-                    for (int i = 0; i < shore.Edge.Length; i++)
-                    {
-                        shore.Points[i] = shore.Edge[i] + shore.Directions[i] * (1 - phase) * 11;
-                    }
-
-                    _wavesBatch.Polyline(shore.Points, new Color(.86f, .94f, .88f, MathF.Sin(phase * Mathf.Pi) * .23f));
-                }
-            }
-            _wavesBatch.Submit(this, 1.2f);
-        }
-
         using (PerformanceTrace.Measure("Ambience.Fish"))
             DrawFishSchools();
         _sky?.QueueRedraw();
@@ -237,7 +240,7 @@ public partial class WorldAmbience : Node2D
     {
         foreach (var mill in BoardView.TownMills(town))
         {
-            var hub = center + mill;
+            var hub = center + mill + new Vector2(0, -10);
             float rotation = _time * .48f + town.Id;
             for (int i = 0; i < 4; i++)
             {
@@ -247,19 +250,33 @@ public partial class WorldAmbience : Node2D
             }
             canvas.DrawCircle(hub, 2.2f, new Color("807858"));
         }
-        if (town.Owner is null && !BoardView.Battle.CanCaptureVillage(Side.Player, town.Id))
+        if (town.Owner is null)
             return;
-        var flag = center + new Vector2(-32, -39);
+        var flag = center + BoardView.VillageFlagOffset;
         var color = FleetPalette.For(BoardView.Battle, town.Owner);
+        var cloth = VillageFlagCloth(flag, _time, town.Id);
+        canvas.DrawColoredPolygon(cloth, color);
+        if (town.Owner == Side.Pirates)
+        {
+            var emblem = flag + new Vector2(6, 4);
+            canvas.DrawCircle(emblem, 1.7f, new Color("e7dfca"));
+            canvas.DrawLine(emblem + new Vector2(-2, 3), emblem + new Vector2(3, 6), new Color("e7dfca"), .8f, true);
+            canvas.DrawLine(emblem + new Vector2(3, 3), emblem + new Vector2(-2, 6), new Color("e7dfca"), .8f, true);
+        }
+    }
+
+    internal static Vector2[] VillageFlagCloth(Vector2 flag, float time, int townId)
+    {
         var cloth = new Vector2[10];
         for (int i = 0; i < 5; i++)
         {
             float x = i * 4;
-            float sway = MathF.Sin(_time * 3 - i * .65f + town.Id) * i * .7f;
-            cloth[i] = flag + new Vector2(-5 + x, -8 + sway);
-            cloth[9 - i] = flag + new Vector2(-5 + x, 2 + sway - i * .6f);
+            float sway = MathF.Sin(time * 3 - i * .65f + townId) * i * .7f;
+            // The first column is fixed to the exact pole; only the free edge waves.
+            cloth[i] = flag + new Vector2(x, sway);
+            cloth[9 - i] = flag + new Vector2(x, 10 + sway - i * .6f);
         }
 
-        canvas.DrawColoredPolygon(cloth, color);
+        return cloth;
     }
 }

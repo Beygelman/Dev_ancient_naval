@@ -21,8 +21,9 @@ internal static class AncientLore
             ShipClass.Togus => "The Granado casts iron high; let its mortar speak before its keel moves.",
             ShipClass.Fishing => "The quiet schooner feeds a fleet more faithfully than a loud cannon.",
             ShipClass.FishingDock => "A quay draws wealth from the shoal; the fish endure when its timbers fall.",
-            ShipClass.AncientGun => "The old tower watches without a keel; its stone remembers no healing.",
+            ShipClass.AncientGun => "The old tower watches without a keel; its stone shelters a distant bombard.",
             ShipClass.CannonTower => "A small tower keeps an unwavering watch over the nearby sea.",
+            ShipClass.Lighthouse => "A light among the rocks joins distant ports and watches the open sea.",
             ShipClass.PirateSchooner => "The pirate follows careless sails; its defeat leaves a modest prize.",
             _ => "A silk watcher sees beyond the waves and carries thunder beneath its basket."
         };
@@ -41,9 +42,17 @@ internal static class AncientLore
             stats.Add(new("Level", $"{ship.Level}/5"));
             if (ship.Level < 5)
                 stats.Add(new("Resources", $"{ship.Resources}/{ship.ResourcesRequired}"));
+            stats.Add(new("Progress cells", ship.Level < 5
+                ? "Each resource fills one cell; complete the row to reach the next level."
+                : "Maximum level; no further resource progress."));
         }
         if (ship.CanEarnVeterancy && !ship.IsVeteran)
+        {
             stats.Add(new("Veterancy", $"{ship.Kills}/3 ships sunk"));
+            stats.Add(new("Progress cells", "Each enemy ship sunk fills one cell. Three kills grant veteran status, full healing and +25% maximum health and weapon strength."));
+            if (ship.Definition.VeteranRangeBonus > 0)
+                stats.Add(new("Veteran reach", $"+{ship.Definition.VeteranRangeBonus} cannon range after three kills"));
+        }
         sections.Add(new("At a glance", stats));
         AddWeapons(sections, battle, ship);
         AddCrew(sections, battle, ship);
@@ -66,19 +75,22 @@ internal static class AncientLore
         else if (ship.IsArmed)
         {
             if (!ship.HasMortar || ship.IsMothership)
-                rows.Add(new("Cannons", $"{ship.CurrentDamage + ship.ShotDamageBonus:0.##} damage · {ship.Definition.AttackRange} tiles"));
+                rows.Add(new("Cannons", $"{ship.CurrentDamage + ship.ShotDamageBonus:0.##} damage · {ship.CannonRange} tiles"));
             if (ship.HasMortar)
             {
-                string range = ship.Definition.Class == ShipClass.AncientGun ? $"1–{ship.MortarRange}" : $"4–{ship.MortarRange}";
+                int minimum = ship.Definition.Class == ShipClass.AncientGun && !battle.Rules.Mortar.TowerDeadZone ? 1 : battle.Rules.Mortar.DeadZone + 1;
+                string range = $"{minimum}–{ship.MortarRange}";
                 rows.Add(new("Mortar", $"{ship.CurrentMortarDamage + ship.ShotDamageBonus:0.##} damage · {range} tiles"));
                 rows.Add(new("Blast", $"{battle.Rules.Mortar.SplashDamage} to adjacent enemies; allies spared"));
                 rows.Add(new("Against towns", $"+{battle.Rules.Mortar.VillageDamageBonus} mortar damage"));
             }
             rows.Add(new("Shots", $"{ship.AttacksRemaining} left this turn"));
+            if (battle.Rules.DoubleSalvo && (ship.Definition.Class == ShipClass.Kolonel || ship.IsMothership && ship.SecondAttackUpgrade))
+                rows.Add(new("Double salvo", "Select a cannon target, then choose one or two cannonballs on its parchment; two shots launch together and receive one enemy reply"));
             if (ship.Definition.Class is not (ShipClass.Togus or ShipClass.AncientGun))
-                rows.Add(new("Counterfire", $"{ship.CurrentDamage + ship.CounterDamageBonus:0.##} damage · {ship.Definition.AttackRange} tiles; if alive"));
+                rows.Add(new("Counterfire", $"{ship.CurrentDamage + ship.CounterDamageBonus:0.##} damage · {ship.CannonRange} tiles; if alive"));
             if (battle.HasAntiAir(ship))
-                rows.Add(new("Anti-air", $"Balloons within {System.Math.Min(battle.Rules.Balloon.AntiAirRange, ship.Definition.AttackRange)} tiles"));
+                rows.Add(new("Anti-air", $"Balloons within {System.Math.Min(battle.Rules.Balloon.AntiAirRange, ship.CannonRange)} tiles"));
             rows.Add(new("Radar targets", "Shared contacts within weapon range"));
         }
         if (rows.Count > 0)
@@ -110,8 +122,17 @@ internal static class AncientLore
             rows.Add(new("Repair", $"+{battle.Rules.RepairAmount} HP; spends actions"));
             rows.Add(new("Passive repair", $"+{battle.Rules.AutoRepairAmount} HP after a turn without an active attack"));
         }
+        else if (ship.Definition.Class == ShipClass.AncientGun && battle.Rules.AncientAutoRepairAmount > 0)
+            rows.Add(new("Passive repair", $"+{battle.Rules.AncientAutoRepairAmount} HP after a turn without an active attack"));
         if (ship.IsMothership)
             rows.Add(new("Shipyard", CurrentShipyard(battle, ship.Level, false)));
+        else if (ship.Definition.Class == ShipClass.Fishing && battle.Rules.FishingLighthouses && battle.Rules.LighthousesEnabled)
+            rows.Add(new("Shipyard", battle.Rules.Get(ShipClass.Lighthouse).Name));
+        if (battle.Rules.SmallHullRadarStealth && (ship.Definition.Class == ShipClass.Garrison
+            || ship.Definition.Class == ShipClass.Fishing && !battle.Rules.FishingRadarVisible))
+            rows.Add(new("Low profile", "Hidden from radar; visible to nearby lookouts"));
+        if (battle.Rules.HeavenlyAssistance && ship.IsMothership && ship.Owner == Side.Player)
+            rows.Add(new("Heavenly blessing", "+2 Thors every fifth personal turn"));
         if (ship.Definition.Class == ShipClass.PirateSchooner)
             rows.Add(new("Bounty", $"{battle.Rules.PirateCurrencyReward} Thors · {battle.Rules.PirateResourceReward} resource"));
         if (rows.Count > 0)
@@ -123,6 +144,8 @@ internal static class AncientLore
         var rows = new List<LoreRow>();
         if (ship.IsVeteran)
             rows.Add(new("Veteran", "+25% hull health and weapon strength"));
+        if (ship.IsVeteran && ship.Definition.VeteranRangeBonus > 0)
+            rows.Add(new("Veteran reach", $"+{ship.Definition.VeteranRangeBonus} cannon range"));
         if (ship.HasRadar && ship.Definition.Class is ShipClass.Mothership or ShipClass.Kolonel or ShipClass.CannonTower)
             rows.Add(new("Radar", $"Installed · {ship.RadarRange} tiles"));
         if (ship.IsMothership && ship.HasMortar)
@@ -161,6 +184,11 @@ internal static class AncientLore
             {
                 new("Income", $"+{(village.Owner is null || village.Health <= 0 ? 0 : battle.VillageIncome(village) + (village.HasPort ? battle.Rules.Ports.Income : 0))} Thors per turn"),
                 new("Shipyard", CurrentShipyard(battle, village.Level, true)),
+                new("Progress cells", battle.Rules.PaidVillageUpgrades
+                    ? "Town level grows through paid upgrades; each upgrade uses the town's construction for this turn."
+                    : "A living owned town fills one cell each turn and grows after two turns, up to level 5."),
+                new("Next level", village.Level >= 5 ? "Maximum level" : battle.Rules.PaidVillageUpgrades
+                    ? $"{battle.VillageUpgradePrice(village.Owner ?? Side.Player, village.Id)} Thors" : "Automatic growth"),
                 new("Repair", $"+{battle.Rules.RepairAmount} HP; replaces production and fire"),
                 new("Passive repair", $"+{battle.Rules.RepairAmount} HP after a turn without an active attack")
             }),
@@ -171,6 +199,8 @@ internal static class AncientLore
                 new("3 · Claim", "Use the flag; the crew spends all actions")
             })
         };
+        if (battle.Rules.HeavenlyAssistance && village.Owner == Side.Player && village.Health > 0)
+            sections.Add(new("Faith", new LoreRow[] { new("Heavenly blessing", "+2 Thors every fifth personal turn") }));
         var improvements = new List<LoreRow>();
         if (village.IsFortified)
         {
@@ -198,11 +228,13 @@ internal static class AncientLore
     {
         var classes = new[] { ShipClass.Fishing, ShipClass.Garrison, ShipClass.Invader, ShipClass.Kolonel, ShipClass.Togus }
             .Concat(town ? System.Array.Empty<ShipClass>() : new[] { ShipClass.CannonTower });
+        if (battle.Rules.LighthousesEnabled && (!town || !battle.Rules.FishingLighthouses) && level >= (town ? 3 : 1))
+            classes = classes.Append(ShipClass.Lighthouse);
         return string.Join(", ", classes.Where(kind => (town ? BattleState.VillageRequiredLevel(kind) : BattleState.RequiredLevel(kind)) <= level)
             .Select(kind => battle.Rules.Get(kind).Name));
     }
 
-    public static (string Title, LorePage Page) Cell(BattleState battle, GridPosition cell)
+    public static (string Title, LorePage Page)? Cell(BattleState battle, GridPosition cell)
     {
         if (battle.IsForbidden(cell))
             return ("Whirlpool", new("The sea has opened its mouth; no keel may cross these cursed waters.", new[]
@@ -249,19 +281,6 @@ internal static class AncientLore
                     new("Afterward", "Shoal is spent")
                 })
             }));
-        if (battle.Board.GetTile(cell).Terrain == TerrainType.Land)
-            return ("Island", new("Stone and trees keep this shore beyond the reach of any keel.", new[]
-            {
-                new LoreSection("Terrain", new LoreRow[] { new("Passage", "Ships cannot cross land") })
-            }));
-        return ("Sea", new("Read the water before choosing a course; each wake shares the same sea.", new[]
-        {
-            new LoreSection("Navigation", new LoreRow[]
-            {
-                new("Friendly ships", "Allow passage"),
-                new("Enemy ships", "Block their own tile"),
-                new("Enemy waters", "Adjacent tiles cost twice the movement")
-            })
-        }));
+        return null;
     }
 }

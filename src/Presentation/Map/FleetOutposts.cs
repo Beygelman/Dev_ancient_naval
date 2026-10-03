@@ -23,6 +23,7 @@ public partial class FleetView
                 continue;
             }
 
+            if (shot.TargetVisibleToPlayer && FocusTarget is not null) await FocusTarget(shot.Target.Position);
             var from = Projection.GridToWorld(shot.Origin) + new Vector2(0, -16);
             var to = Projection.GridToWorld(shot.Target.Position) + new Vector2(0, -6);
             var direction = (to - from).Normalized();

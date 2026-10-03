@@ -1,3 +1,4 @@
+using System;
 using DevAncientNaval.Core.Battle;
 using DevAncientNaval.Core.Grid;
 using DevAncientNaval.Core.Units;
@@ -82,14 +83,16 @@ public partial class DebugHud
         else if (village is not null)
             SetLore(village.Name, AncientLore.Village(battle, village));
         else if (_inspectionCell is { } cell && battle.Board.Contains(cell)
-            && (battle.Vision.IsExplored(Side.Player, cell) || battle.Vision.IsRadarContact(Side.Player, cell)))
+            && (battle.Vision.IsRadarContact(Side.Player, cell)
+                || battle.Vision.IsVisible(Side.Player, cell) && (battle.TreasuryAt(cell) is not null
+                    || battle.Shoals.Contains(cell) || battle.FishSpots.Contains(cell))))
         {
             if (battle.Vision.State(Side.Player, cell) == VisibilityState.RadarContact)
                 SetLore("Distant contact", new("A mark on the chart tells you where, never who; bring a lookout nearer.", System.Array.Empty<LoreSection>()));
             else
             {
                 var lore = AncientLore.Cell(battle, cell);
-                SetLore(lore.Title, lore.Page);
+                SetLore(lore?.Title ?? "", lore?.Page ?? LorePage.Empty);
             }
             _ship.Text = _loreTitle;
             _health.Text = "";
@@ -97,7 +100,10 @@ public partial class DebugHud
             _shipCard.Show();
         }
         else
+        {
             SetLore("", LorePage.Empty);
+            _shipCard.Hide();
+        }
 
         _information.SetMeta("applicable", _loreText.Length > 0);
         Availability(_information, _loreText.Length > 0, "Info");
@@ -168,14 +174,14 @@ public partial class DebugHud
 
     private void LayoutInformation(Vector2 viewport)
     {
-        float width = Mathf.Clamp(viewport.X - 36, 280, 408);
-        float ceiling = Mathf.Clamp(viewport.Y - 196, 220, 500);
+        float width = Mathf.Clamp(viewport.X - 24, 220, PapyrusModal.Width);
+        float ceiling = Math.Max(100, viewport.Y * PapyrusModal.HeightFraction);
         float headingHeight = (_informationTitle?.GetParent() as Control)?.GetCombinedMinimumSize().Y ?? 48;
         float margins = _informationPanel.GetThemeStylebox("panel").GetMinimumSize().Y;
         float contentHeight = (_informationBody?.GetCombinedMinimumSize().Y ?? 0) + headingHeight + margins + 12;
-        float height = Mathf.Clamp(contentHeight, 220, ceiling);
+        float height = Mathf.Clamp(contentHeight, Math.Min(180, ceiling), ceiling);
         _informationPanel.Size = new(width, height);
-        _informationPanel.Position = new(viewport.X - width - 18, (viewport.Y - height) / 2);
+        _informationPanel.Position = new(viewport.X - width - 12, (viewport.Y - height) / 2);
     }
 
     private void OpenInformation()
