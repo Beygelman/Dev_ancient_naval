@@ -37,12 +37,17 @@ internal static class AdmiralTactics
                     continue;
                 if (!previews.TryGetValue(ship.Id, out var reachable))
                     previews[ship.Id] = reachable = battle.Reachable(ship.Id);
+                var coverage = Clone(ship, battle);
                 var position = reachable.Where(p => p.Key != ship.Position && !reserved.Contains(p.Key))
                     .Select(p => new { Cell = p.Key, p.Value })
-                    .Where(p => battle.Board.InRadius(p.Cell, target.Position, ship.Definition.AttackRange)
-                        && (!target.IsAirborne || battle.AntiAirCovers(ship, p.Cell, target.Position))
-                        && (battle.Board.InRadius(p.Cell, target.Position, ship.VisualRange)
-                            || allies.Any(other => other.Id != ship.Id && battle.Board.InRadius(other.Position, target.Position, other.VisualRange))))
+                    .Where(p =>
+                    {
+                        coverage.Position = p.Cell;
+                        return battle.WeaponCovers(coverage, target.Position)
+                            && (!target.IsAirborne || battle.AntiAirCovers(ship, p.Cell, target.Position))
+                            && (battle.Board.InRadius(p.Cell, target.Position, ship.VisualRange)
+                                || allies.Any(other => other.Id != ship.Id && battle.Board.InRadius(other.Position, target.Position, other.VisualRange)));
+                    })
                     .OrderBy(p => danger(ship, p.Cell)).ThenBy(p => p.Value)
                     .ThenBy(p => p.Cell.Y).ThenBy(p => p.Cell.X).FirstOrDefault();
                 if (position is null || ship.IsMothership && danger(ship, position.Cell) >= ship.Health * .6)
@@ -60,6 +65,7 @@ internal static class AdmiralTactics
                 && p.Loss < allies.First(s=>s.Id==p.First.ShipId).Health * .6
                 && danger(allies.First(s=>s.Id==p.First.ShipId),p.First.Position) < allies.First(s=>s.Id==p.First.ShipId).Health)
             .OrderByDescending(p => p.Lethal)
+            .ThenBy(p => p.Target.IsMothership ? 0 : p.Target.IsArmed ? 1 : 2)
             .ThenBy(p => p.Lethal ? p.Target.Health : 1000)
             .ThenBy(p => p.Loss).ThenBy(p => p.Orders)
             .ThenByDescending(p => p.Damage).ThenBy(p => p.Target.Id).FirstOrDefault();

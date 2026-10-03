@@ -35,7 +35,8 @@ public sealed class Ship
     public bool HasRadar { get; internal set; }
     public int RadarRange => HasRadar ? Definition.RadarRange + (VisionUpgrade ? 2 : 0) : 0;
     public int VisualRange => Definition.VisualRange + (VisionUpgrade ? 2 : 0);
-    public int AttackRange => IsArmed ? Math.Max(Definition.AttackRange, HasMortar ? MortarRange : 0) : 0;
+    public int CannonRange => Definition.AttackRange + (IsVeteran ? Definition.VeteranRangeBonus : 0);
+    public int AttackRange => IsArmed ? Math.Max(CannonRange, HasMortar ? MortarRange : 0) : 0;
     public int MortarRange => HasMortar ? 5 : 0;
     public double CurrentMortarDamage => Definition.Class == ShipClass.AncientGun ? Whole(Definition.Damage * (IsVeteran ? 1.25 : 1)) : Whole((8 * (IsVeteran ? 1.25 : 1)) * (0.5 + 0.5 * HealthRatio));
 

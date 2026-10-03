@@ -296,20 +296,8 @@ public partial class BoardView
 
     private void DrawTreasuries(Node2D canvas)
     {
-        foreach (var treasury in Battle.ObservedTreasuries(Side.Player))
-        {
-            var c = Projection.GridToWorld(treasury.Position);
-            Vector2 P(float x, float y) => c + new Vector2(x, y);
-            canvas.DrawSetTransform(c, 0, new Vector2(1, .45f));
-            canvas.DrawCircle(Vector2.Zero, 21, new Color(.85f, .7f, .3f, .13f));
-            canvas.DrawArc(Vector2.Zero, 21, 0, Mathf.Tau, 32, new Color("b8b181"), 1.2f, true);
-            canvas.DrawSetTransform(Vector2.Zero);
-            canvas.DrawColoredPolygon(new[] { P(-16, 0), P(0, -8), P(17, 0), P(0, 9) }, new Color("81958b"));
-            canvas.DrawColoredPolygon(new[] { P(-11, -3), P(5, 0), P(5, -10), P(-11, -13) }, new Color("b08a4d"));
-            canvas.DrawColoredPolygon(new[] { P(5, 0), P(13, -4), P(13, -14), P(5, -10) }, new Color("715f42"));
-            canvas.DrawColoredPolygon(new[] { P(-12, -13), P(-5, -18), P(14, -14), P(5, -9) }, new Color("ead28c"));
-            canvas.DrawLine(P(-6, -12), P(-6, -3), new Color("ffe6a0"), 2, true);
-            canvas.DrawCircle(P(2, -6), 2, new Color("ffefac"));
-        }
+        // Ruins, including already searched ruins, are retained sprites in
+        // the shared scenery depth/atlas layer. Selection never redraws their
+        // masonry and no obsolete circular treasure marker is submitted.
     }
 }

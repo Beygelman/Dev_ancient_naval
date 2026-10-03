@@ -94,6 +94,7 @@ public partial class ActionPapyrus : Control
         {
             var paper = PapyrusStyle.Paper.Lightened(_hovered ? .05f : 0).Darkened(burn * .8f);
             DrawRect(rect, new Color(paper, 1 - burn));
+            DrawTextureRect(PapyrusGrain.Texture, rect, true, new Color(1, 1, 1, 1 - burn));
             DrawRect(rect, new Color(PapyrusStyle.Bronze, 1 - burn), false, 1.2f);
             var artSize = _art.GetSize();
             var region = new Rect2(new Vector2(artSize.X * (1 - reveal) / 2, 0), new Vector2(artSize.X * reveal, artSize.Y));

@@ -26,6 +26,10 @@ public partial class DebugHud : CanvasLayer
     private HBoxContainer _metrics = null !;
     private PanelContainer _shipCard = null !, _notice = null !, _upgradePanel = null !;
     private Label _coins = null !, _coinCaption = null !, _turn = null !, _ship = null !, _details = null !, _message = null !, _banner = null !, _upgradeTitle = null !;
+    private Label _fleetUsage = null!;
+    private SectorButton _scuttle = null!;
+    public Func<Ship, bool>? CanScuttleShip { get; set; }
+    public event Action? ScuttleRequested;
     private Label _health = null !, _damagePreview = null !, _counterPreview = null !;
     private HBoxContainer _combatPreview = null !;
     private SectorButton _repair = null !, _yard = null !, _radar = null !, _mortar = null !, _resource = null !, _bomb = null !, _capture = null !, _fortify = null !, _port = null !, _loot = null !;
@@ -84,6 +88,13 @@ public partial class DebugHud : CanvasLayer
         turns.AddChild(Label("Turn", 12, true));
         _turn = Label("1", 23, true);
         turns.AddChild(_turn);
+        var fleet = new VBoxContainer();
+        fleet.AddThemeConstantOverride("separation", 1);
+        _metrics.AddChild(fleet);
+        fleet.AddChild(Label("Fleet", 12, true));
+        _fleetUsage = Label("0/0", 23, true);
+        _fleetUsage.Name = "FleetUsage";
+        fleet.AddChild(_fleetUsage);
         var compact = PapyrusStyle.Panel();
         compact.ContentMarginTop = compact.ContentMarginBottom = 7;
         compact.ContentMarginLeft = compact.ContentMarginRight = 11;
@@ -103,6 +114,7 @@ public partial class DebugHud : CanvasLayer
         _restart.AddChild(new ActionGlyph { Symbol = ActionSymbol.Menu, Position = new(10, 10), Size = new(28, 28), MouseFilter = Control.MouseFilterEnum.Ignore });
         _end = TextButton("End turn  →", () => EndTurnRequested?.Invoke());
         _end.Name = "EndTurn";
+        _end.TooltipText = "End turn · Space";
         _root.AddChild(_end);
         _banner = Label("", 24, true);
         _root.AddChild(_banner);
@@ -147,6 +159,7 @@ public partial class DebugHud : CanvasLayer
         _root.AddChild(_radial);
         BuildInformation();
         _repair = IconButton("ActionRepair", ActionSymbol.Repair, "Repair", () => RepairRequested?.Invoke());
+        _scuttle = IconButton("ActionScuttle", ActionSymbol.Scuttle, "Scuttle · No refund", () => ScuttleRequested?.Invoke());
         _radar = IconButton("ActionRadar", ActionSymbol.Radar, "Install radar", () => RadarRequested?.Invoke());
         _mortar = IconButton("ActionMortar", ActionSymbol.Mortar, "Mortar", () => MortarRequested?.Invoke());
         _loot = IconButton("ActionLoot", ActionSymbol.Treasure, "Plunder treasury", () => LootRequested?.Invoke());
@@ -200,13 +213,17 @@ public partial class DebugHud : CanvasLayer
         _upgradeOverlay.AddChild(shade);
         shade.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         _upgradePanel = Panel(_upgradeOverlay);
-        _upgradePanel.CustomMinimumSize = new(540, 0);
+        _upgradePanel.CustomMinimumSize = new(PapyrusGrain.UprightWidth, 0);
         var column = new VBoxContainer();
         column.AddThemeConstantOverride("separation", 18);
         _upgradePanel.AddChild(column);
-        _upgradeTitle = Label("", 25, true);
+        _upgradeTitle = Label("", 20, true);
+        _upgradeTitle.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _upgradeTitle.CustomMinimumSize = new(PapyrusGrain.FamilyWidth - 32, 0);
         column.AddChild(_upgradeTitle);
-        column.AddChild(Label("Choose one upgrade", 17, true));
+        var upgradePrompt = Label("Choose one upgrade", 17, true);
+        upgradePrompt.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        column.AddChild(upgradePrompt);
         foreach (var choice in new[]
         {
             UpgradeChoice.Mobility,
@@ -221,8 +238,9 @@ public partial class DebugHud : CanvasLayer
 
         )
         {
-            var button = new MysticUpgradeButton { Text = MysticUpgradeButton.Title(choice) };
-            PapyrusStyle.Button(button);
+            var button = new MysticUpgradeButton { Text = MysticUpgradeButton.Title(choice),
+                AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new(PapyrusGrain.FamilyWidth - 32, 48) };
+            PapyrusStyle.Button(button, 16);
             button.Pressed += () => UpgradeRequested?.Invoke(choice);
             button.TooltipText = UpgradeDescriptions.Description(choice);
             button.Name = "Upgrade" + choice;
@@ -266,6 +284,7 @@ public partial class DebugHud : CanvasLayer
         _metricsPaper.TooltipText = $"Income {battle.GrossIncome(Side.Player)} − fleet upkeep {battle.Upkeep(Side.Player)} = {battle.Income(Side.Player)} Thors each turn";
         _coins.Text = battle.Credits(Side.Player).ToString();
         _turn.Text = battle.Round.ToString();
+        _fleetUsage.Text = $"{battle.FleetUsed(Side.Player)}/{battle.FleetCapacity(Side.Player)}";
         bool finished = battle.IsOver || battle.PlayerDefeated;
         StatusText = finished ? (battle.IsDraw ? "DRAW" : battle.Winner == Side.Player ? "VICTORY" : "DEFEAT") : $"Turn {battle.Round}";
         if (finished)
@@ -306,9 +325,9 @@ public partial class DebugHud : CanvasLayer
             _health.AddThemeColorOverride("font_color", selected.Owner == Side.Player ? PapyrusStyle.Health : PapyrusStyle.EnemyHealth);
             _ship.Text = selected.IsAirborne ? $"{selected.Name} · Persistent" : $"{selected.Name}{(selected.IsMothership ? $" · level {selected.Level}" : selected.IsVeteran ? " ★ VETERAN" : "")}";
             _health.Text = $"Health {selected.Health:0.##}/{selected.MaxHealth:0.##}";
-            _details.Text = selected.IsAirborne ? $"Vision {selected.VisualRange} · Move {selected.MovementRemaining:0}/{selected.MovementAllowance} · 1 HP · Flagship/Kolonel guns can hit within {battle.Rules.Balloon.AntiAirRange} tiles\n{(selected.BombCooldown > 0 ? $"Bomb ready in {selected.BombCooldown} turn(s)" : $"Bomb ready: {battle.Rules.Balloon.BombDamage} direct + {battle.Rules.Balloon.SplashDamage} splash")}" : $"Damage {selected.CurrentDamage + selected.ShotDamageBonus:0} · Range {selected.Definition.AttackRange} · Vision {selected.VisualRange} · Radar {selected.RadarRange}";
+            _details.Text = selected.IsAirborne ? $"Vision {selected.VisualRange} · Move {selected.MovementRemaining:0}/{selected.MovementAllowance} · 1 HP · Flagship/Kolonel guns can hit within {battle.Rules.Balloon.AntiAirRange} tiles\n{(selected.BombCooldown > 0 ? $"Bomb ready in {selected.BombCooldown} turn(s)" : $"Bomb ready: {battle.Rules.Balloon.BombDamage} direct + {battle.Rules.Balloon.SplashDamage} splash")}" : $"Damage {selected.CurrentDamage + selected.ShotDamageBonus:0} · Range {selected.CannonRange} · Vision {selected.VisualRange} · Radar {selected.RadarRange}";
             if (selected.HasMortar && selected.Definition.Class != ShipClass.AncientGun)
-                _details.Text += $" · Mortar 4–{selected.MortarRange}: {selected.CurrentMortarDamage + selected.ShotDamageBonus:0}";
+                _details.Text += $" · Mortar {battle.Rules.Mortar.DeadZone + 1}–{selected.MortarRange}: {selected.CurrentMortarDamage + selected.ShotDamageBonus:0}";
             if (selected.Definition.Class == ShipClass.FishingDock)
                 _details.Text = $"Income +{selected.Definition.IncomePerTurn} · Stationary Fishing Dock";
             if (selected.Definition.Class is ShipClass.AncientGun or ShipClass.CannonTower)
@@ -320,17 +339,20 @@ public partial class DebugHud : CanvasLayer
 
         bool ownShip = canAct && selected?.Owner == Side.Player;
         bool ownVillage = canAct && village?.Owner == Side.Player;
-        _hasRadial = selected is not null || village is not null || _inspectionCell is not null;
+        bool fishingBuilder = selected?.Definition.Class == ShipClass.Fishing && battle.Rules.FishingLighthouses && battle.Rules.LighthousesEnabled;
+        _hasRadial = selected is not null || village is not null;
         Availability(_repair, ownShip && selected!.CanRepair || ownVillage && battle.CanRepairVillage(Side.Player, village!.Id), $"+{battle.Rules.RepairAmount}");
         _repair.SetMeta("applicable", (selected is { Owner: Side.Player, IsAirborne: false } && selected.Definition.Class != ShipClass.AncientGun) || village?.Owner == Side.Player);
-        Availability(_yard, (ownShip && selected!.IsMothership && !selected.HasProduced) || (ownVillage && !village!.HasProduced), "");
+        _scuttle.SetMeta("applicable", selected is { Owner: Side.Player, IsMothership: false });
+        Availability(_scuttle, ownShip && selected is not null && CanScuttleShip?.Invoke(selected) == true, "");
+        Availability(_yard, (ownShip && (selected!.IsMothership || fishingBuilder) && !selected.HasProduced) || (ownVillage && !village!.HasProduced), "");
         Availability(_radar, ownShip && battle.RadarBlockReason(Side.Player, selected!.Id)is null, selected?.HasRadar == true ? "✓" : selected?.Definition.RadarPrice.ToString() ?? "");
         Availability(_mortar, ownShip && battle.MortarBlockReason(Side.Player, selected!.Id)is null, selected?.HasMortar == true ? "✓" : battle.Rules.Mortar.PurchasePrice.ToString());
-        _mortar.TooltipText = selected?.HasMortar == true ? "Mortar installed · minimum range 4" : $"Mortar · {battle.Rules.Mortar.PurchasePrice} Thors · {(selected is null ? "" : battle.MortarBlockReason(Side.Player, selected.Id))}";
+        _mortar.TooltipText = selected?.HasMortar == true ? $"Mortar installed · minimum range {battle.Rules.Mortar.DeadZone + 1}" : $"Mortar · {battle.Rules.Mortar.PurchasePrice} Thors · {(selected is null ? "" : battle.MortarBlockReason(Side.Player, selected.Id))}";
         _mortar.SetMeta("applicable", selected?.Owner == Side.Player && selected?.IsMothership == true);
-        _repair.TooltipText = $"Repair: up to +{battle.Rules.RepairAmount} HP";
+        _repair.TooltipText = $"Repair: up to +{battle.Rules.RepairAmount} HP · R";
         _radar.TooltipText = selected?.HasRadar == true ? $"Radar installed · range {selected.RadarRange}" : $"Install radar · {selected?.Definition.RadarPrice} Thors";
-        _yard.SetMeta("applicable", selected?.Owner == Side.Player && selected?.IsMothership == true || village?.Owner == Side.Player);
+        _yard.SetMeta("applicable", selected?.Owner == Side.Player && (selected.IsMothership || fishingBuilder) || village?.Owner == Side.Player);
         _radar.SetMeta("applicable", selected?.Owner == Side.Player && selected?.Definition.Class is ShipClass.Mothership or ShipClass.Kolonel or ShipClass.CannonTower or ShipClass.Lighthouse);
         _bomb.SetMeta("applicable", selected?.Owner == Side.Player && selected?.IsAirborne == true);
         Availability(_bomb, ownShip && battle.CanDropBomb(selected!.Id), selected?.BombCooldown > 0 ? selected.BombCooldown.ToString() : $"{battle.Rules.Balloon.BombDamage}+{battle.Rules.Balloon.SplashDamage}");
@@ -342,11 +364,14 @@ public partial class DebugHud : CanvasLayer
         _mortar.Cost = selected?.HasMortar == true ? null : battle.MortarPrice;
         UpdateVillage(battle, village, canAct);
         UpdateInformation(battle, selected, village);
+        _hasRadial |= _loreText.Length > 0;
         foreach (var(kind, button)in _build)
         {
             var definition = battle.Rules.Get(kind);
             var reason = village is not null ? battle.VillageBuildBlockReason(Side.Player, village.Id, kind) : selected is null ? "Select a Mothership" : battle.BuildBlockReason(Side.Player, selected.Id, kind);
-            button.SetMeta("applicable", (village is null || kind != ShipClass.CannonTower) && (kind != ShipClass.Lighthouse || battle.Rules.LighthousesEnabled));
+            button.SetMeta("applicable", (village is null || kind != ShipClass.CannonTower)
+                && (!fishingBuilder || kind == ShipClass.Lighthouse)
+                && (kind != ShipClass.Lighthouse || battle.Rules.LighthousesEnabled && (village is null || !battle.Rules.FishingLighthouses)));
             int price = village is null ? battle.BuildPrice(Side.Player, kind) : battle.VillageBuildPrice(village.Id, kind);
             button.Cost = price;
             Availability(button, _hasRadial && reason is null, price.ToString());
@@ -375,7 +400,7 @@ public partial class DebugHud : CanvasLayer
         if (_informationBattle is { } battle && _inspectionCell is { } cell)
         {
             var lore = AncientLore.Cell(battle, cell);
-            SetLore(lore.Title, lore.Page);
+            SetLore(lore?.Title ?? "", lore?.Page ?? LorePage.Empty);
         }
         var glyph = _resource.GetChild<ActionGlyph>(0);
         glyph.Symbol = dock ? ActionSymbol.Dock : ActionSymbol.Fishing;
@@ -405,6 +430,7 @@ public partial class DebugHud : CanvasLayer
         {
             _information,
             _repair,
+            _scuttle,
             _yard,
             _radar,
             _mortar,
@@ -668,6 +694,7 @@ public partial class DebugHud : CanvasLayer
             MouseFilter = Control.MouseFilterEnum.Stop
         };
         p.AddThemeStyleboxOverride("panel", PapyrusStyle.Panel());
+        PapyrusGrain.Apply(p);
         parent.AddChild(p);
         return p;
     }

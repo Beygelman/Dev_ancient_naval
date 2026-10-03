@@ -8,6 +8,7 @@ public partial class MapCamera : Camera2D
 {
     public const float MinZoom = 0.16f;
     public const float MaxZoom = 2.5f;
+    public const float KeyboardPanPixelsPerSecond = 500;
     public Rect2 MapBounds { get; set; }
     private TaskCompletionSource? _flightCompletion;
     private Vector2 _flightFrom, _flightTo;
@@ -70,6 +71,12 @@ public partial class MapCamera : Camera2D
         CancelFlight();
         Position -= screenDelta / Zoom;
         Constrain();
+    }
+
+    public void PanByKeys(Vector2 direction, double delta)
+    {
+        if (direction == Vector2.Zero || !double.IsFinite(delta) || delta <= 0) return;
+        Pan(-direction.Normalized() * KeyboardPanPixelsPerSecond * (float)Math.Min(delta, .05));
     }
 
     public void ZoomAt(Vector2 screenAnchor, float factor)

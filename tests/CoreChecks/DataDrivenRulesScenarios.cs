@@ -8,7 +8,7 @@ internal static partial class BattleScenarios
 {
     private static void DataDrivenRules()
     {
-        var original = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json"));
+        var original = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json"));
         var legacy = JsonNode.Parse(original)!.AsObject();
         foreach (var key in new[]
         {

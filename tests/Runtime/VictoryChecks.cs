@@ -133,10 +133,11 @@ public partial class VictoryChecks : Node
                 new[] { (Side.Player, ShipClass.Mothership, new GridPosition(3, 3)),
                     (Side.Enemy, ShipClass.Mothership, new GridPosition(4, 3)) },
                 Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
+            // Advance first: an idle flagship now heals 4 HP at its turn end.
+            defeat.EndTurn(Side.Player);
             var doomed = defeat.CaptureSnapshot();
             doomed.Ships.Single(ship => ship.Owner == Side.Player).Health = 1;
             defeat = BattleState.LoadJson(BattleState.SerializeSnapshot(doomed));
-            defeat.EndTurn(Side.Player);
             Check(defeat.Attack(Side.Enemy, 2, 1).Success && defeat.PlayerDefeated, "defeat fixture resolves actual combat");
             Game.Home.Hide();
             Game.BoardView.Show();

@@ -10,7 +10,7 @@ public sealed partial class BattleState
     public IReadOnlyList<GridPosition> SpawnCells(int mothershipId)
     {
         var ship = Find(mothershipId);
-        return ship is null || ship.Definition.Class != ShipClass.Mothership ? Array.Empty<GridPosition>() : Board.GetNeighbors(ship.Position).Where(IsFreeWater).ToArray();
+        return ship is null || !ship.IsMothership && !(Rules.FishingLighthouses && ship.Definition.Class == ShipClass.Fishing) ? Array.Empty<GridPosition>() : Board.GetNeighbors(ship.Position).Where(IsFreeWater).ToArray();
     }
 
     public static int RequiredLevel(ShipClass kind) => kind switch
@@ -30,14 +30,14 @@ public sealed partial class BattleState
             return "This class cannot be built.";
         if (shipClass == ShipClass.Lighthouse && !Rules.LighthousesEnabled)
             return "Lighthouse construction is unavailable in this voyage.";
-        if (mother!.Definition.Class != ShipClass.Mothership)
+        if (!mother!.IsMothership && !(Rules.FishingLighthouses && mother.Definition.Class == ShipClass.Fishing && shipClass == ShipClass.Lighthouse))
             return "Select a Mothership to build ships.";
-        if (mother.Level < RequiredLevel(shipClass))
+        if (mother.IsMothership && mother.Level < RequiredLevel(shipClass))
             return $"Available at Mothership level {RequiredLevel(shipClass)}.";
         if (mother.HasProduced)
             return "This Mothership has already built a ship this turn.";
-        if (shipClass != ShipClass.CannonTower && Rules.Get(shipClass).Damage > 0 && _ships.Count(s => s.Owner == requester && s.CountsTowardFleet) >= Rules.FleetLimit)
-            return $"Fleet limit: {Rules.FleetLimit}.";
+        if (UsesFleetSlot(shipClass) && FleetUsed(requester) >= FleetCapacity(requester))
+            return $"Fleet limit: {FleetCapacity(requester)}.";
         if (Credits(requester) < BuildPrice(requester, shipClass))
             return "Not enough Thors.";
         if (SpawnCells(mothershipId).Count == 0)

@@ -8,7 +8,7 @@ internal static partial class BattleScenarios
 {
     private static void FactionEconomy()
     {
-        var rules = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json")));
         Check(rules.StartingCredits == 8 && rules.Get(ShipClass.Garrison).Price == 5 && rules.Get(ShipClass.Kolonel).Price == 12 && rules.Get(ShipClass.Invader).Price == 7, "Current hull prices follow the requested 0.21 economy");
         Check(rules.Get(ShipClass.Kolonel).AttackRange == 2 && rules.Get(ShipClass.Invader).AttackRange == 2, "Kolonel and the improved Galleon reach two tiles");
         Check(Rules.Economy.MothershipIncomePerLevel == 2 && Rules.Economy.CombatShipsPerUpkeep == 0 && !Rules.Economy.AdjacentCollectionOnly, "Released balance snapshots preserve their economy and collection rules");
@@ -59,7 +59,7 @@ internal static partial class BattleScenarios
         Check(battle.ActiveSide == Side.Enemy3, "Turn order skips the eliminated faction");
         Check(BattleState.LoadJson(battle.SaveJson()).SaveJson() == battle.SaveJson(), "An eliminated faction remains compatible with saved turn order");
         // Production / maintenance are exercised using a funded current-rules aggregate.
-        var fundedDocument = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")))!;
+        var fundedDocument = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json")))!;
         fundedDocument["startingCredits"] = 100;
         var fundedRules = BattleRules.FromJson(fundedDocument.ToJsonString());
         battle = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), fundedRules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(5, 5)), (Side.Player, ShipClass.Garrison, new GridPosition(6, 5)), (Side.Player, ShipClass.Fishing, new GridPosition(5, 6)), (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());

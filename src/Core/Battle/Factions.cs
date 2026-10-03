@@ -28,7 +28,7 @@ public sealed partial class BattleState
                 continue;
             }
 
-            if (mothers != 1 || _ships.Count(ship => ship.Owner == side && ship.CountsTowardFleet) > Rules.FleetLimit)
+            if (mothers != 1 || !Rules.DynamicFleetCapacity && _ships.Count(ship => ship.Owner == side && ship.CountsTowardFleet) > Rules.FleetLimit)
                 throw new ArgumentException("Each fleet needs one Mothership and must respect the fleet limit.");
             _factions.Add(side);
         }

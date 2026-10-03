@@ -41,6 +41,7 @@ public partial class FleetView
             {
                 hull.Canvas.GetParent()?.RemoveChild(hull.Canvas);
                 hull.Badge.GetParent()?.RemoveChild(hull.Badge);
+                ReleaseTargetMask(hull.Mask);
                 hull.Canvas.QueueFree();
                 hull.Badge.QueueFree();
             }

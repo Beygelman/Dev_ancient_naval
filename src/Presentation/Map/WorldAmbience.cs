@@ -26,6 +26,7 @@ public partial class WorldAmbience : Node2D
     private GridPosition[] _harborWater = Array.Empty<GridPosition>();
     private (int Id, Vector2 Center)[] _docks = Array.Empty<(int, Vector2)>();
     private readonly RetainedSeaWaves _waves = new() { Name = "RetainedWaves", ShowBehindParent = true };
+    private (BattleState Battle, IsometricProjection Projection, long Vision)? _waveContext;
     internal int WaveMeshBuildCount => _waves.BuildCount;
     internal int WaveVertexCount => _waves.VertexCount;
     private readonly Vector2[] _gullWings = new Vector2[5];
@@ -91,11 +92,15 @@ public partial class WorldAmbience : Node2D
         }
 
         BuildWaves();
+        RefreshTreasuryGlow();
         QueueRedraw();
     }
 
     private void BuildWaves()
     {
+        var context = (BoardView.Battle, BoardView.Projection, BoardView.Battle.Vision.Revision);
+        if (_waveContext is { } prior && prior == context) return;
+        _waveContext = context;
         using var trace = PerformanceTrace.Measure("Ambience.Waves.Build");
         _waves.Begin();
         var points = new Vector2[4];
@@ -126,6 +131,7 @@ public partial class WorldAmbience : Node2D
             return;
         _time += (float)delta;
         _waves.SetClock(_time);
+        _treasuryGlow.SetClock(_time);
         _gulls.RemoveAll(g => _time - g.Born > g.Lifetime);
         _dolphins.RemoveAll(d => _time - d.Born > 3.2f);
         if (_time >= _nextGull)

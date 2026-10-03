@@ -14,7 +14,7 @@ internal static class Lighthouse0202Checks
             if (!condition) throw new Exception("Lighthouse: " + name);
             checks++;
         }
-        var document = JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")))!;
+        var document = JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json")))!;
         document["startingCredits"] = 100;
         document["lighthousesEnabled"] = true;
         var rules = BattleRules.FromJson(document.ToJsonString());

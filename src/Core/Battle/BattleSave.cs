@@ -62,7 +62,9 @@ public sealed partial class BattleState
         Factions = _factions.ToArray(),
         FactionNames = _factionNames.Select(e => new FactionIdentity(e.Key, e.Value)).ToArray(),
         FactionColors = _factionColors.Select(entry => new FactionColor(entry.Key, entry.Value)).ToArray(),
+        PendingAwards = _pendingAwards.ToArray(),
         Encounters = _encounters.Values.ToArray(),
+        FlagshipSightings = SaveFlagshipSightings(),
         PersonalTurnStarts = _personalTurnStarts.ToArray(),
         FlagshipKills = _flagshipKills.ToArray(),
         EventSeed = _eventSeed,
@@ -156,10 +158,13 @@ public sealed partial class BattleState
 
     private void RestoreProgress(BattleSave saved)
     {
+        RestoreFlagshipSightings(saved.FlagshipSightings);
         Array.Clear(_personalTurnStarts);
         Array.Clear(_flagshipKills);
         Array.Copy(saved.PersonalTurnStarts, _personalTurnStarts, saved.PersonalTurnStarts.Length);
         Array.Copy(saved.FlagshipKills, _flagshipKills, saved.FlagshipKills.Length);
+        _pendingAwards.Clear();
+        _pendingAwards.AddRange(saved.PendingAwards);
         _encounters.Clear();
         foreach (var encounter in saved.Encounters)
             _encounters.Add(encounter.Side, encounter);

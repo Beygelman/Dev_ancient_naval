@@ -19,8 +19,7 @@ public sealed partial class BattleState
             if (ship.Owner is Side.Player or Side.Pirates || HasMet(ship.Owner)
                 || !Vision.IsOpticallyVisible(Side.Player, ship.Position)) continue;
             _encounters.Add(ship.Owner, new(ship.Owner, ship.Position));
-            _credits[(int)Side.Player] += Rules.EncounterCurrencyReward;
-            RecordCurrencyReceipt(Side.Player, Rules.EncounterCurrencyReward);
+            AwardOrQueue(new($"nation:{(int)ship.Owner}", AwardKind.Nation, Side.Player, Rules.EncounterCurrencyReward, TurnSerial, ship.Owner, ship.Position));
         }
     }
 }

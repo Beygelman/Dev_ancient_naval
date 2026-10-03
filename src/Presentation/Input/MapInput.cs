@@ -18,15 +18,25 @@ public partial class MapInput : Node
     private bool _dragged;
     private double _pressedAt;
     private Vector2? _pendingHover;
+    private readonly HashSet<Key> _panKeys = new();
     public const double SalvoHoldSeconds = .4;
     public MapCamera Camera { get; set; } = null!;
     public event Action<Vector2>? Tapped;
     public event Action<Vector2>? Held;
     public event Action<Vector2>? Hovered;
     public event Action? Canceled;
+    public Func<bool>? KeyboardEnabled { get; set; }
+    public Func<bool>? GameplayShortcutsEnabled { get; set; }
+    public event Action? EndTurnRequested;
+    public event Action? RepairRequested;
 
     public override void _Input(InputEvent input)
     {
+        if (input is InputEventKey key && HandleKeyboard(key))
+        {
+            GetViewport().SetInputAsHandled();
+            return;
+        }
         if (input is InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: true })
         {
             CancelGesture();
@@ -42,6 +52,17 @@ public partial class MapInput : Node
     public override void _UnhandledInput(InputEvent input) => Handle(input);
     public override void _Process(double delta)
     {
+        if (KeyboardEnabled?.Invoke() != true)
+            _panKeys.Clear();
+        else if (_panKeys.Count > 0)
+        {
+            var direction = Vector2.Zero;
+            if (_panKeys.Contains(Key.Left) || _panKeys.Contains(Key.A)) direction.X--;
+            if (_panKeys.Contains(Key.Right) || _panKeys.Contains(Key.D)) direction.X++;
+            if (_panKeys.Contains(Key.Up) || _panKeys.Contains(Key.W)) direction.Y--;
+            if (_panKeys.Contains(Key.Down) || _panKeys.Contains(Key.S)) direction.Y++;
+            Camera.PanByKeys(direction, delta);
+        }
         if (_pendingHover is not { } point) return;
         _pendingHover = null;
         Hovered?.Invoke(point);
@@ -64,6 +85,35 @@ public partial class MapInput : Node
         _mouseDown = false;
         _dragged = false;
         _pendingHover = null;
+        _panKeys.Clear();
+    }
+
+    private bool HandleKeyboard(InputEventKey input)
+    {
+        Key key = input.PhysicalKeycode != Key.None ? input.PhysicalKeycode : input.Keycode;
+        bool pan = key is Key.Left or Key.Right or Key.Up or Key.Down or Key.W or Key.A or Key.S or Key.D;
+        if (!input.Pressed)
+            return pan && _panKeys.Remove(key);
+        if (input.Echo || input.AltPressed || input.CtrlPressed || input.MetaPressed
+            || KeyboardEnabled?.Invoke() != true)
+            return false;
+        if (pan)
+        {
+            _panKeys.Add(key);
+            return true;
+        }
+        if ((GameplayShortcutsEnabled ?? KeyboardEnabled)?.Invoke() != true) return false;
+        if (key == Key.Space)
+        {
+            EndTurnRequested?.Invoke();
+            return true;
+        }
+        if (key == Key.R)
+        {
+            RepairRequested?.Invoke();
+            return true;
+        }
+        return false;
     }
 
     private void Handle(InputEvent input)

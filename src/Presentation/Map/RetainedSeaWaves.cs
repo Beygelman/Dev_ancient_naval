@@ -24,8 +24,10 @@ internal partial class RetainedSeaWaves : MeshInstance2D
                 float phase = fract(wave_clock * (shore ? 0.27 : 0.17) + UV.x);
                 vec2 direction = COLOR.rg * 2.0 - 1.0;
                 VERTEX += direction * (shore ? (1.0 - phase) * 11.0 : (phase - 0.5) * 7.0);
-                wave_alpha = COLOR.b * sin(phase * 3.14159265) * (shore ? 0.23 : 0.085);
-                wave_color = shore ? vec3(0.86, 0.94, 0.88) : vec3(0.75, 0.90, 0.91);
+                float glint = 0.5 + 0.5 * sin(wave_clock * 0.73 + UV.x * 6.2831853);
+                wave_alpha = COLOR.b * sin(phase * 3.14159265) * (shore ? 0.23 : 0.085) * (0.84 + 0.16 * glint);
+                vec3 base_color = shore ? vec3(0.86, 0.94, 0.88) : vec3(0.75, 0.90, 0.91);
+                wave_color = mix(base_color, vec3(0.94, 0.97, 0.91), glint * (shore ? 0.08 : 0.05));
             }
             void fragment() { COLOR = vec4(wave_color, wave_alpha); }
             """ }

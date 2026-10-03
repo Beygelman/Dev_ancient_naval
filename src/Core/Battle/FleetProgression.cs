@@ -141,7 +141,9 @@ public sealed partial class BattleState
                 mother.SecondAttackUpgrade = true;
                 break;
             case UpgradeChoice.FishingBoat:
-                // A level reward is always deliverable, even when all adjacent berths are occupied.
+                if (UsesFleetSlot(ShipClass.Fishing) && FleetUsed(requester) >= FleetCapacity(requester))
+                    return CommandResult.Rejected($"Fishing expedition requires a free fleet slot. Fleet limit: {FleetCapacity(requester)}.");
+                // Occupied adjacent berths do not block delivery to other reachable water.
                 var berth = FishingRewardBerth(mother);
                 if (berth is null)
                     return CommandResult.Rejected("There is no reachable free water for the fishing boat.");

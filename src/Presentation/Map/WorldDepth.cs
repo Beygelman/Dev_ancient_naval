@@ -111,6 +111,7 @@ public partial class BoardView
             if (Battle.Vision.IsVisible(Side.Player, cell)) canvas.QueueRedraw();
         foreach (var (cell, canvas) in _townInterfaces)
             if (Battle.Vision.IsVisible(Side.Player, cell)) canvas.QueueRedraw();
+        RefreshTreasuryRuinHighlights();
         AnimateTowns();
     }
 

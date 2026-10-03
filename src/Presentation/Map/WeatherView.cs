@@ -29,6 +29,7 @@ public partial class WorldAmbience
     public override void _Ready()
     {
         AddChild(_waves);
+        AddChild(_treasuryGlow);
         _sky = new BoardTerrainLayer
         {
             Name = "HighClouds",
