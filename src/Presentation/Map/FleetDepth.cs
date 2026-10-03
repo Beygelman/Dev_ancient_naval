@@ -108,7 +108,7 @@ public partial class FleetView
                 Name = "HealthAmphorae" + ship.Id,
                 ZIndex = 7,
                 DrawWorld = canvas => AmphoraBadgeArt.Draw(canvas, Vector2.Zero, hull.Ship.Health, hull.Ship.MaxHealth,
-                    FleetPalette.For(Battle, hull.Ship.Owner), hull.Ship.Class, hull.Health.Motion(_clock))
+                    FleetPalette.For(Battle, hull.Ship.Owner), hull.Ship.Class, hull.Health.Motion(_clock), hull.Ship.IsVeteran)
             };
             AddChild(hull.Badge);
             _hulls.Add(ship.Id, hull);

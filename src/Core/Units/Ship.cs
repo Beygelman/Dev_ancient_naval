@@ -59,14 +59,14 @@ public sealed class Ship
     public bool IsExhausted { get; internal set; }
     public bool HasProduced { get; internal set; }
     public bool MovementLocked { get; internal set; }
-    public bool CanMove => IsAirborne ? !IsExhausted && MovementRemainingUnits >= 10 : !IsStructure && !IsExhausted && !MovementLocked && MovementRemainingUnits >= 1 && (Definition.ActionProfile switch
+    public bool CanMove => IsAirborne ? !IsExhausted && !HasRepaired && MovementRemainingUnits >= 10 : !IsStructure && !IsExhausted && !HasRepaired && !MovementLocked && MovementRemainingUnits >= 1 && (Definition.ActionProfile switch
     {
         ActionProfile.Scout => true,
         ActionProfile.Standard => !MovementLocked,
         ActionProfile.Heavy => AttacksUsed == 0,
         _ => false
     });
-    public int AttacksRemaining => IsExhausted || !IsArmed || HasMortar && HasMoved ? 0 : Math.Max(0, (Definition.ActionProfile == ActionProfile.Heavy ? 2 : 1) + (SecondAttackUpgrade ? 1 : 0) - AttacksUsed);
+    public int AttacksRemaining => IsExhausted || HasRepaired || !IsArmed || HasMortar && HasMoved ? 0 : Math.Max(0, (Definition.ActionProfile == ActionProfile.Heavy ? 2 : 1) + (SecondAttackUpgrade ? 1 : 0) - AttacksUsed);
     public bool CanRepair => !IsAirborne && Definition.Class != ShipClass.AncientGun && !IsExhausted && !HasRepaired && AttacksUsed == 0 && Health < MaxHealth;
 
     internal Ship(int id, Side owner, ShipDefinition definition, GridPosition position)

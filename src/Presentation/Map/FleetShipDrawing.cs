@@ -105,19 +105,19 @@ public partial class FleetView
 
         if (ship.IsVeteran && ship.Class is ShipClass.CannonTower or ShipClass.AncientGun)
         {
-            Ink.DrawArc(center + new Vector2(0, -21 * size), 12 * size, Mathf.Pi, Mathf.Tau, 12, new Color("e2e9df"), 2, true);
-            Ink.DrawCircle(center + new Vector2(0, -34 * size), 3 * size, new Color("e9d39b"));
+            Ink.DrawLine(StructurePoint(-10,-20), StructurePoint(10,-20), new Color("783541"), 2.2f, true);
+            Ink.DrawLine(StructurePoint(-10,-16), StructurePoint(10,-16), new Color("783541"), 1.4f, true);
         }
         else if (ship.IsVeteran)
         {
-            DrawProjectedPolygon(new[] { P(-25, -5, 4), P(-12, -5, 4), P(-12, 5, 4), P(-25, 5, 4) }, new Color("d5c69a"));
-            DrawProjectedPolygon(new[] { P(-25, 5, 0), P(-12, 5, 0), P(-12, 5, 4), P(-25, 5, 4) }, new Color("8e805f"));
-            Ink.DrawLine(P(-25, 5, 8), P(-12, 5, 8), new Color("dce2d6"), 1.4f, true);
-            Ink.DrawLine(P(-25, 5, 4), P(-25, 5, 8), new Color("dce2d6"), 1.4f, true);
-            Ink.DrawLine(P(-12, 5, 4), P(-12, 5, 8), new Color("dce2d6"), 1.4f, true);
-            Ink.DrawLine(P(27, 0, 1), P(31, 0, 8), new Color("cedbdf"), 2.5f, true);
-            Ink.DrawCircle(P(31, 0, 9), 2 * size, new Color("f1f3e9"));
-            DrawProjectedPolygon(new[] { P(30, 0, 6), P(25, -5, 10), P(28, 0, 7), P(34, 5, 10) }, new Color("b9cbd1"));
+            // Painted stern ribbons identify veteran crews without bolting an oversized structure to the deck.
+            var burgundy = new Color("783541");
+            for (int edge = 0; edge < 2; edge++)
+            {
+                float side = edge == 0 ? -5 : 5;
+                DrawProjectedPolygon(new[] { P(-22,side,2), P(-9,side,2), P(-9,side,3.5f), P(-22,side,3.5f) }, burgundy);
+                Ink.DrawLine(P(-22,side,5), P(-9,side,5), burgundy, 1.2f, true);
+            }
         }
 
         if (!silhouette && !_sinking.ContainsKey(ship.Id))

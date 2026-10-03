@@ -9,6 +9,15 @@ if (args.Contains("--v0203-only"))
     Console.WriteLine($"PASS: {Admiral0203SwarmChecks.Run(rules)} swarm and memory checks.");
     return;
 }
+if (args.Contains("--v0204-only"))
+{
+    var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+    Console.WriteLine($"PASS: {Rules0204Checks.Run(rules)} v020.4 paid town, reward and repair checks.");
+    Console.WriteLine($"PASS: {Rules0203Checks.Run(rules)} retained v020.3 rules checks.");
+    Console.WriteLine($"PASS: {Admiral0203Checks.Run(rules)} Admiral checks.");
+    Console.WriteLine($"PASS: {Admiral0203SwarmChecks.Run(rules)} swarm and memory checks.");
+    return;
+}
 if (args.Contains("--generation-only"))
 {
     var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json")));
@@ -72,3 +81,4 @@ var currentRules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAll
 Console.WriteLine($"PASS: {Admiral0203Checks.Run(currentRules)} v0.20.3 coordinated Admiral tactics and fog fairness checks.");
 Console.WriteLine($"PASS: {Admiral0203SwarmChecks.Run(currentRules)} v020.3 swarm assembly, flagship pursuit and observation-memory checks.");
 Console.WriteLine($"PASS: {Rules0203Checks.Run(currentRules)} v020.3 fleet capacity, veterancy, radar, healing and persisted reward checks.");
+Console.WriteLine($"PASS: {Rules0204Checks.Run(currentRules)} v020.4 paid town, level rewards and repair locks.");

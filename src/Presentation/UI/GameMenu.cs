@@ -6,6 +6,8 @@ public partial class DebugHud
 {
     private Control _menuOverlay = null !;
     private PanelContainer _menuPanel = null !;
+    private ScrollContainer _menuScroll = null!;
+    private VBoxContainer _menuBody = null!;
     private Button _godEyeButton = null !;
     private Button _creativeButton = null !;
     public bool MenuVisible => _menuOverlay?.Visible == true;
@@ -30,10 +32,12 @@ public partial class DebugHud
         _menuPanel = Panel(_menuOverlay);
         _menuPanel.CustomMinimumSize = new(340, 0);
         var column = new VBoxContainer();
+        _menuBody = column;
         column.AddThemeConstantOverride("separation", 12);
-        _menuPanel.AddChild(column);
+        _menuScroll = PapyrusModal.Wrap(_menuPanel, column, "GameMenuScroll");
         column.AddChild(Label("Menu", 25, true));
         column.AddChild(new LanguageButtons());
+        column.AddChild(new UiScaleSlider());
         void Add(string name, string title, Action action)
         {
             var button = TextButton(title, action);
@@ -49,11 +53,15 @@ public partial class DebugHud
         _creativeButton = TextButton("Creative: off", () => CreativeRequested?.Invoke());
         _creativeButton.Name = "Creative";
         column.AddChild(_creativeButton);
-        column.AddChild(Label("Free ships, docks and fish collection", 14, true));
+        var freeHint = Label("Free ships, docks and fish collection", 14, true);
+        freeHint.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        column.AddChild(freeHint);
         _godEyeButton = TextButton("God’s eye: off", () => GodEyeRequested?.Invoke());
         _godEyeButton.Name = "GodEye";
         column.AddChild(_godEyeButton);
-        column.AddChild(Label("See the whole sea without fog", 14, true));
+        var sightHint = Label("See the whole sea without fog", 14, true);
+        sightHint.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        column.AddChild(sightHint);
         Add("CloseMenu", "Return to game", () => SetMenuVisible(false));
         Add("MainMenu", "Return to title", () =>
         {

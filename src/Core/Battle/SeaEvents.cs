@@ -92,7 +92,7 @@ public sealed partial class BattleState
             _captureWaits.Remove(key);
     }
 
-    private bool ReadyCrew(WaitingCrew crew, Side side) => crew.Since < TurnSerial && Find(crew.ShipId)is { } ship && ship.Owner == side && ship.Position == crew.Position && !ship.IsExhausted && !ship.HasMoved && ship.AttacksUsed == 0;
+    private bool ReadyCrew(WaitingCrew crew, Side side) => crew.Since < TurnSerial && Find(crew.ShipId)is { } ship && ship.Owner == side && ship.Position == crew.Position && !ship.IsExhausted && !ship.HasRepaired && !ship.HasMoved && ship.AttacksUsed == 0;
     private void EndSeaEventTurn(Side side)
     {
         foreach (var treasury in _treasuries.Where(t => !t.IsCollected))

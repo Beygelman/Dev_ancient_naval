@@ -293,9 +293,9 @@
   "encounterCurrencyReward": 5,
   "levelCurrencyRewards": [
     2,
-    4,
-    5,
-    7
+    2,
+    2,
+    2
   ],
   "lighthousesEnabled": true,
   "dynamicFleetCapacity": true,
@@ -304,5 +304,7 @@
   "fishingLighthouses": true,
   "frozenUnownedVillages": true,
   "persistTreasuryRuins": true,
-  "ancientAutoRepairAmount": 2
+  "ancientAutoRepairAmount": 2,
+  "paidVillageUpgrades": true,
+  "villageLevelPrices": [5, 8, 12, 16]
 }

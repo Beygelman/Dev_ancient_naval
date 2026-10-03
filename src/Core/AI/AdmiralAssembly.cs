@@ -123,6 +123,7 @@ internal static class AdmiralAssembly
         probe.AttacksUsed = 0;
         probe.HasMoved = false;
         probe.IsExhausted = false;
+        probe.HasRepaired = false;
         probe.MovementLocked = false;
         return probe;
     }

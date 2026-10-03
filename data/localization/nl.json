@@ -671,5 +671,21 @@
   "Ship dismantled. No refund.": "Schip tot zinken gebracht. Geen terugbetaling.",
   "Cannot claim this reward now.": "Je kunt deze beloning nu niet ophalen.",
   "This reward has already been claimed.": "Deze beloning is al opgehaald.",
-  "Reward accepted: +{0} Thors.": "Beloning ontvangen: +{0} Thors."
+  "Reward accepted: +{0} Thors.": "Beloning ontvangen: +{0} Thors.",
+  "Interface scale · {0}%": "Interfaceschaal · {0}%",
+  "Upgrade town": "Stad uitbreiden",
+  "Upgrade town · {0} Thors": "Stad uitbreiden · {0} Thors",
+  "Town at maximum level": "Stad op het hoogste niveau",
+  "Next level · {0} Thors": "Volgend niveau · {0} Thors",
+  "Towns grow through paid upgrades. Each upgrade uses this turn's town construction.": "Steden groeien door betaalde uitbreidingen. Elke uitbreiding gebruikt de bouwactie van de stad voor deze beurt.",
+  "Town level grows through paid upgrades; each upgrade uses the town's construction for this turn.": "Het stadsniveau stijgt door betaalde uitbreidingen; elke uitbreiding gebruikt de bouwactie van de stad voor deze beurt.",
+  "Next level": "Volgend niveau",
+  "Automatic growth": "Automatische groei",
+  "+{0} · Level reward": "+{0} · Niveaubeloning",
+  "Village upgrades are automatic in this voyage.": "In deze reis groeien dorpen automatisch.",
+  "This village is already at maximum level.": "Dit dorp heeft het hoogste niveau al bereikt.",
+  "This village has already worked this turn.": "Dit dorp heeft deze beurt al een actie uitgevoerd.",
+  "Village upgraded to level {0}.": "Dorp uitgebreid tot niveau {0}.",
+  "This town has already repaired this turn.": "Deze stad is deze beurt al gerepareerd.",
+  "A repaired ship cannot build again this turn.": "Een gerepareerd schip kan deze beurt niet meer bouwen."
 }

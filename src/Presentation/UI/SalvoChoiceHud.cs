@@ -33,9 +33,11 @@ public partial class DebugHud
     internal void PositionSalvoChoice(Vector2 target, float progressOffset)
     {
         if (!SalvoChoiceVisible) return;
+        target = UiScale.ScreenToUi(target);
+        progressOffset /= UiScale.Value;
         _radial.Hide();
         var origin = target + new Vector2(0, progressOffset + 12 - _salvoChoice.TopInset);
-        var viewport = GetViewport().GetVisibleRect().Size;
+        var viewport = UiScale.LogicalViewport(this);
         origin.X = Mathf.Clamp(origin.X, 112, Math.Max(112, viewport.X - 112));
         origin.Y = Mathf.Clamp(origin.Y, 100, Math.Max(100, viewport.Y - 175));
         _salvoChoice.Position = origin - SectorButton.Center;

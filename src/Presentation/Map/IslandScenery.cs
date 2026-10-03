@@ -20,6 +20,19 @@ public partial class BoardView
     internal IEnumerable<GridPosition> RenderedMountainCells => _scenery.Where(item => item.Kind == 2).Select(item => item.Cell);
     internal IEnumerable<Vector2[]> MountainGroundFootprints => _scenery.Where(item => item.Kind == 2)
         .Select(item => MountainFootprint(item, item.Point));
+    internal IEnumerable<(Vector2 Anchor, Vector2[] Shape)> MountainSilhouettes => _scenery.Where(item => item.Kind == 2)
+        .Select(item => (item.Point, MountainSilhouette(item)));
+    internal Vector2[] VillageSceneryEnvelope(DevAncientNaval.Core.Battle.Village town)
+    {
+        var placement = VillagePlacement(town);
+        var center = Projection.GridToWorld(town.Position) + placement.Offset;
+        // Ground fitting and visual height are separate: a foreground summit
+        // must not hide the roofs even when its skirt misses the town soil.
+        var bounds = new Rect2(center + new Vector2(-43, -78) * placement.Scale,
+            new Vector2(86, 106) * placement.Scale);
+        return new[] { bounds.Position, bounds.Position + new Vector2(bounds.Size.X, 0), bounds.End,
+            bounds.Position + new Vector2(0, bounds.Size.Y) };
+    }
 
     private sealed record Scenery(GridPosition Cell, Vector2 Point, float Size, int Kind, float Shade, bool Minor = false,
         float HeightRatio = 1.7f, bool Snow = false);
@@ -113,12 +126,20 @@ public partial class BoardView
     private void BuildScenery()
     {
         EnsureIslandGeometry();
-        EnsureCosmeticRivers();
         _sceneryProjection = Projection;
         _scenery.Clear();
         var random = new Random(Board.Seed ^ 92173);
         var features = TerrainFeatures.For(Board);
         var towns = Battle.Villages.Select(v => Projection.GridToWorld(v.Position)).ToArray();
+        var townExclusions = Battle.Villages.Select(v =>
+        {
+            var placement = VillagePlacement(v);
+            var anchor = Projection.GridToWorld(v.Position);
+            var ground = TownEnvelope.Select(p => anchor + placement.Point(p)).ToArray();
+            var visual = VillageSceneryEnvelope(v);
+            return (Anchor: anchor, Ground: ground, GroundBounds: PolygonBounds(ground),
+                Visual: visual, VisualBounds: PolygonBounds(visual));
+        }).ToArray();
         var bounds = Projection.BoardBounds(Board);
         var sandBins = new Dictionary<(int X, int Y), List<(Vector2[] Shape, Rect2 Bounds)>>();
         foreach (var beach in _beaches.Where(b => b.Polygon.Length > 0))
@@ -139,6 +160,58 @@ public partial class BoardView
                 !beaches.Any(b => b.Bounds.HasPoint(p) && Geometry2D.IsPointInPolygon(p, b.Shape));
         }
 
+        // Large summits may span neighboring inland cells, but every skirt
+        // remains inside real land and away from the beach.
+        Scenery? Peak(GridPosition cell, Vector2 p, float size, bool minor = false)
+        {
+            var peak = new Scenery(cell, p, size, 2, (float)random.NextDouble() - .5f,
+                Minor: minor, HeightRatio: 1.35f + (float)random.NextDouble() * .9f);
+            bool Fits(Scenery candidate)
+            {
+                var skirt = MountainFootprint(candidate, p);
+                var silhouette = MountainSilhouette(candidate);
+                var groundBounds = PolygonBounds(skirt);
+                var visualBounds = PolygonBounds(silhouette);
+                return skirt.SelectMany((point, i) => new[] { point, point.Lerp(skirt[(i + 1) % skirt.Length], .5f) })
+                    .All(point => LandPoint(point, out var groundCell) && Board.GetTile(groundCell).Terrain == TerrainType.Land) &&
+                    townExclusions.All(town => (!groundBounds.Intersects(town.GroundBounds) ||
+                        Geometry2D.IntersectPolygons(skirt, town.Ground).Sum(PolygonArea) < .01f) &&
+                        (p.Y < town.Anchor.Y || !visualBounds.Intersects(town.VisualBounds) ||
+                        Geometry2D.IntersectPolygons(silhouette, town.Visual).Sum(PolygonArea) < .01f));
+            }
+            while (size > 1 && !Fits(peak))
+            {
+                size *= .88f;
+                peak = peak with { Size = size };
+            }
+            // Tiny connecting spikes add clutter rather than a legible ridge.
+            // A legacy village on a mountain address keeps its Core obstacle,
+            // but the decorative summit is omitted when no visible fit exists.
+            return !Fits(peak) || minor && size < 10 ? null : peak;
+        }
+        foreach (var cell in features.MountainCells.OrderBy(c => c.Y).ThenBy(c => c.X))
+        {
+            var p = Projection.GridToWorld(cell);
+            float band = (float)random.NextDouble();
+            float size = band < .25f ? 22 + (float)random.NextDouble() * 15 :
+                band < .75f ? 37 + (float)random.NextDouble() * 22 : 62 + (float)random.NextDouble() * 28;
+            if (Peak(cell, p, size) is { } summit) _scenery.Add(summit);
+            // Smaller connecting peaks belong to the same sight-blocking ridge;
+            // they do not create new invisible gameplay obstacles.
+            foreach (var next in Board.GetNeighbors(cell).Where(features.MountainCells.Contains)
+                .Where(n => n.Y > cell.Y || n.Y == cell.Y && n.X > cell.X).OrderBy(n => n.Y).ThenBy(n => n.X))
+            {
+                var middle = p.Lerp(Projection.GridToWorld(next), .5f);
+                if (!LandPoint(middle, out _)) continue;
+                if (Peak(cell, middle, 21 + (float)random.NextDouble() * 13, true) is { } connector) _scenery.Add(connector);
+            }
+        }
+        var summits = _scenery.Where(p => p.Kind == 2 && !p.Minor).Select(p => p.Size * p.HeightRatio).Order().ToArray();
+        float snowLine = summits.Length == 0 ? float.MaxValue : Math.Max(58, summits[(int)((summits.Length - 1) * .82f)]);
+        for (int i = 0; i < _scenery.Count; i++)
+            if (_scenery[i] is { Kind: 2, Minor: false } peak && peak.Size * peak.HeightRatio >= snowLine)
+                _scenery[i] = peak with { Snow = true };
+        EnsureCosmeticRivers();
         // Correlated continuous fields determine forests/ridges. A tile is merely
         // the visibility owner of a sample, never the boundary of its grove.
         for (float y = bounds.Position.Y; y < bounds.End.Y; y += 13)
@@ -158,47 +231,6 @@ public partial class BoardView
                     _scenery.Add(new(cell, p, 5 + (float)random.NextDouble() * 9, 1, random.Next(3)));
             }
 
-        // Large summits may span neighboring inland cells, but every skirt
-        // remains inside real land and away from the beach.
-        Scenery Peak(GridPosition cell, Vector2 p, float size)
-        {
-            var peak = new Scenery(cell, p, size, 2, (float)random.NextDouble() - .5f,
-                HeightRatio: 1.35f + (float)random.NextDouble() * .9f);
-            bool Fits(Scenery candidate)
-            {
-                var skirt = MountainFootprint(candidate, p);
-                return skirt.SelectMany((point, i) => new[] { point, point.Lerp(skirt[(i + 1) % skirt.Length], .5f) })
-                    .All(point => LandPoint(point, out var groundCell) && Board.GetTile(groundCell).Terrain == TerrainType.Land);
-            }
-            while (size > 1 && !Fits(peak))
-            {
-                size *= .88f;
-                peak = peak with { Size = size };
-            }
-            return peak;
-        }
-        foreach (var cell in features.MountainCells.OrderBy(c => c.Y).ThenBy(c => c.X))
-        {
-            var p = Projection.GridToWorld(cell);
-            float band = (float)random.NextDouble();
-            float size = band < .25f ? 22 + (float)random.NextDouble() * 15 :
-                band < .75f ? 37 + (float)random.NextDouble() * 22 : 62 + (float)random.NextDouble() * 28;
-            _scenery.Add(Peak(cell, p, size));
-            // Smaller connecting peaks belong to the same sight-blocking ridge;
-            // they do not create new invisible gameplay obstacles.
-            foreach (var next in Board.GetNeighbors(cell).Where(features.MountainCells.Contains)
-                .Where(n => n.Y > cell.Y || n.Y == cell.Y && n.X > cell.X).OrderBy(n => n.Y).ThenBy(n => n.X))
-            {
-                var middle = p.Lerp(Projection.GridToWorld(next), .5f);
-                if (!LandPoint(middle, out _)) continue;
-                _scenery.Add(Peak(cell, middle, 21 + (float)random.NextDouble() * 13) with { Minor = true });
-            }
-        }
-        var summits = _scenery.Where(p => p.Kind == 2 && !p.Minor).Select(p => p.Size * p.HeightRatio).Order().ToArray();
-        float snowLine = summits.Length == 0 ? float.MaxValue : Math.Max(58, summits[(int)((summits.Length - 1) * .82f)]);
-        for (int i = 0; i < _scenery.Count; i++)
-            if (_scenery[i] is { Kind: 2, Minor: false } peak && peak.Size * peak.HeightRatio >= snowLine)
-                _scenery[i] = peak with { Snow = true };
         AddDecorativeRuins(LandPoint);
         AddTreasuryRuins();
         _scenery.Sort((a, b) => a.Point.Y.CompareTo(b.Point.Y));
@@ -210,6 +242,10 @@ public partial class BoardView
         float uneven = 1 + .12f * MathF.Sin(i * 2.7f + item.Shade * 5);
         return p + new Vector2(MathF.Cos(angle), MathF.Sin(angle) * .38f) * item.Size * uneven;
     }).ToArray();
+
+    private static Vector2[] MountainSilhouette(Scenery item) => Geometry2D.ConvexHull(
+        MountainFootprint(item, item.Point).Append(item.Point + new Vector2(item.Size * item.Shade * .32f,
+            -item.Size * item.HeightRatio)).ToArray()).SkipLast(1).ToArray();
 
     private static void SceneryTriangle(CanvasItem canvas, Vector2 a, Vector2 b, Vector2 c, Color color)
     {

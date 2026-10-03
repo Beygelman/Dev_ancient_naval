@@ -8,6 +8,9 @@ public partial class RewardPapyrusHud : CanvasLayer
 {
     private Control _root = null!;
     private PanelContainer _paper = null!;
+    private ScrollContainer _scroll = null!;
+    private VBoxContainer _body = null!;
+    private bool _layingOut;
     private Label _title = null!, _nation = null!, _first = null!, _second = null!;
     private Button _claim = null!;
     private ColorRect _accent = null!;
@@ -28,13 +31,14 @@ public partial class RewardPapyrusHud : CanvasLayer
         var shade = new ColorRect { Color = new Color(0, 0, 0, .24f), MouseFilter = Control.MouseFilterEnum.Stop };
         _root.AddChild(shade);
         shade.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        _paper = new PanelContainer { Name = "RewardPapyrus", CustomMinimumSize = new(PapyrusGrain.FamilyWidth, 0) };
+        _paper = new PanelContainer { Name = "RewardPapyrus", CustomMinimumSize = new(PapyrusModal.Width, 0) };
         _paper.AddThemeStyleboxOverride("panel", PapyrusStyle.Panel(.99f));
         PapyrusGrain.Apply(_paper);
         _root.AddChild(_paper);
         var body = new VBoxContainer();
+        _body = body;
         body.AddThemeConstantOverride("separation", 12);
-        _paper.AddChild(body);
+        _scroll = PapyrusModal.Wrap(_paper, body, "RewardScroll");
         _accent = new ColorRect { CustomMinimumSize = new(0, 4), MouseFilter = Control.MouseFilterEnum.Ignore };
         body.AddChild(_accent);
         _title = Text("", 19, true); _title.Name = "RewardTitle"; body.AddChild(_title);
@@ -49,7 +53,9 @@ public partial class RewardPapyrusHud : CanvasLayer
         _claim.Pressed += RequestClaim;
         body.AddChild(_claim);
         _paper.Resized += Layout;
+        _body.MinimumSizeChanged += Layout;
         _root.Resized += Layout;
+        UiScale.Bind(this, _root, Layout);
         Hide();
         SetProcess(false);
     }
@@ -116,14 +122,16 @@ public partial class RewardPapyrusHud : CanvasLayer
 
     private void Layout()
     {
-        if (_paper is null || !_paper.IsInsideTree()) return;
-        var viewport = GetViewport().GetVisibleRect().Size;
-        float scale = Math.Min(1, Math.Min((viewport.X - 24) / Math.Max(1, _paper.Size.X),
-            (viewport.Y - 24) / Math.Max(1, _paper.Size.Y)));
+        if (_paper is null || !_paper.IsInsideTree() || _layingOut) return;
+        _layingOut = true;
+        var viewport = UiScale.LogicalViewport(this);
+        PapyrusModal.Layout(_paper, _scroll, _body, viewport);
+        float scale = 1;
         _paper.PivotOffset = _paper.Size * .5f;
         _paper.Position = (viewport - _paper.Size) * .5f;
         float reveal = 1 - Mathf.Pow(1 - _age, 3);
         _paper.Scale = new Vector2(scale, Math.Max(.01f, reveal) * scale);
+        _layingOut = false;
     }
 
     public override void _Process(double delta)
@@ -138,7 +146,7 @@ public partial class RewardPapyrusHud : CanvasLayer
     private static Label Text(string text, int fontSize, bool centered = false)
     {
         var label = new Label { Text = text, AutowrapMode = TextServer.AutowrapMode.WordSmart,
-            CustomMinimumSize = new(PapyrusGrain.FamilyWidth - 32, 0),
+            CustomMinimumSize = Vector2.Zero,
             MouseFilter = Control.MouseFilterEnum.Ignore,
             HorizontalAlignment = centered ? HorizontalAlignment.Center : HorizontalAlignment.Left };
         label.AddThemeFontSizeOverride("font_size", fontSize);

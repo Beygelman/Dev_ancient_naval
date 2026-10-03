@@ -40,13 +40,12 @@ public partial class BoardView
 
     private Rect2 TownRasterBounds(Village town, bool front)
     {
-        if (!front) return new Rect2(-56, -92, 112, 106);
         // Tall front corner towers extend above the compact walls; the rear
         // tower lives in the back layer. Leave room for every coastal fit.
-        var bounds = new Rect2(-58, -64, 116, 108);
+        var bounds = front ? new Rect2(-58, -64, 116, 108) : new Rect2(-56, -92, 112, 106);
         if (town.HasPort)
         {
-            var shore = (Projection.GridToWorld(Battle.PortBerth(town)) - Projection.GridToWorld(town.Position)) * .5f;
+            var shore = PortShore(ObserveTownArt(town));
             // Pier ends, boats and their raised roof must fit in every direction.
             bounds = bounds.Expand(shore - new Vector2(42, 35)).Expand(shore + new Vector2(42, 35));
         }
@@ -62,8 +61,7 @@ public partial class BoardView
         // Queued redraws may survive the transition into fog. Keep the last
         // observed texture instead of consulting a now-hidden owner's new art.
         if (!visible && entry is null) return;
-        string key = front ? $"{town.Owner}:{town.Level}:{town.IsFortified}:{town.HasPort}:{FleetPalette.For(Battle, town.Owner).ToHtml()}" :
-            $"{town.Owner}:{town.Level}:{town.IsFortified}:{FleetPalette.For(Battle, town.Owner).ToHtml()}";
+        string key = $"{town.Owner}:{town.Level}:{town.IsFortified}:{town.HasPort}:{FleetPalette.For(Battle, town.Owner).ToHtml()}";
         if (visible && (entry is null || entry.Key != key))
         {
             entry?.Viewport.QueueFree();
@@ -86,7 +84,11 @@ public partial class BoardView
             page.SetPainter(scale, source =>
             {
                 source.DrawSetTransform(-bounds.Position);
-                if (!front) DrawTownGround(source, observedArt, Vector2.Zero);
+                if (!front)
+                {
+                    DrawTownGround(source, observedArt, Vector2.Zero);
+                    if (observedArt.HasPort) DrawPortRoad(source, observedArt, Vector2.Zero);
+                }
                 if (placement.Scale > 0)
                 {
                     source.DrawSetTransform(-bounds.Position + placement.Offset, 0, Vector2.One * placement.Scale);

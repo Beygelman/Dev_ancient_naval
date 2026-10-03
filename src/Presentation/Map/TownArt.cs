@@ -15,6 +15,8 @@ public partial class BoardView
     internal static Vector2 TownHealthAnchor(Vector2 center) => center + new Vector2(38, -31);
 
     private readonly Dictionary<int, TownHouse[]> _townHomes = new();
+    private readonly Dictionary<int, Vector2> _portShoreAnchors = new();
+    private IsometricProjection? _portShoreProjection;
     internal static Vector2[] TownMills(Village town) => TownMills(town.Level);
     private static Vector2[] TownMills(int level) => level < 2 ? Array.Empty<Vector2>() : level < 4 ? new[]
     {
@@ -38,6 +40,7 @@ public partial class BoardView
         var homes = TownHomes(town.Id);
 
         var accent = town.Accent;
+        DrawTownPlaza(canvas, town, center);
         if (town.IsFortified) DrawTownWall(canvas, town, center, false);
         int count = Math.Min(homes.Length, 3 + town.Level * 2);
         bool shrineDrawn = false;
@@ -54,7 +57,7 @@ public partial class BoardView
             var home = homes[i];
             if (!shrineDrawn && home.Position.Y >= -3) { Shrine(); shrineDrawn = true; }
             var p = center + home.Position;
-            float h = home.Height + Math.Max(0, town.Level - 2) * 1.7f;
+            float h = TownHouseHeight(home, town.Level);
             float w = home.Width;
             var plaster = new Color(home.Style switch { 0 => "e2caa1", 1 => "e6d5b6", 2 => "d4c4aa", 3 => "ddd4bc", _ => "cfc3a5" });
             canvas.DrawColoredPolygon(new[] { p + new Vector2(-w, 0), p + new Vector2(2, 4), p + new Vector2(2, 4 - h), p + new Vector2(-w, -h) }, plaster);
@@ -99,7 +102,28 @@ public partial class BoardView
         if (town.IsFortified) DrawTownWall(canvas, town, center, true);
     }
 
-    internal static float SanctuaryHeightScale(int level) => 1.4f + .3f * (level - 1);
+    internal static float TownHouseHeight(TownHouse home, int level) => home.Height + Math.Max(0, level - 1) * .75f;
+    internal static float SanctuaryHeightScale(int level) => 1.65f + .2f * (level - 1);
+    internal static Vector2[] TownPlaza(int seed) => Enumerable.Range(0, 28).Select(i =>
+    {
+        float angle = i * Mathf.Tau / 28;
+        float irregular = 1 + .065f * MathF.Sin(angle * 3 + seed * .017f) + .035f * MathF.Cos(angle * 5);
+        return new Vector2(3.4f, -1.7f) + new Vector2(MathF.Cos(angle) * 12, MathF.Sin(angle) * 4.6f) * irregular;
+    }).ToArray();
+    private static void DrawTownPlaza(Node2D canvas, TownArtState town, Vector2 center)
+    {
+        var edge = TownPlaza(town.Id);
+        canvas.DrawColoredPolygon(edge.Select(p => p + center).ToArray(), new Color("c9c0a4"));
+        canvas.DrawPolyline(edge.Append(edge[0]).Select(p => p + center).ToArray(), new Color("a8a187"), .7f, true);
+        // Irregular paving joints frame the church without filling its open
+        // floor with another rectangular backdrop.
+        for (int joint = 0; joint < 14; joint++)
+        {
+            var a = edge[joint * 2];
+            var b = a.Lerp(new Vector2(3.4f, -1.7f), .24f);
+            canvas.DrawLine(center + a, center + b, new Color("b4ad93"), .55f, true);
+        }
+    }
     private void DrawTownFields(Node2D canvas, TownArtState town, Vector2 center)
     {
         foreach (var field in TownGround(town).Fields)
@@ -115,16 +139,51 @@ public partial class BoardView
         }
     }
 
-    internal Vector2 PortAnchor(Village town) => Projection.GridToWorld(town.Position).Lerp(Projection.GridToWorld(Battle.PortBerth(town)), .5f);
+    internal Vector2 PortAnchor(Village town) => Projection.GridToWorld(town.Position) + PortShore(ObserveTownArt(town));
+
+    private Vector2 PortShore(TownArtState town)
+    {
+        EnsureIslandGeometry();
+        if (!ReferenceEquals(_portShoreProjection, Projection))
+        {
+            _portShoreProjection = Projection;
+            _portShoreAnchors.Clear();
+        }
+        if (_portShoreAnchors.TryGetValue(town.Id, out var cached)) return cached;
+        var origin = Projection.GridToWorld(town.Position);
+        var sea = Projection.GridToWorld(town.PortBerth);
+        // Follow the actual curving island edge, rather than placing a pier
+        // at an assumed square-cell midpoint which may still be inland.
+        var edge = _beaches.SelectMany(b => Enumerable.Range(1, b.Edge.Length - 1)
+                .Select(i => (A: b.Edge[i - 1], B: b.Edge[i])))
+            .Select(e => Geometry2D.SegmentIntersectsSegment(origin, sea, e.A, e.B))
+            .Where(hit => hit.VariantType != Variant.Type.Nil)
+            .Select(hit => hit.AsVector2())
+            .OrderBy(p => p.DistanceSquaredTo(origin)).ToArray();
+        return _portShoreAnchors[town.Id] = (edge.Length > 0 ? edge[0] : origin.Lerp(sea, .5f)) - origin;
+    }
+
+    internal Vector2[] PortRoad(Village town) => PortRoad(ObserveTownArt(town));
+    private Vector2[] PortRoad(TownArtState town)
+    {
+        var start = VillagePlacement(town).Point(new Vector2(3.4f, -1.7f));
+        var end = PortShore(town);
+        var middle = start.Lerp(end, .5f) + (end - start).Orthogonal().Normalized() * 2.5f;
+        return Enumerable.Range(0, 17).Select(i =>
+        {
+            float t = i / 16f;
+            return start * (1 - t) * (1 - t) + middle * (2 * t * (1 - t)) + end * t * t;
+        }).ToArray();
+    }
+    private void DrawPortRoad(Node2D canvas, TownArtState town, Vector2 center) =>
+        canvas.DrawPolyline(PortRoad(town).Select(p => p + center).ToArray(), new Color("d5c29b"), 4, true);
 
     private void DrawPort(Node2D canvas, TownArtState town, Vector2 center)
     {
         var sea = Projection.GridToWorld(town.PortBerth) - Projection.GridToWorld(town.Position);
         var axis = sea.Normalized();
         var side = axis.Orthogonal();
-        var shore = center + sea * .5f;
-        canvas.DrawLine(center + new Vector2(0,2), shore, new Color("d5c29b"), 4, true);
-        canvas.DrawLine(center + new Vector2(0,2), shore, new Color("9f8e72"), .7f, true);
+        var shore = center + PortShore(town);
         for (int pier = -1; pier <= 1; pier++)
         {
             var at = shore + side * pier * 7;

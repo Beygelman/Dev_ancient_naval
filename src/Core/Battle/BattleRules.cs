@@ -27,6 +27,8 @@ public sealed class BattleRules
     public bool FishingLighthouses { get; init; }
     public bool FrozenUnownedVillages { get; init; }
     public bool PersistTreasuryRuins { get; init; }
+    public bool PaidVillageUpgrades { get; init; } // Missing in old saves: retain automatic town growth.
+    public IReadOnlyList<int> VillageLevelPrices { get; init; } = new[] { 5, 8, 12, 16 };
     public int AncientAutoRepairAmount { get; init; }
     public int EncounterCurrencyReward { get; init; }
     public IReadOnlyList<int> LevelCurrencyRewards { get; init; } = new[] { 0, 0, 0, 0 };
@@ -74,6 +76,8 @@ public sealed class BattleRules
             throw new ArgumentException("Invalid economy rules.");
         if (EncounterCurrencyReward < 0 || LevelCurrencyRewards is null || LevelCurrencyRewards.Count != 4 || LevelCurrencyRewards.Any(r => r < 0))
             throw new ArgumentException("Invalid voyage reward rules.");
+        if (VillageLevelPrices is null || VillageLevelPrices.Count != 4 || VillageLevelPrices.Any(price => price < 0))
+            throw new ArgumentException("Village upgrades need four nonnegative level prices.");
         if (Mortar is null || Balloon is null || Treasury is null || Economy is null || VillageCombat is null || Ports is null)
             throw new ArgumentException("Special weapon and treasury rules cannot be null.");
         Mortar.Validate();

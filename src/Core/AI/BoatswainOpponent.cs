@@ -38,6 +38,8 @@ internal static class BoatswainOpponent
         }
 
         var mother = battle.Mothership(side)!;
+        if (VillageDevelopment.Step(battle, enemies) is { } development)
+            return development;
         if (allies.Count(s => s.CountsTowardFleet) < 5 && battle.Round % 2 == 0 && battle.BuildBlockReason(side, mother.Id, ShipClass.Garrison)is null)
             return battle.Build(side, mother.Id, ShipClass.Garrison, battle.SpawnCells(mother.Id).First());
         foreach (var ship in allies.Where(s => s.CanMove && !s.HasMoved))

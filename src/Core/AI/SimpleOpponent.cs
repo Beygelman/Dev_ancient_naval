@@ -93,6 +93,8 @@ public static class SimpleOpponent
                 return battle.Collect(side, collector.Id, fish.First());
         }
 
+        if (VillageDevelopment.Step(battle, enemies) is { } development)
+            return development;
         foreach (var ship in allies.Where(s => s.Definition.RadarPrice > 0))
             if (battle.Credits(side) >= 8 && battle.RadarBlockReason(side, ship.Id)is null)
                 return battle.BuyRadar(side, ship.Id);

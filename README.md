@@ -1,4 +1,4 @@
-# Ancient Naval — v020.3 — Rivers and Revelations
+# Ancient Naval — v020.4 — Harbors and Blessings
 
 A turn-based naval tactics game built with **Godot 4.7.2 .NET**, C# and .NET 8. Open `project.godot`, stop the previous run with **F8**, then press **F5**. The title screen offers **New game**, **Continue** and **Exit game**. New game opens a six-color fleet and emblem selector and a choice of 1–4 rival fleets and Boatswain, Captain or Admiral difficulty, plus **Sea World**, **Oceans**, **Continents** or **Pangaea**.
 
@@ -9,6 +9,10 @@ Defeat the rival Motherships while exploring, collecting resources and capturing
 The working project, sources, assets, balance, tests and this README are edited
 directly in this Git repository. Delivered files are also copied to `releases/`
 inside the same project; the external `outputs` folder is an additional mirror.
+
+- [Windows v020.4 ZIP](releases/v020.4/Ancient_Naval_v020.4_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
+- [Source v020.4 ZIP](releases/v020.4/Ancient_Naval_v020.4_Source.zip), [Russian notes](releases/v020.4/Ancient_Naval_v020.4_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.4.txt).
+- Local launch copy: `releases/v020.4/playable/Ancient Naval.exe`.
 
 - [Windows v020.3 ZIP](releases/v020.3/Ancient_Naval_v020.3_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
 - [Source v020.3 ZIP](releases/v020.3/Ancient_Naval_v020.3_Source.zip), [Russian notes](releases/v020.3/Ancient_Naval_v020.3_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.3.txt).
@@ -40,6 +44,14 @@ notes remain visible to Git. [GitHub size limits](https://docs.github.com/en/rep
 Godot ignores the release directory so copied exports never re-enter game assets.
 See [release-copy workflow](releases/README.md). Files reach GitHub after the
 repository changes are committed and pushed; copying files alone is not a push.
+
+## v020.4 — 3 October 2026
+
+Vertical parchment panels are wider and bounded to 60% of the viewport with scrolling. Interface scale (80–125%) is adjustable on the title screen and in the game menu without changing the world or hit positions. Every flagship level grants 2 Thors. New voyages use paid town upgrades (5, 8, 12, 16 Thors), with the upgrade icon centered on the town's command arc. Repair ends the object's other actions for that turn.
+
+Three small merchant skins travel the owned port routes, departing every 12–20 seconds. They are decorative and reveal no hidden enemies. River placement avoids towns and peaks; bends receive quiet depth shading and branches join rather than crossing. Early town homes are larger, the shrine gains a round irregular plaza, and beige port roads stay behind houses and mills. Clay badges and shipyard icons share one motif family; veteran amphorae have a longer neck and two burgundy bands.
+
+[Validation and compatibility](docs/MILESTONE-v020.4.md). Select **New game** to adopt paid town progression; older saves keep their rules.
 
 ## v020.3 — 3 October 2026
 

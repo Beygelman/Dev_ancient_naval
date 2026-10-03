@@ -1,3 +1,4 @@
+using System;
 using DevAncientNaval.Core.Battle;
 using DevAncientNaval.Core.Grid;
 using DevAncientNaval.Core.Units;
@@ -173,14 +174,14 @@ public partial class DebugHud
 
     private void LayoutInformation(Vector2 viewport)
     {
-        float width = Mathf.Clamp(viewport.X - 36, 280, 408);
-        float ceiling = Mathf.Clamp(viewport.Y - 196, 220, 500);
+        float width = Mathf.Clamp(viewport.X - 24, 220, PapyrusModal.Width);
+        float ceiling = Math.Max(100, viewport.Y * PapyrusModal.HeightFraction);
         float headingHeight = (_informationTitle?.GetParent() as Control)?.GetCombinedMinimumSize().Y ?? 48;
         float margins = _informationPanel.GetThemeStylebox("panel").GetMinimumSize().Y;
         float contentHeight = (_informationBody?.GetCombinedMinimumSize().Y ?? 0) + headingHeight + margins + 12;
-        float height = Mathf.Clamp(contentHeight, 220, ceiling);
+        float height = Mathf.Clamp(contentHeight, Math.Min(180, ceiling), ceiling);
         _informationPanel.Size = new(width, height);
-        _informationPanel.Position = new(viewport.X - width - 18, (viewport.Y - height) / 2);
+        _informationPanel.Position = new(viewport.X - width - 12, (viewport.Y - height) / 2);
     }
 
     private void OpenInformation()

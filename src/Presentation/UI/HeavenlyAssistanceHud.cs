@@ -53,7 +53,7 @@ public partial class DebugHud
         if (_heavenPaper is null || !_heavenPaper.Visible) return;
         float lower = _metricsPaper.Position.Y + _metricsPaper.Size.Y + 8;
         if (_nationPaper.Visible) lower = _nationPaper.Position.Y + _nationPaper.Size.Y + 8;
-        _heavenPaper.Position = new((GetViewport().GetVisibleRect().Size.X - _heavenPaper.Size.X) / 2, lower);
+        _heavenPaper.Position = new((UiScale.LogicalViewport(this).X - _heavenPaper.Size.X) / 2, lower);
     }
 
     public void HideHeavenlyAssistance()
