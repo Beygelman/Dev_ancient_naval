@@ -18,13 +18,21 @@ public partial class Main
 {
     public void SelectAtScreen(Vector2 screen)
     {
+<<<<<<< Updated upstream
         if (_rewards?.IsOpen == true || _victory?.IsOpen == true || Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player)is not null)
+=======
+        if (Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player) is not null)
+>>>>>>> Stashed changes
             return;
         var air = Battle.ObservedShips(Side.Player).Where(s => s.IsAirborne).FirstOrDefault(s => (GetViewport().GetCanvasTransform() * (BoardView.Projection.GridToWorld(s.Position) + new Vector2(0, -62))).DistanceTo(screen) < 24 * MapCamera.Zoom.X);
         if (air is not null && CanCommand && Selected is { Owner: Side.Player } attacker && Battle.CanAttack(attacker.Id, air.Id))
         {
+<<<<<<< Updated upstream
             if (OfferSalvoChoice(attacker, air.Position, air.Id)) return;
             RunSafely(() => Perform(b => b.Attack(Side.Player, attacker.Id, air.Id), deferImpacts: true));
+=======
+            RunSafely(() => Perform(() => Battle.Attack(Side.Player, attacker.Id, air.Id)));
+>>>>>>> Stashed changes
             return;
         }
 
@@ -38,16 +46,38 @@ public partial class Main
             return;
         }
 
+<<<<<<< Updated upstream
+=======
+        foreach (var village in Battle.ObservedVillages(Side.Player))
+        {
+            var flag = GetViewport().GetCanvasTransform() * BoardView.VillageFlagPosition(village.Position);
+            if (CanCommand && Battle.CanCaptureVillage(Side.Player, village.Id) && flag.DistanceTo(screen) < Math.Max(12, 18 * MapCamera.Zoom.X))
+            {
+                ClearMode();
+                SelectedShipId = null;
+                SelectedVillageId = village.Id;
+                BoardView.Select(village.Position);
+                RunSafely(CaptureVillage);
+                return;
+            }
+        }
+
+>>>>>>> Stashed changes
         SelectCell(BoardView.Projection.WorldToGrid(BoardView.ToLocal(MapCamera.ScreenToWorld(screen))));
     }
 
     public void SelectCell(GridPosition cell)
     {
+<<<<<<< Updated upstream
         using var trace = Diagnostics.PerformanceTrace.Measure("Selection.Dispatch");
         if (_rewards?.IsOpen == true || _victory?.IsOpen == true || Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player)is not null)
             return;
         _salvoCell = null;
         Hud.HideSalvoChoice();
+=======
+        if (Busy || _home?.IsOpen == true || _sessionLoading || Hud.MenuVisible || Battle.PendingUpgrade(Side.Player) is not null)
+            return;
+>>>>>>> Stashed changes
         if (!Battle.Board.Contains(cell))
         {
             CancelOrder();
@@ -64,7 +94,11 @@ public partial class Main
         {
             if (Battle.VillageSpawnCells(yard.Id).Contains(cell))
             {
+<<<<<<< Updated upstream
                 RunSafely(() => Perform(b => b.BuildFromVillage(Side.Player, yard.Id, villageKind, cell)));
+=======
+                RunSafely(() => Perform(() => Battle.BuildFromVillage(Side.Player, yard.Id, villageKind, cell)));
+>>>>>>> Stashed changes
                 return;
             }
 
@@ -79,7 +113,11 @@ public partial class Main
                 if (Battle.SpawnCells(selected.Id).Contains(cell))
                 {
                     int id = selected.Id;
+<<<<<<< Updated upstream
                     RunSafely(() => Perform(b => b.Build(Side.Player, id, kind, cell)));
+=======
+                    RunSafely(() => Perform(() => Battle.Build(Side.Player, id, kind, cell)));
+>>>>>>> Stashed changes
                     return;
                 }
 
@@ -89,13 +127,19 @@ public partial class Main
 
             if (Battle.TargetCells(selected.Id).Contains(cell))
             {
+<<<<<<< Updated upstream
                 if (OfferSalvoChoice(selected, cell)) return;
                 int id = selected.Id;
                 RunSafely(() => Perform(b => b.AttackAt(Side.Player, id, cell), deferImpacts: true));
+=======
+                int id = selected.Id;
+                RunSafely(() => Perform(() => Battle.AttackAt(Side.Player, id, cell)));
+>>>>>>> Stashed changes
                 return;
             }
         }
 
+<<<<<<< Updated upstream
         // A friendly model must remain selectable even on a resource school.
         if (Mode == OrderMode.None && hit?.Owner == Side.Player && hit.Id != selected?.Id)
         {
@@ -106,6 +150,8 @@ public partial class Main
             return;
         }
 
+=======
+>>>>>>> Stashed changes
         // Resources belong to the fleet's collection reach, independent of selection.
         if (CanCommand && Mode == OrderMode.None && (Battle.CollectionCells(Side.Player).Contains(cell) || Battle.DockCells(Side.Player).Contains(cell)))
         {
@@ -123,7 +169,11 @@ public partial class Main
             if ((hit is null || hit.IsAirborne || selected.IsAirborne) && SelectedRoutes()?.PathTo(cell).Count > 1)
             {
                 int id = selected.Id;
+<<<<<<< Updated upstream
                 RunSafely(() => Perform(b => b.Move(Side.Player, id, cell)));
+=======
+                RunSafely(() => Perform(() => Battle.Move(Side.Player, id, cell)));
+>>>>>>> Stashed changes
                 return;
             }
         }
@@ -150,7 +200,11 @@ public partial class Main
             BoardView.QueueRedraw();
         }
 
+<<<<<<< Updated upstream
         if (Mode == OrderMode.None && Battle.ObservedAt(Side.Player, cell)is { } target && target.Owner != Side.Player && Battle.CanAttack(ship.Id, target.Id))
+=======
+        if (Mode == OrderMode.None && Battle.ObservedAt(Side.Player, cell) is { } target && target.Owner != Side.Player && Battle.CanAttack(ship.Id, target.Id))
+>>>>>>> Stashed changes
             Hud.ShowCombatPreview(Math.Min(target.Health, Battle.Damage(ship, target)), Math.Min(ship.Health, Battle.PreviewCounterDamage(ship, target)));
     }
 
@@ -169,8 +223,11 @@ public partial class Main
 
     private void ClearMode()
     {
+<<<<<<< Updated upstream
         _salvoCell = null;
         _salvoBattle = null;
+=======
+>>>>>>> Stashed changes
         Mode = OrderMode.None;
         _building = null;
         _resourceCell = null;

@@ -13,6 +13,7 @@ public partial class BoardView
     private Vector2[][] _islandContours = Array.Empty<Vector2[]>();
     private readonly Dictionary<GridPosition, Vector2[][]> _landShapes = new();
     private readonly List<BeachStrip> _beaches = new();
+<<<<<<< Updated upstream
     private readonly Dictionary<GridPosition, BeachStrip[]> _beachesByCell = new();
     private readonly SeaGeometryBatch _shoreBatch = new();
     private readonly List<(GridPosition Cell, Vector2[] Edge, Vector2 Inside)> _shoreLines = new();
@@ -58,6 +59,19 @@ public partial class BoardView
     {
         if (ReferenceEquals(_islandProjection, Projection))
             return;
+=======
+    private readonly List<(GridPosition Cell, Vector2[] Edge, Vector2 Inside)> _shoreLines = new();
+    private sealed record BeachStrip(GridPosition Cell, Vector2[] Polygon, Vector2[] Edge, Vector2 Inside, Vector2[][] WaterTriangles);
+    internal IReadOnlyList<Vector2[]> IslandContours { get { EnsureIslandGeometry(); return _islandContours; } }
+    internal IEnumerable<Vector2[]> BeachPolygons { get { EnsureIslandGeometry(); return _beaches.Where(beach => beach.Polygon.Length > 0).Select(beach => beach.Polygon); } }
+    internal int BeachSegmentCount { get { EnsureIslandGeometry(); return _beaches.Count; } }
+    internal IEnumerable<Vector2[]> CoastalWaterTriangles { get { EnsureIslandGeometry(); return _beaches.SelectMany(beach => beach.WaterTriangles).Where(points => points.Length > 0); } }
+    private static float BeachWidth(Vector2 p) => 3 + 8 * (.5f + .5f * MathF.Sin(p.X * .008f + MathF.Sin(p.Y * .02f) * 2));
+
+    private void EnsureIslandGeometry()
+    {
+        if (ReferenceEquals(_islandProjection, Projection)) return;
+>>>>>>> Stashed changes
         _islandProjection = Projection;
         _landShapes.Clear();
         _beaches.Clear();
@@ -69,6 +83,7 @@ public partial class BoardView
         var bounds = contours.Select(points =>
         {
             var box = new Rect2(points[0], Vector2.Zero);
+<<<<<<< Updated upstream
             foreach (var point in points)
                 box = box.Expand(point);
             return box;
@@ -115,6 +130,25 @@ public partial class BoardView
             _landShapes[cell] = shapes.ToArray();
         }
 
+=======
+            foreach (var point in points) box = box.Expand(point);
+            return box;
+        }).ToArray();
+        foreach (var cell in land)
+        {
+            var tile = Projection.Diamond(cell);
+            var tileBounds = new Rect2(tile[0], Vector2.Zero);
+            foreach (var point in tile) tileBounds = tileBounds.Expand(point);
+            var shapes = new List<Vector2[]>();
+            for (int i = 0; i < contours.Length; i++)
+            {
+                if (!bounds[i].Intersects(tileBounds)) continue;
+                foreach (var shape in Geometry2D.IntersectPolygons(tile, contours[i]))
+                    if (shape.Length >= 3) shapes.Add(shape);
+            }
+            _landShapes[cell] = shapes.ToArray();
+        }
+>>>>>>> Stashed changes
         foreach (var contour in contours)
         {
             int firstBeach = _beaches.Count;
@@ -128,7 +162,10 @@ public partial class BoardView
                 float shallows = 22 + 10 * (.5f + .5f * MathF.Sin(contour[i].X * .013f + contour[i].Y * .018f));
                 outer[i] = contour[i] - normal * shallows;
             }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
             // An inset wider than a rounded promontory folds back on itself.
             // Relax the shared inset points before emitting either neighbouring
             // segment, so every retained beach strip is a convex polygon.
@@ -138,17 +175,26 @@ public partial class BoardView
                 for (int i = 0; i < contour.Length; i++)
                 {
                     int next = (i + 1) % contour.Length;
+<<<<<<< Updated upstream
                     if (ValidBeachQuad(contour[i], contour[next], inner[next], inner[i]))
                         continue;
+=======
+                    if (ValidBeachQuad(contour[i], contour[next], inner[next], inner[i])) continue;
+>>>>>>> Stashed changes
                     inner[i] = inner[i].Lerp(contour[i], .35f);
                     inner[next] = inner[next].Lerp(contour[next], .35f);
                     adjusted = true;
                 }
+<<<<<<< Updated upstream
 
                 if (!adjusted)
                     break;
             }
 
+=======
+                if (!adjusted) break;
+            }
+>>>>>>> Stashed changes
             for (int i = 0; i < contour.Length; i++)
             {
                 int next = (i + 1) % contour.Length;
@@ -156,6 +202,7 @@ public partial class BoardView
                 var cell = Projection.WorldToGrid(inside);
                 if (!landSet.Contains(cell))
                     cell = land.MinBy(position => Projection.GridToWorld(position).DistanceSquaredTo(inside));
+<<<<<<< Updated upstream
                 var polygon = ValidBeachQuad(contour[i], contour[next], inner[next], inner[i]) ? new[]
                 {
                     contour[i],
@@ -218,10 +265,43 @@ public partial class BoardView
     }
 
     : Array.Empty<Vector2>();
+=======
+                var polygon = ValidBeachQuad(contour[i], contour[next], inner[next], inner[i]) ?
+                    new[] { contour[i], contour[next], inner[next], inner[i] } : Array.Empty<Vector2>();
+                _beaches.Add(new(cell, polygon,
+                    new[] { contour[i], contour[next] }, inside,
+                    new[] { CoastalTriangle(contour[i], contour[next], outer[next]), CoastalTriangle(contour[i], outer[next], outer[i]) }));
+            }
+            // Keep wave runs long enough to draw them with one native call.
+            for (int start = 0; start < contour.Length; start += 8)
+            {
+                int count = Math.Min(8, contour.Length - start);
+                var edge = new Vector2[count + 1];
+                var inside = Vector2.Zero;
+                for (int i = 0; i <= count; i++)
+                {
+                    int index = (start + i) % contour.Length;
+                    edge[i] = contour[index];
+                    inside += inner[index];
+                }
+                _shoreLines.Add((_beaches[firstBeach + start].Cell, edge, inside / (count + 1)));
+            }
+        }
+    }
+
+    private static bool ValidBeachQuad(Vector2 a, Vector2 b, Vector2 c, Vector2 d) =>
+        (b - a).Cross(c - b) > .001f && (c - b).Cross(d - c) > .001f &&
+        (d - c).Cross(a - d) > .001f && (a - d).Cross(b - a) > .001f;
+
+    private static Vector2[] CoastalTriangle(Vector2 a, Vector2 b, Vector2 c) =>
+        MathF.Abs((b - a).Cross(c - a)) > .001f ? new[] { a, b, c } : Array.Empty<Vector2>();
+
+>>>>>>> Stashed changes
     private static Vector2[] RoundIslandContour(Vector2[] points)
     {
         // Round the complete connected island contour. Independent tile insets
         // make saw-tooth beaches and mismatched corner widths.
+<<<<<<< Updated upstream
         var reduced = new List<Vector2>
         {
             points[0]
@@ -229,20 +309,31 @@ public partial class BoardView
         for (int i = 1; i < points.Length; i++)
             if (points[i].DistanceSquaredTo(reduced[^1]) >= 900)
                 reduced.Add(points[i]);
+=======
+        var reduced = new List<Vector2> { points[0] };
+        for (int i = 1; i < points.Length; i++)
+            if (points[i].DistanceSquaredTo(reduced[^1]) >= 576) reduced.Add(points[i]);
+>>>>>>> Stashed changes
         if (reduced.Count < 3)
         {
             int samples = Math.Min(6, points.Length);
             reduced = Enumerable.Range(0, samples).Select(index => points[index * points.Length / samples]).ToList();
         }
+<<<<<<< Updated upstream
 
         var result = reduced.ToArray();
         for (int pass = 0; pass < 4; pass++)
+=======
+        var result = reduced.ToArray();
+        for (int pass = 0; pass < 3; pass++)
+>>>>>>> Stashed changes
         {
             var next = new Vector2[result.Length * 2];
             for (int i = 0; i < result.Length; i++)
             {
                 var a = result[i];
                 var b = result[(i + 1) % result.Length];
+<<<<<<< Updated upstream
                 next[i * 2] = a.Lerp(b, .29f);
                 next[i * 2 + 1] = a.Lerp(b, .71f);
             }
@@ -250,6 +341,13 @@ public partial class BoardView
             result = next;
         }
 
+=======
+                next[i * 2] = a.Lerp(b, .24f);
+                next[i * 2 + 1] = a.Lerp(b, .76f);
+            }
+            result = next;
+        }
+>>>>>>> Stashed changes
         return result;
     }
 
@@ -257,6 +355,7 @@ public partial class BoardView
     {
         EnsureIslandGeometry();
         foreach (var shore in _shoreLines)
+<<<<<<< Updated upstream
             if (Battle.Vision.IsVisible(Side.Player, shore.Cell))
                 yield return (shore.Edge, shore.Inside);
     }
@@ -299,5 +398,58 @@ public partial class BoardView
         // Ruins, including already searched ruins, are retained sprites in
         // the shared scenery depth/atlas layer. Selection never redraws their
         // masonry and no obsolete circular treasure marker is submitted.
+=======
+            if (Battle.Vision.IsVisible(Side.Player, shore.Cell)) yield return (shore.Edge, shore.Inside);
+    }
+
+    private void DrawBeaches(Node2D canvas)
+    {
+        foreach (var beach in _beaches)
+        {
+            if (!Battle.Vision.IsExplored(Side.Player, beach.Cell)) continue;
+            var color = new Color("f5f4e8");
+            if (!Battle.Vision.IsVisible(Side.Player, beach.Cell))
+                color = color.Darkened(.57f);
+            if (beach.Polygon.Length > 0) canvas.DrawColoredPolygon(beach.Polygon, color);
+            canvas.DrawPolyline(beach.Edge, new Color(color, .7f), 1.5f, true);
+        }
+    }
+
+    private void DrawCoastalWater(Node2D canvas)
+    {
+        var firstColors = new Color[3];
+        var secondColors = new Color[3];
+        foreach (var beach in _beaches)
+        {
+            if (!Battle.Vision.IsExplored(Side.Player, beach.Cell)) continue;
+            var shallow = new Color("80c7be");
+            if (!Battle.Vision.IsVisible(Side.Player, beach.Cell)) shallow = shallow.Darkened(.57f);
+            shallow.A = .40f;
+            var sea = new Color(shallow, 0);
+            firstColors[0] = firstColors[1] = secondColors[0] = shallow;
+            firstColors[2] = secondColors[1] = secondColors[2] = sea;
+            if (beach.WaterTriangles[0].Length > 0) canvas.DrawPrimitive(beach.WaterTriangles[0], firstColors, Array.Empty<Vector2>());
+            if (beach.WaterTriangles[1].Length > 0) canvas.DrawPrimitive(beach.WaterTriangles[1], secondColors, Array.Empty<Vector2>());
+        }
+    }
+
+    private void DrawTreasuries()
+    {
+        foreach (var treasury in Battle.ObservedTreasuries(Side.Player))
+        {
+            var c = Projection.GridToWorld(treasury.Position);
+            Vector2 P(float x, float y) => c + new Vector2(x, y);
+            DrawSetTransform(c, 0, new Vector2(1, .45f));
+            DrawCircle(Vector2.Zero, 21, new Color(.85f, .7f, .3f, .13f));
+            DrawArc(Vector2.Zero, 21, 0, Mathf.Tau, 32, new Color("b8b181"), 1.2f, true);
+            DrawSetTransform(Vector2.Zero);
+            DrawColoredPolygon(new[] { P(-16, 0), P(0, -8), P(17, 0), P(0, 9) }, new Color("81958b"));
+            DrawColoredPolygon(new[] { P(-11, -3), P(5, 0), P(5, -10), P(-11, -13) }, new Color("b08a4d"));
+            DrawColoredPolygon(new[] { P(5, 0), P(13, -4), P(13, -14), P(5, -10) }, new Color("715f42"));
+            DrawColoredPolygon(new[] { P(-12, -13), P(-5, -18), P(14, -14), P(5, -9) }, new Color("ead28c"));
+            DrawLine(P(-6, -12), P(-6, -3), new Color("ffe6a0"), 2, true);
+            DrawCircle(P(2, -6), 2, new Color("ffefac"));
+        }
+>>>>>>> Stashed changes
     }
 }

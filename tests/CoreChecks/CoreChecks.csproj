@@ -11,6 +11,10 @@
     <None Include="../../data/balance.json" Link="balance.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
+<<<<<<< Updated upstream
     <None Update="Fixtures/*.json" CopyToOutputDirectory="PreserveNewest" />
+=======
+    <None Update="Fixtures/balance-0.14.1.json" CopyToOutputDirectory="PreserveNewest" />
+>>>>>>> Stashed changes
   </ItemGroup>
 </Project>

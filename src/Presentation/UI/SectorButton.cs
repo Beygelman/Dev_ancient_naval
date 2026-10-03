@@ -3,21 +3,31 @@ using System.Collections.Generic;
 using Godot;
 
 namespace DevAncientNaval.Presentation.UI;
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 /// <summary>One ink command on the unfolding parchment arc.</summary>
 public partial class SectorButton : Button
 {
     public float CenterAngle { get; private set; }
     public float Sweep { get; private set; } = SectorStep;
+<<<<<<< Updated upstream
 
     public const float Inner = 67, Outer = 103, SectorStep = Mathf.Pi / 4;
     public const float IconRadius = (Inner + Outer) * .5f;
     public static readonly Vector2 Center = new(124, 124);
     public static readonly Vector2 PaperFootprint = new(Outer * 2, Outer);
+=======
+    public const float Inner = 51, Outer = 103, SectorStep = .49f;
+    public static readonly Vector2 Center = new(124,124);
+>>>>>>> Stashed changes
     private float _offset;
     private float _reveal = 1;
     private readonly Vector2[] _polygon = new Vector2[34];
     private ActionGlyph? _glyph;
     private Label? _badge;
+<<<<<<< Updated upstream
     private IReadOnlyList<Vector2>? _worldTargetPoints;
     private float _worldTargetRadiusSquared;
     private Vector2 _iconCenter = Center + new Vector2(IconRadius, 0);
@@ -118,10 +128,45 @@ public partial class SectorButton : Button
         float radius = offset.Length();
         float angle = Mathf.Wrap(offset.Angle() - CenterAngle, -Mathf.Pi, Mathf.Pi);
         return radius >= Inner && radius <= Outer && Math.Abs(angle) <= Sweep / 2;
+=======
+    public void AttachInk(ActionGlyph glyph, Label badge)
+    {
+        _glyph = glyph;
+        _badge = badge;
+        PlaceInk();
+    }
+    public void SetSector(int index,int count)
+    {
+        Sweep = SectorStep;
+        _offset = (index - (count - 1) * .5f) * SectorStep;
+        SetReveal(1);
+    }
+    public Vector2 IconCenter => Center + Vector2.FromAngle(CenterAngle)*76;
+    public void SetReveal(float progress)
+    {
+        _reveal = Mathf.Clamp(progress, 0, 1);
+        CenterAngle = -Mathf.Pi / 2 + _offset * _reveal;
+        PlaceInk();
+        QueueRedraw();
+    }
+    private void PlaceInk()
+    {
+        if (_glyph is not null) _glyph.Position = IconCenter - _glyph.Size * .5f - new Vector2(0, 4);
+        if (_badge is not null) _badge.Position = IconCenter + new Vector2(-20, 13);
+        Modulate = new Color(1, 1, 1, _reveal);
+    }
+    public override bool _HasPoint(Vector2 point)
+    {
+        if (_reveal < .95f) return false;
+        var offset=point-Center; float radius=offset.Length();
+        float angle=Mathf.Wrap(offset.Angle()-CenterAngle,-Mathf.Pi,Mathf.Pi);
+        return radius>=Inner&&radius<=Outer&&Math.Abs(angle)<=Sweep/2;
+>>>>>>> Stashed changes
     }
 
     public override void _Draw()
     {
+<<<<<<< Updated upstream
         if (Cost is { } cost)
         {
             var at = IconCenter + new Vector2(0, -23);
@@ -143,5 +188,17 @@ public partial class SectorButton : Button
         }
 
         DrawColoredPolygon(_polygon, new Color(PapyrusStyle.Bronze, .19f));
+=======
+        if (!IsHovered() || Disabled) return;
+        const int steps=16;
+        float start=CenterAngle-Sweep/2+0.025f, span=Sweep-0.05f;
+        for(int i=0;i<=steps;i++)
+        {
+            float angle=start+span*i/steps;
+            _polygon[i]=Center+Vector2.FromAngle(angle)*Outer;
+            _polygon[_polygon.Length-1-i]=Center+Vector2.FromAngle(angle)*Inner;
+        }
+        DrawColoredPolygon(_polygon,new Color(PapyrusStyle.Bronze,.19f));
+>>>>>>> Stashed changes
     }
 }

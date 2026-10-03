@@ -5,6 +5,10 @@ using Godot;
 using Side = DevAncientNaval.Core.Units.Side;
 
 namespace DevAncientNaval.Presentation.Map;
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 public partial class FleetView
 {
     private readonly record struct IncomeLabel(Vector2 Position, int Amount, float Born);
@@ -31,6 +35,7 @@ public partial class FleetView
             float age = _clock - label.Born;
             float alpha = Math.Clamp((2.2f - age) / .6f, 0, 1);
             var at = label.Position + new Vector2(-14, -28 - age * 18);
+<<<<<<< Updated upstream
             var coin = new Color(label.Amount > 0 ? "f6d579" : "f05d55")
             {
                 A = alpha
@@ -39,6 +44,14 @@ public partial class FleetView
             Ink.DrawArc(at, 6, 0, Mathf.Tau, 16, coin, 1.3f, true);
             Ink.DrawLine(at + new Vector2(-2, -3), at + new Vector2(2, 3), coin, 1.5f, true);
             Ink.DrawString(ThemeDB.FallbackFont, at + new Vector2(11, 6), (label.Amount > 0 ? "+" : "") + label.Amount, fontSize: 20, modulate: coin);
+=======
+            var coin = new Color(label.Amount > 0 ? "f6d579" : "f05d55") { A = alpha };
+            DrawCircle(at, 7, coin.Darkened(.35f));
+            DrawArc(at, 6, 0, Mathf.Tau, 16, coin, 1.3f, true);
+            DrawLine(at + new Vector2(-2, -3), at + new Vector2(2, 3), coin, 1.5f, true);
+            DrawString(ThemeDB.FallbackFont, at + new Vector2(11, 6),
+                (label.Amount > 0 ? "+" : "") + label.Amount, fontSize: 20, modulate: coin);
+>>>>>>> Stashed changes
         }
     }
 }

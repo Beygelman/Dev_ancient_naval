@@ -18,7 +18,10 @@ public partial class FleetView
     private readonly Dictionary<int, Impulse> _impulses = new();
     private readonly List<int> _expiredImpulses = new();
     private readonly List<(Vector2 Point, Vector2 Previous, float Radius, Vector2 Shadow)> _projectiles = new();
+<<<<<<< Updated upstream
     private readonly SeaGeometryBatch _waterEffectsBatch = new();
+=======
+>>>>>>> Stashed changes
     private sealed record Smoke(Vector2 Origin, Vector2 Velocity, float Radius, float Born, float Lifetime, bool Dark);
     private sealed record Ripple(Vector2 Center, float Strength, float Born, float Angle, bool Wake);
     private sealed record Impulse(Vector2 Push, float Born, float Duration, float Roll);
@@ -32,11 +35,16 @@ public partial class FleetView
         return t * t * t * (10 + t * (-15 + 6 * t));
     }
 
+<<<<<<< Updated upstream
     private void EnsureVisualBattle()
+=======
+    public override void _Process(double delta)
+>>>>>>> Stashed changes
     {
         if (!ReferenceEquals(_visualBattle, Battle))
         {
             _visualBattle = Battle;
+<<<<<<< Updated upstream
             foreach (var hull in _hulls.Values)
             {
                 hull.Canvas.GetParent()?.RemoveChild(hull.Canvas);
@@ -46,6 +54,8 @@ public partial class FleetView
                 hull.Badge.QueueFree();
             }
             _hulls.Clear();
+=======
+>>>>>>> Stashed changes
             _smoke.Clear();
             _ripples.Clear();
             _debris.Clear();
@@ -56,11 +66,15 @@ public partial class FleetView
             _incomeLabels.Clear();
             _clock = 0;
         }
+<<<<<<< Updated upstream
     }
 
     public override void _Process(double delta)
     {
         EnsureVisualBattle();
+=======
+
+>>>>>>> Stashed changes
         _clock += (float)delta;
         _incomeLabels.RemoveAll(label => _clock - label.Born > 2.2f);
         _smoke.RemoveAll(p => _clock - p.Born > p.Lifetime);
@@ -70,7 +84,11 @@ public partial class FleetView
         if (_impulses.Count > 0)
         {
             _expiredImpulses.Clear();
+<<<<<<< Updated upstream
             foreach (var(id, impulse)in _impulses)
+=======
+            foreach (var (id, impulse) in _impulses)
+>>>>>>> Stashed changes
             {
                 if (_clock - impulse.Born > impulse.Duration)
                 {
@@ -89,7 +107,11 @@ public partial class FleetView
 
     private (Vector2 Offset, float Roll) HullMotion(ShipSnapshot ship)
     {
+<<<<<<< Updated upstream
         if (ship.Class is ShipClass.FishingDock or ShipClass.AncientGun or ShipClass.CannonTower or ShipClass.Lighthouse)
+=======
+        if (ship.Class is ShipClass.FishingDock or ShipClass.AncientGun or ShipClass.CannonTower)
+>>>>>>> Stashed changes
             return (Vector2.Zero, 0);
         float size = ShipVisualProfile.For(ship.Class).Size;
         float phase = _clock * (1.4f / size) + ship.Id * 2.37f;
@@ -169,21 +191,36 @@ public partial class FleetView
 
     private void DrawWaterEffects()
     {
+<<<<<<< Updated upstream
         _waterEffectsBatch.Clear();
         foreach (var ball in _projectiles)
         {
             Ink.DrawSetTransform(ball.Shadow, 0, new Vector2(1.2f, .5f));
             Ink.DrawCircle(Vector2.Zero, ball.Radius * 1.35f, new Color(0, .04f, .06f, .24f));
             Ink.DrawSetTransform(Vector2.Zero);
+=======
+        foreach (var ball in _projectiles)
+        {
+            DrawSetTransform(ball.Shadow, 0, new Vector2(1.2f, .5f));
+            DrawCircle(Vector2.Zero, ball.Radius * 1.35f, new Color(0, .04f, .06f, .24f));
+            DrawSetTransform(Vector2.Zero);
+>>>>>>> Stashed changes
         }
 
         foreach (var mist in _mist)
         {
             float t = (_clock - mist.Born) / 2.1f;
+<<<<<<< Updated upstream
             Ink.DrawSetTransform(mist.Center, 0, new Vector2(1, .4f));
             for (int i = 0; i < 6; i++)
                 Ink.DrawCircle(Vector2.FromAngle(i * Mathf.Tau / 6) * (6 + t * 19) * mist.Strength, (4 + t * 9) * mist.Strength, new Color(.8f, .85f, .79f, (1 - t) * .11f));
             Ink.DrawSetTransform(Vector2.Zero);
+=======
+            DrawSetTransform(mist.Center, 0, new Vector2(1, .4f));
+            for (int i = 0; i < 6; i++)
+                DrawCircle(Vector2.FromAngle(i * Mathf.Tau / 6) * (6 + t * 19) * mist.Strength, (4 + t * 9) * mist.Strength, new Color(.8f, .85f, .79f, (1 - t) * .11f));
+            DrawSetTransform(Vector2.Zero);
+>>>>>>> Stashed changes
         }
 
         foreach (var ripple in _ripples)
@@ -191,6 +228,7 @@ public partial class FleetView
             float age = (_clock - ripple.Born) / 1.8f;
             float radius = (6 + 25 * age) * ripple.Strength;
             float alpha = Math.Min(1, age * 8) * (1 - age) * .25f;
+<<<<<<< Updated upstream
             if (ripple.Wake)
             {
                 // Two straight divergent arms leave a Kelvin-style V behind the keel.
@@ -220,6 +258,16 @@ public partial class FleetView
             }
         }
         _waterEffectsBatch.Submit(Ink, 1.15f);
+=======
+            // Wake arcs trail the hull; impact waves expand locally within a tile.
+            DrawSetTransform(ripple.Center, 0, new Vector2(1, .48f));
+            if (ripple.Wake)
+                DrawArc(Vector2.Zero, radius, ripple.Angle + .45f, ripple.Angle + Mathf.Tau - .45f, 24, new Color(.74f, .91f, .93f, alpha), 1.1f, true);
+            else
+                DrawArc(Vector2.Zero, radius, 0, Mathf.Tau, 32, new Color(.8f, .93f, .94f, alpha), 1.2f, true);
+            DrawSetTransform(Vector2.Zero);
+        }
+>>>>>>> Stashed changes
     }
 
     private void DrawAirEffects()
@@ -228,9 +276,15 @@ public partial class FleetView
         {
             float age = _clock - chip.Born;
             var point = chip.Origin + chip.Velocity * age + new Vector2(0, 65 * age * age);
+<<<<<<< Updated upstream
             Ink.DrawSetTransform(point, age * 9 + chip.Size);
             Ink.DrawRect(new Rect2(-chip.Size, -1, chip.Size * 2, 1.7f), new Color(.76f, .60f, .36f, 1 - age / .9f));
             Ink.DrawSetTransform(Vector2.Zero);
+=======
+            DrawSetTransform(point, age * 9 + chip.Size);
+            DrawRect(new Rect2(-chip.Size, -1, chip.Size * 2, 1.7f), new Color(.76f, .60f, .36f, 1 - age / .9f));
+            DrawSetTransform(Vector2.Zero);
+>>>>>>> Stashed changes
         }
 
         foreach (var smoke in _smoke)
@@ -239,15 +293,26 @@ public partial class FleetView
             var point = smoke.Origin + smoke.Velocity * (1 - MathF.Exp(-age * 1.6f)) / 1.6f + new Vector2(0, -age * age * 3);
             float alpha = MathF.Sin(Math.Min(1, t * 7) * Mathf.Pi * .5f) * (1 - t) * .38f;
             var color = smoke.Dark ? new Color(.42f, .47f, .46f, alpha) : new Color(.8f, .81f, .72f, alpha);
+<<<<<<< Updated upstream
             Ink.DrawCircle(point, smoke.Radius * (1 + t * 2.1f), color);
+=======
+            DrawCircle(point, smoke.Radius * (1 + t * 2.1f), color);
+>>>>>>> Stashed changes
         }
 
         foreach (var ball in _projectiles)
         {
+<<<<<<< Updated upstream
             Ink.DrawLine(ball.Previous, ball.Point, new Color(.8f, .76f, .61f, .38f), ball.Radius * .8f, true);
             Ink.DrawCircle(ball.Point, ball.Radius + 1, new Color(.89f, .73f, .45f, .2f));
             Ink.DrawCircle(ball.Point, ball.Radius, new Color("263239"));
             Ink.DrawCircle(ball.Point + new Vector2(-.7f, -.8f), ball.Radius * .36f, new Color("a0a29a"));
+=======
+            DrawLine(ball.Previous, ball.Point, new Color(.8f, .76f, .61f, .38f), ball.Radius * .8f, true);
+            DrawCircle(ball.Point, ball.Radius + 1, new Color(.89f, .73f, .45f, .2f));
+            DrawCircle(ball.Point, ball.Radius, new Color("263239"));
+            DrawCircle(ball.Point + new Vector2(-.7f, -.8f), ball.Radius * .36f, new Color("a0a29a"));
+>>>>>>> Stashed changes
         }
     }
 }

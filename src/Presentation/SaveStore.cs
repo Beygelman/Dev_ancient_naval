@@ -9,7 +9,10 @@ public sealed record SessionSave(int Version, DateTime SavedUtc, JsonElement Bat
 /// <summary>One recoverable slot. Replace only after the complete new file reaches disk.</summary>
 public sealed class SaveStore
 {
+<<<<<<< Updated upstream
     private sealed record SessionWrite(int Version, DateTime SavedUtc, BattleSave Battle, float CameraX, float CameraY, float Zoom);
+=======
+>>>>>>> Stashed changes
     // Null means this process has not inspected an existing primary yet.
     private bool? _primaryKnownInvalid;
     private readonly object _ioGate = new();
@@ -18,6 +21,7 @@ public sealed class SaveStore
     public bool Exists => File.Exists(Path) || File.Exists(BackupPath);
 
     public SaveStore(string path) => Path = System.IO.Path.GetFullPath(path);
+<<<<<<< Updated upstream
     public void Delete()
     {
         lock (_ioGate)
@@ -44,6 +48,8 @@ public sealed class SaveStore
             return false;
         }
     }
+=======
+>>>>>>> Stashed changes
     public void Write(BattleState battle, Vector2 camera, float zoom) => WriteSnapshot(battle.CaptureSnapshot(), camera, zoom);
 
     public void WriteNewGame(BattleSave snapshot, Vector2 camera, float zoom) => WriteSnapshot(snapshot, camera, zoom, newGame: true);
@@ -58,8 +64,14 @@ public sealed class SaveStore
         using var trace = Diagnostics.PerformanceTrace.Measure("Save.Write");
         ValidateCamera(camera.X, camera.Y, zoom);
         Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path)!);
+<<<<<<< Updated upstream
         var save = new SessionWrite(1, DateTime.UtcNow, snapshot, camera.X, camera.Y, zoom);
         byte[] data = JsonSerializer.SerializeToUtf8Bytes(save, SaveSerializationOptions);
+=======
+        using var state = JsonDocument.Parse(BattleState.SerializeSnapshot(snapshot));
+        var save = new SessionSave(1, DateTime.UtcNow, state.RootElement.Clone(), camera.X, camera.Y, zoom);
+        byte[] data = JsonSerializer.SerializeToUtf8Bytes(save);
+>>>>>>> Stashed changes
         string temporary = Path + ".tmp";
         using (var stream = new FileStream(temporary, FileMode.Create, System.IO.FileAccess.Write, FileShare.None))
         {
@@ -94,11 +106,14 @@ public sealed class SaveStore
         if (newGame && File.Exists(BackupPath)) File.Delete(BackupPath);
     }
 
+<<<<<<< Updated upstream
     private static readonly JsonSerializerOptions SaveSerializationOptions = new()
     {
         Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
     };
 
+=======
+>>>>>>> Stashed changes
     public (BattleState Battle, Vector2 Camera, float Zoom, bool Backup) Read()
     {
         Exception? error = null;

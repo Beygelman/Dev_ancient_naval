@@ -63,6 +63,7 @@ Check(typeof(GameBoard).Assembly.GetReferencedAssemblies().All(a => !a.Name!.Sta
 Console.WriteLine($"PASS: {checks} core checks");
 BattleScenarios.Run();
 var persistenceRules = DevAncientNaval.Core.Battle.BattleRules.FromJson(
+<<<<<<< Updated upstream
     File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json")));
 int persistenceChecks = PersistenceChecks.Run(persistenceRules,
     Environment.GetEnvironmentVariable("ANCIENT_NAVAL_LEGACY_FIXTURES"));
@@ -82,3 +83,9 @@ Console.WriteLine($"PASS: {Admiral0203Checks.Run(currentRules)} v0.20.3 coordina
 Console.WriteLine($"PASS: {Admiral0203SwarmChecks.Run(currentRules)} v020.3 swarm assembly, flagship pursuit and observation-memory checks.");
 Console.WriteLine($"PASS: {Rules0203Checks.Run(currentRules)} v020.3 fleet capacity, veterancy, radar, healing and persisted reward checks.");
 Console.WriteLine($"PASS: {Rules0204Checks.Run(currentRules)} v020.4 paid town, level rewards and repair locks.");
+=======
+    File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+int persistenceChecks = PersistenceChecks.Run(persistenceRules,
+    Environment.GetEnvironmentVariable("ANCIENT_NAVAL_LEGACY_FIXTURES"));
+Console.WriteLine($"PASS: {persistenceChecks} save compatibility and validation checks.");
+>>>>>>> Stashed changes

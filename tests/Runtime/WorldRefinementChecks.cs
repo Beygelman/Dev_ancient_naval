@@ -7,6 +7,7 @@ using Godot;
 using Side = DevAncientNaval.Core.Units.Side;
 
 namespace DevAncientNaval.Tests.Runtime;
+<<<<<<< Updated upstream
 /// <summary>Whole-island contour geometry and terrain cache invalidation regressions.</summary>
 public partial class WorldRefinementChecks : Node
 {
@@ -17,6 +18,18 @@ public partial class WorldRefinementChecks : Node
     {
         if (!condition)
             throw new InvalidOperationException(message);
+=======
+
+/// <summary>Whole-island contour geometry and terrain cache invalidation regressions.</summary>
+public partial class WorldRefinementChecks : Node
+{
+    public Main Game { get; set; } = null!;
+    private int _checks;
+
+    private void Check(bool condition, string message)
+    {
+        if (!condition) throw new InvalidOperationException(message);
+>>>>>>> Stashed changes
         _checks++;
     }
 
@@ -25,6 +38,7 @@ public partial class WorldRefinementChecks : Node
         try
         {
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+<<<<<<< Updated upstream
             var args = OS.GetCmdlineUserArgs();
             int seed = int.Parse(args.FirstOrDefault(arg => arg.StartsWith("--seed="))?[7..] ?? "731");
             var kind = Enum.Parse<WorldKind>(args.FirstOrDefault(arg => arg.StartsWith("--world-kind="))?[13..] ?? "Oceans");
@@ -81,16 +95,28 @@ public partial class WorldRefinementChecks : Node
 
                 foreach (var tile in board.Tiles)
                     Game.Battle.Vision.RevealCombat(Side.Player, tile.Position);
+=======
+            foreach (int opponents in new[] { 1, 2, 3, 4 })
+            {
+                var board = ArchipelagoGenerator.Create(731, opponents);
+                Game.LoadScenario(SkirmishSetup.Create(board, Game.Battle.Rules, opponents));
+                Game.Home.Hide();
+                foreach (var tile in board.Tiles) Game.Battle.Vision.RevealCombat(Side.Player, tile.Position);
+>>>>>>> Stashed changes
                 Game.Battle.Vision.Recompute(Game.Battle.Ships, 1, Game.Battle.Villages);
                 Game.Refresh();
                 Game.BoardView.InvalidateWorld();
                 Game.MapCamera.FitBoard();
+<<<<<<< Updated upstream
                 GD.Print($"WORLD geometry {opponents}");
+=======
+>>>>>>> Stashed changes
                 foreach (var contour in Game.BoardView.IslandContours)
                 {
                     Check(contour.Length >= 12 && contour.All(point => point.IsFinite()), "Island union contour has finite smooth geometry.");
                     Check(Geometry2D.TriangulatePolygon(contour).Length >= 3, "Connected island shoreline triangulates without crossing itself.");
                 }
+<<<<<<< Updated upstream
 
                 var beachPolygons = Game.BoardView.BeachPolygons.ToArray();
                 Check(Game.BoardView.BeachSegmentCount > 0 && beachPolygons.Length >= Game.BoardView.BeachSegmentCount * .95, "Rounded islands retain a continuous useful beach band.");
@@ -203,6 +229,54 @@ public partial class WorldRefinementChecks : Node
                 GD.Print($"WORLD {kind} seed={seed}, {opponents} enemies: {board.Tiles.Count} cells; {Game.BoardView.IslandContours.Count} smooth island contours; trees={Game.BoardView.TreeCount}; peaks={Game.BoardView.MountainCount}; sceneryPages={Game.BoardView.SceneryAtlasPageCount}; terrainTexture={Game.BoardView.TerrainTextureSize}.");
             }
 
+=======
+                var beachPolygons = Game.BoardView.BeachPolygons.ToArray();
+                Check(Game.BoardView.BeachSegmentCount > 0 && beachPolygons.Length >= Game.BoardView.BeachSegmentCount * .95,
+                    "Rounded islands retain a continuous useful beach band.");
+                foreach (var strip in beachPolygons)
+                    Check(strip.Length == 4 && Geometry2D.TriangulatePolygon(strip).Length == 6,
+                        "Every retained beach quad triangulates without a folded inset.");
+                foreach (var triangle in Game.BoardView.CoastalWaterTriangles)
+                    Check(triangle.Length == 3 && triangle.All(point => point.IsFinite()) &&
+                        Math.Abs((triangle[1] - triangle[0]).Cross(triangle[2] - triangle[0])) > .001f,
+                        "Continuous coastal water bands contain finite nondegenerate triangles.");
+                Check(board.Mesh!.Faces.Values.Count(face => face.Count == 4) >= board.Tiles.Count * .85,
+                    "Less-deformed worlds keep a clear quadrilateral majority.");
+                Check(Enumerable.Range(0, opponents + 1).Select(index => board.FleetAnchor(index, opponents + 1)).Distinct().Count() == opponents + 1,
+                    "All factions have distinct maritime starting anchors.");
+                if (DisplayServer.GetName() != "headless")
+                {
+                    await DrawFrame();
+                    int terrainBefore = Game.BoardView.TerrainDrawCount;
+                    int textureBefore = Game.BoardView.TerrainTextureUpdateRequests;
+                    var textureSize = Game.BoardView.TerrainTextureSize;
+                    Check(textureSize.X is > 0 and <= 4096 && textureSize.Y is > 0 and <= 4096 && (long)textureSize.X * textureSize.Y <= 8_388_608,
+                        "Terrain raster dimensions obey the axis and memory budget.");
+                    Check(Game.BoardView.TerrainTextureIdle, "Cached terrain viewport stops rendering after one update.");
+                    Check(Game.BoardView.TreeCount > board.Tiles.Count(tile => tile.Terrain == TerrainType.Land) * 2,
+                        "Island coastlines contain dense groves.");
+                    Check(Game.BoardView.MountainCount > 0, "Seeded islands contain larger mountain ridges.");
+                    foreach (var tile in board.Tiles.Take(10))
+                    {
+                        Game.BoardView.Select(tile.Position);
+                        Game.BoardView.PreviewPath = new[] { board.CentralCell, tile.Position };
+                        Game.BoardView.QueueRedraw();
+                        await DrawFrame();
+                    }
+                    Check(Game.BoardView.TerrainDrawCount == terrainBefore,
+                        "Route/selection redraws must reuse terrain draw commands.");
+                    Check(Game.BoardView.TerrainTextureUpdateRequests == textureBefore && Game.BoardView.TerrainTextureIdle,
+                        "Hovering/selection cannot trigger terrain GPU rerasterization.");
+                    Game.BoardView.InvalidateWorld();
+                    await DrawFrame();
+                    Check(Game.BoardView.TerrainDrawCount == terrainBefore + 1,
+                        "Explicit world changes redraw terrain once.");
+                    Check(Game.BoardView.TerrainTextureUpdateRequests == textureBefore + 1 && Game.BoardView.TerrainTextureIdle,
+                        "Explicit world changes request one bounded GPU raster update.");
+                }
+                GD.Print($"WORLD {opponents} enemies: {board.Tiles.Count} cells; {Game.BoardView.IslandContours.Count} smooth island contours; trees={Game.BoardView.TreeCount}; peaks={Game.BoardView.MountainCount}; terrainTexture={Game.BoardView.TerrainTextureSize}.");
+            }
+>>>>>>> Stashed changes
             var capture = OS.GetCmdlineUserArgs().FirstOrDefault(argument => argument.StartsWith("--capture="));
             if (capture is not null && DisplayServer.GetName() != "headless")
             {
@@ -211,6 +285,7 @@ public partial class WorldRefinementChecks : Node
                 Game.BoardView.QueueRedraw();
                 await DrawFrame();
                 Check(GetViewport().GetTexture().GetImage().SavePng(capture[10..]) == Error.Ok, "World screenshot saved.");
+<<<<<<< Updated upstream
                 var land = Game.Battle.Board.Tiles.Where(tile => tile.Terrain == TerrainType.Land).OrderByDescending(tile => Game.Battle.Board.GetSurrounding(tile.Position).Count(p => Game.Battle.Board.GetTile(p).Terrain == TerrainType.Land)).First();
                 Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(land.Position);
                 Game.MapCamera.Zoom = Vector2.One * 2;
@@ -230,6 +305,9 @@ public partial class WorldRefinementChecks : Node
                 Check(GetViewport().GetTexture().GetImage().SavePng(capture[10..].Replace(".png", "-route.png")) == Error.Ok, "Treasure route and destination coverage screenshot saved.");
             }
 
+=======
+            }
+>>>>>>> Stashed changes
             GD.Print($"PASS: {_checks} world refinement checks ({DisplayServer.GetName()}).");
             GetTree().Quit();
         }
@@ -240,6 +318,7 @@ public partial class WorldRefinementChecks : Node
         }
     }
 
+<<<<<<< Updated upstream
     private async Task SettleTerrain()
     {
         for (int frame = 0; !Game.BoardView.TerrainTextureIdle && frame < 64; frame++) await DrawFrame();
@@ -252,5 +331,11 @@ public partial class WorldRefinementChecks : Node
         // A hidden diagnostic window can omit presentation when its cached
         // contents are unchanged. Force a real raster before inspecting it.
         RenderingServer.ForceDraw();
+=======
+    private async Task DrawFrame()
+    {
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+>>>>>>> Stashed changes
     }
 }

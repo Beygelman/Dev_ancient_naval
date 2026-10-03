@@ -8,7 +8,11 @@ internal static partial class BattleScenarios
 {
     private static void DataDrivenRules()
     {
+<<<<<<< Updated upstream
         var original = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json"));
+=======
+        var original = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json"));
+>>>>>>> Stashed changes
         var legacy = JsonNode.Parse(original)!.AsObject();
         foreach (var key in new[]
         {
@@ -36,12 +40,15 @@ internal static partial class BattleScenarios
             ("balloon", "cooldownTurns", 0),
             ("balloon", "bombDamage", 0),
             ("balloon", "splashDamage", -1),
+<<<<<<< Updated upstream
             ("balloon", "antiAirRange", 0),
             ("villageCombat", "attackRange", 0),
             ("villageCombat", "counterRange", 0),
             ("villageCombat", "counterBonus", -1),
             ("economy", "minimumResourceSpots", -1),
             ("economy", "resourceTileInterval", -1),
+=======
+>>>>>>> Stashed changes
             ("treasury", "whirlpoolWeight", 13),
             ("treasury", "currencyWeight", -1),
             ("treasury", "resourceReward", -1)
@@ -69,7 +76,10 @@ internal static partial class BattleScenarios
             "mortar",
             "balloon",
             "treasury",
+<<<<<<< Updated upstream
             "villageCombat",
+=======
+>>>>>>> Stashed changes
             "ships",
             "upgrades"
         }

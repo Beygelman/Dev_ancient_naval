@@ -11,6 +11,10 @@ using Godot;
 using Side = DevAncientNaval.Core.Units.Side;
 
 namespace DevAncientNaval.Tests.Runtime;
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 /// <summary>Checks the new selectors, scroll geometry and rule-derived chart text.</summary>
 internal static class UiPapyrusChecks
 {
@@ -19,15 +23,22 @@ internal static class UiPapyrusChecks
         int checks = 0;
         void Check(bool ok, string name)
         {
+<<<<<<< Updated upstream
             if (!ok)
                 throw new InvalidOperationException(name);
             checks++;
         }
 
+=======
+            if (!ok) throw new InvalidOperationException(name);
+            checks++;
+        }
+>>>>>>> Stashed changes
         IEnumerable<Node> Descendants(Node node)
         {
             yield return node;
             foreach (var child in node.GetChildren())
+<<<<<<< Updated upstream
                 foreach (var descendant in Descendants(child))
                     yield return descendant;
         }
@@ -47,6 +58,11 @@ internal static class UiPapyrusChecks
         Check(game.Battle.GodEye != oldEye && game.Battle.Board.Tiles.All(t => game.Battle.Vision.IsVisible(Side.Player, t.Position)), "God's eye menu reveals the complete chart.");
         eye.EmitSignal(BaseButton.SignalName.Pressed);
         Check(game.Battle.GodEye == oldEye, "God's eye menu restores the prior setting.");
+=======
+                foreach (var descendant in Descendants(child)) yield return descendant;
+        }
+
+>>>>>>> Stashed changes
         int before = game.Home.OpponentCount;
         var settings = Descendants(game.Home).OfType<Button>().Where(b => b.Name.ToString().StartsWith("OpponentCount")).ToArray();
         Check(settings.Length == 4, "All four rival fleet choices exist.");
@@ -55,12 +71,18 @@ internal static class UiPapyrusChecks
             settings.Single(b => b.Name == "OpponentCount" + count).EmitSignal(BaseButton.SignalName.Pressed);
             Check(game.Home.OpponentCount == count, "Rival fleet selector " + count);
         }
+<<<<<<< Updated upstream
 
         settings.Single(b => b.Name == "OpponentCount" + before).EmitSignal(BaseButton.SignalName.Pressed);
         var scroll = new RadialPapyrus
         {
             MouseFilter = Control.MouseFilterEnum.Ignore
         };
+=======
+        settings.Single(b => b.Name == "OpponentCount" + before).EmitSignal(BaseButton.SignalName.Pressed);
+
+        var scroll = new RadialPapyrus { MouseFilter = Control.MouseFilterEnum.Ignore };
+>>>>>>> Stashed changes
         game.AddChild(scroll);
         var commands = new List<SectorButton>();
         for (int i = 0; i < 8; i++)
@@ -70,18 +92,27 @@ internal static class UiPapyrusChecks
             command.SetSector(i, 8);
             commands.Add(command);
         }
+<<<<<<< Updated upstream
 
         Check(Math.Abs(commands[0].CenterAngle + commands[^1].CenterAngle - Mathf.Pi) < .001, "Scroll opens symmetrically below its object.");
+=======
+        Check(Math.Abs(commands[0].CenterAngle + commands[^1].CenterAngle + Mathf.Pi) < .001, "Scroll opens equally either side of its top.");
+>>>>>>> Stashed changes
         scroll.Configure(commands, true);
         Check(scroll.Reveal == 0 && scroll.ActionCount == 8, "Scroll starts rolled and retains locked commands.");
         Check(!commands[0]._HasPoint(commands[0].IconCenter), "Rolled commands cannot receive accidental clicks.");
         scroll._Process(.13);
+<<<<<<< Updated upstream
         Check(scroll.Reveal is> 0 and < 1, "Scroll unfolds gradually.");
+=======
+        Check(scroll.Reveal is > 0 and < 1, "Scroll unfolds gradually.");
+>>>>>>> Stashed changes
         scroll._Process(.2);
         Check(scroll.Reveal == 1 && !scroll.IsProcessing(), "Scroll stops processing after opening.");
         Check(commands.All(c => c._HasPoint(c.IconCenter)), "Unfolded commands have usable hit areas.");
         Check(commands.All(c => !c._HasPoint(SectorButton.Center)), "The map remains clickable in the scroll's center.");
         scroll.QueueFree();
+<<<<<<< Updated upstream
         var mother = game.Battle.Mothership(Side.Player)!;
         checks += LoreChecks.Run(game.Battle);
         string lore = AncientLore.Ship(game.Battle, mother).PlainText;
@@ -90,10 +121,24 @@ internal static class UiPapyrusChecks
         Check(lore.Contains($"Passive repair: +{game.Battle.Rules.AutoRepairAmount} HP"), "Chart uses active passive repair value.");
         var fisher = game.Battle.OwnShips(Side.Player).First(s => s.Definition.Class == ShipClass.Fishing);
         Check(AncientLore.Ship(game.Battle, fisher).PlainText.Contains($"+{fisher.Definition.IncomePerTurn} Thors"), "Fishing income comes from active rules.");
+=======
+
+        var mother = game.Battle.Mothership(Side.Player)!;
+        string lore = AncientLore.Ship(game.Battle, mother);
+        Check(lore.Contains($"Health {mother.Health:0.##}/{mother.MaxHealth:0.##}"), "Chart describes actual ship health.");
+        Check(lore.Contains($"Range {mother.Definition.AttackRange}"), "Chart uses active weapon range.");
+        Check(lore.Contains($"+{game.Battle.Rules.AutoRepairAmount} HP automatically"), "Chart uses active passive repair value.");
+        var fisher = game.Battle.OwnShips(Side.Player).First(s => s.Definition.Class == ShipClass.Fishing);
+        Check(AncientLore.Ship(game.Battle, fisher).Contains($"+{fisher.Definition.IncomePerTurn} Thors"), "Fishing income comes from active rules.");
+>>>>>>> Stashed changes
         game.Hud.ShowInformation(game.Battle, mother.Position);
         Check(game.Hud.InformationVisible && game.Hud.InformationText.Contains(mother.Name == "Mothership" ? "city may sail" : "Health"), "Information button opens a readable chart.");
         game.Hud.CloseMenus();
         Check(!game.Hud.InformationVisible, "Cancel closes the information scroll.");
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         // The human's defeat ends their UI even while two AI factions survive.
         var active = game.Battle.Rules;
         var terminalRules = new BattleRules
@@ -104,7 +149,16 @@ internal static class UiPapyrusChecks
             FleetLimit = active.FleetLimit,
             Ships = active.Ships.Select(s => s.Class == ShipClass.Mothership ? s with { Damage = 50 } : s).ToArray()
         };
+<<<<<<< Updated upstream
         var defeated = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), terminalRules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(5, 5)), (Side.Enemy, ShipClass.Mothership, new GridPosition(6, 5)), (Side.Enemy2, ShipClass.Mothership, new GridPosition(16, 16)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
+=======
+        var defeated = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), terminalRules, new[]
+        {
+            (Side.Player, ShipClass.Mothership, new GridPosition(5, 5)),
+            (Side.Enemy, ShipClass.Mothership, new GridPosition(6, 5)),
+            (Side.Enemy2, ShipClass.Mothership, new GridPosition(16, 16))
+        }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
+>>>>>>> Stashed changes
         Check(defeated.EndTurn(Side.Player).Success && defeated.Attack(Side.Enemy, 2, 1).Success, "Defeat fixture sinks the human flagship.");
         Check(defeated.PlayerDefeated && !defeated.IsOver, "Rival factions still survive after human defeat.");
         game.Hud.UpdateBattle(defeated, null, false, OrderMode.None);

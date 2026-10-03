@@ -24,6 +24,7 @@ public sealed partial class BattleState
             throw new ArgumentException("Invalid fleet color.");
         PlayerColor = color;
         AssignFactionColors(color);
+<<<<<<< Updated upstream
         RethemeUnplayedWorld();
     }
 
@@ -37,6 +38,19 @@ public sealed partial class BattleState
         Rules = Rules,
         Ships = _ships.Select(SavedShip.From).ToArray(),
         Villages = _villages.Select(v => new SavedVillage(v.Id, v.Position, v.Owner, v.Level, v.Health, v.TurnsOwned, v.IsFortified, v.HasProduced, v.HasRepaired, v.HasAttacked, v.Name, v.HasPort)).ToArray(),
+=======
+    }
+
+    public BattleSave CaptureSnapshot() => CreateSnapshot();
+    public static string SerializeSnapshot(BattleSave snapshot) => JsonSerializer.Serialize(snapshot, SaveOptions);
+    public string SaveJson() => SerializeSnapshot(CaptureSnapshot());
+    private BattleSave CreateSnapshot() => new()
+    {
+        Board = new(Board.Width, Board.Height, Board.Seed, Board.Tiles.Where(t => t.Terrain == TerrainType.Land).Select(t => t.Position).ToArray(), Board.Mesh?.Save()),
+        Rules = Rules,
+        Ships = _ships.Select(SavedShip.From).ToArray(),
+        Villages = _villages.Select(v => new SavedVillage(v.Id, v.Position, v.Owner, v.Level, v.Health, v.TurnsOwned, v.IsFortified, v.HasProduced, v.HasRepaired, v.HasAttacked)).ToArray(),
+>>>>>>> Stashed changes
         Fish = _fish.ToArray(),
         Shoals = _shoals.ToArray(),
         Treasuries = _treasuries.ToArray(),
@@ -56,6 +70,7 @@ public sealed partial class BattleState
         Winner = Winner,
         IsDraw = IsDraw,
         Creative = Creative,
+<<<<<<< Updated upstream
         GodEye = GodEye,
         Difficulty = Difficulty,
         Color = PlayerColor,
@@ -67,6 +82,11 @@ public sealed partial class BattleState
         FlagshipSightings = SaveFlagshipSightings(),
         PersonalTurnStarts = _personalTurnStarts.ToArray(),
         FlagshipKills = _flagshipKills.ToArray(),
+=======
+        Color = PlayerColor,
+        Factions = _factions.ToArray(),
+        FactionColors = _factionColors.Select(entry => new FactionColor(entry.Key, entry.Value)).ToArray(),
+>>>>>>> Stashed changes
         EventSeed = _eventSeed,
         EventDraws = _eventDraws,
         LastReward = LastTreasuryReward
@@ -99,7 +119,11 @@ public sealed partial class BattleState
     {
         var mesh = saved.Mesh is null ? null : OrganicMesh.Restore(saved.Mesh);
         var land = saved.Land.ToHashSet();
+<<<<<<< Updated upstream
         var board = new GameBoard(saved.Width, saved.Height, p => land.Contains(p) ? TerrainType.Land : TerrainType.Water, saved.Seed, mesh is null ? null : mesh.Faces.ContainsKey, mesh?.Boundary, mesh, saved.Kind);
+=======
+        var board = new GameBoard(saved.Width, saved.Height, p => land.Contains(p) ? TerrainType.Land : TerrainType.Water, saved.Seed, mesh is null ? null : mesh.Faces.ContainsKey, mesh?.Boundary, mesh);
+>>>>>>> Stashed changes
         if (saved.Land.Any(p => !board.Contains(p)) || mesh is not null && mesh.Faces.Keys.Any(p => !board.Contains(p)))
             throw new ArgumentException("Saved terrain lies outside the board.");
         return board;
@@ -107,6 +131,7 @@ public sealed partial class BattleState
 
     private void RestoreEntities(BattleSave saved)
     {
+<<<<<<< Updated upstream
         _tradeNetworks.Clear();
         var previousShips = _ships.ToDictionary(s => s.Id);
         var previousVillages = _villages.ToDictionary(v => v.Id);
@@ -140,6 +165,16 @@ public sealed partial class BattleState
             _villages.Add(village);
         }
 
+=======
+        _ships.Clear();
+        _incomeSources.Clear();
+        _fish.Clear();
+        _shoals.Clear();
+        _ships.AddRange(saved.Ships.Select(s => s.Restore(Rules)));
+        if (_ships.Any(s => s.Health > s.MaxHealth))
+            throw new ArgumentException("Invalid saved fleet health.");
+        _villages.AddRange(saved.Villages.Select(v => new Village(v.Id, v.Position) { Owner = v.Owner, Level = v.Level, Health = v.Health, TurnsOwned = v.TurnsOwned, IsFortified = v.Fortified, HasProduced = v.Produced, HasRepaired = v.Repaired, HasAttacked = v.Attacked }));
+>>>>>>> Stashed changes
         _fish.UnionWith(saved.Fish);
         _shoals.UnionWith(saved.Shoals);
         _treasuries.AddRange(saved.Treasuries);
@@ -158,6 +193,7 @@ public sealed partial class BattleState
 
     private void RestoreProgress(BattleSave saved)
     {
+<<<<<<< Updated upstream
         RestoreFlagshipSightings(saved.FlagshipSightings);
         Array.Clear(_personalTurnStarts);
         Array.Clear(_flagshipKills);
@@ -168,6 +204,8 @@ public sealed partial class BattleState
         _encounters.Clear();
         foreach (var encounter in saved.Encounters)
             _encounters.Add(encounter.Side, encounter);
+=======
+>>>>>>> Stashed changes
         Array.Clear(_credits);
         Array.Copy(saved.Credits, _credits, saved.Credits.Length);
         Array.Copy(saved.EverProduced, _everProduced, saved.EverProduced.Length);
@@ -178,13 +216,17 @@ public sealed partial class BattleState
         Winner = saved.Winner;
         IsDraw = saved.IsDraw;
         Creative = saved.Creative;
+<<<<<<< Updated upstream
         GodEye = saved.GodEye;
         Difficulty = saved.Difficulty;
         Statistics = saved.Statistics;
+=======
+>>>>>>> Stashed changes
         PlayerColor = saved.Color;
         _factions.Clear();
         _factions.AddRange(saved.Factions.Length == 0 ? new[] { Side.Player, Side.Enemy } : saved.Factions);
         AssignFactionColors(PlayerColor);
+<<<<<<< Updated upstream
         _factionNames.Clear();
         foreach (var entry in saved.FactionNames)
             _factionNames[entry.Side] = entry.Name;
@@ -192,6 +234,10 @@ public sealed partial class BattleState
             _factionColors[entry.Side] = entry.Color;
         _worldNamesRestored = true;
         AssignWorldNames();
+=======
+        foreach (var entry in saved.FactionColors)
+            _factionColors[entry.Side] = entry.Color;
+>>>>>>> Stashed changes
         // The seeded sequence and draw count are part of the v1 contract: loading
         // must not reroll an undiscovered treasury or a pirate patrol choice.
         _eventSeed = saved.EventSeed;

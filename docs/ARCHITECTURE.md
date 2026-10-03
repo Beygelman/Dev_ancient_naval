@@ -36,18 +36,25 @@ change; the query uses real terrain and enemy occupancy, which remain constant.
 
 This avoids rescanning every ship for every explored edge. It does not add a
 global position index, which would require a new mutation/invalidating contract.
+<<<<<<< Updated upstream
 Optical/radar coverage on organic maps uses a cached bounded breadth-first
 search. Its result is tested against full-board distance coverage at radii 0–64
 on all four world sizes. It follows corner adjacency, including land, and never
 uses the moving ship's navigation restrictions.
 
+=======
+>>>>>>> Stashed changes
 `NavigationReference` in tests freezes the pre-refactor implementation so costs,
 route ties and fog behavior can be compared independently.
 
 ## Scene and animation
 
 `Main` builds the scene and wires events. `MainSelection` interprets clicks and
+<<<<<<< Updated upstream
 previews; `MainCommands` executes or stages commands then animates; `MainView` refreshes
+=======
+previews; `MainCommands` executes commands then animates; `MainView` refreshes
+>>>>>>> Stashed changes
 HUD/map projections; `MainSession` manages start/continue and opponent turns. `MainSaving` copies a
 save DTO on the game thread and serializes/flushed-writes it on a worker while
 commands remain locked. No mutable live battle or Godot object crosses threads.
@@ -55,6 +62,7 @@ commands remain locked. No mutable live battle or Godot object crosses threads.
 `FleetView` prepares stable depth order and composes the frame. `FleetShipDrawing`
 draws units; `FleetCommands` plays command results; `FleetAnimation` interpolates
 movement and projectiles; `FleetEffects` renders transient water/air effects.
+<<<<<<< Updated upstream
 Projectile orders call `BattleState.Prepare`, which resolves deterministically
 on an isolated aggregate with shared immutable board/rules. Saved phases reuse
 one geometry snapshot. `PresentedCommand.Impact` applies each Core phase only
@@ -85,6 +93,14 @@ target. The GPU updates the bounded atlas as a whole; this is not partial GPU
 texture upload. A texture sprite displays its last raster; updates are `Once`,
 not continuous. A post-draw version check explicitly stops updates without losing
 a request raised later in the same frame. Limits
+=======
+Snapshots preserve the pre-impact presentation while Core already contains the
+resolved command. Visibility is checked each frame; reusable lists are not a
+cache of which enemies are visible.
+
+Static terrain has a retained source layer inside an isolated `SubViewport`. A
+texture sprite displays its last raster; updates are `Once`, not continuous. Limits
+>>>>>>> Stashed changes
 are 4096 pixels per axis and 8,388,608 pixels (32 MiB RGBA color; conservatively
 64 MiB for render/sample attachments, excluding auxiliary driver allocations).
 Fog masks are compared before invalidation; hover, selection, combat health and
@@ -92,6 +108,7 @@ repair cannot trigger an unchanged terrain rebuild. Dynamic objects are culled
 to a padded viewport and refreshed after camera changes. Whole-island contour
 geometry is clipped per tile so an unseen shore cannot leak through the texture.
 
+<<<<<<< Updated upstream
 Known resources, contacts, radar and movement/target contours have a
 separate retained observation layer. Refresh it after game state/selection or
 camera changes. Cursor previews redraw only the route, selected outline and
@@ -99,6 +116,8 @@ cached destination coverage. The coverage cache is bounded to 96 destinations
 and invalidated by projection, selection, vision or mortar changes. Never
 reuse the observation layer across a visibility change without invalidation.
 
+=======
+>>>>>>> Stashed changes
 World ambience updates its stationary-point caches on `RefreshVisibility`.
 Reusable vertex buffers are consumed by draw calls before the next use. Menu
 layout responds to resize events. Procedural scenery remains bounded and separate
@@ -117,8 +136,11 @@ identities and obsolete-but-persisted fields until there is an explicit migratio
 The save layer validates references and values before restoring indexed state.
 Camera state belongs to the session envelope. Fleet palette choices and roster
 are persisted in Core because they must remain consistent across all factions.
+<<<<<<< Updated upstream
 Captain identities and town names are optional v1 fields. A separate seeded
 cosmetic stream supplies them for old saves without advancing simulation RNG.
+=======
+>>>>>>> Stashed changes
 
 `SaveStore` writes a flushed temporary file, atomically replaces the primary and
 retains a previous valid backup. After recovery from a corrupt primary it keeps
@@ -163,6 +185,7 @@ human scene stops at PlayerDefeated instead of forcing a full spectator campaign
 EconomyRules keeps backward-compatible defaults for old rule snapshots; current
 JSON supplies slower income growth and naval upkeep. IncomeReceipt events describe
 source gains/deductions; presentation only shows the human fleet’s private receipts.
+<<<<<<< Updated upstream
 
 
 ## Deck and ambience projection (0.16)
@@ -310,3 +333,5 @@ TownPlacement fits the complete future-town ground envelope inside land minus be
 The released 2D renderer is OpenGL Compatibility after repeated native D3D12 first-move stalls. Frame-pacing gates run against the project's configured renderer. The timing harness rejects external GUI/map input while invoking production handlers; actual-pointer UI regressions run separately.
 
 The smooth island surface is clipped per cell across both land and adjacent sea seams; clockwise lake contours subtract triangulated holes. Sea beneath the contour replaces whole-tile sand fill. Large visual ridge summits can span adjacent land, and smaller connecting peaks retain their parent mountain cell for fog and optical obstacles. Forest sampling uses a continuous seeded field. Animated waves retain visibility-scoped mesh geometry and update a clock uniform; a new vision/world rebuilds it.
+=======
+>>>>>>> Stashed changes

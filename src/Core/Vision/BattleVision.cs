@@ -23,6 +23,7 @@ public sealed partial class BattleVision
     private readonly HashSet<GridPosition>[] _contacts = Enumerable.Range(0, BattleState.SideSlots).Select(_ => new HashSet<GridPosition>()).ToArray();
     private readonly HashSet<GridPosition>[] _flashes = Enumerable.Range(0, BattleState.SideSlots).Select(_ => new HashSet<GridPosition>()).ToArray();
     private readonly Dictionary<GridPosition, int>[] _lastSeen = Enumerable.Range(0, BattleState.SideSlots).Select(_ => new Dictionary<GridPosition, int>()).ToArray();
+<<<<<<< Updated upstream
     private readonly MountainSight? _mountainSight;
     private readonly bool _smallHullRadarStealth;
     private readonly bool _fishingRadarVisible;
@@ -42,6 +43,10 @@ public sealed partial class BattleVision
         Revision++;
     }
     private bool AllSeeing(Side side, GridPosition cell) => side == Side.Player && _allSeeingPlayer && _board.Contains(cell);
+=======
+    public BattleVision(GameBoard board) => _board = board;
+    public long Revision { get; private set; }
+>>>>>>> Stashed changes
 
     public static bool InRadius(GridPosition a, GridPosition b, int radius)
     {
@@ -59,6 +64,7 @@ public sealed partial class BattleVision
     public bool IsRadarContact(Side side, GridPosition cell) => !IsVisible(side, cell) && _contacts[(int)side].Contains(cell);
     public VisibilityState State(Side side, GridPosition cell) => IsVisible(side, cell) ? VisibilityState.Visible : _contacts[(int)side].Contains(cell) ? VisibilityState.RadarContact : IsExplored(side, cell) ? VisibilityState.Explored : VisibilityState.Unknown;
     public void RevealCombat(Side side, GridPosition cell) => _flashes[(int)side].Add(cell);
+<<<<<<< Updated upstream
     public void ClearCombatFlashes()
     {
         foreach (var flashes in _flashes)
@@ -67,6 +73,12 @@ public sealed partial class BattleVision
 
     public void Recompute(IReadOnlyList<Ship> ships, int stamp, IEnumerable<Village>? villages = null)
     {
+=======
+    public void ClearCombatFlashes() { foreach (var flashes in _flashes) flashes.Clear(); }
+
+    public void Recompute(IReadOnlyList<Ship> ships, int stamp, IEnumerable<Village>? villages = null)
+    {
+>>>>>>> Stashed changes
         Revision++;
         foreach (var side in Enum.GetValues<Side>())
         {
@@ -76,6 +88,7 @@ public sealed partial class BattleVision
             _contacts[index].Clear();
             foreach (var ship in ships.Where(s => s.Owner == side))
             {
+<<<<<<< Updated upstream
                 if (_mountainSight is not null && !ship.IsAirborne)
                     _visible[index].UnionWith(_mountainSight.Coverage(ship.Position, ship.VisualRange, ship.Definition.Class == ShipClass.Fishing));
                 else if (ship.Definition.Class == ShipClass.Fishing)
@@ -92,6 +105,15 @@ public sealed partial class BattleVision
                         _visible[index].UnionWith(_mountainSight.Coverage(village.Position, village.VisualRange, false));
                     else
                         FillCircle(_visible[index], village.Position, village.VisualRange);
+=======
+                if (ship.Definition.Class == ShipClass.Fishing)
+                    FillSquare(_visible[index], ship.Position, ship.VisualRange);
+                else FillCircle(_visible[index], ship.Position, ship.VisualRange);
+                if (ship.RadarRange > 0) FillCircle(_radar[index], ship.Position, ship.RadarRange);
+            }
+            if (villages is not null)
+                foreach (var village in villages.Where(v => v.Owner == side)) FillCircle(_visible[index], village.Position, village.VisualRange);
+>>>>>>> Stashed changes
             _visible[index].UnionWith(_flashes[index]);
             _explored[index].UnionWith(_visible[index]);
             foreach (var cell in _visible[index])
@@ -105,6 +127,7 @@ public sealed partial class BattleVision
 
     private void FillSquare(HashSet<GridPosition> target, GridPosition origin, int radius)
     {
+<<<<<<< Updated upstream
         if (_board.Mesh is not null)
         {
             FillCircle(target, origin, radius);
@@ -115,12 +138,19 @@ public sealed partial class BattleVision
             for (int x = Math.Max(0, origin.X - radius); x <= Math.Min(_board.Width - 1, origin.X + radius); x++)
                 if (_board.Contains(new(x, y)))
                     target.Add(new(x, y));
+=======
+        if (_board.Mesh is not null) { FillCircle(target, origin, radius); return; }
+        for (int y = Math.Max(0, origin.Y - radius); y <= Math.Min(_board.Height - 1, origin.Y + radius); y++)
+            for (int x = Math.Max(0, origin.X - radius); x <= Math.Min(_board.Width - 1, origin.X + radius); x++)
+                if (_board.Contains(new(x, y))) target.Add(new(x, y));
+>>>>>>> Stashed changes
     }
 
     private void FillCircle(HashSet<GridPosition> target, GridPosition origin, int radius)
     {
         if (_board.Mesh is not null)
         {
+<<<<<<< Updated upstream
             target.UnionWith(_board.Mesh.Within(origin, radius));
             return;
         }
@@ -129,5 +159,13 @@ public sealed partial class BattleVision
             for (int x = Math.Max(0, origin.X - radius); x <= Math.Min(_board.Width - 1, origin.X + radius); x++)
                 if (_board.Contains(new(x, y)) && InRadius(origin, new(x, y), radius))
                     target.Add(new(x, y));
+=======
+            foreach (var tile in _board.Tiles) if (_board.InRadius(origin, tile.Position, radius)) target.Add(tile.Position);
+            return;
+        }
+        for (int y = Math.Max(0, origin.Y - radius); y <= Math.Min(_board.Height - 1, origin.Y + radius); y++)
+            for (int x = Math.Max(0, origin.X - radius); x <= Math.Min(_board.Width - 1, origin.X + radius); x++)
+                if (_board.Contains(new(x, y)) && InRadius(origin, new(x, y), radius)) target.Add(new(x, y));
+>>>>>>> Stashed changes
     }
 }

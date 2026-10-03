@@ -16,7 +16,19 @@ internal static partial class BattleScenarios
                 Check(preview.PathTo(tile.Position).SequenceEqual(battle.PathTo(id, tile.Position)), context + ": preview preserves each destination and route tie order");
         }
 
+<<<<<<< Updated upstream
         var battle = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), Funded, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(1, 1)), (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)), (Side.Player, ShipClass.Garrison, new GridPosition(8, 8)), (Side.Player, ShipClass.Fishing, new GridPosition(9, 8)), (Side.Enemy, ShipClass.Garrison, new GridPosition(10, 8)), (Side.Player, ShipClass.Balloon, new GridPosition(8, 8)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
+=======
+        var battle = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), Funded, new[]
+        {
+            (Side.Player, ShipClass.Mothership, new GridPosition(1, 1)),
+            (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)),
+            (Side.Player, ShipClass.Garrison, new GridPosition(8, 8)),
+            (Side.Player, ShipClass.Fishing, new GridPosition(9, 8)),
+            (Side.Enemy, ShipClass.Garrison, new GridPosition(10, 8)),
+            (Side.Player, ShipClass.Balloon, new GridPosition(8, 8))
+        }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
+>>>>>>> Stashed changes
         Compare(battle, 3, "Friendly transit and enemy threats");
         var preview = battle.PreviewMovement(3);
         Check(!preview.Costs.ContainsKey(new(9, 8)) && !preview.Costs.ContainsKey(new(10, 8)) && preview.PathTo(new(10, 7)).Count > 1, "Occupied cells cannot be destinations while nearby transit remains possible");
@@ -30,6 +42,10 @@ internal static partial class BattleScenarios
         Compare(battle, 3, "New visibility and enemy departure");
         Check(oldPreview.Costs.Count == oldCosts.Count && oldCosts.All(pair => oldPreview.Costs[pair.Key] == pair.Value), "A cached route snapshot stays fixed after battle mutations");
         Check(battle.PreviewMovement(3).Costs.ContainsKey(new(10, 8)), "A fresh route snapshot observes the vacated enemy tile");
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         battle = Fixture(ShipClass.Garrison, target: new(15, 15), terrain: cell => cell == new GridPosition(12, 8) ? TerrainType.Land : TerrainType.Water);
         Check(!battle.Vision.IsExplored(Side.Player, new(12, 8)), "Fog obstacle is initially undiscovered");
         Compare(battle, 3, "Unknown terrain estimate");
@@ -40,6 +56,7 @@ internal static partial class BattleScenarios
         battle.Find(3)!.IsExhausted = true;
         Compare(battle, 3, "Exhausted ship");
         Check(battle.PreviewMovement(999).Costs.Count == 0, "A missing ship has an empty preview");
+<<<<<<< Updated upstream
         var organic = SkirmishSetup.Create(ArchipelagoGenerator.Create(731, 1), Rules);
         Compare(organic, organic.OwnShips(Side.Player).First(ship => ship.Definition.Class == ShipClass.Garrison).Id, "Organic mesh route snapshot");
         foreach (int rivals in new[]
@@ -74,5 +91,10 @@ internal static partial class BattleScenarios
 
             Check(mesh.Within(new(-1, -1), 3).Count == 0 && mesh.Within(world.CentralCell, -1).Count == 0, "Invalid optical coverage queries return no cells");
         }
+=======
+
+        var organic = SkirmishSetup.Create(ArchipelagoGenerator.Create(731, 1), Rules);
+        Compare(organic, organic.OwnShips(Side.Player).First(ship => ship.Definition.Class == ShipClass.Garrison).Id, "Organic mesh route snapshot");
+>>>>>>> Stashed changes
     }
 }

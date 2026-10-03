@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+<<<<<<< Updated upstream
 using System.Globalization;
+=======
+>>>>>>> Stashed changes
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -15,10 +18,15 @@ using Godot;
 using Side = DevAncientNaval.Core.Units.Side;
 
 namespace DevAncientNaval.Tests.Runtime;
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 /// <summary>Real organic-map selection, cursor preview and animated movement;
 /// measures synchronous handlers separately from elapsed animation/frames.</summary>
 public partial class InteractionPerformanceChecks : Node
 {
+<<<<<<< Updated upstream
     public Main Game { get; set; } = null !;
 
     private readonly List<double> _frames = new();
@@ -31,10 +39,18 @@ public partial class InteractionPerformanceChecks : Node
     private double _previousCanvasCompiles, _previousDrawCompiles;
     private readonly List<string> _slowFrames = new();
     private readonly int[] _previousCollections = new int[3];
+=======
+    public Main Game { get; set; } = null!;
+    private readonly List<double> _frames = new();
+    private readonly List<double> _processTimes = new();
+    private readonly List<double> _drawCalls = new();
+    private bool _recordFrames;
+>>>>>>> Stashed changes
     public override void _Process(double delta)
     {
         if (_recordFrames)
         {
+<<<<<<< Updated upstream
             long now = Stopwatch.GetTimestamp();
             if (_previousFrame != 0)
             {
@@ -56,17 +72,28 @@ public partial class InteractionPerformanceChecks : Node
         }
     }
 
+=======
+            _frames.Add(delta * 1000);
+            _processTimes.Add(Performance.GetMonitor(Performance.Monitor.TimeProcess) * 1000);
+            _drawCalls.Add(Performance.GetMonitor(Performance.Monitor.RenderTotalDrawCallsInFrame));
+        }
+    }
+>>>>>>> Stashed changes
     private async Task Frame() => await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
     private static double Percentile(IEnumerable<double> values, double fraction)
     {
         var sorted = values.Order().ToArray();
         return sorted.Length == 0 ? 0 : sorted[Math.Min(sorted.Length - 1, (int)Math.Floor(sorted.Length * fraction))];
     }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     public override async void _Ready()
     {
         try
         {
+<<<<<<< Updated upstream
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
             await Frame();
             var args = OS.GetCmdlineUserArgs();
@@ -89,10 +116,24 @@ public partial class InteractionPerformanceChecks : Node
                 battle.SetGodEye(true);
             }
 
+=======
+            await Frame();
+            var args = OS.GetCmdlineUserArgs();
+            int opponents = int.Parse(args.FirstOrDefault(a => a.StartsWith("--opponents="))?[12..] ?? "1");
+            var board = ArchipelagoGenerator.Create(731, args.Contains("--scaled-map") ? opponents : 3);
+            var battle = SkirmishSetup.Create(board, Game.Battle.Rules, opponents);
+            Game.LoadScenario(battle);
+            if (!args.Contains("--live-fog"))
+            {
+                foreach (var tile in board.Tiles) battle.Vision.RevealCombat(Side.Player, tile.Position);
+                battle.Vision.Recompute(battle.Ships, battle.TurnSerial, battle.Villages);
+            }
+>>>>>>> Stashed changes
             var ship = battle.OwnShips(Side.Player).First(s => s.Definition.Class == ShipClass.Garrison);
             Game.SelectCell(ship.Position);
             Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(ship.Position);
             Game.MapCamera.Zoom = Vector2.One;
+<<<<<<< Updated upstream
             if (args.Contains("--wide-view")) Game.MapCamera.FitBoard();
             Game.MapCamera.ForceUpdateScroll();
             if (args.Any(a => a.StartsWith("--save-file=")))
@@ -114,6 +155,16 @@ public partial class InteractionPerformanceChecks : Node
             _frames.Clear();
             _previousFrame = 0;
             _phase = "hover";
+=======
+            Game.MapCamera.ForceUpdateScroll();
+            if (args.Any(a => a.StartsWith("--save-file="))) Game.SaveSession();
+            for (int warmup = 0; warmup < 24; warmup++) await Frame();
+            var hovered = typeof(Main).GetMethod("PreviewAtScreen", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var destinations = board.Tiles.Where(t => t.Terrain != TerrainType.Land)
+                .OrderBy(t => board.Distance(ship.Position, t.Position)).Skip(1).Take(64).Select(t => t.Position).ToArray();
+            var handlers = new List<double>();
+            PerformanceTrace.Reset(); _recordFrames = true;
+>>>>>>> Stashed changes
             foreach (var cell in destinations)
             {
                 var screen = GetViewport().GetCanvasTransform() * Game.BoardView.Projection.GridToWorld(cell);
@@ -122,6 +173,7 @@ public partial class InteractionPerformanceChecks : Node
                 handlers.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
                 await Frame();
             }
+<<<<<<< Updated upstream
 
             var resourceCells = battle.KnownFish(Side.Player).Concat(battle.KnownShoals(Side.Player)).ToHashSet();
             var movementOptions = battle.Reachable(ship.Id).OrderByDescending(p => p.Value)
@@ -158,5 +210,30 @@ public partial class InteractionPerformanceChecks : Node
             GD.PushError(error.ToString());
             GetTree().Quit(1);
         }
+=======
+            var resourceCells = battle.KnownFish(Side.Player).Concat(battle.KnownShoals(Side.Player)).ToHashSet();
+            var destination = battle.Reachable(ship.Id).OrderByDescending(p => p.Value)
+                .First(p => p.Key != ship.Position && !resourceCells.Contains(p.Key)).Key;
+            var origin = ship.Position;
+            long movementStart = Stopwatch.GetTimestamp();
+            Game.SelectCell(destination);
+            await Game.CurrentOrder;
+            if (ship.Position == origin) throw new InvalidOperationException("The measured UI order did not move the ship.");
+            double movementMs = Stopwatch.GetElapsedTime(movementStart).TotalMilliseconds;
+            for (int frame = 0; frame < 20; frame++) await Frame();
+            _recordFrames = false;
+            string report = $"INTERACTION tiles={board.Tiles.Count}, opponents={opponents}, live_fog={args.Contains("--live-fog")}, hover_calls={handlers.Count}, " +
+                $"hover_p50_ms={Percentile(handlers,.5):F3}, hover_p95_ms={Percentile(handlers,.95):F3}, " +
+                $"hover_max_ms={handlers.Max():F3}, frame_p95_ms={Percentile(_frames,.95):F3}, " +
+                $"frame_max_ms={_frames.Max():F3}, process_p95_ms={Percentile(_processTimes,.95):F3}, " +
+                $"draw_calls_p95={Percentile(_drawCalls,.95):F0}, movement_elapsed_ms={movementMs:F3}\n" + PerformanceTrace.Report();
+            GD.Print(report);
+            var output = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--report="));
+            if (output is not null) File.WriteAllText(output[9..], report);
+            GD.Print("PASS: real-map interaction profiling completed.");
+            GetTree().Quit();
+        }
+        catch (Exception error) { GD.PushError(error.ToString()); GetTree().Quit(1); }
+>>>>>>> Stashed changes
     }
 }

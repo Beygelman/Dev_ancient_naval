@@ -92,8 +92,13 @@ internal static partial class BattleScenarios
             Check(visited.Contains(z)&&board.HarborCells(false).All(visited.Contains)&&board.HarborCells(true).All(visited.Contains),"Both harbors connected");
             var game=new BattleState(board,Rules,new[] {(Side.Player,ShipClass.Mothership,a),(Side.Enemy,ShipClass.Mothership,z)},resourceSeed:seed);
             Check(game.Villages.Count>0 && game.Villages.Count(v=>board.StartingTerritory(v.Position)==0)==game.Villages.Count(v=>board.StartingTerritory(v.Position)==1),"Equal villages on both sides");
+<<<<<<< Updated upstream
             Check(game.FishSpots.Count<=20&&game.Shoals.Count<=6,"Sparse fish supply with bounded rich schools");
             Check(game.CollectionCells(1).Count>=1&&game.CollectionCells(2).Count==0,"Player starts with a guaranteed first catch; enemy waits its turn");
+=======
+            Check(game.FishSpots.Count<=20&&game.Shoals.Count<=8,"Sparse fish supply");
+            Check(game.CollectionCells(1).Count>=2&&game.CollectionCells(2).Count==0,"Player start has two resources; enemy waits turn");
+>>>>>>> Stashed changes
             signatures.Add(string.Join(',',land.OrderBy(p=>p.X).ThenBy(p=>p.Y)));
         }
         Check(signatures.Count==100,"Different seeds change islands");

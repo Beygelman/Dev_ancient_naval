@@ -10,6 +10,7 @@ using Godot;
 using Side = DevAncientNaval.Core.Units.Side;
 
 namespace DevAncientNaval.Tests.Runtime;
+<<<<<<< Updated upstream
 public partial class IncomeChecks : Node
 {
     public Main Game { get; set; } = null !;
@@ -22,12 +23,35 @@ public partial class IncomeChecks : Node
         _checks++;
     }
 
+=======
+
+public partial class IncomeChecks : Node
+{
+    public Main Game { get; set; } = null!;
+    private int _checks;
+    private void Check(bool condition, string name)
+    {
+        if (!condition) throw new InvalidOperationException(name);
+        _checks++;
+    }
+>>>>>>> Stashed changes
     public override async void _Ready()
     {
         try
         {
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+<<<<<<< Updated upstream
             var battle = new BattleState(new GameBoard(12, 12, _ => TerrainType.Water), Game.Battle.Rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(3, 3)), (Side.Enemy, ShipClass.Mothership, new GridPosition(10, 10)), (Side.Player, ShipClass.Fishing, new GridPosition(4, 3)), (Side.Player, ShipClass.Garrison, new GridPosition(3, 4)), (Side.Player, ShipClass.Garrison, new GridPosition(4, 4)), (Side.Player, ShipClass.Garrison, new GridPosition(5, 4)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
+=======
+            var battle = new BattleState(new GameBoard(12, 12, _ => TerrainType.Water), Game.Battle.Rules,
+                new[] { (Side.Player, ShipClass.Mothership, new GridPosition(3, 3)),
+                    (Side.Enemy, ShipClass.Mothership, new GridPosition(10, 10)),
+                    (Side.Player, ShipClass.Fishing, new GridPosition(4, 3)),
+                    (Side.Player, ShipClass.Garrison, new GridPosition(3, 4)),
+                    (Side.Player, ShipClass.Garrison, new GridPosition(4, 4)),
+                    (Side.Player, ShipClass.Garrison, new GridPosition(5, 4)) },
+                Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
+>>>>>>> Stashed changes
             Game.LoadScenario(battle);
             Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(new(4, 4));
             Game.MapCamera.Zoom = Vector2.One * 2;
@@ -47,16 +71,23 @@ public partial class IncomeChecks : Node
                 await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
                 Check(GetViewport().GetTexture().GetImage().SavePng(capture[10..]) == Error.Ok, "Income screenshot saved.");
             }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
             await ToSignal(GetTree().CreateTimer(2.3), SceneTreeTimer.SignalName.Timeout);
             Check(Game.Fleet.IncomeLabelCount == 0, "Income labels expire without retaining an unbounded history.");
             GD.Print($"PASS: {_checks} source-income animation checks.");
             GetTree().Quit();
         }
+<<<<<<< Updated upstream
         catch (Exception error)
         {
             GD.PushError(error.ToString());
             GetTree().Quit(1);
         }
+=======
+        catch (Exception error) { GD.PushError(error.ToString()); GetTree().Quit(1); }
+>>>>>>> Stashed changes
     }
 }

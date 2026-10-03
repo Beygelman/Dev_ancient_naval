@@ -1,5 +1,8 @@
 using System;
+<<<<<<< Updated upstream
 using System.Collections.Generic;
+=======
+>>>>>>> Stashed changes
 using System.Linq;
 using System.Threading.Tasks;
 using DevAncientNaval.Core.AI;
@@ -19,7 +22,10 @@ public partial class Main
 {
     private BattleState? _presentedBattle;
     private long _presentedVision = -1;
+<<<<<<< Updated upstream
     private readonly List<Vector2> _actionTargetScreens = new(16);
+=======
+>>>>>>> Stashed changes
     public void Refresh()
     {
         using var trace = DevAncientNaval.Presentation.Diagnostics.PerformanceTrace.Measure("Main.Refresh");
@@ -38,7 +44,10 @@ public partial class Main
             _presentedBattle = Battle;
             _presentedVision = Battle.Vision.Revision;
         }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
         var selected = Selected;
         var village = SelectedVillage;
         if (selected is null)
@@ -56,6 +65,7 @@ public partial class Main
         BoardView.DockSites = CanCommand && Mode == OrderMode.None ? Battle.DockCells(Side.Player) : Array.Empty<GridPosition>();
         BoardView.Building = Mode == OrderMode.Build;
         Hud.UpdateBattle(Battle, selected, Busy, Mode, village);
+<<<<<<< Updated upstream
         if (CanCommand && _salvoCell is { } target && SelectedShipId == _salvoActorId)
             Hud.ShowSalvoChoice(Battle.CanDoubleSalvo(_salvoActorId, target));
         else Hud.HideSalvoChoice();
@@ -64,11 +74,17 @@ public partial class Main
         Fleet.QueueRedraw();
         RefreshOutcome();
         PresentPendingRewards();
+=======
+        PositionActions();
+        BoardView.QueueRedraw();
+        Fleet.QueueRedraw();
+>>>>>>> Stashed changes
     }
 
     private void PositionActions()
     {
         Vector2 Screen(GridPosition p) => GetViewport().GetCanvasTransform() * BoardView.ToGlobal(BoardView.Projection.GridToWorld(p));
+<<<<<<< Updated upstream
         Hud.PositionActions(_resourceCell is null ? (Selected is { } ship ? Screen(ship.Position) : SelectedVillage is { } village ? Screen(village.Position) : BoardView.Selected is { } inspected ? Screen(inspected) : null) : null,
             (Selected is { } selected ? ShipVisualProfile.ProgressY(selected.Definition.Class) : SelectedVillage is not null ? 69 : 0) * MapCamera.Zoom.Y);
         _actionTargetScreens.Clear();
@@ -94,6 +110,10 @@ public partial class Main
                 : Battle.ObservedVillages(Side.Player).Any(v => v.Position == target) ? 69 : 24;
             Hud.PositionSalvoChoice(Screen(target), offset * MapCamera.Zoom.Y);
         }
+=======
+        Hud.PositionActions(_resourceCell is null ? (Selected is { } ship ? Screen(ship.Position) : SelectedVillage is { } village ? Screen(village.Position) : BoardView.Selected is { } inspected ? Screen(inspected) : null) : null);
+        Hud.PositionResource(_resourceCell is { } cell ? Screen(cell) : null);
+>>>>>>> Stashed changes
     }
 
     public override void _Process(double delta)
@@ -105,6 +125,10 @@ public partial class Main
         _lastCanvasTransform = transform;
         _lastViewportSize = size;
         PositionActions();
+<<<<<<< Updated upstream
         // World-space overlay commands are retained; the renderer clips them after a pan.
+=======
+        BoardView.QueueRedraw(); // Refresh only culled live objects after a camera change.
+>>>>>>> Stashed changes
     }
 }

@@ -28,7 +28,10 @@ public sealed class SavedShip
     public bool RestorationUpgrade { get; set; }
     public bool FirepowerUpgrade { get; set; }
     public bool HasRadar { get; set; }
+<<<<<<< Updated upstream
     public int TradeStreak { get; set; }
+=======
+>>>>>>> Stashed changes
     public int MovementSpentUnits { get; set; }
     public int AttacksUsed { get; set; }
     public bool HasMoved { get; set; }
@@ -62,13 +65,17 @@ public sealed class SavedShip
         FirepowerUpgrade = s.FirepowerUpgrade,
         HasRadar = s.HasRadar,
         MovementSpentUnits = s.MovementSpentUnits,
+<<<<<<< Updated upstream
         TradeStreak = s.TradeStreak,
+=======
+>>>>>>> Stashed changes
         AttacksUsed = s.AttacksUsed,
         HasMoved = s.HasMoved,
         IsExhausted = s.IsExhausted,
         HasProduced = s.HasProduced,
         MovementLocked = s.MovementLocked,
     };
+<<<<<<< Updated upstream
     internal Ship Restore(BattleRules rules)
     {
         var ship = new Ship(Id, Owner, rules.Get(Kind), Position);
@@ -106,4 +113,34 @@ public sealed class SavedShip
         ship.HasProduced = HasProduced;
         ship.MovementLocked = MovementLocked;
     }
+=======
+    internal Ship Restore(BattleRules rules) => new(Id, Owner, rules.Get(Kind), Position)
+    {
+        Health = this.Health,
+        Kills = this.Kills,
+        IsVeteran = this.IsVeteran,
+        IsAncient = this.IsAncient,
+        BombCooldown = this.BombCooldown,
+        HasRepaired = this.HasRepaired,
+        Level = this.Level,
+        Resources = this.Resources,
+        PendingUpgradeLevel = this.PendingUpgradeLevel,
+        IncomeUpgrade = this.IncomeUpgrade,
+        MobilityUpgrade = this.MobilityUpgrade,
+        SecondAttackUpgrade = this.SecondAttackUpgrade,
+        HasMortar = this.HasMortar,
+        FortificationUpgrade = this.FortificationUpgrade,
+        ShipwrightUpgrade = this.ShipwrightUpgrade,
+        VisionUpgrade = this.VisionUpgrade,
+        RestorationUpgrade = this.RestorationUpgrade,
+        FirepowerUpgrade = this.FirepowerUpgrade,
+        HasRadar = this.HasRadar,
+        MovementSpentUnits = this.MovementSpentUnits,
+        AttacksUsed = this.AttacksUsed,
+        HasMoved = this.HasMoved,
+        IsExhausted = this.IsExhausted,
+        HasProduced = this.HasProduced,
+        MovementLocked = this.MovementLocked,
+    };
+>>>>>>> Stashed changes
 }

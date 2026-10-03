@@ -1,5 +1,6 @@
 # Ancient Naval change history
 
+<<<<<<< Updated upstream
 ## v020.4 — 3 October 2026
 
 - Wider scrollable vertical papyrus, maximum 60% screen height, persisted interface scale 80–125%.
@@ -188,6 +189,8 @@ Validation and performance evidence: `docs/MILESTONE-0.15.md` and
 `docs/DEBUG-0.15.md`. Existing voyages retain their saved balance; start a new
 voyage to use the new economy.
 
+=======
+>>>>>>> Stashed changes
 ## 0.14.1 — 30 September 2026
 
 ### Changed

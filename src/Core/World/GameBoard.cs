@@ -15,15 +15,22 @@ public sealed class GameBoard
     public IReadOnlyList<Tile> Tiles { get; }
 
     public GameBoard(int width, int height, Func<GridPosition, TerrainType> terrainAt, int seed = 0,
+<<<<<<< Updated upstream
         Func<GridPosition, bool>? playable = null, IReadOnlyList<System.Numerics.Vector2>? boundary = null, OrganicMesh? mesh = null,
         WorldKind kind = WorldKind.Oceans)
+=======
+        Func<GridPosition, bool>? playable = null, IReadOnlyList<System.Numerics.Vector2>? boundary = null, OrganicMesh? mesh = null)
+>>>>>>> Stashed changes
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
         ArgumentNullException.ThrowIfNull(terrainAt);
+<<<<<<< Updated upstream
         if (!Enum.IsDefined(kind))
             throw new ArgumentOutOfRangeException(nameof(kind));
         Kind = kind;
+=======
+>>>>>>> Stashed changes
         Seed = seed; Width = width; Mesh = mesh;
         Height = height;
         _tiles = new Tile[checked(width * height)];
