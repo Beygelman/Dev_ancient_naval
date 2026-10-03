@@ -1,4 +1,4 @@
-# Ancient Naval — v020.2 — Corrected edition
+# Ancient Naval — v020.3 — Rivers and Revelations
 
 A turn-based naval tactics game built with **Godot 4.7.2 .NET**, C# and .NET 8. Open `project.godot`, stop the previous run with **F8**, then press **F5**. The title screen offers **New game**, **Continue** and **Exit game**. New game opens a six-color fleet and emblem selector and a choice of 1–4 rival fleets and Boatswain, Captain or Admiral difficulty, plus **Sea World**, **Oceans**, **Continents** or **Pangaea**.
 
@@ -9,6 +9,10 @@ Defeat the rival Motherships while exploring, collecting resources and capturing
 The working project, sources, assets, balance, tests and this README are edited
 directly in this Git repository. Delivered files are also copied to `releases/`
 inside the same project; the external `outputs` folder is an additional mirror.
+
+- [Windows v020.3 ZIP](releases/v020.3/Ancient_Naval_v020.3_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
+- [Source v020.3 ZIP](releases/v020.3/Ancient_Naval_v020.3_Source.zip), [Russian notes](releases/v020.3/Ancient_Naval_v020.3_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.3.txt).
+- Local launch copy: `releases/v020.3/playable/Ancient Naval.exe`.
 
 - [Windows v020.2 ZIP](releases/v020.2/Ancient_Naval_v020.2_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
 - [Source v020.2 ZIP](releases/v020.2/Ancient_Naval_v020.2_Source.zip), [Russian notes](releases/v020.2/Ancient_Naval_v020.2_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.2.txt).
@@ -36,6 +40,14 @@ notes remain visible to Git. [GitHub size limits](https://docs.github.com/en/rep
 Godot ignores the release directory so copied exports never re-enter game assets.
 See [release-copy workflow](releases/README.md). Files reach GitHub after the
 repository changes are committed and pushed; copying files alone is not a push.
+
+## v020.3 — 3 October 2026
+
+Dynamic fleet capacity, worn thin parchment, explicit saved reward claims and keyboard controls. Revised sight, mortar minimum range, fishing radar contacts, veteran gun reach, repairs and scuttling. Admiral assembles next-turn attacks and searches remembered flagship positions without hidden information. Cities are spaced more than three cells apart; pirate bays do not grow until captured. Cosmetic rivers, varied snow-capped mountains, abandoned architecture and persistent sea ruins use retained rendering.
+
+Arrows/WASD pan; Space ends the turn; R repairs the selection. Select **New game** to adopt the new rules; earlier voyages retain their saved rules.
+
+[Validation and compatibility](docs/MILESTONE-v020.3.md).
 
 ## Corrected v020.2 — 2 October 2026
 

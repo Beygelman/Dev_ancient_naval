@@ -72,7 +72,7 @@ scope; historical design notes are context, not new work orders.
 ## Version and release checks
 
 - Version labels follow `v020`, `v020.1` through `v020.9`, then `v021`.
-  The user explicitly requested the corrected build to remain `v020.2`.
+  The corrected v020.2 remains archived; the current requested release is `v020.3`.
 - Before **every** delivery, build and run meaningful Core/native checks, then
   run `tools/Check-ReleaseSmoothness.ps1` on the final Debug build with a native
   renderer. Preserve its reports under `docs/diagnostics/<version>/`.

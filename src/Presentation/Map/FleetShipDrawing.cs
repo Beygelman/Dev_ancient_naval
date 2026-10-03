@@ -11,13 +11,13 @@ public partial class FleetView
 {
     private readonly CityShipArt _cityShip = new();
     private readonly VesselArt _vesselArt = new();
-    private void DrawShip(ShipSnapshot ship, Vector2 center)
+    private void DrawShip(ShipSnapshot ship, Vector2 center, bool silhouette = false)
     {
         if (ship.Class == ShipClass.Balloon)
         {
             var balloon = center + new Vector2(0, -62);
             var color = ship.IsAncient ? new Color("c7aa65") : FleetPalette.For(Battle, ship.Owner);
-            Ink.DrawCircle(center, 12, new Color(0, 0, 0, 0.2f));
+            if (!silhouette) Ink.DrawCircle(center, 12, new Color(0, 0, 0, 0.2f));
             Ink.DrawLine(balloon + new Vector2(-12, 10), balloon + new Vector2(-6, 32), color, 2, true);
             Ink.DrawLine(balloon + new Vector2(12, 10), balloon + new Vector2(6, 32), color, 2, true);
             DrawBalloonEnvelope(balloon, color);
@@ -66,7 +66,7 @@ public partial class FleetView
         Vector2 StructurePoint(float x, float y) => center + new Vector2(x, y) * size;
         var accent = FleetPalette.For(Battle, ship.Owner);
         Ink.DrawSetTransform(center + new Vector2(0, 4), 0, new Vector2(1, 0.45f));
-        Ink.DrawCircle(Vector2.Zero, 30 * size, new Color(0, 0, 0, 0.3f));
+        if (!silhouette) Ink.DrawCircle(Vector2.Zero, 30 * size, new Color(0, 0, 0, 0.3f));
         Ink.DrawSetTransform(Vector2.Zero);
         if (ship.Id == SelectedId)
             Ink.DrawArc(center, 34 * size, 0, Mathf.Tau, 40, new Color("ffe298"), 2, true);
@@ -120,7 +120,7 @@ public partial class FleetView
             DrawProjectedPolygon(new[] { P(30, 0, 6), P(25, -5, 10), P(28, 0, 7), P(34, 5, 10) }, new Color("b9cbd1"));
         }
 
-        if (!_sinking.ContainsKey(ship.Id))
+        if (!silhouette && !_sinking.ContainsKey(ship.Id))
         {
             for (int slot = 0; slot < ship.ProgressGoal; slot++)
             {
@@ -131,7 +131,7 @@ public partial class FleetView
             }
         }
 
-        if (ship.IsExhausted)
+        if (!silhouette && ship.IsExhausted)
             Ink.DrawCircle(center + new Vector2(28, 14), 4, new Color("c8c4b4"));
     }
 }

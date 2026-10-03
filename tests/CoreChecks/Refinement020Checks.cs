@@ -45,7 +45,10 @@ internal static class Refinement020Checks
         {
             var board = ArchipelagoGenerator.Create(seed,3,WorldKind.Pangaea);
             var battle = SkirmishSetup.Create(board,rules,3);
-            Check(battle.Villages.Count(v=>PangaeaWaters.IsInterior(board,v.Position))>=8, "most villages occupy the inland river/lake network, seed "+seed);
+            Check(battle.Villages.Count(v=>PangaeaWaters.IsInterior(board,v.Position))>battle.Villages.Count/2, "most villages occupy the inland river/lake network with new three-tile clearance, seed "+seed);
+            foreach (var first in battle.Villages)
+                foreach (var second in battle.Villages.Where(v=>v.Id>first.Id))
+                    Check(!board.InRadius(first.Position,second.Position,3),"village sites stay more than three cells apart, seed "+seed);
             Check(battle.FishSpots.Count(p=>PangaeaWaters.IsInterior(board,p))>battle.FishSpots.Count/2, "more fish inside Pangaea, seed "+seed);
             var loaded = BattleState.LoadJson(battle.SaveJson());
             Check(loaded.FishSpots.SequenceEqual(battle.FishSpots) && loaded.Board.Mesh!.Vertices.SequenceEqual(board.Mesh!.Vertices), "Continue preserves exact fish and topology");

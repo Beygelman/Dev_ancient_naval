@@ -13,6 +13,7 @@ public partial class Main
     private readonly HashSet<Side> _shownEncounters = new();
     private void ResetEncounterPresentation()
     {
+        _rewards?.Close();
         MapCamera.CancelFlight();
         _shownEncounters.Clear();
         foreach (var encounter in Battle.Encounters) _shownEncounters.Add(encounter.Side);
@@ -27,7 +28,7 @@ public partial class Main
             if (!_shownEncounters.Add(encounter.Side)) continue;
             if (!FastChecks)
                 await MapCamera.FocusAsync(BoardView.ToGlobal(BoardView.Projection.GridToWorld(encounter.Position)), Camera.MapCamera.EncounterSeconds);
-            if (Battle.ActiveSide == Side.Player)
+            if (Battle.ActiveSide == Side.Player && !Battle.Rules.DeferredRewards)
                 Hud.ShowMessage($"Met {Battle.FactionName(encounter.Side)} · +{Battle.Rules.EncounterCurrencyReward} Thors");
         }
         if (Battle.ActiveSide != Side.Player) Hud.ShowOpponentTurn(Battle.ActiveSide);

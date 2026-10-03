@@ -26,14 +26,13 @@ public sealed partial class BattleState
         int amount = checked(beneficiaries * 2);
         if (amount == 0)
             return Array.Empty<HeavenlyReceipt>();
-        _credits[(int)side] = checked(_credits[(int)side] + amount);
-        RecordCurrencyReceipt(side, amount);
+        AwardOrQueue(new($"heavenly:{(int)side}:{starts}", AwardKind.Heavenly, side, amount, TurnSerial));
         return new[] { new HeavenlyReceipt(side, amount, beneficiaries, religious) };
     }
 
     private void InitializeSettlementLevels()
     {
-        var starts = WorldSettlementPlacement.Describe(Board, _villages.Select(v => v.Position));
+        var starts = WorldSettlementPlacement.Describe(Board, _villages.Select(v => v.Position), Rules.FrozenUnownedVillages);
         foreach (var village in _villages)
         {
             var start = starts[village.Position];

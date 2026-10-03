@@ -22,6 +22,14 @@ public partial class Refinement021Checks : Node
     private void Check(bool yes, string name) { if (!yes) throw new Exception("0.21 UI: " + name); _checks++; }
     private async Task Wait(double seconds) => await ToSignal(GetTree().CreateTimer(seconds), SceneTreeTimer.SignalName.Timeout);
     private async Task Frame() => await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+    private void LoadFixture(BattleState battle)
+    {
+        // v020.3's live receipts are covered by Ui0203Checks. These established
+        // firing fixtures begin after diplomacy, so no unrelated modal owns input.
+        foreach (var receipt in battle.PendingAwards.ToArray())
+            Check(battle.ClaimAward(Side.Player, receipt.Id).Success, "settle fixture encounter before testing cannon input");
+        Game.LoadScenario(battle);
+    }
     private static IEnumerable<Node> Nodes(Node node)
     {
         yield return node;
@@ -62,7 +70,7 @@ public partial class Refinement021Checks : Node
     }
     private async Task Salvo(bool touch)
     {
-        var battle=Duel(); Game.LoadScenario(battle); Game.FastChecks=false;
+        var battle=Duel(); LoadFixture(battle); Game.FastChecks=false;
         Game.MapCamera.Position=Game.BoardView.Projection.GridToWorld(new(8,8));
         Game.MapCamera.Zoom=Vector2.One*1.2f; Game.MapCamera.ForceUpdateScroll();
         Game.SelectCell(new(8,8)); await Wait(.4); await Frame();
@@ -100,7 +108,7 @@ public partial class Refinement021Checks : Node
     }
     private async Task SingleChoice()
     {
-        var battle = Duel(); Game.LoadScenario(battle); Game.FastChecks = true;
+        var battle = Duel(); LoadFixture(battle); Game.FastChecks = true;
         Game.SelectCell(new(8,8)); Game.SelectCell(new(10,8));
         await ClickSalvoChoice(false, false); await Game.CurrentOrder;
         Check(battle.Find(4)!.Health==11 && battle.Find(3)!.AttacksRemaining==1, "single icon deals four damage and preserves the second attack");
@@ -121,7 +129,7 @@ public partial class Refinement021Checks : Node
         var saved=battle.CaptureSnapshot();
         saved.Villages[0]=saved.Villages[0] with {Owner=Side.Enemy,Level=3,Health=15,Fortified=true};
         battle=BattleState.LoadJson(BattleState.SerializeSnapshot(saved));
-        Game.LoadScenario(battle); Game.FastChecks=false;
+        LoadFixture(battle); Game.FastChecks=false;
         Game.MapCamera.Zoom=Vector2.One; Game.MapCamera.Position=Game.BoardView.Projection.GridToWorld(new(8,8)); Game.MapCamera.ForceUpdateScroll();
         Game.SelectCell(new(8,8)); await Wait(.4); await Frame();
         var point=Screen(cell);
@@ -154,7 +162,7 @@ public partial class Refinement021Checks : Node
         save.Ships[0].Level = 3;
         save.Ships[0].SecondAttackUpgrade = true;
         battle = BattleState.LoadJson(BattleState.SerializeSnapshot(save));
-        Game.LoadScenario(battle); Game.FastChecks = false;
+        LoadFixture(battle); Game.FastChecks = false;
         Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(new(8,8));
         Game.MapCamera.Zoom = Vector2.One; Game.MapCamera.ForceUpdateScroll();
         double hp = battle.Find(2)!.Health, damage = battle.Damage(battle.Find(1)!, battle.Find(2)!);
@@ -202,7 +210,10 @@ public partial class Refinement021Checks : Node
     }
     private async Task Discovery()
     {
-        var battle=new BattleState(new GameBoard(24,24,_=>TerrainType.Water),Game.Battle.Rules,
+        var legacyPolicy = System.Text.Json.JsonSerializer.SerializeToNode(Game.Battle.Rules)!;
+        legacyPolicy["DeferredRewards"] = false;
+        var legacyRules = BattleRules.FromJson(legacyPolicy.ToJsonString());
+        var battle=new BattleState(new GameBoard(24,24,_=>TerrainType.Water),legacyRules,
             new[] {(Side.Player,ShipClass.Mothership,new GridPosition(2,2)),(Side.Enemy,ShipClass.Mothership,new GridPosition(22,22)),
                 (Side.Player,ShipClass.Garrison,new GridPosition(4,3)),(Side.Enemy,ShipClass.Garrison,new GridPosition(8,3))},
             Array.Empty<GridPosition>(),villageSpots:Array.Empty<GridPosition>());

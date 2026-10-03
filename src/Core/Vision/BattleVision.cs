@@ -25,11 +25,13 @@ public sealed partial class BattleVision
     private readonly Dictionary<GridPosition, int>[] _lastSeen = Enumerable.Range(0, BattleState.SideSlots).Select(_ => new Dictionary<GridPosition, int>()).ToArray();
     private readonly MountainSight? _mountainSight;
     private readonly bool _smallHullRadarStealth;
-    public BattleVision(GameBoard board, bool mountainSightShadows = false, bool smallHullRadarStealth = false)
+    private readonly bool _fishingRadarVisible;
+    public BattleVision(GameBoard board, bool mountainSightShadows = false, bool smallHullRadarStealth = false, bool fishingRadarVisible = false)
     {
         _board = board;
         _mountainSight = mountainSightShadows ? new MountainSight(board) : null;
         _smallHullRadarStealth = smallHullRadarStealth;
+        _fishingRadarVisible = fishingRadarVisible;
     }
     public long Revision { get; private set; }
     private bool _allSeeingPlayer;
@@ -95,7 +97,7 @@ public sealed partial class BattleVision
             foreach (var cell in _visible[index])
                 _lastSeen[index][cell] = stamp;
             foreach (var enemy in ships.Where(s => s.Owner != side && !s.IsAirborne
-                && (!_smallHullRadarStealth || s.Definition.Class is not (ShipClass.Garrison or ShipClass.Fishing))))
+                && (!_smallHullRadarStealth || s.Definition.Class != ShipClass.Garrison && (s.Definition.Class != ShipClass.Fishing || _fishingRadarVisible))))
                 if (_radar[index].Contains(enemy.Position) && !_visible[index].Contains(enemy.Position))
                     _contacts[index].Add(enemy.Position);
         }

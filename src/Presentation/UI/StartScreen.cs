@@ -77,6 +77,7 @@ public partial class StartScreen : CanvasLayer
         _colors.AddThemeConstantOverride("separation", 7);
         _setupPaper = new PanelContainer { Name = "VoyageSetupPaper" };
         _setupPaper.AddThemeStyleboxOverride("panel", PapyrusStyle.Panel(.97f));
+        PapyrusGrain.Apply(_setupPaper);
         _root.AddChild(_setupPaper);
         _setupPaper.AddChild(_colors);
         var heading = new Label { Text = "CHART YOUR VOYAGE", HorizontalAlignment = HorizontalAlignment.Center };

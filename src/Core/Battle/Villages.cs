@@ -101,7 +101,8 @@ public sealed partial class BattleState
 
             if (village.Owner == side && village.Health > 0)
             {
-                village.TurnsOwned++;
+                if (Rules.FrozenUnownedVillages && side == Side.Pirates) continue;
+            village.TurnsOwned++;
                 if (village.TurnsOwned % 2 == 0 && village.Level < 5)
                 {
                     village.Level++;
@@ -157,14 +158,16 @@ public sealed partial class BattleState
             return error;
         if (kind is not (ShipClass.Garrison or ShipClass.Fishing or ShipClass.Invader or ShipClass.Kolonel or ShipClass.Togus or ShipClass.Lighthouse))
             return "This class cannot be built by a village.";
+        if (kind == ShipClass.Lighthouse && Rules.FishingLighthouses)
+            return "Villages cannot build lighthouses.";
         if (kind == ShipClass.Lighthouse && !Rules.LighthousesEnabled)
             return "Lighthouse construction is unavailable in this voyage.";
         if (village!.Level < VillageRequiredLevel(kind))
             return $"Available at village level {VillageRequiredLevel(kind)}.";
         if (village.HasProduced)
             return "This village has already built a ship this turn.";
-        if (kind != ShipClass.CannonTower && Rules.Get(kind).Damage > 0 && _ships.Count(s => s.Owner == requester && s.CountsTowardFleet) >= Rules.FleetLimit)
-            return $"Fleet limit: {Rules.FleetLimit}.";
+        if (UsesFleetSlot(kind) && FleetUsed(requester) >= FleetCapacity(requester))
+            return $"Fleet limit: {FleetCapacity(requester)}.";
         if (Credits(requester) < VillageBuildPrice(villageId, kind))
             return "Not enough Thors.";
         return VillageSpawnCells(villageId).Count == 0 ? "No adjacent water tile is free." : null;

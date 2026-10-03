@@ -7,7 +7,7 @@ internal static partial class BattleScenarios
 {
     private static void PresentedCombat()
     {
-        var rules = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json")));
         BattleState Fixture() => new(new GameBoard(24, 24, _ => TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(2, 2)), (Side.Enemy, ShipClass.Mothership, new GridPosition(20, 20)), (Side.Player, ShipClass.Kolonel, new GridPosition(8, 8)), (Side.Enemy, ShipClass.Garrison, new GridPosition(9, 8)) }, Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
         var battle = Fixture();
         double original = battle.Find(4)!.Health;

@@ -27,7 +27,7 @@ public sealed partial class BattleState
     {
         Board = board;
         Rules = rules;
-        Vision = new BattleVision(board, rules.MountainSightShadows, rules.SmallHullRadarStealth);
+        Vision = new BattleVision(board, rules.MountainSightShadows, rules.SmallHullRadarStealth, rules.FishingRadarVisible);
         _credits = new int[SideSlots];
         Ships = _ships.AsReadOnly();
         IncomeSources = _incomeSources.AsReadOnly();
@@ -76,6 +76,7 @@ public sealed partial class BattleState
     {
         Vision.SetAllSeeingPlayer(GodEye || Winner == Side.Player);
         Vision.Recompute(Ships, TurnSerial, _villages);
+        ObserveFlagships();
         DiscoverNations();
     }
     private string? ValidateActor(Side requester, int id, out Ship? ship)

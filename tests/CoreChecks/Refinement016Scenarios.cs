@@ -9,7 +9,7 @@ internal static partial class BattleScenarios
 {
     private static void Refinement016()
     {
-        var rules = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json")));
         Check(rules.Get(ShipClass.Kolonel).AttackRange == 2 && rules.Get(ShipClass.Invader).AttackRange == 2 && rules.Get(ShipClass.Garrison).AttackRange == 2, "Current cannon ranges include the extended Brig range");
         Check(rules.Get(ShipClass.CannonTower).AttackRange == 4 && rules.Get(ShipClass.CannonTower).VisualRange == 1 && rules.Get(ShipClass.CannonTower).RadarRange == 4, "Tower distinguishes optical sight and radar");
         Check(rules.Get(ShipClass.Balloon).VisualRange == 5 && rules.Balloon.AntiAirRange == 2 && Rules.Balloon.AntiAirRange == 3, "Reduced balloon sight/AA coexist with legacy range snapshots");

@@ -1,5 +1,17 @@
 # Ancient Naval change history
 
+## v020.3 — 2026-10-03 — Rivers and Revelations
+
+- Dynamic flagship/city fleet capacity including fishing ships; own-unit scuttling without a refund.
+- Revised optical sight, mortar inner range, flagship cannon range and veteran Galleon/Kolonel reach.
+- Equal four-HP active/passive repair; ancient tower passive two-HP repair; full veteran restoration.
+- Fishing lighthouse construction, fishing radar contacts, strictly separated villages and fixed pirate levels.
+- Explicit claimable, saved discovery/faith rewards with localized vertical parchment.
+- Thinner worn command parchment, legal silhouette targeting and WASD/arrows/Space/R controls.
+- Admiral swarm assembly, next-turn forecasts and optical flagship memory/search.
+- Independently seeded cosmetic rivers, varied snowy peaks, passive ruins and persistent sea treasure ruins.
+- Older rule snapshots and historical archives preserved. Native smoothness gates required before delivery.
+
 ## v020.2 — corrected build — 2026-10-03
 
 - Galleon gains one attack tile. Continuous rounded island surfaces remove water cuts and pointed sand wedges; enclosed lakes remain water. Larger summits and smaller connecting peaks form inland ridges; denser groves use a continuous field rather than tile borders.

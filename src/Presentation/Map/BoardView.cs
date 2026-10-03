@@ -136,6 +136,7 @@ public partial class BoardView : Node2D
         _resourceCells.UnionWith(Battle.KnownShoals(Side.Player));
 
         _observations?.QueueRedraw();
+        foreach (var (_, canvas) in _townArt) canvas.QueueRedraw();
         QueueRedraw();
     }
 
@@ -149,10 +150,7 @@ public partial class BoardView : Node2D
         DrawTradeRoutes(canvas, drawBounds);
         DrawTreasuries(canvas);
         DrawMovementContour(canvas, Building ? new Color(0.6f, 1, 0.8f, 0.8f) : new Color(0.64f, 0.82f, 1, 0.72f));
-        foreach (var cell in Targets)
-        {
-            canvas.DrawPolyline(Projection.ClosedOutline(cell), new Color("ff9678"), 2, true);
-        }
+        // Attack contours belong to observed object silhouettes, never hidden identities.
 
         if (SelectedShipId is { } id && Battle.FindObserved(Side.Player, id)is { Owner: Side.Player } ship)
         {
@@ -160,17 +158,7 @@ public partial class BoardView : Node2D
                 DrawTileContour(canvas, ship.Position, ship.RadarRange, new Color(0.5f, 1, 0.65f, 0.38f));
         }
 
-        foreach (var cell in Collection.Concat(DockSites).Distinct())
-        {
-            var center = Projection.GridToWorld(cell);
-
-            var glow = DockSites.Contains(cell) ? new Color("96e5cb") : new Color("ffe49a");
-            canvas.DrawSetTransform(center, 0, new Vector2(1, .48f));
-            canvas.DrawArc(Vector2.Zero, 23, 0, Mathf.Tau, 24, new Color(glow, .27f), 3, true);
-            canvas.DrawArc(Vector2.Zero, 23, 0, Mathf.Tau, 24, new Color(glow, .65f), 1, true);
-            canvas.DrawSetTransform(Vector2.Zero);
-        }
-
+        DrawResourceContours(canvas);
         foreach (var contact in Battle.Vision.Contacts(Side.Player))
         {
             var point = Projection.GridToWorld(contact);

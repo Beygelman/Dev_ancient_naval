@@ -9,7 +9,16 @@ internal static class BattleSaveValidation
     {
         if (saved.Version != 1 || saved.Statistics is null || saved.Board is null || saved.Rules is null || saved.Board.Width < 1 || saved.Board.Height < 1 || (long)saved.Board.Width * saved.Board.Height > 20_000 || saved.Board.Land is null || saved.Ships is null || saved.Villages is null || saved.Fish is null || saved.Shoals is null || saved.Treasuries is null || saved.Whirlpools is null || saved.CaptureWaits is null || saved.TreasuryWaits is null || saved.PirateHomes is null || saved.Outcomes is null || saved.Income is null || saved.Vision is null || saved.Credits is null || saved.EverProduced is null || saved.Credits.Length is not (3 or BattleState.SideSlots) || saved.Credits.Any(n => n < 0) || saved.EverProduced.Length != saved.Credits.Length || saved.Round < 1 || saved.TurnSerial < 0 || saved.EventDraws is < 0 or > 10_000_000 || !Enum.IsDefined(saved.Board.Kind) || !Enum.IsDefined(saved.Difficulty) || !Enum.IsDefined(saved.ActiveSide) || !Enum.IsDefined(saved.Color) || saved.Winner is { } winner && !Enum.IsDefined(winner) || saved.LastReward is { } reward && !Enum.IsDefined(reward))
             throw new ArgumentException("Invalid or unsupported saved game.");
+        if (saved.PendingAwards is null || saved.PendingAwards.Length > 1000 || saved.PendingAwards.Any(a => a is null || string.IsNullOrWhiteSpace(a.Id) || a.Id.Length > 60 || !Enum.IsDefined(a.Kind) || a.Owner != Side.Player || a.Amount is < 0 or > 1000 || a.Turn < 0 || a.Turn > saved.TurnSerial) || saved.PendingAwards.Select(a => a.Id).Distinct().Count() != saved.PendingAwards.Length)
+            throw new ArgumentException("Invalid saved pending rewards.");
         saved.Statistics.Validate();
+        if (saved.FlagshipSightings is null || saved.FlagshipSightings.Length > 20
+            || saved.FlagshipSightings.Any(record => record is null
+                || !BattleState.PlayableSides.Contains(record.Observer)
+                || !BattleState.PlayableSides.Contains(record.Owner)
+                || record.Observer == record.Owner || record.Turn < 0 || record.Turn > saved.TurnSerial)
+            || saved.FlagshipSightings.Select(record => (record.Observer, record.Owner)).Distinct().Count() != saved.FlagshipSightings.Length)
+            throw new ArgumentException("Invalid saved flagship observations.");
         if (saved.PersonalTurnStarts is null || saved.FlagshipKills is null
             || saved.PersonalTurnStarts.Length is not (0 or BattleState.SideSlots)
             || saved.FlagshipKills.Length is not (0 or BattleState.SideSlots)
@@ -29,6 +38,7 @@ internal static class BattleSaveValidation
         if (saved.Encounters is null || saved.Encounters.Any(e => e is null || e.Side is Side.Player or Side.Pirates || !Enum.IsDefined(e.Side) || !board.Contains(e.Position))
             || saved.Encounters.Select(e => e.Side).Distinct().Count() != saved.Encounters.Length)
             throw new ArgumentException("Invalid saved nation encounters.");
+        PendingAwardValidation.Validate(saved, board, rules);
         if (saved.Ships.Any(s => s is null || s.Id <= 0 || !Enum.IsDefined(s.Owner) || !Enum.IsDefined(s.Kind) || !board.Contains(s.Position) || !double.IsFinite(s.Health) || s.Health <= 0 || s.Level is < 1 or > 5 || s.BombCooldown < 0 || s.BombCooldown > rules.Balloon.CooldownTurns || s.Kills < 0 || s.Resources < 0 || s.MovementSpentUnits < 0 || s.TradeStreak is < 0 or > 100 || s.AttacksUsed < 0))
             throw new ArgumentException("Invalid saved fleet.");
         if (saved.Villages.Any(v => v is null || v.Id <= 0 || !board.Contains(v.Position) || v.Owner is { } owner && !Enum.IsDefined(owner) || v.Level is < 1 or > 5 || !double.IsFinite(v.Health) || v.Health < 0 || v.Health > v.Level * 5 || v.TurnsOwned < 0 || v.Port && v.Level < 3) || saved.Treasuries.Any(t => t is null || t.Id <= 0 || !board.Contains(t.Position)))
@@ -42,6 +52,11 @@ internal static class BattleSaveValidation
         }
 
         : saved.Factions;
+        if (saved.FlagshipSightings.Any(record => !roster.Contains(record.Observer)
+            || !roster.Contains(record.Owner) || !board.Contains(record.Position)
+            || !saved.Vision.Any(vision => vision is not null && vision.Side == record.Observer
+                && vision.Explored is not null && vision.Explored.Contains(record.Position))))
+            throw new ArgumentException("Saved flagship observations do not match the board and roster.");
         if (saved.PersonalTurnStarts.Where((n, index) => n > 0 && !roster.Contains((Side)index)).Any()
             || saved.FlagshipKills.Where((n, index) => n > 0 && !roster.Contains((Side)index)).Any()
             || saved.FlagshipKills.Any(n => n > roster.Length - 1)
@@ -64,7 +79,7 @@ internal static class BattleSaveValidation
             throw new ArgumentException("Invalid saved sea features.");
         var ships = saved.Ships.ToDictionary(s => s.Id);
         var villages = saved.Villages.Select(v => v.Id).ToHashSet();
-        var treasuries = saved.Treasuries.Select(t => t.Id).ToHashSet();
+        var treasuries = saved.Treasuries.Where(t => !t.IsCollected).Select(t => t.Id).ToHashSet();
         foreach (var wait in saved.CaptureWaits.Concat(saved.TreasuryWaits))
             if (wait is null || !Enum.IsDefined(wait.Side) || !board.Contains(wait.Position) || wait.Since < 0 || wait.Since > saved.TurnSerial || !ships.TryGetValue(wait.Ship, out var ship) || ship.Owner != wait.Side)
                 throw new ArgumentException("Invalid saved waiting crew.");

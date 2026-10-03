@@ -7,6 +7,8 @@ namespace DevAncientNaval.Presentation.UI;
 public partial class RadialPapyrus : Control
 {
     private readonly Vector2[] _paper = new Vector2[130];
+    private readonly Vector2[] _grainUv = new Vector2[130];
+    private readonly Color[] _grainTint = { Colors.White };
     private readonly List<SectorButton> _commands = new(12);
     private float _time = 1;
     private float _span;
@@ -58,6 +60,9 @@ public partial class RadialPapyrus : Control
         }
 
         DrawColoredPolygon(_paper, new Color(PapyrusStyle.Paper, .98f));
+        for (int i = 0; i < _paper.Length; i++) _grainUv[i] = _paper[i] / 64;
+        TextureRepeat = TextureRepeatEnum.Enabled;
+        DrawPolygon(_paper, _grainTint, _grainUv, PapyrusGrain.Texture);
         DrawArc(SectorButton.Center, outer, start, start + span, 65, PapyrusStyle.Bronze, 1.2f, true);
         DrawArc(SectorButton.Center, inner, start, start + span, 65, PapyrusStyle.Bronze, 1, true);
         for (int i = 1; i < _commands.Count; i++)

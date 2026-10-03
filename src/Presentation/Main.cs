@@ -91,6 +91,10 @@ public partial class Main : Node2D
         MapInput.Held += SelectAtScreen;
         MapInput.Hovered += PreviewAtScreen;
         MapInput.Canceled += CancelOrder;
+        MapInput.KeyboardEnabled = () => _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && Battle.PendingUpgrade(Side.Player) is null;
+        MapInput.GameplayShortcutsEnabled = () => CanCommand && Battle.PendingUpgrade(Side.Player) is null;
+        MapInput.EndTurnRequested += () => RunSafely(EndPlayerTurn);
+        MapInput.RepairRequested += () => RunSafely(RepairSelected);
         AddChild(MapInput);
         Hud = new DebugHud
         {
@@ -99,6 +103,8 @@ public partial class Main : Node2D
         Hud.EndTurnRequested += () => RunSafely(EndPlayerTurn);
         Hud.RepairRequested += () => RunSafely(RepairSelected);
         Hud.BuildRequested += BeginBuild;
+        Hud.CanScuttleShip = ship => CanCommand && Battle.CanScuttle(Side.Player, ship.Id);
+        Hud.ScuttleRequested += () => RunSafely(() => SelectedShipId is { } id ? Perform(b => b.Scuttle(Side.Player, id)) : Task.CompletedTask);
         Hud.SalvoRequested += twice => RunSafely(() => ChooseSalvo(twice));
         Hud.MortarRequested += () => RunSafely(BuyMortar);
         Hud.ResourceRequested += () => RunSafely(ConfirmResource);
@@ -132,6 +138,7 @@ public partial class Main : Node2D
         Hud.HomeRequested += ShowHome;
         Hud.RestartRequested += ShowColorSelection;
         AddChild(Hud);
+        InitializeRewards();
         Fleet.FocusTarget = FocusVisibleTarget;
         MapCamera.ViewChanged += PositionActions;
         InitializeOutcome();
@@ -139,6 +146,10 @@ public partial class Main : Node2D
         Refresh();
         Hud.ShowMessage("Select a ship, then a tile or highlighted target. Glowing fish can be collected directly.");
         InitializeSession();
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--world-visual0203-test"))
+            AddChild(new DevAncientNaval.Tests.Runtime.WorldVisual0203Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--ui0203-test"))
+            AddChild(new Tests.Runtime.Ui0203Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--language0202-test"))
             AddChild(new Tests.Runtime.Language0202Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--lighthouse-town0202-test"))
@@ -199,7 +210,7 @@ public partial class Main : Node2D
         }
     }
 
-    private bool CanCommand => _victory?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && !Battle.IsOver && !Battle.PlayerDefeated && Battle.ActiveSide == Side.Player;
+    private bool CanCommand => _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && !Battle.IsOver && !Battle.PlayerDefeated && Battle.ActiveSide == Side.Player;
     private Ship? Selected => SelectedShipId is { } id ? Battle.FindObserved(Side.Player, id) : null;
     private Village? SelectedVillage => SelectedVillageId is { } id ? Battle.ObservedVillages(Side.Player).FirstOrDefault(v => v.Id == id) : null;
 

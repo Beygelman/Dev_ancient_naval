@@ -25,7 +25,7 @@ public partial class Main
         bool menuTest = args.Contains("--menu-test");
         bool victoryTest = (args.Contains("--victory-test") || args.Contains("--world-mode-test")) && args.Any(a => a.StartsWith("--save-file="));
         string save = args.FirstOrDefault(a => a.StartsWith("--save-file="))?[12..] ?? ProjectSettings.GlobalizePath("user://last_battle.json");
-        bool performanceSave = args.Contains("--performance-test") && args.Any(a => a.StartsWith("--save-file="));
+        bool performanceSave = (args.Contains("--performance-test") || args.Contains("--ui0203-test")) && args.Any(a => a.StartsWith("--save-file="));
         _saveStore = new SaveStore(save);
         _saveEnabled = (!tests || menuTest || performanceSave || victoryTest) && !_mapPreview;
         if (menuTest && !args.Any(a => a.StartsWith("--save-file=")))
@@ -68,6 +68,7 @@ public partial class Main
         if (_sessionLoading || Busy)
             return;
         SaveSession();
+        _rewards?.Close();
         HideOutcome();
         SetBattleVisible(false);
         _home.ShowHome(_saveStore.HasUnfinishedVoyage());

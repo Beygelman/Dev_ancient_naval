@@ -15,7 +15,7 @@ public partial class Main
     private MovementPreview? SelectedRoutes()
     {
         var ship = Selected;
-        if (ship is null || !CanCommand)
+        if (ship is null || !CanCommand || !ship.CanMove)
             return null;
         if (_routePreview is null || !ReferenceEquals(_routeBattle, Battle) || _routeShip != ship.Id || _routeVision != Battle.Vision.Revision || _routeMovement != ship.MovementRemainingUnits || _routePosition != ship.Position)
         {

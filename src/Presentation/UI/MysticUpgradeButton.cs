@@ -24,6 +24,7 @@ public partial class MysticUpgradeButton : Button
     {
         var panel = new PanelContainer { Theme = PapyrusStyle.ChartTheme() };
         panel.AddThemeStyleboxOverride("panel", PapyrusStyle.Panel());
+        PapyrusGrain.Apply(panel);
         panel.AddChild(new Label
         {
             Text = DevAncientNaval.Presentation.UI.Language.Translate(forText),

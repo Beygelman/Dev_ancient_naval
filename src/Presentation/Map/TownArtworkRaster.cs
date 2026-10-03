@@ -9,6 +9,9 @@ namespace DevAncientNaval.Presentation.Map;
 
 public partial class BoardView
 {
+    private readonly ShaderMaterial _townTargetInk = TargetHighlightArt.Material(false);
+    private readonly ShaderMaterial _townLethalInk = TargetHighlightArt.Material(true);
+    private readonly ShaderMaterial _townCaptureInk = TargetHighlightArt.Material(false, false, new Color(.95f,.8f,.4f,.85f));
     private IsometricProjection? _townRasterProjection;
     private Node? _townRasterRoot;
     private readonly Dictionary<(int Id, bool Front), TownRasterEntry> _townRasters = new();
@@ -104,7 +107,15 @@ public partial class BoardView
             TownRasterBuildCount++;
             _townRasterBuilds[town.Id] = _townRasterBuilds.GetValueOrDefault(town.Id) + 1;
         }
-        canvas.Material = _sceneryMaterial;
+        bool attackable = visible && SelectedShipId is { } attackerId && Targets.Contains(town.Position) && Battle.CanAttackVillage(attackerId, town.Id);
+        bool lethal = false;
+        if (attackable && Battle.Find(SelectedShipId!.Value) is { } attacker)
+        {
+            double damage = (Battle.UsesMortar(attacker,town.Position) ? attacker.CurrentMortarDamage + Battle.Rules.Mortar.VillageDamageBonus : attacker.CurrentDamage) + attacker.ShotDamageBonus;
+            lethal = damage * (town.IsFortified ? .75 : 1) * (Battle.CanDoubleSalvo(attacker.Id,town.Position) ? 2 : 1) >= town.Health;
+        }
+        bool capture = visible && Battle.CanCaptureVillage(Side.Player, town.Id);
+        canvas.Material = attackable ? (lethal ? _townLethalInk : _townTargetInk) : capture ? _townCaptureInk : _sceneryMaterial;
         canvas.DrawTextureRect(entry!.Viewport.GetTexture(), entry.Bounds, false);
     }
 }

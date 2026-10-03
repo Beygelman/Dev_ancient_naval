@@ -24,7 +24,8 @@ public enum ActionSymbol
     Tower,
     Lighthouse,
     SingleShot,
-    DoubleShot
+    DoubleShot,
+    Scuttle
 }
 
 /// <summary>Small vector icons drawn at screen resolution; no external art required.</summary>
@@ -49,6 +50,16 @@ public partial class ActionGlyph : Control
 
         switch (Symbol)
         {
+            case ActionSymbol.Scuttle:
+                DrawPolyline(new[] { P(-13, 2), P(-7, 11), P(7, 11), P(13, 2) }, ink, 2, true);
+                Line(-10, 3, 10, 3);
+                Line(0, -13, 0, 0);
+                Line(-5, -5, 0, 0);
+                Line(5, -5, 0, 0);
+                Line(-12, 15, -5, 13);
+                Line(-5, 13, 3, 16);
+                Line(3, 16, 11, 13);
+                break;
             case ActionSymbol.Information:
                 Line(-9, -12, 9, -12);
                 Line(-9, 12, 9, 12);

@@ -4,7 +4,7 @@ using DevAncientNaval.Core.Units;
 using DevAncientNaval.Core.World;
 
 namespace DevAncientNaval.Core.AI;
-/// <summary>Bounded one-turn tactical forecast. Every enemy and objective comes
+/// <summary>Bounded current-volley and next-turn fleet forecast. Every enemy and objective comes
 /// from this captain's observation; anonymous radar marks never supply stats.</summary>
 internal static class AdmiralOpponent
 {
@@ -34,6 +34,8 @@ internal static class AdmiralOpponent
         // from the resulting observations and health at the next step.
         if (AdmiralTactics.Step(battle, allies, enemies, Danger) is { } coordinated)
             return coordinated;
+        if (AdmiralAssembly.Step(battle, allies, enemies, Danger) is { } formation)
+            return formation;
 
         foreach (var town in towns.Where(v => v.Owner != side && v.Health > 0).OrderBy(v => v.Health))
         {
@@ -92,6 +94,8 @@ internal static class AdmiralOpponent
                 return battle.BuyRadar(side, ship.Id);
         if (mother.HasRadar && fleet.Length >= 2 && battle.Credits(side) >= battle.Rules.Mortar.PurchasePrice + 5 && battle.MortarBlockReason(side, mother.Id)is null)
             return battle.BuyMortar(side, mother.Id);
+        if (AdmiralExploration.Step(battle, allies, enemies, Danger) is { } search)
+            return search;
         var contacts = battle.Vision.Contacts(side);
         // Cheap scouts take the uncertainty; the flagship never chases a radar mark.
         int? scout = fleet.Where(s => !s.HasMortar).OrderBy(s => s.Definition.Price).ThenBy(s => s.Id).FirstOrDefault()?.Id;

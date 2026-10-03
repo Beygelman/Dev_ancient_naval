@@ -63,6 +63,7 @@ public partial class Main
         BoardView.RefreshOverlays();
         Fleet.QueueRedraw();
         RefreshOutcome();
+        PresentPendingRewards();
     }
 
     private void PositionActions()

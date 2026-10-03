@@ -10,7 +10,7 @@ internal static partial class BattleScenarios
 {
     private static void PortsAndDifficulty()
     {
-        var document = JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")))!;
+        var document = JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json")))!;
         document["startingCredits"] = 100;
         var rules = BattleRules.FromJson(document.ToJsonString());
         Check(rules.Get(ShipClass.Mothership).MaxHealth == 15 && rules.Get(ShipClass.Fishing).Price == 4 && rules.Get(ShipClass.FishingDock).Price == 8, "Requested lower HP/fishing prices");
@@ -138,7 +138,7 @@ internal static partial class BattleScenarios
 
         foreach (var difficulty in Enum.GetValues<AiDifficulty>())
         {
-            var normal = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+            var normal = BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json")));
             var sample = SkirmishSetup.Create(ArchipelagoGenerator.Create(101, 1), normal, 1);
             sample.SetDifficulty(difficulty);
             int orders = 0;

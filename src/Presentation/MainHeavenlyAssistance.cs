@@ -13,6 +13,7 @@ public partial class Main
         else
             Hud.ShowOpponentTurn(Battle.ActiveSide);
         foreach (var receipt in result.HeavenlyReceipts)
-            await Hud.ShowHeavenlyAssistance(receipt, Battle);
+            if (receipt.Owner != Core.Units.Side.Player || !Battle.Rules.DeferredRewards)
+                await Hud.ShowHeavenlyAssistance(receipt, Battle);
     }
 }

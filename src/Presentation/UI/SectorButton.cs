@@ -9,7 +9,8 @@ public partial class SectorButton : Button
     public float CenterAngle { get; private set; }
     public float Sweep { get; private set; } = SectorStep;
 
-    public const float Inner = 51, Outer = 103, SectorStep = Mathf.Pi / 4;
+    public const float Inner = 67, Outer = 103, SectorStep = Mathf.Pi / 4;
+    public const float IconRadius = (Inner + Outer) * .5f;
     public static readonly Vector2 Center = new(124, 124);
     public static readonly Vector2 PaperFootprint = new(Outer * 2, Outer);
     private float _offset;
@@ -19,8 +20,8 @@ public partial class SectorButton : Button
     private Label? _badge;
     private IReadOnlyList<Vector2>? _worldTargetPoints;
     private float _worldTargetRadiusSquared;
-    private Vector2 _iconCenter = Center + new Vector2(77, 0);
-    private static readonly float[] IconRadii = { 77, 61, 94 };
+    private Vector2 _iconCenter = Center + new Vector2(IconRadius, 0);
+    private static readonly float[] IconRadii = { IconRadius, Inner + 7, Outer - 7 };
     public int? Cost { get; set; }
     public void AttachInk(ActionGlyph glyph, Label badge)
     {
@@ -72,7 +73,7 @@ public partial class SectorButton : Button
 
     private Vector2 FindInkCenter()
     {
-        var ordinary = Center + Vector2.FromAngle(CenterAngle) * 77;
+        var ordinary = Center + Vector2.FromAngle(CenterAngle) * IconRadius;
         if (!OverlapsWorldTarget(ordinary))
             return ordinary;
         var best = ordinary;

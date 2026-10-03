@@ -26,6 +26,9 @@ public partial class FleetView
         internal float Barrel = float.NaN;
         internal float LastDraw = -1;
         internal bool Selected;
+        internal Sprite2D? Glow;
+        internal SceneryAtlasPage? Mask;
+        internal string MaskKey = "";
         internal bool HealthAnimating;
     }
 
@@ -66,6 +69,7 @@ public partial class FleetView
                 _retiredHulls.Add(pair.Key);
         foreach (int id in _retiredHulls)
         {
+            ReleaseTargetMask(_hulls[id].Mask);
             _hulls[id].Canvas.QueueFree();
             _hulls[id].Badge.QueueFree();
             _hulls.Remove(id);
@@ -122,6 +126,7 @@ public partial class FleetView
         hull.Heading = heading;
         hull.Barrel = barrel;
         hull.Selected = selected;
+        UpdateAttackHighlight(hull, AttackHighlight(ship, out bool lethal), lethal);
         var (bob, roll) = HullMotion(ship);
         hull.Canvas.Position = point + bob;
         hull.Canvas.Rotation = roll;
