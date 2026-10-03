@@ -30,7 +30,7 @@ internal static class TownLayout
         return sites
             .OrderBy(p => p.Y).ThenBy(p => p.X)
             .Select((p, i) => new TownHouse(p + new Vector2((float)(random.NextDouble() - .5) * .7f,
-                (float)(random.NextDouble() - .5) * .45f), 8 + random.Next(5), 3 + (float)random.NextDouble(), i % 5))
+                (float)(random.NextDouble() - .5) * .45f), 12 + random.Next(4), 3 + (float)random.NextDouble(), i % 5))
             .OrderBy(h => h.Position.Y).ThenBy(h => h.Position.X)
             .ToArray();
     }

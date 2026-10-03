@@ -228,7 +228,8 @@ internal static class Rules0203Checks
         Check(pirate.Level==3 && pirate.TurnsOwned==0 && pirate.IsFortified,"unclaimed pirate bay keeps generated level and wall");
         pirate.Owner=Side.Player;
         bay.EndTurn(Side.Player); bay.EndTurn(Side.Enemy); bay.EndTurn(Side.Player);
-        Check(pirate.Level==4 && pirate.TurnsOwned==2,"captured town resumes ordinary level progression");
+        Check(pirate.Level==(rules.PaidVillageUpgrades?3:4) && pirate.TurnsOwned==2,
+            "captured town progresses only through the active rules' paid or historic policy");
 
         var oldRules=JsonNode.Parse(JsonSerializer.Serialize(rules))!.AsObject();
         foreach(string field in new[] {"DynamicFleetCapacity","DeferredRewards","FishingRadarVisible","FishingLighthouses",

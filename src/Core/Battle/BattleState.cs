@@ -90,7 +90,7 @@ public sealed partial class BattleState
             return "It is the other side's turn.";
         if (ship is null || ship.Owner != requester)
             return "Select one of your ships.";
-        if (ship.IsExhausted)
+        if (ship.IsExhausted || ship.HasRepaired)
             return "This ship has no actions remaining this turn.";
         if (PendingUpgrade(requester)is not null)
             return "Choose the Mothership upgrade first.";

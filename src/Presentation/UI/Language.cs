@@ -77,9 +77,10 @@ internal partial class LanguageButtons : HBoxContainer
         foreach (var (locale, caption) in new[] { ("en", "English"), ("uk", "Українська"), ("nl", "Nederlands") })
         {
             var button = new Button { Name = "Language_" + locale, Text = caption,
-                AutoTranslateMode = AutoTranslateModeEnum.Disabled, CustomMinimumSize = new(100, 38) };
+                AutoTranslateMode = AutoTranslateModeEnum.Disabled, CustomMinimumSize = new(80, 38),
+                AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill };
             button.SetMeta("locale", locale);
-            PapyrusStyle.Button(button, 15);
+            PapyrusStyle.Button(button, 14);
             button.Pressed += () => Language.Set(locale);
             AddChild(button);
         }

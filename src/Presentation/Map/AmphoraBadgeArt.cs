@@ -17,6 +17,11 @@ internal static class AmphoraBadgeArt
         new(-6, -7), new(-2, -4), new(1, -8), new(5, -5), new(8, -3), new(10, 3),
         new(7, 9), new(3, 12), new(-3, 12), new(-7, 9), new(-10, 3), new(-8, -2)
     };
+    private static readonly Vector2[] VeteranComplete =
+    {
+        new(-4, -18), new(4, -18), new(4, -7), new(9, -3), new(10, 3),
+        new(7, 9), new(3, 12), new(-3, 12), new(-7, 9), new(-10, 3), new(-9, -3), new(-4, -7)
+    };
     private static readonly Vector2[] Shard =
     {
         new(-7, -5), new(-3, -7), new(0, -4), new(4, -6), new(8, -2),
@@ -30,29 +35,29 @@ internal static class AmphoraBadgeArt
         return ratio > .75 ? 0 : ratio > .5 ? 1 : ratio > .25 ? 2 : 3;
     }
 
-    internal static void Draw(CanvasItem canvas, Vector2 center, double health, double maximum, Color owner, ShipClass? kind, AmphoraMotion motion)
+    internal static void Draw(CanvasItem canvas, Vector2 center, double health, double maximum, Color owner, ShipClass? kind, AmphoraMotion motion, bool veteran = false)
     {
         center += motion.Shake;
         var rear = center + new Vector2(-11, -17);
-        Jug(canvas, rear, new Color("bca77f"), motion);
+        Jug(canvas, rear, new Color("bca77f"), motion, veteran);
         Glyph(canvas, rear + new Vector2(0, 1), kind, new Color("5f4d35"));
-        Jug(canvas, center, owner.Darkened(.30f), motion);
+        Jug(canvas, center, owner.Darkened(.30f), motion, veteran);
         string text = Math.Max(0, health).ToString("0");
         int size = text.Length > 2 ? 10 : 12;
         float width = ThemeDB.FallbackFont.GetStringSize(text, fontSize: size).X;
         canvas.DrawString(ThemeDB.FallbackFont, DigitAnchor(center) - new Vector2(width * .5f, 0), text, fontSize: size, modulate: Beige);
     }
 
-    private static void Jug(CanvasItem canvas, Vector2 center, Color clay, AmphoraMotion motion)
+    private static void Jug(CanvasItem canvas, Vector2 center, Color clay, AmphoraMotion motion, bool veteran)
     {
         if (motion.Healing && motion.PreviousStage > motion.Stage && motion.Restore < 1)
         {
-            Body(canvas, center, clay, motion.PreviousStage, 1);
-            Body(canvas, center, clay, motion.Stage, motion.Restore);
+            Body(canvas, center, clay, motion.PreviousStage, 1, veteran);
+            Body(canvas, center, clay, motion.Stage, motion.Restore, veteran);
             Fragments(canvas, center, clay.Lightened(.2f), motion.PreviousStage - motion.Stage, (1 - motion.Restore) * 16, 1 - motion.Restore);
         }
         else
-            Body(canvas, center, clay, motion.Stage, 1);
+            Body(canvas, center, clay, motion.Stage, 1, veteran);
         if (!motion.Healing && motion.Progress < 1 && motion.Stage > motion.PreviousStage)
             Fragments(canvas, center, clay.Lightened(.2f), motion.Stage - motion.PreviousStage, motion.Progress * 23, 1 - motion.Progress);
         if (motion.Flash > .015f)
@@ -64,11 +69,13 @@ internal static class AmphoraBadgeArt
         }
     }
 
-    private static void Body(CanvasItem canvas, Vector2 center, Color clay, int stage, float alpha)
+    private static void Body(CanvasItem canvas, Vector2 center, Color clay, int stage, float alpha, bool veteran)
     {
         if (alpha <= .01f)
             return;
         var silhouette = stage <= 1 ? Complete : stage == 2 ? Broken : Shard;
+        if (veteran && stage <= 1)
+            silhouette = VeteranComplete;
         canvas.DrawSetTransform(center);
         canvas.DrawColoredPolygon(silhouette, new Color(clay, alpha));
         for (int edge = 0; edge < silhouette.Length; edge++)
@@ -78,7 +85,14 @@ internal static class AmphoraBadgeArt
         canvas.DrawLine(new Vector2(-5, 9), new Vector2(4, 10), new Color(clay.Darkened(.26f), alpha), 1.2f, true);
         if (stage < 2)
         {
-            canvas.DrawLine(new Vector2(-5, -12), new Vector2(5, -12), new Color(clay.Lightened(.3f), alpha), 2, true);
+            float lip = veteran ? -18 : -12;
+            canvas.DrawLine(new Vector2(-5, lip), new Vector2(5, lip), new Color(clay.Lightened(.3f), alpha), 2, true);
+            if (veteran)
+            {
+                var burgundy = new Color(new Color("783541"), alpha);
+                canvas.DrawLine(new Vector2(-4, -14), new Vector2(4, -14), burgundy, 1.5f, true);
+                canvas.DrawLine(new Vector2(-4, -10), new Vector2(4, -10), burgundy, 1.5f, true);
+            }
             canvas.DrawArc(new Vector2(-8, -4), 4, 1.5f, 4.6f, 10, new Color(clay.Darkened(.16f), alpha), 1.8f, true);
             canvas.DrawArc(new Vector2(8, -4), 4, -1.5f, 1.6f, 10, new Color(clay.Darkened(.16f), alpha), 1.8f, true);
         }
@@ -106,54 +120,7 @@ internal static class AmphoraBadgeArt
         }
     }
 
-    private static void Glyph(CanvasItem canvas, Vector2 center, ShipClass? kind, Color ink)
-    {
-        if (kind is ShipClass.CannonTower or ShipClass.AncientGun || kind is null)
-        {
-            canvas.DrawRect(new Rect2(center + new Vector2(-4, -5), new Vector2(8, 8)), ink, false, 1.1f);
-            canvas.DrawLine(center + new Vector2(-5, 3), center + new Vector2(5, 3), ink, 1.2f);
-            if (kind is ShipClass.CannonTower or ShipClass.AncientGun)
-                canvas.DrawLine(center + new Vector2(-1, -4), center + new Vector2(5, -7), ink, 2);
-            else
-                canvas.DrawLine(center + new Vector2(-5, -5), center + new Vector2(0, -9), ink, 1);
-        }
-        else if (kind == ShipClass.Balloon)
-        {
-            canvas.DrawArc(center + new Vector2(0, -3), 4, 0, Mathf.Tau, 16, ink, 1.2f, true);
-            canvas.DrawLine(center + new Vector2(-2, 1), center + new Vector2(-1, 4), ink, 1);
-            canvas.DrawLine(center + new Vector2(2, 1), center + new Vector2(1, 4), ink, 1);
-        }
-        else if (kind == ShipClass.Mothership)
-        {
-            canvas.DrawLine(center + new Vector2(-5, 4), center + new Vector2(5, 4), ink, 1.2f);
-            canvas.DrawLine(center + new Vector2(-5, 2), center + new Vector2(5, 2), ink, 1.2f);
-            for (int home = 0; home < 3; home++)
-                canvas.DrawRect(new Rect2(center + new Vector2(-4 + home * 3, -3 - home % 2 * 2), new Vector2(2.5f, 5 + home % 2 * 2)), ink, false, .8f);
-        }
-        else if (kind == ShipClass.FishingDock)
-        {
-            canvas.DrawArc(center, 5, .1f, Mathf.Pi * 1.7f, 14, ink, 1.4f, true);
-            canvas.DrawLine(center + new Vector2(0, -3), center + new Vector2(4, -1), ink, 1);
-        }
-        else
-        {
-            canvas.DrawPolyline(new[] { center + new Vector2(-5, 1), center + new Vector2(-3, 4), center + new Vector2(4, 4), center + new Vector2(6, 1) }, ink, 1.2f, true);
-            if (kind == ShipClass.Togus)
-                canvas.DrawLine(center + new Vector2(-1, 1), center + new Vector2(4, -4), ink, 2);
-            else
-            {
-                int count = kind == ShipClass.Kolonel ? 3 : kind == ShipClass.Invader ? 2 : 1;
-                if (kind == ShipClass.Mothership)
-                    count = 2;
-                for (int mast = 0; mast < count; mast++)
-                {
-                    float x = -3 + mast * 3;
-                    canvas.DrawLine(center + new Vector2(x, 1), center + new Vector2(x, -6), ink, .9f);
-                    canvas.DrawLine(center + new Vector2(x, -5), center + new Vector2(x + 2, -2), ink, 1.4f);
-                }
-                if (kind == ShipClass.Fishing)
-                    canvas.DrawCircle(center + new Vector2(4, -3), 1.3f, ink);
-            }
-        }
-    }
+    private static void Glyph(CanvasItem canvas, Vector2 center, ShipClass? kind, Color ink) =>
+        DevAncientNaval.Presentation.UI.NavalGlyphArt.Draw(canvas, center,
+            DevAncientNaval.Presentation.UI.NavalGlyphArt.Symbol(kind), ink);
 }

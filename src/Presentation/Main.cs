@@ -117,6 +117,7 @@ public partial class Main : Node2D
         Hud.TreasuryStoryRequested += id => RunSafely(() => LootTreasury(id));
         Hud.FortifyRequested += () => RunSafely(FortifyVillage);
         Hud.PortRequested += () => RunSafely(() => CanCommand && SelectedVillageId is { } id ? Perform(b => b.BuildPort(Side.Player, id)) : Task.CompletedTask);
+        Hud.VillageUpgradeRequested += () => RunSafely(UpgradeSelectedVillage);
         Hud.GodEyeRequested += () => RunSafely(async () =>
         {
             Battle.SetGodEye(!Battle.GodEye);
@@ -146,6 +147,13 @@ public partial class Main : Node2D
         Refresh();
         Hud.ShowMessage("Select a ship, then a tile or highlighted target. Glowing fish can be collected directly.");
         InitializeSession();
+        UiScale.Changed += Refresh;
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--ui0204-test"))
+            AddChild(new Tests.Runtime.Ui0204Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--trade-glyph0204-test"))
+            AddChild(new Tests.Runtime.TradeGlyph0204Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--world-visual0204-test"))
+            AddChild(new Tests.Runtime.WorldVisual0204Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--world-visual0203-test"))
             AddChild(new DevAncientNaval.Tests.Runtime.WorldVisual0203Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--ui0203-test"))
@@ -250,5 +258,9 @@ public partial class Main : Node2D
         MapCamera.FitBoard();
     }
 
-    public override void _ExitTree() => GetViewport().SizeChanged -= OnViewportResized;
+    public override void _ExitTree()
+    {
+        GetViewport().SizeChanged -= OnViewportResized;
+        UiScale.Changed -= Refresh;
+    }
 }

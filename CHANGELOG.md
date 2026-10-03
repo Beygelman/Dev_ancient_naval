@@ -1,5 +1,15 @@
 # Ancient Naval change history
 
+## v020.4 — 3 October 2026
+
+- Wider scrollable vertical papyrus, maximum 60% screen height, persisted interface scale 80–125%.
+- Paid town levels at 5/8/12/16 Thors; centered town upgrade action; every Mothership level pays 2 Thors.
+- Repair blocks movement, attacks, shipyard and collection/construction actions until the next turn.
+- Bounded, fog-aware three-skin merchant traffic on existing port routes, independent of simulation.
+- More winding rivers avoiding town/peak footprints, bend lighting, natural confluences; larger early homes, round shrine plazas and rear-layer beige port paths.
+- Unified badge/shipyard motifs, fish for Fishing, new mortar/tower signs, elongated veteran necks and burgundy ribbons.
+
+
 ## v020.3 — 2026-10-03 — Rivers and Revelations
 
 - Dynamic flagship/city fleet capacity including fishing ships; own-unit scuttling without a refund.

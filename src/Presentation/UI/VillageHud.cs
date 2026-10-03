@@ -7,6 +7,13 @@ public partial class DebugHud
     private void UpdateVillage(BattleState battle, Village? village, bool canAct)
     {
         bool owned = village?.Owner == Side.Player;
+        _villageUpgrade.SetMeta("applicable", owned);
+        int upgradePrice = village is null ? 0 : battle.VillageUpgradePrice(Side.Player, village.Id);
+        string? upgradeReason = village is null ? "Select a city" : battle.VillageUpgradeBlockReason(Side.Player, village.Id);
+        _villageUpgrade.Cost = village?.Level >= 5 ? null : upgradePrice;
+        Availability(_villageUpgrade, canAct && village is not null && battle.CanUpgradeVillage(Side.Player, village.Id), "");
+        _villageUpgrade.TooltipText = village?.Level >= 5 ? "Town at maximum level"
+            : $"Upgrade town · {upgradePrice} Thors" + (upgradeReason is null ? "" : $" · {upgradeReason}");
         bool canCapture = village is not null && battle.CanCaptureVillage(Side.Player, village.Id);
         _capture.SetMeta("applicable", false);
         Availability(_capture, canAct && canCapture, canCapture ? "Claim" : village?.Health <= 0 ? "Wait" : "0 HP");
@@ -29,7 +36,11 @@ public partial class DebugHud
         _ship.Text = $"{owner} · level {village.Level}";
         _health.AddThemeColorOverride("font_color", village.Owner is null || owned ? PapyrusStyle.Health : PapyrusStyle.EnemyHealth);
         _health.Text = $"Health {village.Health:0.##}/{village.MaxHealth:0.##}";
-        _details.Text = village.Health <= 0 ? "Defenses defeated · Town remains on the map\nKeep a combat ship alongside for one turn, then click the hovering scroll." : owned ? $"Income +{(battle.VillageIncome(village) + (village.HasPort ? battle.Rules.Ports.Income : 0))} · {(village.Level == 5 ? "Maximum level" : $"Grows in {2 - village.TurnsOwned % 2} turn(s)")}\nShipyard level {village.Level}" + (village.IsFortified ? " · Fortified" : "") : canCapture ? "Your crew is ready. Click the hovering scroll to claim this village." : "Reduce this town to 0 HP before capturing it.\nFishing Schooners and Balloons cannot capture towns.";
-        _shipCard.TooltipText = $"Villages grow by one level every two owned turns, up to level 5. Income at this level: {(battle.VillageIncome(village) + (village.HasPort ? battle.Rules.Ports.Income : 0))} Thors.";
+        string progression = village.Level == 5 ? "Maximum level"
+            : battle.Rules.PaidVillageUpgrades ? $"Next level · {upgradePrice} Thors" : $"Grows in {2 - village.TurnsOwned % 2} turn(s)";
+        _details.Text = village.Health <= 0 ? "Defenses defeated · Town remains on the map\nKeep a combat ship alongside for one turn, then click the hovering scroll." : owned ? $"Income +{(battle.VillageIncome(village) + (village.HasPort ? battle.Rules.Ports.Income : 0))} · {progression}\nShipyard level {village.Level}" + (village.IsFortified ? " · Fortified" : "") : canCapture ? "Your crew is ready. Click the hovering scroll to claim this village." : "Reduce this town to 0 HP before capturing it.\nFishing Schooners and Balloons cannot capture towns.";
+        _shipCard.TooltipText = battle.Rules.PaidVillageUpgrades
+            ? "Towns grow through paid upgrades. Each upgrade uses this turn's town construction."
+            : $"Villages grow by one level every two owned turns, up to level 5. Income at this level: {(battle.VillageIncome(village) + (village.HasPort ? battle.Rules.Ports.Income : 0))} Thors.";
     }
 }

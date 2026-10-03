@@ -671,5 +671,21 @@
   "Ship dismantled. No refund.": "Корабель затоплено. Кошти не повертаються.",
   "Cannot claim this reward now.": "Зараз неможливо отримати цю нагороду.",
   "This reward has already been claimed.": "Цю нагороду вже отримано.",
-  "Reward accepted: +{0} Thors.": "Нагороду отримано: +{0} Thors."
+  "Reward accepted: +{0} Thors.": "Нагороду отримано: +{0} Thors.",
+  "Interface scale · {0}%": "Масштаб інтерфейсу · {0}%",
+  "Upgrade town": "Розвинути місто",
+  "Upgrade town · {0} Thors": "Розвиток міста · {0} Thors",
+  "Town at maximum level": "Місто досягло найвищого рівня",
+  "Next level · {0} Thors": "Наступний рівень · {0} Thors",
+  "Towns grow through paid upgrades. Each upgrade uses this turn's town construction.": "Міста розвиваються завдяки платним поліпшенням. Кожне поліпшення витрачає будівництво міста на цей хід.",
+  "Town level grows through paid upgrades; each upgrade uses the town's construction for this turn.": "Рівень міста підвищується завдяки платним поліпшенням; кожне з них витрачає будівництво міста на цей хід.",
+  "Next level": "Наступний рівень",
+  "Automatic growth": "Автоматичний розвиток",
+  "+{0} · Level reward": "+{0} · Нагорода за рівень",
+  "Village upgrades are automatic in this voyage.": "У цій подорожі поселення розвиваються автоматично.",
+  "This village is already at maximum level.": "Це поселення вже досягло найвищого рівня.",
+  "This village has already worked this turn.": "Це поселення вже виконало дію цього ходу.",
+  "Village upgraded to level {0}.": "Поселення розвинено до рівня {0}.",
+  "This town has already repaired this turn.": "Це місто вже відремонтовано цього ходу.",
+  "A repaired ship cannot build again this turn.": "Відремонтований корабель не може будувати цього ходу."
 }

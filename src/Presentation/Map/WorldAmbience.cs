@@ -26,6 +26,8 @@ public partial class WorldAmbience : Node2D
     private GridPosition[] _harborWater = Array.Empty<GridPosition>();
     private (int Id, Vector2 Center)[] _docks = Array.Empty<(int, Vector2)>();
     private readonly RetainedSeaWaves _waves = new() { Name = "RetainedWaves", ShowBehindParent = true };
+    private TradeTraffic? _tradeTraffic;
+    internal TradeTraffic TradeTraffic => _tradeTraffic!;
     private (BattleState Battle, IsometricProjection Projection, long Vision)? _waveContext;
     internal int WaveMeshBuildCount => _waves.BuildCount;
     internal int WaveVertexCount => _waves.VertexCount;
@@ -93,6 +95,12 @@ public partial class WorldAmbience : Node2D
 
         BuildWaves();
         RefreshTreasuryGlow();
+        if (_tradeTraffic is null)
+        {
+            _tradeTraffic = new TradeTraffic { Name="MerchantTraffic", Board=BoardView };
+            AddChild(_tradeTraffic);
+        }
+        _tradeTraffic.Refresh();
         QueueRedraw();
     }
 

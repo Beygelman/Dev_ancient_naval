@@ -83,7 +83,7 @@ public sealed partial class BattleState
     public IReadOnlyCollection<GridPosition> CollectionCells(int id)
     {
         var ship = Find(id);
-        if (ship is null || ship.IsExhausted || ship.Definition.CollectionRange <= 0 || IsOver || ship.Owner != ActiveSide || PendingUpgrade(ship.Owner)is not null || Mothership(ship.Owner)is not { Level: < 5 })
+        if (ship is null || ship.IsExhausted || ship.HasRepaired || ship.Definition.CollectionRange <= 0 || IsOver || ship.Owner != ActiveSide || PendingUpgrade(ship.Owner)is not null || Mothership(ship.Owner)is not { Level: < 5 })
             return Array.Empty<GridPosition>();
         return _fish.Where(p => Vision.IsVisible(ship.Owner, p) && WithinCollectionReach(ship, p)).ToArray();
     }
@@ -117,8 +117,10 @@ public sealed partial class BattleState
     public CommandResult ChooseUpgrade(Side requester, int id, UpgradeChoice choice)
     {
         var mother = Find(id);
-        if (IsOver || requester != ActiveSide || mother?.Owner != requester || !UpgradeOptions(id).Contains(choice))
+        if (PendingPresentation is not null || IsOver || requester != ActiveSide || mother?.Owner != requester || !UpgradeOptions(id).Contains(choice))
             return CommandResult.Rejected("This upgrade is not available now.");
+        if (mother.HasRepaired && choice is UpgradeChoice.FishingBoat or UpgradeChoice.Balloon)
+            return CommandResult.Rejected("A repaired ship cannot build again this turn.");
         switch (choice)
         {
             case UpgradeChoice.Restoration:

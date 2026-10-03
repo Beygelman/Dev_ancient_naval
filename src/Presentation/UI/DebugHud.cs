@@ -13,6 +13,9 @@ namespace DevAncientNaval.Presentation.UI;
 public partial class DebugHud : CanvasLayer
 {
     private Control _root = null !, _upgradeOverlay = null !;
+    private ScrollContainer _upgradeScroll = null!;
+    private VBoxContainer _upgradeBody = null!;
+    private Label _upgradeReward = null!;
     private RadialPapyrus _radial = null !, _resourceRoot = null !;
     private PanelContainer _metricsPaper = null !;
     private PanelContainer _nationPaper = null!;
@@ -20,6 +23,9 @@ public partial class DebugHud : CanvasLayer
     private SectorButton _resourceInformation = null !;
     private readonly List<SectorButton> _actionSectors = new(12);
     private readonly List<SectorButton> _visibleSectors = new(12);
+    private readonly List<SectorButton> _radialSlots = new(13);
+    private SectorButton _villageUpgrade = null!, _upgradeGap = null!;
+    public event Action? VillageUpgradeRequested;
     private readonly List<Vector2> _worldTargetHitPoints = new(16);
     private int _lastSectorCount;
     private bool _unfoldActions;
@@ -213,14 +219,24 @@ public partial class DebugHud : CanvasLayer
         _upgradeOverlay.AddChild(shade);
         shade.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         _upgradePanel = Panel(_upgradeOverlay);
-        _upgradePanel.CustomMinimumSize = new(PapyrusGrain.UprightWidth, 0);
+        _upgradePanel.Name = "UpgradePapyrus";
+        _upgradePanel.CustomMinimumSize = new(PapyrusModal.Width, 0);
         var column = new VBoxContainer();
+        _upgradeBody = column;
         column.AddThemeConstantOverride("separation", 18);
-        _upgradePanel.AddChild(column);
+        _upgradeScroll = PapyrusModal.Wrap(_upgradePanel, column, "UpgradeScroll");
         _upgradeTitle = Label("", 20, true);
         _upgradeTitle.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _upgradeTitle.CustomMinimumSize = new(PapyrusGrain.FamilyWidth - 32, 0);
+        _upgradeTitle.CustomMinimumSize = Vector2.Zero;
         column.AddChild(_upgradeTitle);
+        var levelReward = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        levelReward.AddChild(new CoinIcon { CustomMinimumSize = new(20, 20) });
+        _upgradeReward = Label("", 14, true);
+        _upgradeReward.Name = "UpgradeLevelReward";
+        _upgradeReward.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _upgradeReward.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        levelReward.AddChild(_upgradeReward);
+        column.AddChild(levelReward);
         var upgradePrompt = Label("Choose one upgrade", 17, true);
         upgradePrompt.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         column.AddChild(upgradePrompt);
@@ -239,29 +255,29 @@ public partial class DebugHud : CanvasLayer
         )
         {
             var button = new MysticUpgradeButton { Text = MysticUpgradeButton.Title(choice),
-                AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new(PapyrusGrain.FamilyWidth - 32, 48) };
+                AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new(0, 48), SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
             PapyrusStyle.Button(button, 16);
             button.Pressed += () => UpgradeRequested?.Invoke(choice);
             button.TooltipText = UpgradeDescriptions.Description(choice);
             button.Name = "Upgrade" + choice;
             var group = new VBoxContainer();
             group.AddThemeConstantOverride("separation", 3);
-            var price = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
-            price.AddChild(new CoinIcon { CustomMinimumSize = new(17, 17) });
-            price.AddChild(Label("0 · Level reward", 12, true));
-            group.AddChild(price);
             group.AddChild(button);
             column.AddChild(group);
             _choices[choice] = button;
         }
 
         BuildGameMenu();
+        _villageUpgrade = IconButton("ActionVillageUpgrade", ActionSymbol.Upgrade, "Upgrade town", () => VillageUpgradeRequested?.Invoke());
+        _upgradeGap = new SectorButton { Name = "TownArcGap", Visible = false, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _radial.AddChild(_upgradeGap);
         BuildActionStories();
         BuildSalvoChoice();
         BuildHeavenlyAssistance();
         _upgradeOverlay.Hide();
         _radial.Hide();
         _shipCard.Hide();
+        UiScale.Bind(this, _root, () => { _layoutSizes = null; Layout(); });
         Layout();
     }
 
@@ -303,7 +319,8 @@ public partial class DebugHud : CanvasLayer
         _upgradeOverlay.Visible = pending is not null && !busy && !finished;
         if (pending is not null)
         {
-            _upgradeTitle.Text = $"Mothership · level {pending.Level} · +{battle.Rules.LevelCurrencyRewards[pending.Level - 2]} Thors";
+            _upgradeTitle.Text = $"Mothership · level {pending.Level}";
+            _upgradeReward.Text = $"+{battle.Rules.LevelCurrencyRewards[pending.Level - 2]} · Level reward";
             foreach (var(choice, button)in _choices)
             {
                 button.Text = MysticUpgradeButton.Title(choice);
@@ -421,7 +438,7 @@ public partial class DebugHud : CanvasLayer
         }
 
         _resourceRoot.Show();
-        _resourceRoot.Position = ClampWorldUi(point - SectorButton.Center + new Vector2(0, 20), _resourceRoot.Size);
+        _resourceRoot.Position = ClampWorldUi(UiScale.ScreenToUi(point) - SectorButton.Center + new Vector2(0, 20), _resourceRoot.Size);
     }
 
     private void ApplyMenuVisibility()
@@ -438,7 +455,8 @@ public partial class DebugHud : CanvasLayer
             _capture,
             _fortify,
             _port,
-            _loot
+            _loot,
+            _villageUpgrade
         }
 
         )
@@ -450,12 +468,21 @@ public partial class DebugHud : CanvasLayer
         foreach (var button in _actionSectors)
             if (button.Visible)
                 _visibleSectors.Add(button);
-        for (int i = 0; i < _visibleSectors.Count; i++)
+        _radialSlots.Clear();
+        _radialSlots.AddRange(_visibleSectors);
+        if (_villageUpgrade.Visible && _radialSlots.Remove(_villageUpgrade))
         {
-            _visibleSectors[i].SetSector(i, _visibleSectors.Count);
+            // An even number of actual actions gets one empty end slot. The town
+            // upgrade always occupies the middle wedge directly below its town.
+            if (_visibleSectors.Count % 2 == 0) _radialSlots.Add(_upgradeGap);
+            _radialSlots.Insert(_radialSlots.Count / 2, _villageUpgrade);
+        }
+        for (int i = 0; i < _radialSlots.Count; i++)
+        {
+            _radialSlots[i].SetSector(i, _radialSlots.Count);
         }
 
-        _radial.Configure(_visibleSectors, _unfoldActions || _lastSectorCount != _visibleSectors.Count);
+        _radial.Configure(_radialSlots, _unfoldActions || _lastSectorCount != _visibleSectors.Count);
         _lastSectorCount = _visibleSectors.Count;
         _unfoldActions = false;
         _radial.Visible = _visibleSectors.Count > 0;
@@ -472,10 +499,12 @@ public partial class DebugHud : CanvasLayer
         _radial.Visible = _visibleSectors.Count > 0;
         // Keep the ring's center attached to the selected object. Larger objects reserve
         // enough space inside the parchment for their hull and progress cells.
+        point = UiScale.ScreenToUi(point);
+        progressOffset /= UiScale.Value;
         float scale = Mathf.Clamp((progressOffset + 10) / SectorButton.Inner, 1, 1.9f);
         _radial.Scale = Vector2.One * scale;
         var origin = point;
-        var viewport = GetViewport().GetVisibleRect().Size;
+        var viewport = UiScale.LogicalViewport(this);
         float margin = SectorButton.Outer * scale + 9;
         origin.X = Mathf.Clamp(origin.X, margin, Math.Max(margin, viewport.X - margin));
         origin.Y = Mathf.Clamp(origin.Y, margin, Math.Max(margin, viewport.Y - margin));
@@ -485,10 +514,10 @@ public partial class DebugHud : CanvasLayer
     internal void SetActionTargetHitExclusions(IReadOnlyList<Vector2> screenPoints)
     {
         _worldTargetHitPoints.Clear();
-        var toLocal = _radial.GetGlobalTransform().AffineInverse();
+        var toLocal = _radial.GetGlobalTransformWithCanvas().AffineInverse();
         foreach (var point in screenPoints)
             _worldTargetHitPoints.Add(toLocal * point);
-        float localRadius = 15 / Math.Max(.1f, _radial.Scale.X);
+        float localRadius = 15 / Math.Max(.1f, _radial.Scale.X * UiScale.Value);
         foreach (var command in _actionSectors)
             command.SetWorldTargetHitExclusions(_worldTargetHitPoints, localRadius);
     }
@@ -598,14 +627,18 @@ public partial class DebugHud : CanvasLayer
         }
 
         Layout();
-        _nationPaper.Position = new((_root.GetViewportRect().Size.X - _nationPaper.Size.X) / 2, _metricsPaper.Position.Y + _metricsPaper.Size.Y + 3);
+        _nationPaper.Position = new((UiScale.LogicalViewport(this).X - _nationPaper.Size.X) / 2, _metricsPaper.Position.Y + _metricsPaper.Size.Y + 3);
     }
 
     private void Layout()
     {
         if (_root is null)
             return;
-        var size = GetViewport().GetVisibleRect().Size;
+        var size = UiScale.LogicalViewport(this);
+        if (_upgradePanel is not null && _upgradeScroll is not null)
+            PapyrusModal.Layout(_upgradePanel, _upgradeScroll, _upgradeBody, size);
+        if (_menuPanel is not null && _menuScroll is not null)
+            PapyrusModal.Layout(_menuPanel, _menuScroll, _menuBody, size);
         var sizes = (size, _metricsPaper.Size, _restart.Size, _end.Size, _banner.Size, _shipCard.Size, _notice.Size, _upgradePanel?.Size ?? Vector2.Zero, _menuPanel?.Size ?? Vector2.Zero);
         if (_layoutSizes == sizes)
             return;

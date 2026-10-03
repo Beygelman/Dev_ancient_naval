@@ -63,6 +63,8 @@ internal static class AdmiralOpponent
         }
 
         var owned = towns.Where(v => v.Owner == side && v.Health > 0).ToArray();
+        if (VillageDevelopment.Step(battle, enemies) is { } development)
+            return development;
         foreach (var town in owned)
         {
             if (battle.PortBlockReason(side, town.Id)is null && (owned.Length >= 2 || battle.Credits(side) >= 12))

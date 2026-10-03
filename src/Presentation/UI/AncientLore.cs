@@ -184,7 +184,11 @@ internal static class AncientLore
             {
                 new("Income", $"+{(village.Owner is null || village.Health <= 0 ? 0 : battle.VillageIncome(village) + (village.HasPort ? battle.Rules.Ports.Income : 0))} Thors per turn"),
                 new("Shipyard", CurrentShipyard(battle, village.Level, true)),
-                new("Progress cells", "A living owned town fills one cell each turn and grows after two turns, up to level 5."),
+                new("Progress cells", battle.Rules.PaidVillageUpgrades
+                    ? "Town level grows through paid upgrades; each upgrade uses the town's construction for this turn."
+                    : "A living owned town fills one cell each turn and grows after two turns, up to level 5."),
+                new("Next level", village.Level >= 5 ? "Maximum level" : battle.Rules.PaidVillageUpgrades
+                    ? $"{battle.VillageUpgradePrice(village.Owner ?? Side.Player, village.Id)} Thors" : "Automatic growth"),
                 new("Repair", $"+{battle.Rules.RepairAmount} HP; replaces production and fire"),
                 new("Passive repair", $"+{battle.Rules.RepairAmount} HP after a turn without an active attack")
             }),

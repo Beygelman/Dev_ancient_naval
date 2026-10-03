@@ -18,6 +18,7 @@ public sealed partial class BattleState
         ship.Health = Ship.Whole(ship.Health + amount);
         ship.IsExhausted = true;
         ship.HasRepaired = true;
+        ship.MovementLocked = true;
         return new(true, $"{ship.Definition.Name}: repaired +{amount:0.##} HP", CommandKind.Repair, id, Amount: amount);
     }
 

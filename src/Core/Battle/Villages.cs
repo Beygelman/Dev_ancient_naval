@@ -102,8 +102,8 @@ public sealed partial class BattleState
             if (village.Owner == side && village.Health > 0)
             {
                 if (Rules.FrozenUnownedVillages && side == Side.Pirates) continue;
-            village.TurnsOwned++;
-                if (village.TurnsOwned % 2 == 0 && village.Level < 5)
+                village.TurnsOwned++;
+                if (!Rules.PaidVillageUpgrades && village.TurnsOwned % 2 == 0 && village.Level < 5)
                 {
                     village.Level++;
                     village.Health += 5;
@@ -139,6 +139,8 @@ public sealed partial class BattleState
     private string? ValidateVillage(Side side, int villageId, out Village? village)
     {
         village = _villages.FirstOrDefault(v => v.Id == villageId);
+        if (PendingPresentation is not null)
+            return "A projectile is still in flight.";
         if (IsOver)
             return "The battle is over.";
         if (side != ActiveSide)
@@ -147,6 +149,8 @@ public sealed partial class BattleState
             return "Select one of your villages.";
         if (village.Health <= 0)
             return "This town is defeated and its shipyard is inactive.";
+        if (village.HasRepaired)
+            return "This town has already repaired this turn.";
         return PendingUpgrade(side)is null ? null : "Choose the Mothership upgrade first.";
     }
 

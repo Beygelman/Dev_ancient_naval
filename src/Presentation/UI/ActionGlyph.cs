@@ -25,7 +25,10 @@ public enum ActionSymbol
     Lighthouse,
     SingleShot,
     DoubleShot,
-    Scuttle
+    Scuttle,
+    City,
+    Balloon,
+    Upgrade
 }
 
 /// <summary>Small vector icons drawn at screen resolution; no external art required.</summary>
@@ -37,6 +40,11 @@ public partial class ActionGlyph : Control
     {
         var ink = PapyrusStyle.Ink;
         var center = Size / 2;
+        if (NavalGlyphArt.IsNaval(Symbol))
+        {
+            NavalGlyphArt.Draw(this, center, Symbol, ink, 2.25f);
+            return;
+        }
         Vector2 P(float x, float y) => center + new Vector2(x, y);
         void Line(float x1, float y1, float x2, float y2)
         {
@@ -50,6 +58,13 @@ public partial class ActionGlyph : Control
 
         switch (Symbol)
         {
+            case ActionSymbol.Upgrade:
+                Line(-10, 9, 10, 9);
+                Line(-6, 4, 6, 4);
+                Line(0, 3, 0, -12);
+                Line(-6, -6, 0, -12);
+                Line(0, -12, 6, -6);
+                break;
             case ActionSymbol.Scuttle:
                 DrawPolyline(new[] { P(-13, 2), P(-7, 11), P(7, 11), P(13, 2) }, ink, 2, true);
                 Line(-10, 3, 10, 3);

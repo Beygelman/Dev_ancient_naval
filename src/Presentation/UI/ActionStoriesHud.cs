@@ -95,12 +95,12 @@ public partial class DebugHud
             var scroll = _stories[key];
             var point = screen(cell);
             scroll.SetOnScreen(GetViewport().GetVisibleRect().Grow(30).HasPoint(point));
-            scroll.Position = ClampWorldUi(point - new Vector2(scroll.Size.X / 2, 195), scroll.Size);
+            scroll.Position = ClampWorldUi(UiScale.ScreenToUi(point) - new Vector2(scroll.Size.X / 2, 195 / UiScale.Value), scroll.Size);
         }
     }
     private Vector2 ClampWorldUi(Vector2 position, Vector2 size)
     {
-        var viewport = GetViewport().GetVisibleRect().Size;
+        var viewport = UiScale.LogicalViewport(this);
         return new(Mathf.Clamp(position.X, 8, Math.Max(8, viewport.X - size.X - 8)),
             Mathf.Clamp(position.Y, 90, Math.Max(90, viewport.Y - size.Y - 70)));
     }

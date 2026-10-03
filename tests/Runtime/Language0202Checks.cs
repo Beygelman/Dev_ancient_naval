@@ -262,7 +262,18 @@ public partial class Language0202Checks : Node
             }
             var mobility = Find(Game.Hud, "UpgradeMobility");
             Check(mobility.IsVisibleInTree(), "Level-two mystical mobility choice is reachable");
-            var point = mobility.GetGlobalRect().GetCenter();
+            var scroll = Descendants(Game.Hud).OfType<ScrollContainer>().Single(node => node.Name == "UpgradeScroll");
+            // Translated headings reflow the bounded modal. Reveal the actual choice
+            // inside its clipping viewport before hovering, then use the native canvas
+            // transform so this continues to exercise real input at any UI scale.
+            scroll.EnsureControlVisible(mobility);
+            for (int frame = 0; frame < 5; frame++) await Frame();
+            scroll.EnsureControlVisible(mobility);
+            await Settled();
+            var point = mobility.GetGlobalTransformWithCanvas() * (mobility.Size * .5f);
+            var clip = new Rect2(scroll.GetGlobalTransformWithCanvas() * Vector2.Zero,
+                scroll.Size * Game.Hud.Scale);
+            Check(clip.HasPoint(point), $"Translated mobility hover is inside the actual scroll viewport in {locale}: pointer={point}, clip={clip}");
             GetViewport().PushInput(new InputEventMouseMotion { Position = point, GlobalPosition = point }, true);
             await ToSignal(GetTree().CreateTimer(.7), SceneTreeTimer.SignalName.Timeout);
             if (DisplayServer.GetName() != "headless")

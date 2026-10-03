@@ -84,7 +84,7 @@ public sealed partial class BattleState
     public IReadOnlyCollection<GridPosition> DockCells(int id)
     {
         var ship = Find(id);
-        if (ship is null || ship.IsExhausted || IsOver || ship.Owner != ActiveSide || ship.Definition.CollectionRange == 0 || Mothership(ship.Owner) is not { Level: >= 2 } || PendingUpgrade(ship.Owner) is not null)
+        if (ship is null || ship.IsExhausted || ship.HasRepaired || IsOver || ship.Owner != ActiveSide || ship.Definition.CollectionRange == 0 || Mothership(ship.Owner) is not { Level: >= 2 } || PendingUpgrade(ship.Owner) is not null)
             return Array.Empty<GridPosition>();
         return _shoals.Where(p => Vision.IsVisible(ship.Owner, p) && IsFreeWater(p) && WithinCollectionReach(ship, p)).ToArray();
     }
