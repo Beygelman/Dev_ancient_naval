@@ -70,7 +70,15 @@ public partial class Language0202Checks : Node
         Check(button.AutoTranslateMode != Control.AutoTranslateModeEnum.Disabled, "Native translation is enabled: " + name);
         string expected = Language.Translate(button.Text);
         Check(Rendered(button) == expected, "Godot renders the selected language: " + name);
-        Check(Language.Current == "en" || expected != button.Text, "Visible action is translated: " + button.Text);
+        if (name == "StartBattle")
+        {
+            string localized = Language.Translate("Embark with the {0} nation")
+                .Replace("{0}", Language.Translate(Game.Home.SelectedColor.ToString()));
+            Check(button.Text == localized && (Language.Current == "en" || localized !=
+                "Embark with the " + Game.Home.SelectedColor + " nation"),
+                "the dynamic voyage inscription names the selected nation in the active language");
+        }
+        else Check(Language.Current == "en" || expected != button.Text, "Visible action is translated: " + button.Text);
     }
 
     private void InsideViewport(Control control, string name)
@@ -104,9 +112,13 @@ public partial class Language0202Checks : Node
             await Settled();
             foreach (string locale in new[] { "en", "uk", "nl" })
             {
+                Find(Game.Home, "HomeSettings").EmitSignal(BaseButton.SignalName.Pressed);
+                await Settled();
                 await Switch(Game.Home, locale);
                 foreach (string name in new[] { "HomeNewGame", "HomeExit" }) CheckButton(Game.Home, name);
                 Check(System.IO.File.ReadAllText(savePath + ".language") == locale, "Only the disposable preference is persisted");
+                Find(Game.Home, "CloseHomeSettings").EmitSignal(BaseButton.SignalName.Pressed);
+                await Settled();
                 Find(Game.Home, "HomeNewGame").EmitSignal(BaseButton.SignalName.Pressed);
                 await Settled();
                 var paper = Descendants(Game.Home).OfType<PanelContainer>().Single(n => n.Name == "VoyageSetupPaper");
@@ -115,8 +127,13 @@ public partial class Language0202Checks : Node
                     "Voyage setup remains on the right");
                 CheckButton(Game.Home, "StartBattle");
                 CheckButton(Game.Home, "CancelColor");
+                var setupScroll = Descendants(paper).OfType<ScrollContainer>().Single();
                 foreach (Button swatch in Descendants(paper).OfType<Button>().Where(b => b.Name.ToString().StartsWith("FleetColor")))
+                {
+                    setupScroll.EnsureControlVisible(swatch);
+                    await Settled();
                     InsideViewport(swatch, "Color choice " + swatch.Name);
+                }
                 await Capture("setup-" + locale);
                 Find(Game.Home, "CancelColor").EmitSignal(BaseButton.SignalName.Pressed);
                 await Settled();
@@ -132,7 +149,11 @@ public partial class Language0202Checks : Node
             Game.Hud.SetMenuVisible(true);
             foreach (string locale in new[] { "en", "uk", "nl" })
             {
+                Find(Game.Hud, "GameSettings").EmitSignal(BaseButton.SignalName.Pressed);
+                await Settled();
                 await Switch(Game.Hud, locale);
+                Find(Game.Hud, "CloseGameSettings").EmitSignal(BaseButton.SignalName.Pressed);
+                await Settled();
                 Check(Game.Hud.MenuVisible, "Changing language keeps the game menu open");
                 foreach (string name in new[] { "NewGame", "Creative", "GodEye", "CloseMenu", "MainMenu", "ExitGame" })
                     CheckButton(Game.Hud, name);

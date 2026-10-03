@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 # Organic hexagonal maps — 0.15
 
 The references have coherent curved rows flowing through occasional three-way
@@ -69,29 +68,3 @@ Godot checks additionally triangulate coast/beach geometry, check quadrilateral
 majority, groves, peaks and raster limits. Hover must leave terrain unchanged,
 while discovering a cell builds only its geometry. Changing an already known
 cell's visibility must reuse its retained geometry and change only its tint.
-=======
-# Organic hexagonal maps — 0.14
-
-The references show coherent rows that curve and split around occasional three-way/five-way junctions. Independent random polygon outlines would look like shattered glass. Our generator instead deforms a connected quadrilateral patch mesh and changes its topology locally.
-
-1. Choose six radial subdivision counts. Neighboring counts determine the six boundary side counts; accept only six distinct counts in 24–30.
-2. Solve a circle radius whose six chord angles sum to one turn. The chord lengths are proportional to the chosen counts, producing a convex hexagon with six unequal straight sides.
-3. Fit six bilinear patches between the center, corners and side division points. Shared patch vertices use common IDs. Smooth nonuniform parameter spacing changes cell sizes without gaps at patch seams.
-4. Reconnect local rows in pairs, creating three/five-way junctions and new directions of flow. Keep boundary vertices fixed.
-5. Apply broad, seeded swirl and displacement fields. Accept each local relaxation only while incident cells remain convex, with safe areas and edge lengths: at least 38° in map space and 32° after isometric projection.
-6. Split/collapse selected interior connections to add triangles and pentagons. Around four fifths of cells remain quadrilaterals. No square-coordinate movement assumption is made.
-7. Index actual edges and shared corners for movement/range calculations. Corner crossings cost one normal step, subject to coastal and enemy-zone penalties.
-8. Render each shared seam once as a sampled curve reused by both cells. Validate curved boundaries against intersections and picking; fall back to a straight edge when needed. Outer map edges stay straight.
-
-The source is `src/Core/World/OrganicMesh.cs`; `IsometricProjection` adds curved seams and spatial picking. Rectangular boards remain only for focused gameplay fixtures. Save files retain exact vertices and faces, so Continue never regenerates a different layout.
-
-## Geography and deployment
-
-Seeded islands use rotated, multi-frequency radial shapes and a spatial perturbation field. Separate land components, a fleet-to-fleet sea corridor and broad start berths preserve navigability. White beaches vary continuously in width. Grass, sparse tree clusters, isolated peaks and winding mountain ridges are a cached visual layer, without changing movement terrain.
-
-Both fleet anchors lie on opposite ends of a common random axis through the hexagon. Territory is assigned by proximity to these anchors. Village counts are balanced across the two territories; three treasuries and one pirate patrol are placed in each. Current play supports two player factions.
-
-## Verification
-
-One hundred seeds check six straight sides, exact boundary tile counts, manifold edges, disk topology without holes, symmetric corner adjacency, reproducible land, safe passage and equal village counts. Actual Godot checks validate curved polygon triangulation and edge picking. Representative seeds 42, 101 and 723 contain 1,116 / 1,058 / 1,072 cells respectively.
->>>>>>> Stashed changes

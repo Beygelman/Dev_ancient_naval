@@ -37,12 +37,12 @@ public partial class BoardView
     }
     private void DrawVillage(Node2D canvas, TownArtState town, Vector2 center)
     {
-        var homes = TownHomes(town.Id);
+        var homes = TownVisibleHomes(TownHomes(town.Id), town.Level);
 
         var accent = town.Accent;
         DrawTownPlaza(canvas, town, center);
         if (town.IsFortified) DrawTownWall(canvas, town, center, false);
-        int count = Math.Min(homes.Length, 3 + town.Level * 2);
+        int count = homes.Length;
         bool shrineDrawn = false;
         void Shrine()
         {
@@ -102,7 +102,19 @@ public partial class BoardView
         if (town.IsFortified) DrawTownWall(canvas, town, center, true);
     }
 
-    internal static float TownHouseHeight(TownHouse home, int level) => home.Height + Math.Max(0, level - 1) * .75f;
+    internal static TownHouse[] TownVisibleHomes(TownHouse[] homes, int level)
+    {
+        // Early homes flank the sanctuary instead of all disappearing behind
+        // its taller centre. Later growth fills the existing street lattice.
+        var founders = new[] { new Vector2(-24, -16), new Vector2(24, -16),
+            new Vector2(-30, -4), new Vector2(30, -4), new Vector2(0, -28) };
+        var priority = founders.Select(target => homes.MinBy(h => h.Position.DistanceSquaredTo(target)))
+            .Distinct().Concat(homes).Distinct().Take(TownHouseCount(level, homes.Length));
+        return priority.OrderBy(h => h.Position.Y).ThenBy(h => h.Position.X).ToArray();
+    }
+
+    internal static int TownHouseCount(int level, int available) => Math.Min(available, 2 + level * 3);
+    internal static float TownHouseHeight(TownHouse home, int level) => home.Height + Math.Max(0, level - 1) * 3.5f;
     internal static float SanctuaryHeightScale(int level) => 1.65f + .2f * (level - 1);
     internal static Vector2[] TownPlaza(int seed) => Enumerable.Range(0, 28).Select(i =>
     {

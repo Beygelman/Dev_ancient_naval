@@ -11,20 +11,12 @@ public enum FleetColor
     Green,
     Yellow,
     Purple,
-<<<<<<< Updated upstream
     White,
     Red
 }
 
-public sealed record SavedBoard(int Width, int Height, int Seed, GridPosition[] Land, SavedMesh? Mesh, WorldKind Kind = WorldKind.Oceans);
+public sealed record SavedBoard(int Width, int Height, int Seed, GridPosition[] Land, SavedMesh? Mesh, WorldKind Kind = WorldKind.Oceans, MapSize? MapSize = null);
 public sealed record SavedVillage(int Id, GridPosition Position, Side? Owner, int Level, double Health, int TurnsOwned, bool Fortified, bool Produced, bool Repaired, bool Attacked, string Name = "", bool Port = false);
-=======
-    White
-}
-
-public sealed record SavedBoard(int Width, int Height, int Seed, GridPosition[] Land, SavedMesh? Mesh);
-public sealed record SavedVillage(int Id, GridPosition Position, Side? Owner, int Level, double Health, int TurnsOwned, bool Fortified, bool Produced, bool Repaired, bool Attacked);
->>>>>>> Stashed changes
 public sealed record SavedWait(int Target, Side Side, int Ship, GridPosition Position, int Since);
 public sealed record SavedHome(int Ship, GridPosition Position);
 public sealed record SavedOutcome(int Treasury, TreasuryReward Reward);
@@ -32,14 +24,9 @@ public sealed record SavedOutcome(int Treasury, TreasuryReward Reward);
 public sealed class BattleSave
 {
     public int Version { get; set; } = 1;
-<<<<<<< Updated upstream
     public VoyageStatistics Statistics { get; set; } = VoyageStatistics.Empty;
     public SavedBoard Board { get; set; } = null !;
     public BattleRules Rules { get; set; } = null !;
-=======
-    public SavedBoard Board { get; set; } = null!;
-    public BattleRules Rules { get; set; } = null!;
->>>>>>> Stashed changes
     public SavedShip[] Ships { get; set; } = Array.Empty<SavedShip>();
     public SavedVillage[] Villages { get; set; } = Array.Empty<SavedVillage>();
     public GridPosition[] Fish { get; set; } = Array.Empty<GridPosition>();
@@ -60,7 +47,6 @@ public sealed class BattleSave
     public Side ActiveSide { get; set; }
     public Side? Winner { get; set; }
     public bool IsDraw { get; set; }
-<<<<<<< Updated upstream
     public bool GodEye { get; set; }
     public AiDifficulty Difficulty { get; set; } = AiDifficulty.Captain;
     public bool Creative { get; set; }
@@ -73,12 +59,6 @@ public sealed class BattleSave
     public SavedFlagshipSighting[] FlagshipSightings { get; set; } = Array.Empty<SavedFlagshipSighting>();
     public int[] PersonalTurnStarts { get; set; } = Array.Empty<int>();
     public int[] FlagshipKills { get; set; } = Array.Empty<int>();
-=======
-    public bool Creative { get; set; }
-    public FleetColor Color { get; set; }
-    public Side[] Factions { get; set; } = Array.Empty<Side>();
-    public FactionColor[] FactionColors { get; set; } = Array.Empty<FactionColor>();
->>>>>>> Stashed changes
     public int EventSeed { get; set; }
     public int EventDraws { get; set; }
     public TreasuryReward? LastReward { get; set; }

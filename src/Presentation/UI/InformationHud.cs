@@ -1,7 +1,4 @@
-<<<<<<< Updated upstream
 using System;
-=======
->>>>>>> Stashed changes
 using DevAncientNaval.Core.Battle;
 using DevAncientNaval.Core.Grid;
 using DevAncientNaval.Core.Units;
@@ -15,7 +12,6 @@ namespace DevAncientNaval.Presentation.UI;
 public partial class DebugHud
 {
     private PanelContainer _informationPanel = null!;
-<<<<<<< Updated upstream
     private Label _informationTitle = null!;
     private ScrollContainer _informationScroll = null!;
     private VBoxContainer _informationBody = null!;
@@ -24,13 +20,6 @@ public partial class DebugHud
     private BattleState? _informationBattle;
     private LorePage _lorePage = LorePage.Empty;
     private string _loreTitle = "", _loreText = "", _renderedLore = "";
-=======
-    private Label _informationTitle = null!, _informationText = null!;
-    private SectorButton _information = null!;
-    private GridPosition? _inspectionCell;
-    private BattleState? _informationBattle;
-    private string _loreTitle = "", _loreText = "";
->>>>>>> Stashed changes
     public bool InformationVisible => _informationPanel?.Visible == true;
     public string InformationText => _loreText;
 
@@ -39,16 +28,11 @@ public partial class DebugHud
         _information = IconButton("ActionInformation", ActionSymbol.Information, "Read the chart", OpenInformation);
         _informationPanel = Panel(_root);
         _informationPanel.Name = "InformationScroll";
-<<<<<<< Updated upstream
         _informationPanel.Resized += () =>
         {
             _layoutSizes = null;
             Layout();
         };
-=======
-        _informationPanel.CustomMinimumSize = new(368, 0);
-        _informationPanel.Resized += () => { _layoutSizes = null; Layout(); };
->>>>>>> Stashed changes
         var column = new VBoxContainer();
         column.AddThemeConstantOverride("separation", 10);
         _informationPanel.AddChild(column);
@@ -61,7 +45,6 @@ public partial class DebugHud
         close.Name = "CloseInformation";
         close.CustomMinimumSize = new(34, 30);
         heading.AddChild(close);
-<<<<<<< Updated upstream
         _informationScroll = new ScrollContainer
         {
             Name = "InformationContentScroll",
@@ -92,26 +75,16 @@ public partial class DebugHud
         _loreText = page.PlainText;
     }
 
-=======
-        _informationText = Label("", 15);
-        _informationText.CustomMinimumSize = new(336, 0);
-        _informationText.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        column.AddChild(_informationText);
-        _informationPanel.Hide();
-    }
-
->>>>>>> Stashed changes
     private void UpdateInformation(BattleState battle, Ship? selected, Village? village)
     {
         _informationBattle = battle;
         if (selected is not null)
-<<<<<<< Updated upstream
             SetLore(selected.Name, AncientLore.Ship(battle, selected));
         else if (village is not null)
             SetLore(village.Name, AncientLore.Village(battle, village));
         else if (_inspectionCell is { } cell && battle.Board.Contains(cell)
             && (battle.Vision.IsRadarContact(Side.Player, cell)
-                || battle.Vision.IsVisible(Side.Player, cell) && (battle.TreasuryAt(cell) is not null
+                || battle.Vision.IsVisible(Side.Player, cell) && (battle.TreasuryAt(cell) is { IsCollected: false }
                     || battle.Shoals.Contains(cell) || battle.FishSpots.Contains(cell))))
         {
             if (battle.Vision.State(Side.Player, cell) == VisibilityState.RadarContact)
@@ -121,25 +94,6 @@ public partial class DebugHud
                 var lore = AncientLore.Cell(battle, cell);
                 SetLore(lore?.Title ?? "", lore?.Page ?? LorePage.Empty);
             }
-=======
-        {
-            _loreTitle = selected.Name;
-            _loreText = AncientLore.Ship(battle, selected);
-        }
-        else if (village is not null)
-        {
-            _loreTitle = "Coastal village";
-            _loreText = AncientLore.Village(battle, village);
-        }
-        else if (_inspectionCell is { } cell && battle.Board.Contains(cell) && battle.Vision.IsExplored(Side.Player, cell))
-        {
-            if (battle.Vision.State(Side.Player, cell) == VisibilityState.RadarContact)
-            {
-                _loreTitle = "Distant contact";
-                _loreText = "A mark on the chart tells you where, never who. Bring a lookout nearer before judging the vessel's strength.";
-            }
-            else (_loreTitle, _loreText) = AncientLore.Cell(battle, cell);
->>>>>>> Stashed changes
             _ship.Text = _loreTitle;
             _health.Text = "";
             _details.Text = "Read the chart for the keeper's counsel.";
@@ -147,21 +101,14 @@ public partial class DebugHud
         }
         else
         {
-<<<<<<< Updated upstream
             SetLore("", LorePage.Empty);
             _shipCard.Hide();
         }
 
-=======
-            _loreTitle = "";
-            _loreText = "";
-        }
->>>>>>> Stashed changes
         _information.SetMeta("applicable", _loreText.Length > 0);
         Availability(_information, _loreText.Length > 0, "Info");
         if (_informationPanel.Visible)
         {
-<<<<<<< Updated upstream
             RenderInformation();
             if (_loreText.Length == 0)
                 _informationPanel.Hide();
@@ -243,21 +190,6 @@ public partial class DebugHud
             return;
         RenderInformation();
         _informationPanel.Visible = !_informationPanel.Visible;
-=======
-            _informationTitle.Text = _loreTitle;
-            _informationText.Text = _loreText;
-            if (_loreText.Length == 0) _informationPanel.Hide();
-        }
-    }
-
-    private void OpenInformation()
-    {
-        if (_loreText.Length == 0) return;
-        _informationTitle.Text = _loreTitle;
-        _informationText.Text = _loreText;
-        _informationPanel.Visible = !_informationPanel.Visible;
-        _informationPanel.ResetSize();
->>>>>>> Stashed changes
         _layoutSizes = null;
         Layout();
     }

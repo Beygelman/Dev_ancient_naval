@@ -4,11 +4,7 @@ using DevAncientNaval.Core.Units;
 namespace DevAncientNaval.Core.Battle;
 public sealed partial class BattleState
 {
-<<<<<<< Updated upstream
     public bool CanDropBomb(int id) => !IsOver && Find(id)is { IsAirborne: true, BombCooldown: 0, HasMoved: true } ship && ship.Owner == ActiveSide && !ship.IsExhausted && PendingUpgrade(ship.Owner)is null;
-=======
-    public bool CanDropBomb(int id) => !IsOver && Find(id) is { IsAirborne: true, BombCooldown: 0, HasMoved: true } ship && ship.Owner == ActiveSide && !ship.IsExhausted && PendingUpgrade(ship.Owner) is null;
->>>>>>> Stashed changes
     public CommandResult DropBomb(Side requester, int id)
     {
         var error = ValidateActor(requester, id, out var balloon);
@@ -27,13 +23,8 @@ public sealed partial class BattleState
             RegisterVillageIncome(village);
         }
 
-<<<<<<< Updated upstream
         RecordImpact("bomb");
         RecomputeVictory();
-=======
-        RecomputeVictory();
-
->>>>>>> Stashed changes
         UpdateVision();
         return new(true, $"Bomb: {Rules.Balloon.BombDamage} direct damage, {Rules.Balloon.SplashDamage} splash. Ready again in {Rules.Balloon.CooldownTurns} turns.", CommandKind.Bomb, id, Amount: shots.Sum(s => s.Damage), Path: new[] { balloon.Position }, Shots: shots);
     }
@@ -48,13 +39,8 @@ public sealed partial class BattleState
         if (sunk)
         {
             RewardPirateDefeat(balloon, target);
-<<<<<<< Updated upstream
             RecordEnemyLoss(balloon.Owner, target);
             RemoveDestroyedShip(target);
-=======
-            RemoveDestroyedShip(target);
-
->>>>>>> Stashed changes
         }
 
         return new(from, to, damage, false, sunk, false, false, balloon.Owner == Side.Player || Vision.IsVisible(Side.Player, balloon.Position), target.Owner == Side.Player || Vision.IsVisible(Side.Player, target.Position));

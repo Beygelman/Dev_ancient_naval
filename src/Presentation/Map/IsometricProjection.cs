@@ -26,10 +26,7 @@ public sealed class IsometricProjection
     private readonly Dictionary<(int, int), Vector2[]> _edges = new();
     private readonly Dictionary<(int, int), Vector2[]> _orientedEdges = new();
     private readonly Dictionary<(int, int), List<GridPosition>> _pickBins = new();
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
     private readonly HashSet<(int, int)> _boundaryEdges = new();
     private readonly Dictionary<(int Vertex, int Neighbor), Vector2> _rowTangents = new();
     public IsometricProjection(GameBoard board) : this(seed: board.Seed, width: board.Width, height: board.Height, mesh: board.Mesh) { }

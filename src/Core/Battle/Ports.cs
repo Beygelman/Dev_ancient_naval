@@ -56,7 +56,7 @@ public sealed partial class BattleState
         if (_tradeNetworks.TryGetValue(side, out var cached) && cached.Key == key)
             return cached.Network;
         var network = TradeNetwork.Create(Board, towns.Select(PortBerth).Concat(lighthouses.Select(s => s.Position))
-            .Distinct().ToArray(), _forbidden);
+            .Distinct().ToArray(), _forbidden, Rules.Ports.MaximumRouteLength);
         _tradeNetworks[side] = (key, network);
         return network;
     }

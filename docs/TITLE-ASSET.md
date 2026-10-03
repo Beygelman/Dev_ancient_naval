@@ -2,11 +2,7 @@
 
 Asset: `assets/ui/ancient-naval-title.png` (2172 × 724, transparent PNG). The game scales this bundled image without altering its alpha.
 
-<<<<<<< Updated upstream
 Created with the built-in **image_gen** tool, generation mode, transparent background enabled. It is a newly generated title asset, not an edit of the supplied grid references. Map towns and vessels remain procedural code. Since 0.16 the menu background is a static generated illustration; see [its provenance](MENU-ART-0.16.md).
-=======
-Created with the built-in **image_gen** tool, generation mode, transparent background enabled. It is a newly generated title asset, not an edit of the supplied grid references. Ocean animation, towns, people and vessels remain procedural code.
->>>>>>> Stashed changes
 
 Exact prompt:
 

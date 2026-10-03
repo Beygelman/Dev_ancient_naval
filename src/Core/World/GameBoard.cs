@@ -9,28 +9,25 @@ public sealed class GameBoard
     public IReadOnlyList<System.Numerics.Vector2> Boundary { get; }
     public int Seed { get; }
     public WorldKind Kind { get; }
+    public MapSize? MapSize { get; }
     public int Width { get; }
     public int Height { get; }
     public OrganicMesh? Mesh { get; }
     public IReadOnlyList<Tile> Tiles { get; }
 
     public GameBoard(int width, int height, Func<GridPosition, TerrainType> terrainAt, int seed = 0,
-<<<<<<< Updated upstream
         Func<GridPosition, bool>? playable = null, IReadOnlyList<System.Numerics.Vector2>? boundary = null, OrganicMesh? mesh = null,
-        WorldKind kind = WorldKind.Oceans)
-=======
-        Func<GridPosition, bool>? playable = null, IReadOnlyList<System.Numerics.Vector2>? boundary = null, OrganicMesh? mesh = null)
->>>>>>> Stashed changes
+        WorldKind kind = WorldKind.Oceans, MapSize? mapSize = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
         ArgumentNullException.ThrowIfNull(terrainAt);
-<<<<<<< Updated upstream
         if (!Enum.IsDefined(kind))
             throw new ArgumentOutOfRangeException(nameof(kind));
+        if (mapSize is { } size && !Enum.IsDefined(size))
+            throw new ArgumentOutOfRangeException(nameof(mapSize));
         Kind = kind;
-=======
->>>>>>> Stashed changes
+        MapSize = mapSize;
         Seed = seed; Width = width; Mesh = mesh;
         Height = height;
         _tiles = new Tile[checked(width * height)];

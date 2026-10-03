@@ -3,10 +3,6 @@ using DevAncientNaval.Core.Grid;
 using DevAncientNaval.Core.Units;
 
 namespace DevAncientNaval.Core.World;
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 public static class SkirmishSetup
 {
     public static BattleState Create(GameBoard board, BattleRules rules, int opponentCount = 1)
@@ -25,13 +21,9 @@ public static class SkirmishSetup
             deployment.Add((side, ShipClass.Garrison, cells[1]));
             deployment.Add((side, ShipClass.Fishing, cells[2]));
         }
-<<<<<<< Updated upstream
 
         var settlements = WorldSettlementPlacement.Create(board, factionCount);
         return new(board, rules, deployment, resourceSeed: board.Seed, villageSpots: settlements,
             seaEvents: board.Mesh is not null, generatedSettlements: true);
-=======
-        return new(board, rules, deployment, resourceSeed: board.Seed, seaEvents: board.Mesh is not null);
->>>>>>> Stashed changes
     }
 }

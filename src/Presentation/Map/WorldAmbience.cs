@@ -14,11 +14,7 @@ namespace DevAncientNaval.Presentation.Map;
 /// redrawn for these effects, and wildlife only uses already visible water.</summary>
 public partial class WorldAmbience : Node2D
 {
-<<<<<<< Updated upstream
     public BoardView BoardView { get; set; } = null !;
-=======
-    public BoardView BoardView { get; set; } = null!;
->>>>>>> Stashed changes
 
     private BattleState? _battle;
     private GridPosition[] _water = Array.Empty<GridPosition>();
@@ -29,16 +25,12 @@ public partial class WorldAmbience : Node2D
     private readonly HashSet<GridPosition> _visibleWater = new();
     private GridPosition[] _harborWater = Array.Empty<GridPosition>();
     private (int Id, Vector2 Center)[] _docks = Array.Empty<(int, Vector2)>();
-<<<<<<< Updated upstream
     private readonly RetainedSeaWaves _waves = new() { Name = "RetainedWaves", ShowBehindParent = true };
     private TradeTraffic? _tradeTraffic;
     internal TradeTraffic TradeTraffic => _tradeTraffic!;
     private (BattleState Battle, IsometricProjection Projection, long Vision)? _waveContext;
     internal int WaveMeshBuildCount => _waves.BuildCount;
     internal int WaveVertexCount => _waves.VertexCount;
-=======
-    private readonly Vector2[] _waterWave = new Vector2[4];
->>>>>>> Stashed changes
     private readonly Vector2[] _gullWings = new Vector2[5];
     private Rect2 _drawBounds;
     private sealed class ShoreWave
@@ -46,20 +38,12 @@ public partial class WorldAmbience : Node2D
         public Vector2[] Edge { get; }
         public Vector2 Land { get; }
         public Vector2[] Directions { get; }
-<<<<<<< Updated upstream
-=======
-        public Vector2[] Points { get; }
->>>>>>> Stashed changes
 
         public ShoreWave(Vector2[] edge, Vector2 land)
         {
             Edge = edge;
             Land = land;
             Directions = new Vector2[edge.Length];
-<<<<<<< Updated upstream
-=======
-            Points = new Vector2[edge.Length];
->>>>>>> Stashed changes
             for (int i = 0; i < edge.Length; i++)
             {
                 Directions[i] = (edge[i] - land).Normalized();
@@ -92,10 +76,7 @@ public partial class WorldAmbience : Node2D
         }
 
         _water = battle.Board.Tiles.Where(t => t.Terrain != TerrainType.Land && battle.Vision.IsVisible(Side.Player, t.Position)).Select(t => t.Position).ToArray();
-<<<<<<< Updated upstream
         RefreshFishSchools();
-=======
->>>>>>> Stashed changes
         _fish = battle.KnownFish(Side.Player).Concat(battle.KnownShoals(Side.Player)).ToArray();
         _towns = battle.ObservedVillages(Side.Player).ToArray();
         _visibleWater.Clear();
@@ -103,11 +84,7 @@ public partial class WorldAmbience : Node2D
         _harborWater = _towns.SelectMany(town => battle.Board.GetSurrounding(town.Position)).Where(_visibleWater.Contains).Distinct().ToArray();
         _docks = battle.ObservedShips(Side.Player).Where(ship => ship.Definition.Class == ShipClass.FishingDock).Select(ship => (ship.Id, BoardView.Projection.GridToWorld(ship.Position))).ToArray();
         _shores.Clear();
-<<<<<<< Updated upstream
         foreach (var(edge, inside)in BoardView.VisibleShoreSegments())
-=======
-        foreach (var (edge, inside) in BoardView.VisibleShoreSegments())
->>>>>>> Stashed changes
         {
             var mid = edge[edge.Length / 2];
             var outside = mid + (mid - inside).Normalized() * 4;
@@ -116,7 +93,6 @@ public partial class WorldAmbience : Node2D
                 _shores.Add(new ShoreWave(edge, inside));
         }
 
-<<<<<<< Updated upstream
         BuildWaves();
         RefreshTreasuryGlow();
         if (_tradeTraffic is null)
@@ -157,38 +133,22 @@ public partial class WorldAmbience : Node2D
         _waves.SetClock(_time);
     }
 
-=======
-        QueueRedraw();
-    }
-
->>>>>>> Stashed changes
     public override void _Process(double delta)
     {
         if (_battle is null)
             return;
         _time += (float)delta;
-<<<<<<< Updated upstream
         _waves.SetClock(_time);
         _treasuryGlow.SetClock(_time);
-=======
->>>>>>> Stashed changes
         _gulls.RemoveAll(g => _time - g.Born > g.Lifetime);
         _dolphins.RemoveAll(d => _time - d.Born > 3.2f);
         if (_time >= _nextGull)
         {
-<<<<<<< Updated upstream
             _nextGull = _time + 4 + (float)_random.NextDouble() * 3;
             if (_water.Length > 0 && _gulls.Count < 18)
             {
                 var candidates = _towns.Length > 0 && _harborWater.Length > 0 && _random.Next(3) == 0 ? _harborWater : _fish.Length > 0 && _random.Next(10) != 0 ? _fish : _water;
                 SpawnGulls(candidates[_random.Next(candidates.Length)], _random.Next(3) == 0 ? 3 : 1);
-=======
-            _nextGull = _time + 4 + _random.Next(5);
-            if (_water.Length > 0 && _gulls.Count < 18)
-            {
-                var candidates = _towns.Length > 0 && _harborWater.Length > 0 && _random.Next(3) == 0 ? _harborWater : _fish.Length > 0 && _random.Next(10) != 0 ? _fish : _water;
-                SpawnGulls(candidates[_random.Next(candidates.Length)], _random.Next(3) == 0 ? 5 : 3);
->>>>>>> Stashed changes
             }
         }
 
@@ -203,10 +163,7 @@ public partial class WorldAmbience : Node2D
         if (_frame < 1f / 30)
             return;
         _frame = 0;
-<<<<<<< Updated upstream
         BoardView.AnimateTowns();
-=======
->>>>>>> Stashed changes
         QueueRedraw();
     }
 
@@ -243,75 +200,17 @@ public partial class WorldAmbience : Node2D
         _drawBounds = _drawBounds.Expand(inverse * new Vector2(viewport.End.X, viewport.Position.Y));
         _drawBounds = _drawBounds.Expand(inverse * viewport.End);
         _drawBounds = _drawBounds.Expand(inverse * new Vector2(viewport.Position.X, viewport.End.Y)).Grow(150);
-<<<<<<< Updated upstream
         using (PerformanceTrace.Measure("Ambience.Fish"))
             DrawFishSchools();
         _sky?.QueueRedraw();
         DrawWhirlpools();
         DrawClouds(this, shadows: true);
         DrawGulls(this, shadows: true);
-=======
-        foreach (var cell in _water)
-        {
-            if ((cell.X * 7 + cell.Y * 13) % 4 != 0)
-                continue;
-            float phase = (_time * .17f + cell.X * .31f + cell.Y * .19f) % 1;
-            var center = BoardView.Projection.GridToWorld(cell) + new Vector2(0, (phase - .5f) * 7);
-            if (!_drawBounds.HasPoint(center)) continue;
-            float alpha = MathF.Sin(phase * Mathf.Pi) * .085f;
-            _waterWave[0] = center + new Vector2(-11, 1);
-            _waterWave[1] = center + new Vector2(-4, -1);
-            _waterWave[2] = center + new Vector2(4, -1);
-            _waterWave[3] = center + new Vector2(11, 1);
-            DrawPolyline(_waterWave, new Color(.75f, .9f, .91f, alpha), 1, true);
-        }
-
-        foreach (var shore in _shores)
-        {
-            if (!_drawBounds.HasPoint(shore.Edge[shore.Edge.Length / 2])) continue;
-            var land = shore.Land;
-            for (int wave = 0; wave < 2; wave++)
-            {
-                float phase = (_time * .27f + land.X * .001f + wave * .5f) % 1;
-                for (int i = 0; i < shore.Edge.Length; i++)
-                {
-                    shore.Points[i] = shore.Edge[i] + shore.Directions[i] * (1 - phase) * 11;
-                }
-
-                DrawPolyline(shore.Points, new Color(.86f, .94f, .88f, MathF.Sin(phase * Mathf.Pi) * .23f), 1.3f, true);
-            }
-        }
-
-        DrawCloudsAndHarborGulls();
-        DrawWhirlpools();
-        foreach (var town in _towns)
-            DrawTownLife(town);
-        foreach (var gull in _gulls)
-        {
-            float age = _time - gull.Born;
-            var water = gull.Circling ? gull.Start + new Vector2(MathF.Cos(age * .38f + gull.Phase) * 28, MathF.Sin(age * .38f + gull.Phase) * 12) : gull.Start + gull.Velocity * age + new Vector2(MathF.Sin(age * .24f + gull.Phase) * 13, 0);
-            if (!VisibleWater(water))
-                continue;
-            float fade = Math.Min(1, Math.Min(age, gull.Lifetime - age));
-            var bird = water + new Vector2(0, -38 - MathF.Sin(age * .4f + gull.Phase) * 5);
-            DrawSetTransform(water, 0, new Vector2(1, .35f));
-            DrawCircle(Vector2.Zero, 5, new Color(.04f, .12f, .17f, .2f * fade));
-            DrawSetTransform(Vector2.Zero);
-            float wing = MathF.Sin(age * 4.2f + gull.Phase) * 2.6f;
-            SetGullWings(bird, wing, 7, 3);
-            DrawPolyline(_gullWings, new Color(.95f, .96f, .86f, .85f * fade), 1.8f, true);
-        }
-
->>>>>>> Stashed changes
         foreach (var dolphin in _dolphins)
         {
             float phase = (_time - dolphin.Born) / 3.2f;
             var water = dolphin.Center + new Vector2((phase - .5f) * 25 * dolphin.Facing, 0);
-<<<<<<< Updated upstream
             if (!_drawBounds.HasPoint(water) || !VisibleWater(water))
-=======
-            if (!VisibleWater(water))
->>>>>>> Stashed changes
                 continue;
             float jump = MathF.Sin(phase * Mathf.Pi);
             var body = water + new Vector2(0, -jump * 12);
@@ -320,12 +219,8 @@ public partial class WorldAmbience : Node2D
             DrawSetTransform(Vector2.Zero);
             // At emergence/submergence the silhouette collapses to a point.
             // Keep its water ripple, but do not submit a degenerate polygon.
-<<<<<<< Updated upstream
             if (jump < .04f)
                 continue;
-=======
-            if (jump < .04f) continue;
->>>>>>> Stashed changes
             Vector2 P(float x, float y) => body + new Vector2(x * dolphin.Facing, y) * jump;
             DrawColoredPolygon(new[] { P(-9, 2), P(-5, -3), P(1, -4), P(8, -1), P(12, 1), P(6, 2), P(-4, 2), P(-11, 5) }, new Color("82a8af"));
             DrawColoredPolygon(new[] { P(-2, -3), P(0, -8), P(4, -3) }, new Color("aac3c5"));
@@ -341,7 +236,6 @@ public partial class WorldAmbience : Node2D
         _gullWings[4] = bird + new Vector2(span, wing);
     }
 
-<<<<<<< Updated upstream
     internal void DrawTownLife(Node2D canvas, Village town, Vector2 center)
     {
         foreach (var mill in BoardView.TownMills(town))
@@ -373,30 +267,10 @@ public partial class WorldAmbience : Node2D
 
     internal static Vector2[] VillageFlagCloth(Vector2 flag, float time, int townId)
     {
-=======
-    private void DrawTownLife(Village town)
-    {
-        var center = BoardView.Projection.GridToWorld(town.Position);
-        var hub = center + new Vector2(-22, -22);
-        float rotation = _time * .48f + town.Id;
-        for (int i = 0; i < 4; i++)
-        {
-            var axis = Vector2.FromAngle(rotation + i * Mathf.Pi / 2);
-            var side = axis.Orthogonal() * 2;
-            DrawColoredPolygon(new[] { hub + axis * 2, hub + axis * 13, hub + axis * 12 + side, hub + axis * 4 + side }, new Color("ebe1bd"));
-        }
-
-        DrawCircle(hub, 2.2f, new Color("807858"));
-        if (town.Owner is null && !BoardView.Battle.CanCaptureVillage(Side.Player, town.Id))
-            return;
-        var flag = BoardView.VillageFlagPosition(town.Position);
-        var color = FleetPalette.For(BoardView.Battle, town.Owner);
->>>>>>> Stashed changes
         var cloth = new Vector2[10];
         for (int i = 0; i < 5; i++)
         {
             float x = i * 4;
-<<<<<<< Updated upstream
             float sway = MathF.Sin(time * 3 - i * .65f + townId) * i * .7f;
             // The first column is fixed to the exact pole; only the free edge waves.
             cloth[i] = flag + new Vector2(x, sway);
@@ -404,13 +278,5 @@ public partial class WorldAmbience : Node2D
         }
 
         return cloth;
-=======
-            float sway = MathF.Sin(_time * 3 - i * .65f + town.Id) * i * .7f;
-            cloth[i] = flag + new Vector2(-5 + x, -8 + sway);
-            cloth[9 - i] = flag + new Vector2(-5 + x, 2 + sway - i * .6f);
-        }
-
-        DrawColoredPolygon(cloth, color);
->>>>>>> Stashed changes
     }
 }
