@@ -11,10 +11,7 @@ public partial class FleetView : Node2D
     public IsometricProjection Projection { get; set; } = null !;
     public int? SelectedId { get; set; }
     public Vector2? ProjectilePosition { get; private set; }
-<<<<<<< Updated upstream
     public Func<Core.Grid.GridPosition, System.Threading.Tasks.Task>? FocusTarget { get; set; }
-=======
->>>>>>> Stashed changes
 
     private readonly Dictionary<int, ShipSnapshot> _snapshots = new();
     private readonly HashSet<int> _suppressed = new();
@@ -27,10 +24,7 @@ public partial class FleetView : Node2D
     private string _feedback = "";
     private Color _feedbackColor = new("ff8f85");
     private Vector2 _feedbackPosition;
-<<<<<<< Updated upstream
     private float _feedbackRise;
-=======
->>>>>>> Stashed changes
     private Vector2? _blastCenter;
     private float _blastProgress;
     private readonly Dictionary<int, (Vector2 Position, string Text)> _blastDamage = new();
@@ -40,7 +34,6 @@ public partial class FleetView : Node2D
     public override void _Draw()
     {
         using var trace = DevAncientNaval.Presentation.Diagnostics.PerformanceTrace.Measure("Fleet.Draw");
-<<<<<<< Updated upstream
         using (Diagnostics.PerformanceTrace.Measure("Fleet.Water.Draw"))
             DrawWaterEffects();
         using (Diagnostics.PerformanceTrace.Measure("Fleet.Hulls.Refresh"))
@@ -49,23 +42,6 @@ public partial class FleetView : Node2D
 
     private void DrawFrontEffects()
     {
-=======
-        DrawWaterEffects();
-        var inverse = GetGlobalTransformWithCanvas().AffineInverse();
-        var viewportSize = GetViewportRect().Size;
-        var drawBounds = new Rect2(inverse * Vector2.Zero, Vector2.Zero)
-            .Expand(inverse * new Vector2(viewportSize.X, 0))
-            .Expand(inverse * viewportSize).Expand(inverse * new Vector2(0, viewportSize.Y)).Grow(140);
-        var entries = PrepareDrawOrder();
-        for (int i = 0; i < entries.Count; i++)
-        {
-            var entry = entries[i];
-            if (drawBounds.HasPoint(entry.Center)) DrawShip(entry.Ship, entry.Center);
-        }
-
-        if (_movingVisible && _movingShip is { } moving)
-            DrawShip(moving, _movingPosition);
->>>>>>> Stashed changes
         if (_muzzle is { } muzzle)
         {
             Ink.DrawCircle(muzzle, 10, new Color(1, 0.65f, 0.2f, 0.6f));
@@ -87,7 +63,6 @@ public partial class FleetView : Node2D
 
         if (_blastCenter is { } blast)
         {
-<<<<<<< Updated upstream
             Ink.DrawSetTransform(blast, 0, new Vector2(1, .5f));
             Ink.DrawCircle(Vector2.Zero, 20 + 100 * _blastProgress, new Color(1, .66f, .25f, .25f * (1 - _blastProgress)));
             Ink.DrawArc(Vector2.Zero, 20 + 100 * _blastProgress, 0, Mathf.Tau, 48, new Color(1, .85f, .55f, 1 - _blastProgress), 3, true);
@@ -147,60 +122,6 @@ public partial class FleetView : Node2D
 
     private void AddDrawEntry(ShipSnapshot snapshot)
     {
-=======
-            DrawSetTransform(blast, 0, new Vector2(1, .5f));
-            DrawCircle(Vector2.Zero, 20 + 100 * _blastProgress, new Color(1, .66f, .25f, .25f * (1 - _blastProgress)));
-            DrawArc(Vector2.Zero, 20 + 100 * _blastProgress, 0, Mathf.Tau, 48, new Color(1, .85f, .55f, 1 - _blastProgress), 3, true);
-            DrawSetTransform(Vector2.Zero);
-        }
-
-        foreach (var label in _blastDamage.Values)
-            DrawString(ThemeDB.FallbackFont, label.Position + new Vector2(-12, -32), label.Text, fontSize: 22, modulate: new Color("ff8f85"));
-        if (_feedback.Length > 0)
-            DrawString(ThemeDB.FallbackFont, _feedbackPosition + new Vector2(-20, -35), _feedback, fontSize: 23, modulate: _feedbackColor);
-        DrawIncome();
-    }
-
-    // Rebuilt from current visibility on every draw: no stale fog or health cache.
-    // The list retains capacity; the sequence index preserves OrderBy's stable ties.
-    internal readonly record struct DrawEntry(ShipSnapshot Ship, Vector2 Center, int Sequence);
-    private readonly List<DrawEntry> _drawOrder = new();
-    private static readonly Comparison<DrawEntry> DepthComparison = (left, right) =>
-    {
-        int depth = left.Center.Y.CompareTo(right.Center.Y);
-        return depth != 0 ? depth : left.Sequence.CompareTo(right.Sequence);
-    };
-    internal IReadOnlyList<DrawEntry> PrepareDrawOrder()
-    {
-        _drawOrder.Clear();
-        for (int i = 0; i < Battle.Ships.Count; i++)
-        {
-            var ship = Battle.Ships[i];
-            if (ship.Owner != Side.Player && !Battle.Vision.IsVisible(Side.Player, ship.Position))
-            {
-                continue;
-            }
-
-            if (_suppressed.Contains(ship.Id) || ship.Id == _movingId || _snapshots.ContainsKey(ship.Id))
-            {
-                continue;
-            }
-
-            AddDrawEntry(ShipSnapshot.From(ship));
-        }
-
-        foreach (var snapshot in _snapshots.Values)
-        {
-            AddDrawEntry(snapshot);
-        }
-
-        _drawOrder.Sort(DepthComparison);
-        return _drawOrder;
-    }
-
-    private void AddDrawEntry(ShipSnapshot snapshot)
-    {
->>>>>>> Stashed changes
         _drawOrder.Add(new(snapshot, Projection.GridToWorld(snapshot.Position), _drawOrder.Count));
     }
 }

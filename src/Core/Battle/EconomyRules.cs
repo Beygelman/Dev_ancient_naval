@@ -1,8 +1,4 @@
 namespace DevAncientNaval.Core.Battle;
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 /// <summary>Missing settings preserve the economy of released version-one saves.</summary>
 public sealed class EconomyRules
 {
@@ -11,19 +7,12 @@ public sealed class EconomyRules
     public int FreeCombatShips { get; init; } = 2;
     public int CombatShipsPerUpkeep { get; init; }
     public bool AdjacentCollectionOnly { get; init; }
-<<<<<<< Updated upstream
     public int MinimumResourceSpots { get; init; } = 16;
     public int ResourceTileInterval { get; init; }
 
     internal void Validate()
     {
         if (MothershipIncomePerLevel < 0 || VillageLevelsPerIncome < 1 || FreeCombatShips < 0 || CombatShipsPerUpkeep < 0 || MinimumResourceSpots < 0 || MinimumResourceSpots > 20_000 || ResourceTileInterval < 0)
-=======
-
-    internal void Validate()
-    {
-        if (MothershipIncomePerLevel < 0 || VillageLevelsPerIncome < 1 || FreeCombatShips < 0 || CombatShipsPerUpkeep < 0)
->>>>>>> Stashed changes
             throw new ArgumentException("Invalid economy settings.");
     }
 }

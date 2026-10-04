@@ -25,7 +25,6 @@ public partial class MapInput : Node
     public event Action<Vector2>? Held;
     public event Action<Vector2>? Hovered;
     public event Action? Canceled;
-<<<<<<< Updated upstream
     public Func<bool>? KeyboardEnabled { get; set; }
     public Func<bool>? GameplayShortcutsEnabled { get; set; }
     public event Action? EndTurnRequested;
@@ -38,11 +37,6 @@ public partial class MapInput : Node
             GetViewport().SetInputAsHandled();
             return;
         }
-=======
-
-    public override void _Input(InputEvent input)
-    {
->>>>>>> Stashed changes
         if (input is InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: true })
         {
             CancelGesture();

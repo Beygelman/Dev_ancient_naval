@@ -12,11 +12,7 @@ public enum TreasuryReward
     Whirlpool
 }
 
-<<<<<<< Updated upstream
 public sealed record Treasury(int Id, GridPosition Position, bool IsCollected = false);
-=======
-public sealed record Treasury(int Id, GridPosition Position);
->>>>>>> Stashed changes
 public sealed record Whirlpool(GridPosition Position, IReadOnlyCollection<GridPosition> Cells);
 public sealed partial class BattleState
 {
@@ -39,7 +35,6 @@ public sealed partial class BattleState
     private static readonly TreasuryRules DefaultTreasuryRules = new();
     public static TreasuryReward RewardForRoll(int roll) => DefaultTreasuryRules.RewardForRoll(roll);
     public int TurnSerial { get; private set; }
-<<<<<<< Updated upstream
     public IReadOnlyList<Treasury> Treasuries => _treasuries.Where(t => !t.IsCollected).ToArray();
     public IReadOnlyList<Treasury> TreasuryRuins => _treasuries.AsReadOnly();
     public IReadOnlyList<Whirlpool> Whirlpools => _whirlpools.AsReadOnly();
@@ -48,14 +43,6 @@ public sealed partial class BattleState
     public Treasury? TreasuryAt(GridPosition cell) => _treasuries.FirstOrDefault(t => t.Position == cell && !t.IsCollected);
     public IEnumerable<Treasury> ObservedTreasuries(Side side) => _treasuries.Where(t => !t.IsCollected && Vision.IsVisible(side, t.Position));
     public IEnumerable<Treasury> ObservedTreasuryRuins(Side side) => _treasuries.Where(t => Vision.IsVisible(side, t.Position));
-=======
-    public IReadOnlyList<Treasury> Treasuries => _treasuries.AsReadOnly();
-    public IReadOnlyList<Whirlpool> Whirlpools => _whirlpools.AsReadOnly();
-
-    public bool IsForbidden(GridPosition cell) => _forbidden.Contains(cell);
-    public Treasury? TreasuryAt(GridPosition cell) => _treasuries.FirstOrDefault(t => t.Position == cell);
-    public IEnumerable<Treasury> ObservedTreasuries(Side side) => _treasuries.Where(t => Vision.IsVisible(side, t.Position));
->>>>>>> Stashed changes
     public TreasuryReward? LastTreasuryReward { get; private set; }
 
     private void InitializeSeaEvents(bool populate, int seed)
@@ -67,11 +54,7 @@ public sealed partial class BattleState
             _pirateHomes[pirate.Id] = pirate.Position;
         if (!populate)
             return;
-<<<<<<< Updated upstream
         var candidates = Board.Tiles.Where(t => t.Terrain == TerrainType.Water && IsFreeWater(t.Position) && Ships.Where(s => s.Owner != Side.Pirates).All(s => Board.Distance(s.Position, t.Position) > 4) && Board.BlastCells(t.Position).Count == 9 && Board.BlastCells(t.Position).All(p => Board.GetTile(p).Terrain != TerrainType.Land)).Select(t => t.Position).OrderBy(_ => NextEvent()).ToArray();
-=======
-        var candidates = Board.Tiles.Where(t => t.Terrain == TerrainType.Water && IsFreeWater(t.Position) && Ships.Where(s=>s.Owner!=Side.Pirates).All(s => Board.Distance(s.Position, t.Position) > 4) && Board.BlastCells(t.Position).Count == 9 && Board.BlastCells(t.Position).All(p => Board.GetTile(p).Terrain != TerrainType.Land)).Select(t => t.Position).OrderBy(_ => NextEvent()).ToArray();
->>>>>>> Stashed changes
         var chosen = Enumerable.Range(0, _factions.Count).Select(_ => new List<GridPosition>()).ToArray();
         foreach (var cell in candidates)
         {
@@ -92,11 +75,7 @@ public sealed partial class BattleState
         // One patrol per starting territory gives each fleet equal pirate pressure.
         for (int side = 0; side < _factions.Count; side++)
         {
-<<<<<<< Updated upstream
             var home = candidates.Where(p => Board.StartingTerritory(p, _factions.Count) == side && TreasuryAt(p)is null && IsFreeWater(p)).Select(p => (GridPosition? )p).FirstOrDefault();
-=======
-            var home = candidates.Where(p => Board.StartingTerritory(p, _factions.Count) == side && TreasuryAt(p) is null && IsFreeWater(p)).Select(p => (GridPosition?)p).FirstOrDefault();
->>>>>>> Stashed changes
             if (home is not { } position)
                 continue;
             var pirate = new Ship(_nextId++, Side.Pirates, Rules.Get(ShipClass.PirateSchooner), position);
@@ -113,17 +92,10 @@ public sealed partial class BattleState
             _captureWaits.Remove(key);
     }
 
-<<<<<<< Updated upstream
     private bool ReadyCrew(WaitingCrew crew, Side side) => crew.Since < TurnSerial && Find(crew.ShipId)is { } ship && ship.Owner == side && ship.Position == crew.Position && !ship.IsExhausted && !ship.HasRepaired && !ship.HasMoved && ship.AttacksUsed == 0;
     private void EndSeaEventTurn(Side side)
     {
         foreach (var treasury in _treasuries.Where(t => !t.IsCollected))
-=======
-    private bool ReadyCrew(WaitingCrew crew, Side side) => crew.Since < TurnSerial && Find(crew.ShipId) is { } ship && ship.Owner == side && ship.Position == crew.Position && !ship.IsExhausted && !ship.HasMoved && ship.AttacksUsed == 0;
-    private void EndSeaEventTurn(Side side)
-    {
-        foreach (var treasury in _treasuries)
->>>>>>> Stashed changes
         {
             var ship = At(treasury.Position);
             if (ship?.Owner == side && side != Side.Pirates && IsCapturingShip(ship))
@@ -137,11 +109,7 @@ public sealed partial class BattleState
     {
         var ship = Find(shipId);
         var treasury = ship is null ? null : TreasuryAt(ship.Position);
-<<<<<<< Updated upstream
         return !IsOver && side == ActiveSide && side != Side.Pirates && PendingUpgrade(side)is null && ship?.Owner == side && IsCapturingShip(ship) && treasury is not null && _treasuryWaits.TryGetValue(treasury.Id, out var crew) && crew.ShipId == shipId && ReadyCrew(crew, side);
-=======
-        return !IsOver && side == ActiveSide && side != Side.Pirates && PendingUpgrade(side) is null && ship?.Owner == side && IsCapturingShip(ship) && treasury is not null && _treasuryWaits.TryGetValue(treasury.Id, out var crew) && crew.ShipId == shipId && ReadyCrew(crew, side);
->>>>>>> Stashed changes
     }
 
     public CommandResult LootTreasury(Side side, int shipId)
@@ -156,21 +124,13 @@ public sealed partial class BattleState
         GridPosition? berth = null;
         if (reward == TreasuryReward.AncientGun)
         {
-<<<<<<< Updated upstream
             berth = Board.Tiles.Where(t => IsFreeWater(t.Position)).OrderBy(t => Board.Distance(ship.Position, t.Position)).Select(t => (GridPosition? )t.Position).FirstOrDefault();
-=======
-            berth = Board.Tiles.Where(t => IsFreeWater(t.Position)).OrderBy(t => Board.Distance(ship.Position, t.Position)).Select(t => (GridPosition?)t.Position).FirstOrDefault();
->>>>>>> Stashed changes
             if (berth is null)
                 return CommandResult.Rejected("No free water remains for an ancient tower.");
         }
 
-<<<<<<< Updated upstream
         if (Rules.PersistTreasuryRuins) _treasuries[_treasuries.IndexOf(treasury)] = treasury with { IsCollected = true };
         else _treasuries.Remove(treasury);
-=======
-        _treasuries.Remove(treasury);
->>>>>>> Stashed changes
         _treasuryWaits.Remove(treasury.Id);
         LastTreasuryReward = reward;
         _treasuryOutcomes.Remove(treasury.Id);
@@ -184,10 +144,7 @@ public sealed partial class BattleState
                 break;
             case TreasuryReward.Currency:
                 _credits[(int)side] += Rules.Treasury.CurrencyReward;
-<<<<<<< Updated upstream
                 RecordCurrencyReceipt(side, Rules.Treasury.CurrencyReward);
-=======
->>>>>>> Stashed changes
                 message = $"Treasury plundered: +{Rules.Treasury.CurrencyReward} Thors.";
                 break;
             case TreasuryReward.AncientBalloon:
@@ -203,10 +160,6 @@ public sealed partial class BattleState
                 _forbidden.UnionWith(cells);
                 _whirlpools.Add(new(ship.Position, cells));
                 RemoveDestroyedShip(ship);
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
                 message = "A whirlpool swallowed the ship. Nine tiles are now impassable.";
                 break;
         }
@@ -215,7 +168,6 @@ public sealed partial class BattleState
         return new(true, message, CommandKind.Loot, shipId, treasury.Id, Path: new[] { treasury.Position });
     }
 
-<<<<<<< Updated upstream
     private void RewardPirateDefeat(Ship attacker, Ship target) => RewardPirateDefeat(attacker.Owner, target);
     private void RewardPirateDefeat(Side owner, Ship target)
     {
@@ -224,19 +176,10 @@ public sealed partial class BattleState
         _credits[(int)owner] += Rules.PirateCurrencyReward;
         RecordCurrencyReceipt(owner, Rules.PirateCurrencyReward);
         if (Mothership(owner)is { } mother)
-=======
-    private void RewardPirateDefeat(Ship attacker, Ship target)
-    {
-        if (target.Owner != Side.Pirates || attacker.Owner == Side.Pirates)
-            return;
-        _credits[(int)attacker.Owner] += Rules.PirateCurrencyReward;
-        if (Mothership(attacker.Owner) is { } mother)
->>>>>>> Stashed changes
             GrantResources(mother, Rules.PirateResourceReward);
         _pirateHomes.Remove(target.Id);
     }
 
-<<<<<<< Updated upstream
     private List<HealingReceipt> AutomaticRepairs(Side side)
     {
         var healed = new List<HealingReceipt>();
@@ -247,33 +190,19 @@ public sealed partial class BattleState
                 ship.Health = Math.Min(ship.MaxHealth, ship.Health + (ship.Definition.Class == ShipClass.AncientGun ? Rules.AncientAutoRepairAmount : Rules.AutoRepairAmount));
                 if (ship.Health > before)
                     healed.Add(new(ship.Position, ship.Health - before, ship.Owner == Side.Player || Vision.IsVisible(Side.Player, ship.Position)));
-=======
-    private void AutomaticRepairs(Side side)
-    {
-        foreach (var ship in OwnShips(side))
-            if (ship.CanRepair)
-            {
-                ship.Health = Math.Min(ship.MaxHealth, ship.Health + Rules.AutoRepairAmount);
->>>>>>> Stashed changes
                 ship.HasRepaired = true;
             }
 
         foreach (var village in _villages.Where(v => v.Owner == side && v.Health > 0 && !v.HasRepaired && !v.HasAttacked))
         {
-<<<<<<< Updated upstream
             double before = village.Health;
-            village.Health = Math.Min(village.MaxHealth, village.Health + Rules.RepairAmount);
+            village.Health = Math.Min(village.MaxHealth, village.Health + (Rules.VillageAutoRepairAmount ?? Rules.RepairAmount));
             if (village.Health > before)
                 healed.Add(new(village.Position, village.Health - before, village.Owner == Side.Player || Vision.IsVisible(Side.Player, village.Position), true));
             village.HasRepaired = true;
         }
 
         return healed;
-=======
-            village.Health = Math.Min(village.MaxHealth, village.Health + Rules.RepairAmount);
-            village.HasRepaired = true;
-        }
->>>>>>> Stashed changes
     }
 
     public CommandResult PirateStep()

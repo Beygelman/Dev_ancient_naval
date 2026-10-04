@@ -34,8 +34,7 @@ public partial class WorldAmbience
             if (treasury.IsCollected && _seenTreasuryCollections.TryGetValue(treasury.Id, out bool collected) && !collected)
                 _treasuryFades.TryAdd(treasury.Id, _time);
             _seenTreasuryCollections[treasury.Id] = treasury.IsCollected;
-            bool ready = !treasury.IsCollected && _battle.At(treasury.Position) is { Owner: Side.Player } ship &&
-                _battle.CanLootTreasury(Side.Player, ship.Id);
+            bool ready = !treasury.IsCollected;
             if (_treasuryFades.TryGetValue(treasury.Id, out float fade))
                 glows.Add((BoardView.Projection.GridToWorld(treasury.Position), fade));
             else if (ready)

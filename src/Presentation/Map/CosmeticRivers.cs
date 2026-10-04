@@ -45,6 +45,9 @@ public partial class BoardView
         CosmeticRiverBuildCount++;
         _riverPaint.Clear();
         _riverInfo.Clear();
+        _riverDeltas.Clear();
+        _riverDeltaPaint.Clear();
+        _riverMouthShoreCache.Clear();
         var random = new Random(Board.Seed ^ 0x36F12);
         var remaining = Board.Tiles.Where(t => t.Terrain == TerrainType.Land).Select(t => t.Position).ToHashSet();
         var features = TerrainFeatures.For(Board);
@@ -145,12 +148,12 @@ public partial class BoardView
                     knots.Insert(knots.Count - 1, joint + joinTangent * .22f + joinTangent.Orthogonal() * side * .08f);
                 }
                 Vector2[] curve = Array.Empty<Vector2>();
-                foreach (float amplitude in new[] { .24f, .12f, 0f })
+                foreach (float amplitude in new[] { .34f, .25f, .16f, 0f })
                 {
                     var bent = knots.Select((p, i) => i == 0 || i == knots.Count - 1 ? p : p +
                         (knots[Math.Min(i + 1, knots.Count - 1)] - knots[Math.Max(0, i - 1)]).Normalized().Orthogonal() *
                         (MathF.Sin(i * 1.08f + routePhase) * amplitude)).ToArray();
-                    var candidate = RiverSpline(bent);
+                    var candidate = RiverMeanders(bent, amplitude, routePhase);
                     bool clear = candidate.Skip(2).All(p => ClearPoint(ProjectRiver(p))) &&
                         candidate.Skip(5).Take(Math.Max(0, candidate.Length - 10)).All(p =>
                         {
@@ -234,10 +237,18 @@ public partial class BoardView
                         widths.Min(), widths.Max(), curve.Select(ProjectRiver).ToArray(), cells.OrderBy(p => p.Y).ThenBy(p => p.X).ToArray(), id, joined));
                     networks.Add((curve, id));
                     usedMouths.Add(start);
+                    BuildRiverDelta(curve, widths, false);
+                    if (kind == 1) BuildRiverDelta(curve, widths, true);
                     accepted++;
                 }
             }
         }
+
+        // Shore cuts depend on the static estuary plan, not observation.
+        // Warm every run now so discovering a coast never pays polygon-union
+        // edge splitting in the command / camera interaction frame.
+        using (DevAncientNaval.Presentation.Diagnostics.PerformanceTrace.Measure("Board.Estuary.Shore.Plan"))
+            foreach (var shore in _shoreLines) RiverMouthShoreEdges(shore.Edge);
 
         Vector2 MouthPoint(GridPosition coast)
         {
@@ -262,8 +273,9 @@ public partial class BoardView
                     }).ToList();
                 // Keep banks off beaches except inside the actual mouth. The
                 // outer island contour always clips even those mouth stamps.
-                if (!mouth)
-                    foreach (var beach in sand.Where(b => b.Bounds.Intersects(bounds)))
+                // The estuary owns the beach opening. Ordinary bank ribbons
+                // stop at its inland edge instead of punching square cuts.
+                foreach (var beach in sand.Where(b => b.Bounds.Intersects(bounds)))
                         pieces = pieces.SelectMany(p => ConvexSoilClip.Subtract(p, beach.Polygon, .25f)).ToList();
                 foreach (var obstacle in obstacles.Where(t => t.Bounds.Intersects(bounds)))
                     pieces = pieces.SelectMany(p => ConvexSoilClip.Subtract(p, obstacle.Shape, .4f)).ToList();
@@ -355,7 +367,7 @@ public partial class BoardView
     private Vector2 ProjectRiver(Vector2 p) => new((p.X - p.Y) * Projection.TileWidth / 2, (p.X + p.Y) * Projection.TileHeight / 2);
     private Vector2 UnprojectRiver(Vector2 p) => new(p.X / Projection.TileWidth + p.Y / Projection.TileHeight,
         p.Y / Projection.TileHeight - p.X / Projection.TileWidth);
-    private static Vector2[] RiverSpline(IReadOnlyList<Vector2> knots)
+    private static Vector2[] RiverMeanders(IReadOnlyList<Vector2> knots, float amplitude, float phase)
     {
         var result = new List<Vector2>();
         for (int i = 0; i < knots.Count - 1; i++)
@@ -365,8 +377,16 @@ public partial class BoardView
             for (int step = 0; step < 8; step++)
             {
                 float t = step / 8f;
-                result.Add(.5f * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t * t +
-                    (-a + 3 * b - 3 * c + d) * t * t * t));
+                var p = .5f * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t * t +
+                    (-a + 3 * b - 3 * c + d) * t * t * t);
+                var tangent = .5f * ((-a + c) + 2 * (2 * a - 5 * b + 4 * c - d) * t +
+                    3 * (-a + 3 * b - 3 * c + d) * t * t);
+                float envelope = MathF.Pow(MathF.Sin(t * Mathf.Pi), 2);
+                float bend = MathF.Sin(t * Mathf.Tau + phase + i * .63f);
+                float reach = Math.Min(1, b.DistanceTo(c));
+                // Do not meander the final short confluence splice or a mouth.
+                float strength = i == 0 || i == knots.Count - 2 || reach < .45f ? 0 : amplitude;
+                result.Add(p + tangent.Normalized().Orthogonal() * envelope * bend * strength * reach);
             }
         }
         result.Add(knots[^1]);
@@ -385,11 +405,13 @@ public partial class BoardView
     private bool CosmeticRiverAt(Vector2 point)
     {
         var cell = Projection.WorldToGrid(point);
-        return _riverPaint.TryGetValue(cell, out var paints) && paints.Any(p => p.Water && Geometry2D.IsPointInPolygon(point, p.Shape));
+        return _riverPaint.TryGetValue(cell, out var paints) && paints.Any(p => p.Water && Geometry2D.IsPointInPolygon(point, p.Shape)) ||
+            _riverDeltas.Any(delta => Geometry2D.IsPointInPolygon(point, delta.Channel));
     }
     private void DrawCosmeticRivers(Node2D canvas, ISet<GridPosition> cells)
     {
         EnsureCosmeticRivers();
+        DrawRiverDeltas(canvas, cells);
         foreach (var cell in cells)
             if (_riverPaint.TryGetValue(cell, out var paints))
                 // Every bank is below every water body. A merging tributary

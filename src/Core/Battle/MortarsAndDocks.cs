@@ -13,30 +13,18 @@ public sealed partial class BattleState
     public IEnumerable<GridPosition> KnownShoals(Side side) => _shoals.Where(p => Vision.IsVisible(side, p));
     private void InitializeShoals(int seed)
     {
-<<<<<<< Updated upstream
         var water = WorldResourcePlacement.Order(Board, Board.Tiles.Where(t => t.Terrain != TerrainType.Land &&
             At(t.Position) is null && !_fish.Contains(t.Position)).Select(t => t.Position), seed ^ 0x5367);
         foreach (var mother in Ships.Where(s => s.IsMothership))
         {
             var near = water.Where(p => Board.InRadius(mother.Position, p, 2)).ToArray();
-=======
-        var random = new Random(seed ^ 0x5367);
-        var water = Board.Tiles.Where(t => t.Terrain != TerrainType.Land && At(t.Position) is null && !_fish.Contains(t.Position)).Select(t => t.Position).OrderBy(_ => random.Next()).ToArray();
-        foreach (var mother in Ships.Where(s => s.IsMothership))
-        {
-            var near = water.Where(p => Board.InRadius(p, mother.Position, 2)).ToArray();
->>>>>>> Stashed changes
             if (near.Length > 0)
                 _shoals.Add(near[0]);
         }
 
         foreach (var position in water)
         {
-<<<<<<< Updated upstream
             if (_shoals.Count >= 6)
-=======
-            if (_shoals.Count >= 8)
->>>>>>> Stashed changes
                 break;
             if (_shoals.All(other => !Board.InRadius(position, other, 2)))
                 _shoals.Add(position);
@@ -54,12 +42,9 @@ public sealed partial class BattleState
         double oldMax = mother.MaxHealth;
         mother.Resources -= needed;
         mother.Level++;
-<<<<<<< Updated upstream
         int reward = Rules.LevelCurrencyRewards[mother.Level - 2];
         _credits[(int)mother.Owner] += reward;
         RecordCurrencyReceipt(mother.Owner, reward);
-=======
->>>>>>> Stashed changes
         mother.Health += mother.MaxHealth - oldMax;
         mother.PendingUpgradeLevel = mother.Level;
         if (mother.Level == 5)
@@ -99,11 +84,7 @@ public sealed partial class BattleState
     public IReadOnlyCollection<GridPosition> DockCells(int id)
     {
         var ship = Find(id);
-<<<<<<< Updated upstream
         if (ship is null || ship.IsExhausted || ship.HasRepaired || IsOver || ship.Owner != ActiveSide || ship.Definition.CollectionRange == 0 || Mothership(ship.Owner) is not { Level: >= 2 } || PendingUpgrade(ship.Owner) is not null)
-=======
-        if (ship is null || ship.IsExhausted || IsOver || ship.Owner != ActiveSide || ship.Definition.CollectionRange == 0 || Mothership(ship.Owner) is not { Level: >= 2 } || PendingUpgrade(ship.Owner) is not null)
->>>>>>> Stashed changes
             return Array.Empty<GridPosition>();
         return _shoals.Where(p => Vision.IsVisible(ship.Owner, p) && IsFreeWater(p) && WithinCollectionReach(ship, p)).ToArray();
     }

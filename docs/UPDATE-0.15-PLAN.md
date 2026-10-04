@@ -1,12 +1,9 @@
 # 0.15 work plan — user-requested gameplay and presentation update
 
-<<<<<<< Updated upstream
 Delivered as the 1 October 2026 checkpoint. All required outcomes below are
 implemented and validated; concrete results and limits are in MILESTONE-0.15.md
 and DEBUG-0.15.md. The remaining first-exploration peak is documented explicitly.
 
-=======
->>>>>>> Stashed changes
 ## Required outcomes
 
 - Reproduce hover/movement lag on a real organic map and compare handler, draw,
