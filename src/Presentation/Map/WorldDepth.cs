@@ -73,6 +73,7 @@ public partial class BoardView
                     Scale = Vector2.One * Math.Max(.001f, VillagePlacement(town).Scale),
                     DrawWorld = node => { if (Battle.VillageAt(town.Position) is { } current) DrawTownLife?.Invoke(node, current, Vector2.Zero); }
                 };
+                life.Transform=VillagePlacement(town).Transform(Vector2.Zero);
                 canvas.AddChild(life);
                 _townCanvases.Add((town.Position, life));
                 var foreground = new BoardTerrainLayer

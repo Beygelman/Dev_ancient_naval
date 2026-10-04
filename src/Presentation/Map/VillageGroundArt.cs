@@ -20,14 +20,15 @@ public partial class BoardView
     {
         EnsureIslandGeometry();
         var point = Projection.GridToWorld(town.Position) + local;
-        return _landShapes.GetValueOrDefault(town.Position)?.Any(shape => Geometry2D.IsPointInPolygon(point, shape)) == true &&
-            !_beaches.Any(b => b.Polygon.Length > 0 && Geometry2D.IsPointInPolygon(point, b.Polygon));
+        return _landShapes.GetValueOrDefault(Projection.WorldToGrid(point))?.Any(shape => PolygonBounds(shape).HasPoint(point) && Geometry2D.IsPointInPolygon(point, shape)) == true &&
+            !_beaches.Any(b => b.Polygon.Length > 0 && PolygonBounds(b.Polygon).HasPoint(point) &&
+                Geometry2D.IsPointInPolygon(point, b.Polygon));
     }
     internal string VillageSoilDiagnostic(Village town, Vector2 local)
     {
         var point = Projection.GridToWorld(town.Position) + local;
-        bool land = _landShapes.GetValueOrDefault(town.Position)?.Any(shape => Geometry2D.IsPointInPolygon(point, shape)) == true;
-        var sand = _beaches.Select((b, i) => (b, i)).Where(p => p.b.Polygon.Length > 0 && Geometry2D.IsPointInPolygon(point, p.b.Polygon))
+        bool land = _landShapes.GetValueOrDefault(Projection.WorldToGrid(point))?.Any(shape => PolygonBounds(shape).HasPoint(point) && Geometry2D.IsPointInPolygon(point, shape)) == true;
+        var sand = _beaches.Select((b, i) => (b, i)).Where(p => p.b.Polygon.Length > 0 && PolygonBounds(p.b.Polygon).HasPoint(point) && Geometry2D.IsPointInPolygon(point, p.b.Polygon))
             .Select(p => p.i + ":" + string.Join(";", p.b.Polygon)).ToArray();
         return $"local={local}, world={point}, land={land}, sand={string.Join('|', sand)}";
     }
@@ -45,7 +46,7 @@ public partial class BoardView
         if (_townGround.TryGetValue(key, out var cached)) return cached;
         var origin = Projection.GridToWorld(town.Position);
         var placement = VillagePlacement(town);
-        var land = _landShapes.GetValueOrDefault(town.Position) ?? Array.Empty<Vector2[]>();
+        var land = TownSoilShapes(town.Position);
         var neighborhood = new Rect2(origin - new Vector2(128, 128), new Vector2(256, 256));
         var nearbySand = _beaches.Where(b => b.Polygon.Length > 0)
             .Select(b => (b.Polygon, Bounds: PolygonBounds(b.Polygon)))

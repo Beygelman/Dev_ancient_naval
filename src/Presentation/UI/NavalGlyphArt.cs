@@ -8,7 +8,7 @@ internal static class NavalGlyphArt
 {
     internal static ActionSymbol Symbol(ShipClass? kind) => kind switch
     {
-        ShipClass.Fishing => ActionSymbol.Fishing,
+        ShipClass.Fishing => ActionSymbol.Support,
         ShipClass.Garrison or ShipClass.PirateSchooner => ActionSymbol.Scout,
         ShipClass.Invader => ActionSymbol.Standard,
         ShipClass.Kolonel => ActionSymbol.Heavy,
@@ -22,7 +22,7 @@ internal static class NavalGlyphArt
 
     internal static bool IsNaval(ActionSymbol symbol) => symbol is ActionSymbol.Fishing or
         ActionSymbol.Scout or ActionSymbol.Standard or ActionSymbol.Heavy or ActionSymbol.Mortar or
-        ActionSymbol.Tower or ActionSymbol.Dock or ActionSymbol.Lighthouse or ActionSymbol.City or ActionSymbol.Balloon;
+        ActionSymbol.Tower or ActionSymbol.Dock or ActionSymbol.Lighthouse or ActionSymbol.City or ActionSymbol.Balloon or ActionSymbol.Support;
 
     internal static void Draw(CanvasItem canvas, Vector2 center, ActionSymbol symbol, Color ink, float scale = 1)
     {
@@ -37,6 +37,16 @@ internal static class NavalGlyphArt
         }
         switch (symbol)
         {
+            case ActionSymbol.Support:
+                Poly(new[] { new Vector2(-7,2), new(-4,5), new(4,5), new(7,2), new(-7,2) });
+                for (int home = 0; home < 2; home++)
+                {
+                    float x = -4 + home * 4;
+                    Poly(new[] { new Vector2(x,2), new(x,-2), new(x+1.5f,-4), new(x+3,-2), new(x+3,2) });
+                    Line(x+1.5f,0,x+1.5f,1,.7f);
+                }
+                Line(0,-3,0,-7); Line(0,-7,4,-5); Line(4,-5,4,-2);
+                break;
             case ActionSymbol.Fishing:
                 Poly(new[] { new Vector2(-3,0), new(0,-3), new(4,-2.5f), new(6,0), new(4,2.5f), new(0,3), new(-3,0) });
                 Poly(new[] { new Vector2(-3,0), new(-6,-3), new(-6,3), new(-3,0) }, true);

@@ -13,10 +13,7 @@ internal sealed class NavalNavigationQuery
     private readonly Ship _ship;
     private readonly BattleVision _vision;
     private readonly bool _knowledge;
-<<<<<<< Updated upstream
     private readonly bool _freeCoast;
-=======
->>>>>>> Stashed changes
     private readonly IReadOnlySet<GridPosition> _forbidden;
     private readonly GridPosition? _patrolHome;
     private readonly HashSet<GridPosition> _blocked = new();
@@ -24,11 +21,7 @@ internal sealed class NavalNavigationQuery
     private readonly Dictionary<GridPosition, Cell> _cells = new();
     private readonly Dictionary<GridPosition, GridPosition[]> _neighbors = new();
     private readonly record struct Cell(bool Passable, bool TerrainPassable, int Cost);
-<<<<<<< Updated upstream
     public NavalNavigationQuery(GameBoard board, Ship ship, BattleVision vision, IEnumerable<Ship> ships, IReadOnlySet<GridPosition> forbidden, GridPosition? patrolHome, bool knowledge, bool freeCoast = false)
-=======
-    public NavalNavigationQuery(GameBoard board, Ship ship, BattleVision vision, IEnumerable<Ship> ships, IReadOnlySet<GridPosition> forbidden, GridPosition? patrolHome, bool knowledge)
->>>>>>> Stashed changes
     {
         _board = board;
         _ship = ship;
@@ -36,10 +29,7 @@ internal sealed class NavalNavigationQuery
         _forbidden = forbidden;
         _patrolHome = patrolHome;
         _knowledge = knowledge;
-<<<<<<< Updated upstream
         _freeCoast = freeCoast;
-=======
->>>>>>> Stashed changes
         foreach (var other in ships)
         {
             if (other.IsAirborne || other.Owner == ship.Owner || knowledge && !vision.IsVisible(ship.Owner, other.Position))
@@ -58,17 +48,10 @@ internal sealed class NavalNavigationQuery
             return existing;
         bool terrainPassable = _board.Contains(position) && !_forbidden.Contains(position) && Terrain(position) != TerrainType.Land && (_patrolHome is not { } home || _board.InRadius(home, position, 5));
         bool narrow = terrainPassable && _board.IsNarrowAt(position, p => _board.Contains(p) && Terrain(p) == TerrainType.Land);
-<<<<<<< Updated upstream
         if (!_freeCoast && _ship.IsMothership && narrow)
             terrainPassable = false;
         bool passable = terrainPassable && !_blocked.Contains(position) && (!_knowledge || _vision.State(_ship.Owner, position) != VisibilityState.RadarContact);
         double multiplier = _freeCoast || !terrainPassable ? 1 : narrow ? _ship.Definition.NarrowMovementCost : Terrain(position) == TerrainType.Coast ? _ship.Definition.CoastMovementCost : 1;
-=======
-        if (_ship.IsMothership && narrow)
-            terrainPassable = false;
-        bool passable = terrainPassable && !_blocked.Contains(position) && (!_knowledge || _vision.State(_ship.Owner, position) != VisibilityState.RadarContact);
-        double multiplier = !terrainPassable ? 1 : narrow ? _ship.Definition.NarrowMovementCost : Terrain(position) == TerrainType.Coast ? _ship.Definition.CoastMovementCost : 1;
->>>>>>> Stashed changes
         int cost = Ship.Whole(10 * Math.Max(multiplier, _threatened.Contains(position) ? 2 : 1));
         var cell = new Cell(passable, terrainPassable, cost);
         _cells.Add(position, cell);

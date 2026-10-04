@@ -1,8 +1,8 @@
 {
-  "copied_files": 237,
-  "version": "v020.4",
-  "windows": "v020.4/Ancient_Naval_v020.4_Windows.zip",
-  "notes": "v020.4/Ancient_Naval_v020.4_Notes_RU.md",
-  "playable": "v020.4/playable/Ancient Naval.exe",
-  "source": "v020.4/Ancient_Naval_v020.4_Source.zip"
+  "windows": "v020.6/Ancient_Naval_v020.6_Windows.zip",
+  "notes": "v020.6/Ancient_Naval_v020.6_Notes_RU.md",
+  "copied_files": 253,
+  "source": "v020.6/Ancient_Naval_v020.6_Source.zip",
+  "version": "v020.6",
+  "playable": "v020.6/playable/Ancient Naval.exe"
 }

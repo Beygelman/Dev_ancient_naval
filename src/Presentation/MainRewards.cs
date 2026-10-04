@@ -40,7 +40,7 @@ public partial class Main
                 FleetColor.Blue => ("Seafarers of the golden dome chart distant shores.", "Their church honours the celestial light that guides every voyage."),
                 FleetColor.Purple => ("Keepers of the silver shrine sail with quiet resolve.", "They honour moonlit spirits beneath the diamond sanctuary."),
                 FleetColor.Yellow => ("Children of the rose pyramid guard the sun's old wisdom.", "Their white summit receives offerings to the radiant heavens."),
-                FleetColor.White => ("Mariners of the black cross raise steadfast stone cities.", "Their faith follows the sacred cross through storm and silence."),
+                FleetColor.White => ("Mariners of the crimson R raise steadfast stone cities.", "Their faith follows the radiant R through storm and silence."),
                 FleetColor.Green => ("The ancient forest folk carry living sanctuaries across the sea.", "They honour the great tree and the spirits within its roots."),
                 _ => ("The crimson clans raise crystal sanctuaries among their cities.", "They honour the mountain spirits and the fire sleeping within the stone.")
             };

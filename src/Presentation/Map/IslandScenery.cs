@@ -7,16 +7,11 @@ using Godot;
 using Side = DevAncientNaval.Core.Units.Side;
 
 namespace DevAncientNaval.Presentation.Map;
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 public partial class BoardView
 {
     private IsometricProjection? _sceneryProjection;
     private readonly List<Scenery> _scenery = new();
     internal int TreeCount => _scenery.Count(item => item.Kind == 1);
-<<<<<<< Updated upstream
     internal int ConnectingMountainCount => _scenery.Count(item => item.Kind == 2 && item.Minor);
     internal IEnumerable<float> SummitSizes => _scenery.Where(item => item.Kind == 2 && !item.Minor).Select(item => item.Size);
     internal int MountainCount => _scenery.Count(item => item.Kind == 2);
@@ -124,49 +119,12 @@ public partial class BoardView
                 var c = peak.Lerp(shoulder[1], .22f);
                 SceneryTriangle(canvas, peak, a, b, C("d7dccb"));
                 SceneryTriangle(canvas, peak, b, c, C("d7dccb"));
-=======
-    internal int MountainCount => _scenery.Count(item => item.Kind == 2);
-    private sealed record Scenery(GridPosition Cell, Vector2 Point, float Size, int Kind, float Shade);
-
-    private void DrawIslandScenery(Node2D canvas)
-    {
-        if (!ReferenceEquals(_sceneryProjection, Projection)) BuildScenery();
-        foreach (var item in _scenery)
-        {
-            if (!Battle.Vision.IsExplored(Side.Player, item.Cell)) continue;
-            float dim = Battle.Vision.IsVisible(Side.Player, item.Cell) ? 0 : .57f;
-            var p = item.Point; float s = item.Size;
-            Color C(string hex) => new Color(hex).Darkened(dim);
-            if (item.Kind == 0)
-            {
-                canvas.DrawSetTransform(p, item.Shade, new Vector2(1, .5f));
-                canvas.DrawCircle(Vector2.Zero, s, new Color(C(item.Shade > 0 ? "acbf77" : "538e63"), .26f));
-                canvas.DrawSetTransform(Vector2.Zero);
-                canvas.DrawLine(p + new Vector2(-2, 1), p + new Vector2(-3, -2), C("7a9f60"), 1, true);
-            }
-            else if (item.Kind == 1)
-            {
-                canvas.DrawSetTransform(p + new Vector2(5, 2), -.1f, new Vector2(1, .4f));
-                canvas.DrawCircle(Vector2.Zero, s * .6f, new Color(0, .1f, .08f, .22f)); canvas.DrawSetTransform(Vector2.Zero);
-                canvas.DrawLine(p, p + new Vector2(0, -s * .9f), C("796f50"), Math.Max(1, s * .2f));
-                canvas.DrawColoredPolygon(new[] { p + new Vector2(0, -s * 2), p + new Vector2(s * .7f, -s * .65f), p + new Vector2(-s * .7f, -s * .65f) }, C("39785d"));
-                canvas.DrawColoredPolygon(new[] { p + new Vector2(0, -s * 2), p + new Vector2(-s * .7f, -s * .65f), p + new Vector2(-s * .15f, -s * .8f) }, C("639865"));
-            }
-            else
-            {
-                var peak = p + new Vector2(s * item.Shade * .2f, -s * 1.65f);
-                canvas.DrawColoredPolygon(new[] { p + new Vector2(-s, 0), peak, p + new Vector2(s, s * .2f), p + new Vector2(0, s * .35f) }, C("748d7b"));
-                canvas.DrawColoredPolygon(new[] { peak, p + new Vector2(s, s * .2f), p + new Vector2(s * .12f, s * .08f) }, C("536f67"));
-                canvas.DrawColoredPolygon(new[] { p + new Vector2(-s * .6f, -s * .2f), peak, p + new Vector2(-s * .15f, -s * .2f) }, C("a6b29a"));
-                if (s > 19) canvas.DrawColoredPolygon(new[] { peak, peak.Lerp(p + new Vector2(-s, 0), .24f), peak + new Vector2(0, s * .26f), peak.Lerp(p + new Vector2(s, s * .2f), .23f) }, C("d9decb"));
->>>>>>> Stashed changes
             }
         }
     }
 
     private void BuildScenery()
     {
-<<<<<<< Updated upstream
         EnsureIslandGeometry();
         _sceneryProjection = Projection;
         _scenery.Clear();
@@ -293,42 +251,5 @@ public partial class BoardView
     {
         if (MathF.Abs((b - a).Cross(c - a)) > .001f)
             canvas.DrawPrimitive(new[] { a, b, c }, new[] { color }, Array.Empty<Vector2>());
-=======
-        _sceneryProjection = Projection; _scenery.Clear();
-        var random = new Random(Board.Seed ^ 92173);
-        var towns = Battle.Villages.Select(v => v.Position).ToHashSet();
-        foreach (var tile in Board.Tiles.Where(t => t.Terrain == TerrainType.Land))
-        {
-            var center = Projection.GridToWorld(tile.Position); var polygon = Projection.Diamond(tile.Position);
-            var bounds = new Rect2(polygon[0], Vector2.Zero); foreach (var point in polygon) bounds = bounds.Expand(point);
-            Vector2 Sample() => bounds.Position + new Vector2((float)random.NextDouble() * bounds.Size.X, (float)random.NextDouble() * bounds.Size.Y);
-            for (int i = 0; i < 10; i++)
-            {
-                var point = Sample();
-                if (_landShapes.TryGetValue(tile.Position, out var shapes) && shapes.Any(shape => Geometry2D.IsPointInPolygon(point, shape))) _scenery.Add(new(tile.Position, point, 2 + (float)random.NextDouble() * 5, 0, (float)random.NextDouble() - .5f));
-            }
-            if (towns.Contains(tile.Position)) continue;
-            var world = Board.Center(tile.Position);
-            bool inland = Board.GetSurrounding(tile.Position).All(p => Board.GetTile(p).Terrain == TerrainType.Land);
-            // A winding ridge field links peaks across cells; a few separate outcrops remain.
-            double ridge = Math.Abs(Math.Sin(world.X * .27 + Math.Sin(world.Y * .31 + Board.Seed) * 1.6));
-            if (inland && (ridge < .63 || random.Next(9) == 0))
-                _scenery.Add(new(tile.Position, center, 24 + (float)random.NextDouble() * 20, 2, (float)random.NextDouble() - .5f));
-            if (!inland || ridge >= .42)
-            {
-                int count = random.Next(6, 12);
-                var grove = Sample().Lerp(center, .65f);
-                for (int i = 0; i < count; i++)
-                {
-                    float angle = (float)random.NextDouble() * Mathf.Tau;
-                    float radius = 3 + (float)random.NextDouble() * 16;
-                    var point = grove + Vector2.FromAngle(angle) * new Vector2(radius, radius * .55f);
-                    if (_landShapes.TryGetValue(tile.Position, out var shapes) && shapes.Any(shape => Geometry2D.IsPointInPolygon(point, shape)))
-                        _scenery.Add(new(tile.Position, point, 5 + (float)random.NextDouble() * 7, 1, 0));
-                }
-            }
-        }
-        _scenery.Sort((a, b) => a.Kind == 0 && b.Kind != 0 ? -1 : b.Kind == 0 && a.Kind != 0 ? 1 : a.Point.Y.CompareTo(b.Point.Y));
->>>>>>> Stashed changes
     }
 }

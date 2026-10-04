@@ -142,6 +142,13 @@ internal partial class TradeTraffic : Node2D
 
     private GridPosition[]? Route(GridPosition start,GridPosition finish)
     {
+        // A chain of nearby ports does not create a direct long-distance voyage.
+        if (_battle!.Rules.Ports.MaximumRouteLength > 0)
+        {
+            var direct = _network!.Routes.FirstOrDefault(route =>
+                route[0] == start && route[^1] == finish || route[0] == finish && route[^1] == start);
+            return direct is null ? null : (direct[0] == start ? direct.ToArray() : direct.Reverse().ToArray());
+        }
         if (!_adjacency.ContainsKey(start) || !_adjacency.ContainsKey(finish)) return null;
         var parents=new Dictionary<GridPosition,GridPosition>();
         var visited=new HashSet<GridPosition> { start };

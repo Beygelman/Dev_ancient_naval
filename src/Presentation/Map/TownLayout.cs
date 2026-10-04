@@ -24,13 +24,14 @@ internal static class TownLayout
             new Vector2(-12, -22), new Vector2(0, -22), new Vector2(12, -22),
             new Vector2(-24, -16), new Vector2(-12, -16), new Vector2(0, -16),
             new Vector2(12, -16), new Vector2(24, -16),
-            new Vector2(-24, -10), new Vector2(-12, -10),
-            new Vector2(12, -10), new Vector2(24, -10)
+            new Vector2(-30, -10), new Vector2(-18, -10), new Vector2(-6, -10),
+            new Vector2(6, -10), new Vector2(18, -10), new Vector2(30, -10),
+            new Vector2(-30, -4), new Vector2(30, -4)
         };
         return sites
             .OrderBy(p => p.Y).ThenBy(p => p.X)
             .Select((p, i) => new TownHouse(p + new Vector2((float)(random.NextDouble() - .5) * .7f,
-                (float)(random.NextDouble() - .5) * .45f), 12 + random.Next(4), 3 + (float)random.NextDouble(), i % 5))
+                (float)(random.NextDouble() - .5) * .45f), 17 + random.Next(4), 3 + (float)random.NextDouble(), i % 5))
             .OrderBy(h => h.Position.Y).ThenBy(h => h.Position.X)
             .ToArray();
     }
