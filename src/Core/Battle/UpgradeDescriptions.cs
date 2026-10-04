@@ -19,13 +19,11 @@ public static class UpgradeDescriptions
     public static string Description(UpgradeChoice choice, BattleRules? rules = null) => choice switch
     {
         UpgradeChoice.Mobility => "+1 movement",
-<<<<<<< Updated upstream
-        UpgradeChoice.FishingBoat => rules?.DynamicFleetCapacity == true
+        UpgradeChoice.FishingBoat => rules?.FishingCannonTowers == true
+            ? "Receive one free Support Brig. Collects resources and builds docks, cannon towers and lighthouses; no passive income. Requires a free fleet slot."
+            : rules?.DynamicFleetCapacity == true
             ? "Receive one free Fishing Schooner. Requires a free fleet slot."
             : "Receive one free Fishing Schooner",
-=======
-        UpgradeChoice.FishingBoat => "Receive one free Fishing Schooner",
->>>>>>> Stashed changes
         UpgradeChoice.Vision => "+2 vision and +2 radar range, including future radar",
         UpgradeChoice.Restoration => "+5 maximum HP and repair 2 HP at the start of each turn",
         UpgradeChoice.Balloon => rules is null ? "Persistent balloon: vision 8, bomb 6 + 2 splash every 3 turns" : $"Persistent balloon: vision {rules.Get(ShipClass.Balloon).VisualRange}, bomb {rules.Balloon.BombDamage} + {rules.Balloon.SplashDamage} splash every {rules.Balloon.CooldownTurns} turns",

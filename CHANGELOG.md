@@ -1,6 +1,27 @@
 # Ancient Naval change history
 
-<<<<<<< Updated upstream
+## v020.6 — 2026-10-04
+
+- Add persisted hints, accurate ready-object guidance, five-column turn confirmation and a hand-stamped end-turn parchment.
+- Remove new-voyage combat upkeep, add settlement income/dock sight, revise Granado reach/movement and equal double-charge damage.
+- Add pencil construction ghosts with future lighthouse lanes, treasury demolition, separated starts and size-dependent pirate counts.
+- Keep medium settlement buildings; refine bay rivers, shore curves and delta tint; add faction shrine effects and red R.
+- Increase bounded gulls with gunfire alarms; add retained wave relief and solid debris: separate decks, buildings, shrine pieces, falling masts and rolling cannon carriages with opaque immersion.
+- Place hint captions below their paper and add closeable event advice with native game screenshots, once per voyage and retained across Continue.
+- Preserve historical rules/save defaults and previous releases; ship native functional and frame-pacing evidence.
+
+## v020.5 — 3 October 2026 — The Painted Voyage
+
+New voyages open on an aged rolling parchment: fleet emblem, independent Lake/Bay/Sea/Ocean size, 1–4 rival figures, painted difficulty signs and four world illustrations. Wheel scrolling has no visible scrollbar. Embark leaves a four-finger handprint, folds the scroll, fades the view and descends toward the flagship before the elders' welcome. Language and interface scale are in Settings on both menus; English, Ukrainian and Dutch remain available.
+
+Fishing is now displayed as Support Brig, with workshop houses and a shared workshop icon. It collects supplies and builds docks, cannon towers and lighthouses without passive income. Repair restores 3 HP and spends the turn's remaining actions. New paid town levels cost 5/7/10/15 Thors; fishing docks yield +2. Direct port routes span at most six navigable tile transitions. Hovering a legal construction site shows a wireframe volume; cannon towers show fire range and lighthouses optical sight. Hidden/illegal sites have no blueprint.
+
+Towns use a consistent medium footprint fitted to adjoining inland ground, with five to seventeen homes and taller buildings as levels rise. Stronger within-cell river bends have variable banks and translucent estuaries cutting the painted beach. These illustrations do not change navigation. Uncollected sea ruins shine upward; collection extinguishes their glow and removes their information/actions while their scenery remains.
+
+The actual two-Thor flagship level reward is retained; its redundant upgrade-choice label is removed. Older saves retain their embedded balance; absent new size/port/support fields preserve legacy behavior. Start a new voyage for the complete new rules.
+
+Validation and captured native frames: [v020.5 milestone](docs/MILESTONE-v020.5.md). The working checkout had committed merge markers; complete pre-repair copies were preserved externally and current released code was recovered before development. No user Git checkout/index or historical release archive was replaced.
+
 ## v020.4 — 3 October 2026
 
 - Wider scrollable vertical papyrus, maximum 60% screen height, persisted interface scale 80–125%.
@@ -189,8 +210,6 @@ Validation and performance evidence: `docs/MILESTONE-0.15.md` and
 `docs/DEBUG-0.15.md`. Existing voyages retain their saved balance; start a new
 voyage to use the new economy.
 
-=======
->>>>>>> Stashed changes
 ## 0.14.1 — 30 September 2026
 
 ### Changed

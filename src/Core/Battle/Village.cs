@@ -2,27 +2,17 @@ using DevAncientNaval.Core.Grid;
 using DevAncientNaval.Core.Units;
 
 namespace DevAncientNaval.Core.Battle;
-<<<<<<< Updated upstream
 /// <summary>A coastal settlement occupies one land tile and has its own shipyard.</summary>
 public sealed class Village
 {
     public string Name { get; internal set; } = "";
-=======
-
-/// <summary>A coastal settlement occupies one land tile and has its own shipyard.</summary>
-public sealed class Village
-{
->>>>>>> Stashed changes
     public int Id { get; }
     public GridPosition Position { get; }
     public Side? Owner { get; internal set; }
     public int Level { get; internal set; } = 1;
     public double MaxHealth => Level * 5;
     public double Health { get; internal set; } = 5;
-<<<<<<< Updated upstream
     public bool HasPort { get; internal set; }
-=======
->>>>>>> Stashed changes
     public bool IsFortified { get; internal set; }
     public int TurnsOwned { get; internal set; }
     public bool HasProduced { get; internal set; }
@@ -31,13 +21,9 @@ public sealed class Village
     public int VisualRange => IsFortified ? 5 : 3;
     public int IncomePerTurn => Owner is null || Health <= 0 ? 0 : Level;
 
-<<<<<<< Updated upstream
     internal Village(int id, GridPosition position)
     {
         Id = id;
         Position = position;
     }
-=======
-    internal Village(int id, GridPosition position) { Id = id; Position = position; }
->>>>>>> Stashed changes
 }

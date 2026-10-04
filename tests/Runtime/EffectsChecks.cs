@@ -7,23 +7,15 @@ using DevAncientNaval.Core.Units;
 using DevAncientNaval.Core.World;
 using DevAncientNaval.Presentation;
 using DevAncientNaval.Presentation.Map;
-<<<<<<< Updated upstream
 using DevAncientNaval.Presentation.UI;
-=======
->>>>>>> Stashed changes
 using Godot;
 using Side = DevAncientNaval.Core.Units.Side;
 
 namespace DevAncientNaval.Tests.Runtime;
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 /// <summary>Real engine checks for visual salvos, delayed impact, movement and
 /// bounded environment effects. Core damage must be independent of pellet count.</summary>
 public partial class EffectsChecks : Node
 {
-<<<<<<< Updated upstream
     public Main Game { get; set; } = null !;
 
     private int _checks;
@@ -40,6 +32,9 @@ public partial class EffectsChecks : Node
         foreach (var tile in Game.Battle.Board.Tiles)
             Game.Battle.Vision.RevealCombat(Side.Player, tile.Position);
         Game.Battle.Vision.Recompute(Game.Battle.Ships, 1, Game.Battle.Villages);
+        foreach(var award in Game.Battle.PendingAwards.ToArray())Game.Battle.ClaimAward(award.Owner,award.Id);
+        // The rendering fixture tests gun choreography, not the encounter modal.
+        Game.LoadScenario(Game.Battle);
         Game.Refresh();
     }
 
@@ -52,24 +47,6 @@ public partial class EffectsChecks : Node
         Check(GetViewport().GetTexture().GetImage().SavePng(arg[10..].Replace(".png", "-" + name + ".png")) == Error.Ok, "Capture " + name);
     }
 
-=======
-    public Main Game { get; set; } = null!;
-    private int _checks;
-    private void Check(bool ok, string name) { if (!ok) throw new Exception(name); _checks++; }
-    private async Task Wait(float seconds) => await ToSignal(GetTree().CreateTimer(seconds), SceneTreeTimer.SignalName.Timeout);
-    private void Reveal()
-    {
-        foreach (var tile in Game.Battle.Board.Tiles) Game.Battle.Vision.RevealCombat(Side.Player, tile.Position);
-        Game.Battle.Vision.Recompute(Game.Battle.Ships, 1, Game.Battle.Villages); Game.Refresh();
-    }
-    private async Task Capture(string name)
-    {
-        string? arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--capture="));
-        if (arg is null || DisplayServer.GetName() == "headless") return;
-        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
-        Check(GetViewport().GetTexture().GetImage().SavePng(arg[10..].Replace(".png", "-" + name + ".png")) == Error.Ok, "Capture " + name);
-    }
->>>>>>> Stashed changes
     public override async void _Ready()
     {
         try
@@ -77,7 +54,6 @@ public partial class EffectsChecks : Node
             await Wait(.05f);
             await Salvos();
             await FleetGallery();
-<<<<<<< Updated upstream
             await RotationAndSchools();
             await OutpostAndReef();
             await PresentedSinking();
@@ -204,13 +180,8 @@ public partial class EffectsChecks : Node
         }
 
         Check(Game.Battle.CaptureVillage(Side.Player, town.Id).Success && Game.Battle.FortifyVillage(Side.Player, town.Id).Success, "Captured village raises its outpost");
-        for (int turn = 0; turn < 2; turn++)
-        {
-            Game.Battle.EndTurn(Side.Player);
-            Game.Battle.EndTurn(Side.Enemy);
-        }
-
-        Check(town.Level == 2, "Outpost fixture reaches firing level");
+        Check(Game.Battle.UpgradeVillage(Side.Player,town.Id).Success && town.Level==2,
+            "Outpost fixture pays for firing level instead of obsolete timed growth");
         Reveal();
         Game.CancelOrder();
         Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(new(6, 6));
@@ -239,50 +210,10 @@ public partial class EffectsChecks : Node
         Check(Game.Fleet.ProjectilePosition is null && Game.Battle.Find(3)!.Health == 3, "Village animation leaves committed damage unchanged");
     }
 
-=======
-            GD.Print($"PASS: {_checks} effects checks (salvo counts, unchanged damage, smooth movement, wildlife, veterans).");
-            GetTree().Quit();
-        }
-        catch (Exception error) { GD.PushError(error.ToString()); GetTree().Quit(1); }
-    }
-    private async Task Salvos()
-    {
-        var rules = Game.Battle.Rules;
-        foreach (var (kind, count) in new[] { (ShipClass.Garrison, 1), (ShipClass.Invader, 3), (ShipClass.Kolonel, 3), (ShipClass.Mothership, 2), (ShipClass.Togus, 1) })
-        {
-            var origin = new GridPosition(8, 8);
-            var target = new GridPosition(kind == ShipClass.Togus ? 12 : 10, 8);
-            var setup = kind == ShipClass.Mothership
-                ? new[] { (Side.Player, kind, origin), (Side.Enemy, ShipClass.Mothership, target) }
-                : new[] { (Side.Player, ShipClass.Mothership, new GridPosition(0, 0)), (Side.Enemy, ShipClass.Mothership, target), (Side.Player, kind, origin) };
-            Game.LoadScenario(new BattleState(new GameBoard(20, 20, _ => TerrainType.Water), rules, setup, Array.Empty<GridPosition>()));
-            Reveal();
-            Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(new(9, 8)); Game.MapCamera.Zoom = Vector2.One * 1.6f;
-            Game.MapCamera.ForceUpdateScroll(); Game.FastChecks = false; await Wait(.35f);
-            var ship = Game.Battle.At(origin)!; var defender = Game.Battle.At(target)!;
-            double hp = defender.Health, damage = Game.Battle.Damage(ship, defender);
-            Game.SelectCell(origin); Game.SelectCell(target);
-            float deckBefore = Game.Fleet.DeckAngle(ship.Id);
-            var order = Game.CurrentOrder; await Wait(.095f);
-            Check(Game.Fleet.TurningForShot && Game.Fleet.ActiveProjectileCount == 0,
-                "The battery aims before any cannonball launches");
-            Check(Game.Battle.Find(2)!.Health == hp - damage, "Salvo damage is applied once regardless of projectile count");
-            await Capture("salvo-" + kind); await order;
-            Check(Game.Fleet.CompletedSalvos.Count > 0 && Game.Fleet.CompletedSalvos[0] == (count, count), $"{kind}: all {count} visual cannonballs launch and land");
-            Check(Game.Fleet.ActiveProjectileCount == 0, "Every shell completes its flight");
-            Check(kind == ShipClass.Togus
-                ? Math.Abs(Game.Fleet.DeckAngle(ship.Id) - deckBefore) < .001
-                : Math.Abs(Game.Fleet.DeckAngle(ship.Id) - deckBefore) > .01,
-                "Mortar aims its barrel; cannon ships turn broadside");
-            await Capture("impact-" + kind);
-        }
-    }
->>>>>>> Stashed changes
     private async Task FleetGallery()
     {
         var town = new GridPosition(10, 10);
         var rules = Game.Battle.Rules;
-<<<<<<< Updated upstream
         Game.LoadScenario(new BattleState(new GameBoard(20, 20, p => p.X >= 10 && p.X <= 12 && p.Y >= 10 && p.Y <= 12 ? TerrainType.Land : TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(5, 7)), (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)), (Side.Player, ShipClass.Kolonel, new GridPosition(8, 7)), (Side.Player, ShipClass.Invader, new GridPosition(11, 7)), (Side.Player, ShipClass.Togus, new GridPosition(14, 7)), (Side.Player, ShipClass.Garrison, new GridPosition(9, 10)), (Side.Player, ShipClass.Fishing, new GridPosition(15, 10)), (Side.Enemy, ShipClass.Fishing, new GridPosition(8, 6)), (Side.Enemy, ShipClass.Fishing, new GridPosition(9, 6)), (Side.Enemy, ShipClass.Fishing, new GridPosition(10, 6)) }, new[] { new GridPosition(8, 10), new GridPosition(14, 10) }, villageSpots: new[] { town }));
         // Earn the veteran hull through real combat rather than mutating visual state.
         for (int enemy = 8; enemy <= 10; enemy++)
@@ -312,41 +243,11 @@ public partial class EffectsChecks : Node
         Game.Ambience.SpawnDolphin(new(14, 10));
         await Wait(1.5f);
         Check(Game.Ambience.WildlifeCount >= 4, "Visible fish waters can host gulls and a dolphin");
-=======
-        Game.LoadScenario(new BattleState(new GameBoard(20, 20, p => p.X >= 10 && p.X <= 12 && p.Y >= 10 && p.Y <= 12 ? TerrainType.Land : TerrainType.Water), rules,
-            new[] {
-                (Side.Player,ShipClass.Mothership,new GridPosition(5,7)), (Side.Enemy,ShipClass.Mothership,new GridPosition(18,18)),
-                (Side.Player,ShipClass.Kolonel,new GridPosition(8,7)), (Side.Player,ShipClass.Invader,new GridPosition(11,7)),
-                (Side.Player,ShipClass.Togus,new GridPosition(14,7)), (Side.Player,ShipClass.Garrison,new GridPosition(9,10)),
-                (Side.Player,ShipClass.Fishing,new GridPosition(15,10)),
-                (Side.Enemy,ShipClass.Fishing,new GridPosition(8,6)), (Side.Enemy,ShipClass.Fishing,new GridPosition(9,6)),
-                (Side.Enemy,ShipClass.Fishing,new GridPosition(10,6))
-            }, new[] { new GridPosition(8, 10), new GridPosition(14, 10) }, villageSpots: new[] { town }));
-        // Earn the veteran hull through real combat rather than mutating visual state.
-        for (int enemy = 8; enemy <= 10; enemy++)
-        {
-            Reveal(); Check(Game.Battle.Attack(Side.Player, 3, enemy).Success, "Veterancy preparation shot");
-            Check(Game.Battle.Attack(Side.Player, 3, enemy).Success, "Veterancy preparation sinking");
-            Game.Battle.EndTurn(Side.Player); Game.Battle.EndTurn(Side.Enemy);
-        }
-        Check(Game.Battle.Find(3)!.IsVeteran, "Gallery Kolonel earns its quarterdeck and figurehead");
-        var village = Game.Battle.Villages.Single();
-        Game.Battle.AttackVillage(Side.Player, 6, village.Id);
-        Game.Battle.EndTurn(Side.Player); Game.Battle.EndTurn(Side.Enemy);
-        Game.Battle.AttackVillage(Side.Player, 6, village.Id);
-        Game.Battle.EndTurn(Side.Player); Game.Battle.EndTurn(Side.Enemy);
-        Check(Game.Battle.CaptureVillage(Side.Player, village.Id).Success, "Defeated town captured and retained");
-        Reveal(); Game.CancelOrder();
-        Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(new(10, 8)); Game.MapCamera.Zoom = Vector2.One * 1.12f; Game.MapCamera.ForceUpdateScroll();
-        Game.Ambience.SpawnGulls(new(8, 10), 3); Game.Ambience.SpawnDolphin(new(14, 10));
-        await Wait(1.5f); Check(Game.Ambience.WildlifeCount >= 4, "Visible fish waters can host gulls and a dolphin");
->>>>>>> Stashed changes
         await Capture("fleet-and-wildlife");
         Game.SelectCell(new(5, 7));
         var start = Game.Fleet.Projection.GridToWorld(new(5, 7));
         var result = Game.Battle.Move(Side.Player, 1, new(6, 7));
         Check(result.Success, "Mothership movement fixture");
-<<<<<<< Updated upstream
         var animation = Game.Fleet.Animate(result);
         await Wait(.10f);
         float early = Game.Fleet.AnimatedPosition.DistanceTo(start);
@@ -358,17 +259,6 @@ public partial class EffectsChecks : Node
         await Wait(.15f);
         Check(Game.Fleet.EffectCount > 0 && Game.Fleet.EffectCount <= 412, "Movement and impact effects remain bounded");
         Check(ShipVisualProfile.For(ShipClass.Mothership).TravelSeconds > ShipVisualProfile.For(ShipClass.Kolonel).TravelSeconds && ShipVisualProfile.For(ShipClass.Kolonel).TravelSeconds > ShipVisualProfile.For(ShipClass.Garrison).TravelSeconds, "Larger hulls travel with slower inertia");
-=======
-        var animation = Game.Fleet.Animate(result); await Wait(.10f);
-        float early = Game.Fleet.AnimatedPosition.DistanceTo(start);
-        await Wait(.18f); float middle = Game.Fleet.AnimatedPosition.DistanceTo(start);
-        Check(middle - early > early * 1.5f, "Large ship accelerates smoothly after leaving rest");
-        await Capture("mothership-underway"); await animation; await Wait(.15f);
-        Check(Game.Fleet.EffectCount > 0 && Game.Fleet.EffectCount <= 412, "Movement and impact effects remain bounded");
-        Check(ShipVisualProfile.For(ShipClass.Mothership).TravelSeconds > ShipVisualProfile.For(ShipClass.Kolonel).TravelSeconds &&
-            ShipVisualProfile.For(ShipClass.Kolonel).TravelSeconds > ShipVisualProfile.For(ShipClass.Garrison).TravelSeconds,
-            "Larger hulls travel with slower inertia");
->>>>>>> Stashed changes
         await Capture("fleet-at-rest");
     }
 }

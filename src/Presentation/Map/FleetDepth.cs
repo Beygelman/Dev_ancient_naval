@@ -93,8 +93,6 @@ public partial class FleetView
                     try
                     {
                         DrawShip(hull.Ship, Vector2.Zero);
-                        if (_sinking.ContainsKey(hull.Ship.Id))
-                            DrawWreck(hull.Ship, Vector2.Zero);
                     }
                     finally
                     {
@@ -130,10 +128,9 @@ public partial class FleetView
         var (bob, roll) = HullMotion(ship);
         hull.Canvas.Position = point + bob;
         hull.Canvas.Rotation = roll;
-        hull.Canvas.Visible = true;
+        hull.Canvas.Visible = !_sinking.ContainsKey(ship.Id);
         hull.Canvas.ZIndex = ship.Class == Core.Units.ShipClass.Balloon ? 1 : 0;
-        float sink = _sinking.GetValueOrDefault(ship.Id);
-        hull.Canvas.Modulate = new Color(1, 1, 1, 1 - sink * sink);
+        hull.Canvas.Modulate = Colors.White;
         hull.Badge.Position = point + bob + HealthBadgeOffset(ship.Class);
         hull.Badge.Visible = !_sinking.ContainsKey(ship.Id);
         bool healthAnimating = hull.Health.Active(_clock);

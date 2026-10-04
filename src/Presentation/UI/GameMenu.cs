@@ -4,11 +4,11 @@ using Godot;
 namespace DevAncientNaval.Presentation.UI;
 public partial class DebugHud
 {
-<<<<<<< Updated upstream
     private Control _menuOverlay = null !;
     private PanelContainer _menuPanel = null !;
     private ScrollContainer _menuScroll = null!;
     private VBoxContainer _menuBody = null!;
+    private VBoxContainer _menuMain = null!, _menuSettings = null!;
     private Button _godEyeButton = null !;
     private Button _creativeButton = null !;
     public bool MenuVisible => _menuOverlay?.Visible == true;
@@ -32,13 +32,13 @@ public partial class DebugHud
         shade.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         _menuPanel = Panel(_menuOverlay);
         _menuPanel.CustomMinimumSize = new(340, 0);
+        _menuBody = new VBoxContainer();
+        _menuScroll = PapyrusModal.Wrap(_menuPanel, _menuBody, "GameMenuScroll");
         var column = new VBoxContainer();
-        _menuBody = column;
+        _menuMain = column;
         column.AddThemeConstantOverride("separation", 12);
-        _menuScroll = PapyrusModal.Wrap(_menuPanel, column, "GameMenuScroll");
+        _menuBody.AddChild(column);
         column.AddChild(Label("Menu", 25, true));
-        column.AddChild(new LanguageButtons());
-        column.AddChild(new UiScaleSlider());
         void Add(string name, string title, Action action)
         {
             var button = TextButton(title, action);
@@ -50,6 +50,12 @@ public partial class DebugHud
         {
             SetMenuVisible(false);
             RestartRequested?.Invoke();
+        });
+        Add("GameSettings", "Settings", () =>
+        {
+            _menuMain.Hide();
+            _menuSettings.Show();
+            Layout();
         });
         _creativeButton = TextButton("Creative: off", () => CreativeRequested?.Invoke());
         _creativeButton.Name = "Creative";
@@ -69,47 +75,34 @@ public partial class DebugHud
             SetMenuVisible(false);
             HomeRequested?.Invoke();
         });
-=======
-    private Control _menuOverlay = null!;
-    private PanelContainer _menuPanel = null!;
-    private Button _creativeButton = null!;
-    public bool MenuVisible => _menuOverlay?.Visible == true;
-    public event Action? CreativeRequested, ExitRequested, MenuChanged, HomeRequested;
-    private void BuildGameMenu()
-    {
-        _menuOverlay = new Control { Name = "GameMenu", MouseFilter = Control.MouseFilterEnum.Stop };
-        _root.AddChild(_menuOverlay); _menuOverlay.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        var shade = new ColorRect { Color = new Color(.01f, .035f, .05f, .55f), MouseFilter = Control.MouseFilterEnum.Stop };
-        _menuOverlay.AddChild(shade); shade.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        _menuPanel = Panel(_menuOverlay); _menuPanel.CustomMinimumSize = new(340, 0);
-        var column = new VBoxContainer(); column.AddThemeConstantOverride("separation", 12); _menuPanel.AddChild(column);
-        column.AddChild(Label("Menu", 25, true));
-        void Add(string name, string title, Action action)
-        {
-            var button = TextButton(title, action); button.Name = name; column.AddChild(button);
-        }
-        Add("NewGame", "New game", () => { SetMenuVisible(false); RestartRequested?.Invoke(); });
-        _creativeButton = TextButton("Creative: off", () => CreativeRequested?.Invoke()); _creativeButton.Name = "Creative"; column.AddChild(_creativeButton);
-        column.AddChild(Label("Free ships, docks and fish collection", 14, true));
-        Add("CloseMenu", "Return to game", () => SetMenuVisible(false));
-        Add("MainMenu", "Save and return to title", () => { SetMenuVisible(false); HomeRequested?.Invoke(); });
->>>>>>> Stashed changes
         Add("ExitGame", "Exit game", () => ExitRequested?.Invoke());
+        _menuSettings = new VBoxContainer { Name = "GameSettingsBody" };
+        _menuSettings.AddThemeConstantOverride("separation", 12);
+        _menuBody.AddChild(_menuSettings);
+        _menuSettings.AddChild(Label("Settings", 25, true));
+        _menuSettings.AddChild(new LanguageButtons());
+        _menuSettings.AddChild(new UiScaleSlider());
+        _menuSettings.AddChild(new UiHintsToggle());
+        var back = TextButton("Back", () =>
+        {
+            _menuSettings.Hide();
+            _menuMain.Show();
+            Layout();
+        });
+        back.Name = "CloseGameSettings";
+        _menuSettings.AddChild(back);
+        _menuSettings.Hide();
         _menuOverlay.Hide();
     }
 
     public void SetMenuVisible(bool visible)
     {
-<<<<<<< Updated upstream
         if (visible && _restart.Disabled)
             return;
         _menuOverlay.Visible = visible;
+        if (visible) { _menuMain.Show(); _menuSettings.Hide(); }
         MenuChanged?.Invoke();
         Layout();
-=======
-        if (visible && _restart.Disabled) return;
-        _menuOverlay.Visible = visible; MenuChanged?.Invoke(); Layout();
->>>>>>> Stashed changes
     }
 
     private void UpdateGodEyeLabel(bool enabled, bool victory)
@@ -120,24 +113,17 @@ public partial class DebugHud
 
     private void UpdateCreativeLabel(bool enabled)
     {
-<<<<<<< Updated upstream
         if (_creativeButton is not null)
             _creativeButton.Text = enabled ? "Creative: on ✓" : "Creative: off";
-=======
-        if (_creativeButton is not null) _creativeButton.Text = enabled ? "Creative: on ✓" : "Creative: off";
->>>>>>> Stashed changes
     }
 
     public override void _UnhandledInput(InputEvent input)
     {
         if (input is InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape })
-<<<<<<< Updated upstream
         {
-            SetMenuVisible(!MenuVisible);
+            if (TurnConfirmationVisible) CloseTurnConfirmation();
+            else SetMenuVisible(!MenuVisible);
             GetViewport().SetInputAsHandled();
         }
-=======
-        { SetMenuVisible(!MenuVisible); GetViewport().SetInputAsHandled(); }
->>>>>>> Stashed changes
     }
 }

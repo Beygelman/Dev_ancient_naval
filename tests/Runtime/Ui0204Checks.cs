@@ -71,13 +71,14 @@ public partial class Ui0204Checks : Node
     {
         var size = UiScale.LogicalViewport(this);
         Check(paper.Size.Y <= size.Y * .6f + 2, context + " is limited to 60% of the screen height");
-        Check(paper.Size.X <= Math.Min(PapyrusModal.Width, size.X - 24) + 2,
+        float maxWidth = paper.Name == "VoyageSetupPaper" ? 420 : PapyrusModal.Width;
+        Check(paper.Size.X <= Math.Min(maxWidth, size.X - 24) + 2,
             context + $" has a bounded readable width without horizontal clipping: paper={paper.Size}, viewport={size}; "
             + string.Join("; ", Nodes(paper).OfType<Control>().Where(node => node.GetCombinedMinimumSize().X > 250)
                 .Select(node => $"{node.GetPath()} min={node.GetCombinedMinimumSize()} size={node.Size}")));
         var scroll = Nodes(paper).OfType<ScrollContainer>().Single();
         Check(scroll.HorizontalScrollMode == ScrollContainer.ScrollMode.Disabled
-            && scroll.VerticalScrollMode == ScrollContainer.ScrollMode.Auto,
+            && scroll.VerticalScrollMode == (paper.Name == "VoyageSetupPaper" ? ScrollContainer.ScrollMode.ShowNever : ScrollContainer.ScrollMode.Auto),
             context + " keeps native vertical scrolling available for its full contents");
     }
     private async Task CheckModalFamilies()
@@ -92,10 +93,8 @@ public partial class Ui0204Checks : Node
                 DevAncientNaval.Presentation.UI.Language.Set(locale, persist: false);
                 Game.LoadScenario(Fixture(3, choice: true)); await Frames();
                 Check(Game.Hud.UpgradeVisible, "upgrade choices open in " + locale);
-                Check(Nodes(Game.Hud).OfType<Label>().Single(node => node.Name == "UpgradeLevelReward").Text
-                    == $"+{Game.Battle.Rules.LevelCurrencyRewards[1]} · Level reward"
-                    && !Nodes(Game.Hud).OfType<Label>().Any(node => node.Text == "0 · Level reward"),
-                    "the level reward is shown once with its actual amount rather than as option prices");
+                Check(!Nodes(Game.Hud).OfType<Label>().Any(node => node.Name == "UpgradeLevelReward"),
+                    "mystical upgrade choices omit currency reward captions");
                 var upgrade = Nodes(Game.Hud).OfType<PanelContainer>().Single(node => node.Name == "UpgradePapyrus");
                 CheckPaper(upgrade, $"{window} {locale} upgrade parchment");
                 foreach (var button in Nodes(upgrade).OfType<MysticUpgradeButton>().Where(node => node.Visible))
@@ -161,7 +160,7 @@ public partial class Ui0204Checks : Node
             Click(upgrade, upgrade.IconCenter); await Game.CurrentOrder; await Frames();
             Check(battle.Villages.Single().Level == 2 && battle.Credits(Side.Player) == credits - 5,
                 "a real scaled sector click calls Main and pays for the town upgrade once");
-            Check(upgrade.Disabled && upgrade.Cost == 8 && Math.Abs(upgrade.CenterAngle - Mathf.Pi / 2) < .001,
+            Check(upgrade.Disabled && upgrade.Cost == 7 && Math.Abs(upgrade.CenterAngle - Mathf.Pi / 2) < .001,
                 "the next price updates immediately and construction locks for this turn");
             Check(battle.Villages.Single().Health < battle.Villages.Single().MaxHealth && repair.Disabled,
                 "paid construction blocks same-turn repair even while the town still needs healing");
@@ -173,13 +172,14 @@ public partial class Ui0204Checks : Node
         Game.LoadScenario(Fixture(townLevel: 3, port: true)); Game.SelectCell(new(8, 8)); await Frames();
         var higher = Nodes(Game.Hud).OfType<SectorButton>().Single(node => node.Name == "ActionVillageUpgrade");
         Nodes(Game.Hud).OfType<RadialPapyrus>().Single(node => node.Name == "ActionPapyrus")._Process(1);
-        Check(higher.Cost == 12 && Math.Abs(higher.CenterAngle - Mathf.Pi / 2) < .001,
+        Check(higher.Cost == 10 && Math.Abs(higher.CenterAngle - Mathf.Pi / 2) < .001,
             "adding a port changes the action count without shifting the central upgrade");
         Game.Hud.ShowInformation(Game.Battle, new(8, 8)); await Frames();
         Check(Game.Hud.InformationText.Contains("paid upgrades") && !Game.Hud.InformationText.Contains("grows after two turns"),
             "town counsel explains paid progression rather than automatic growth");
         Game.Hud.CloseMenus();
         Game.Hud.SetMenuVisible(true); await Frames();
+        Click(Nodes(Game.Hud).OfType<Button>().Single(node => node.Name == "GameSettings")); await Frames();
         var slider = Nodes(Game.Hud).OfType<HSlider>().Single(node => node.Name == "InterfaceScale");
         Click(slider, new Vector2(slider.Size.X * .78f, slider.Size.Y * .5f)); await Frames();
         Check(UiScale.Value >= UiScale.Minimum && UiScale.Value <= UiScale.Maximum

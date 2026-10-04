@@ -11,6 +11,8 @@ public partial class BoardView
     private readonly Dictionary<DevAncientNaval.Core.Grid.GridPosition, Sprite2D> _treasuryRuinSprites = new();
     private ShaderMaterial? _treasuryReadyMaterial;
     internal int TreasuryRuinModelCount => _scenery.Count(p => p.Kind == 4);
+    internal bool TreasuryRuinVisible(DevAncientNaval.Core.Grid.GridPosition cell) =>
+        _treasuryRuinSprites.TryGetValue(cell, out var sprite) && sprite.Visible;
     internal IEnumerable<int> TreasuryRuinVariants => _scenery.Where(p => p.Kind == 4).Select(p => (int)p.Shade);
     private void AddTreasuryRuins()
     {
@@ -47,8 +49,12 @@ public partial class BoardView
     }
     private void RefreshTreasuryRuinHighlights()
     {
+        var observed = Battle.ObservedTreasuryRuins(Side.Player).Select(t => t.Position).ToHashSet();
         foreach (var (cell, sprite) in _treasuryRuinSprites)
         {
+            // Destruction changes the observed site, not the entire scenery atlas.
+            // Hidden sites retain their last observation rather than revealing demolition.
+            sprite.Visible = observed.Contains(cell) && Battle.Vision.IsExplored(Side.Player, cell);
             bool ready = Battle.Vision.IsVisible(Side.Player, cell) && Battle.TreasuryAt(cell) is not null &&
                 Battle.At(cell) is { Owner: Side.Player } ship && Battle.CanLootTreasury(Side.Player, ship.Id);
             sprite.Material = ready ? (_treasuryReadyMaterial ??= TargetHighlightArt.Material(false, false, new Color("efe0a2"))) : _sceneryMaterial;

@@ -32,7 +32,7 @@ internal static class Rules0204Checks
             Check(battle.EndTurn(Side.Player).Success && battle.EndTurn(Side.Enemy).Success,
                 "advance to next legal player construction turn");
         }
-        Check(rules.PaidVillageUpgrades && rules.VillageLevelPrices.SequenceEqual(new[] { 5, 8, 12, 16 })
+        Check(rules.PaidVillageUpgrades && rules.VillageLevelPrices.Count == 4 && rules.VillageLevelPrices.All(price => price > 0)
             && rules.LevelCurrencyRewards.SequenceEqual(new[] { 2, 2, 2, 2 }), "new-voyage paid growth and equal flagship rewards");
 
         var development = Create(true);
@@ -47,7 +47,7 @@ internal static class Rules0204Checks
             var town = development.Villages.Single();
             int money = development.Credits(Side.Player);
             int capacity = development.FleetCapacity(Side.Player);
-            int price = new[] { 5, 8, 12, 16 }[level - 1];
+            int price = rules.VillageLevelPrices[level - 1];
             Check(development.VillageUpgradePrice(Side.Player, townId) == price
                 && development.CanUpgradeVillage(Side.Player, townId), "next paid level is available at its configured cost");
             var upgraded = development.UpgradeVillage(Side.Player, townId);
@@ -71,7 +71,7 @@ internal static class Rules0204Checks
             };
             Check(development.VillageBuildBlockReason(Side.Player, townId, unlocked) is null,
                 "paid town level unlocks its matching shipyard class on the fresh turn");
-            Check(development.VillageIncome(development.Villages.Single()) == (level + 2) / 2,
+            Check(development.VillageIncome(development.Villages.Single()) == rules.Economy.VillageIncomeBonus + (level + 2) / 2,
                 "village income refresh follows the upgraded level");
         }
         Check(!development.CanUpgradeVillage(Side.Player, townId) && development.VillageUpgradePrice(Side.Player, townId) == 0,

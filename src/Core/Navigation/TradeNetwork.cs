@@ -16,10 +16,10 @@ public sealed class TradeNetwork
     public bool Contains(GridPosition from, GridPosition to) => _edges.Contains((from, to));
     public bool IsEmpty => _edges.Count == 0;
 
-    internal static TradeNetwork Create(GameBoard board, GridPosition[] ports, IReadOnlySet<GridPosition> forbidden)
+    internal static TradeNetwork Create(GameBoard board, GridPosition[] ports, IReadOnlySet<GridPosition> forbidden, int maximumRouteLength = 0, Func<GridPosition, bool>? navigable = null)
     {
         var result = new TradeNetwork();
-        bool Sea(GridPosition p) => board.GetTile(p).Terrain != TerrainType.Land && !forbidden.Contains(p);
+        bool Sea(GridPosition p) => (navigable?.Invoke(p) ?? board.GetTile(p).Terrain != TerrainType.Land) && !forbidden.Contains(p);
         int? Cost(GridPosition from, GridPosition to)
         {
             if (!Sea(to))
@@ -44,7 +44,7 @@ public sealed class TradeNetwork
         {
             if (!Sea(ports[i]))
                 continue;
-            var search = PathSearch.Find(ports[i], board.Tiles.Count, board.GetSurrounding, Cost);
+            var search = PathSearch.Find(ports[i], maximumRouteLength > 0 ? maximumRouteLength : board.Tiles.Count, board.GetSurrounding, Cost);
             for (int j = i + 1; j < ports.Length; j++)
             {
                 if (!search.Costs.ContainsKey(ports[j]))

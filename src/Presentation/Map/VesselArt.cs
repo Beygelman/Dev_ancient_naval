@@ -46,6 +46,18 @@ internal sealed class VesselArt
             }
             _canvas.DrawLine(_p(-length + 8, side * (width - 1.5f), 4), _p(length - 9, side * (width - 1.5f), 4), new("e1caa1"), .8f, true);
         }
+        if (fishing)
+        {
+            // A compact working settlement, echoing the flagship without its sanctuary.
+            Cabin(-15, -3, 5, 10, 8, 12, accent);
+            Cabin(-2, 4, 1.5f, 9, 7, 10, accent.Darkened(.12f));
+            Cabin(12, -3, 1.5f, 8, 7, 8, accent.Lightened(.1f));
+            _canvas.DrawLine(_p(5,-5,2), _p(5,-5,22), new("a48b62"), 1.6f, true);
+            _canvas.DrawLine(_p(5,-5,22), _p(18,-5,18), new("c5ae82"), 1.5f, true);
+            _canvas.DrawLine(_p(18,-5,18), _p(18,-5,5), new("827458"), .8f, true);
+            _canvas.DrawArc(_p(18,-5,5), 2, 0, Mathf.Pi, 8, new("827458"), .8f, true);
+            return;
+        }
         // Cannon carriages have true deck anchors; dark muzzles face out over the rail.
         if (!fishing && !heavy)
         {

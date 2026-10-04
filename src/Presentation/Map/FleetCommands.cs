@@ -9,11 +9,7 @@ using Godot;
 using Side = DevAncientNaval.Core.Units.Side;
 
 namespace DevAncientNaval.Presentation.Map;
-<<<<<<< Updated upstream
 /// <summary>Plays visibility-safe commands and commits staged Core impacts after each flight.</summary>
-=======
-/// <summary>Plays committed commands using their visibility-safe snapshots.</summary>
->>>>>>> Stashed changes
 public partial class FleetView
 {
     private async Task TweenValue(double duration, Action<float> update)
@@ -27,7 +23,6 @@ public partial class FleetView
         await ToSignal(tween, Tween.SignalName.Finished);
     }
 
-<<<<<<< Updated upstream
     public async Task Animate(CommandResult result, Vector2? targetBefore = null, PresentedCommand? presentation = null)
     {
         EnsureVisualBattle();
@@ -46,15 +41,6 @@ public partial class FleetView
         try
         {
             await AnimateOutposts(result, presentation);
-=======
-    public async Task Animate(CommandResult result, Vector2? targetBefore = null)
-    {
-        ShowIncome(result);
-        CompletedSalvos.Clear();
-        _feedbackColor = new("ff8f85");
-        try
-        {
->>>>>>> Stashed changes
             foreach (var splash in result.Splash ?? Array.Empty<CombatShot>())
                 if (splash.TargetVisibleToPlayer)
                 {
@@ -69,11 +55,7 @@ public partial class FleetView
             }
             else if (result.Kind == CommandKind.Bomb || (result.Kind == CommandKind.EndTurn && (result.Shots is { Count: > 0 } || result.Path is { Count: > 0 })))
             {
-<<<<<<< Updated upstream
                 await AnimateBombs(result, presentation);
-=======
-                await AnimateBombs(result);
->>>>>>> Stashed changes
             }
             else if (result.Kind == CommandKind.Attack && result.Shots is { Count: > 0 } shots)
             {
@@ -88,7 +70,6 @@ public partial class FleetView
                     _suppressed.Add(shot.Target.Id);
                 }
 
-<<<<<<< Updated upstream
                 int activeShot = 0;
                 foreach (var flight in shots.GroupBy(shot => shot.IsCounterattack).OrderBy(group => group.Key))
                 {
@@ -119,37 +100,6 @@ public partial class FleetView
                         foreach (var splash in result.Splash ?? Array.Empty<CombatShot>())
                             if (splash.TargetSunk) await Sink(splash.Target, splash.TargetVisibleToPlayer);
                     _blastDamage.Clear();
-=======
-                foreach (var shot in shots)
-                {
-                    await AnimateSalvo(shot.Attacker, shot.Target.Position, shot.Target, shot.IsMortar, shot.AttackerVisibleToPlayer, shot.TargetVisibleToPlayer);
-                    var to = Projection.GridToWorld(shot.Target.Position) + new Vector2(0, -6);
-                    if (shot.TargetSunk)
-                        _snapshots.Remove(shot.Target.Id);
-                    else if (shot.TargetVisibleToPlayer)
-                        _snapshots[shot.Target.Id] = shot.Target with
-                        {
-                            Health = shot.Target.Health - shot.Damage
-                        };
-                    if (shot.Promoted && shot.AttackerVisibleToPlayer)
-                        _snapshots[shot.Attacker.Id] = shot.Attacker with
-                        {
-                            IsVeteran = true,
-                            MaxHealth = Ship.Whole(shot.Attacker.MaxHealth * 1.25),
-                            Health = Ship.Whole(shot.Attacker.MaxHealth * 1.25),
-                            Progress = 3
-                        };
-                    _impact = shot.TargetVisibleToPlayer ? to : null;
-                    _feedbackPosition = to;
-                    _feedbackColor = new(shot.IsCounterattack ? "ffe28c" : "ff8f85");
-                    _feedback = shot.TargetVisibleToPlayer ? (shot.IsCounterattack ? "Counter −" : "−") + shot.Damage.ToString("0") : "";
-                    if (!shot.IsCounterattack)
-                        ApplySplash(result);
-                    await TweenValue(0.38, t => _impactSize = 4 + 26 * t);
-                    _blastDamage.Clear();
-                    _impact = null;
-                    _feedback = "";
->>>>>>> Stashed changes
                 }
             }
             else if (result.Kind == CommandKind.Attack && result.StructureHit is { } hit)
@@ -157,31 +107,22 @@ public partial class FleetView
                 if (hit.AttackerVisibleToPlayer)
                     _snapshots[hit.Attacker.Id] = hit.Attacker;
                 _suppressed.Add(hit.Attacker.Id);
-<<<<<<< Updated upstream
                 await AnimateSalvo(hit.Attacker, hit.Position, null, hit.IsMortar, hit.AttackerVisibleToPlayer, hit.TargetVisibleToPlayer, hit.Salvos);
                 presentation?.Impact("village");
                 ApplySplash(result);
-                var town = Projection.GridToWorld(hit.Position) + new Vector2(0, -9);
-                _feedbackPosition = BoardView.TownHealthAnchor(Projection.GridToWorld(hit.Position));
+                var town = (Landscape is not null && Battle.VillageAt(hit.Position) is { } attackedTown
+                    ? Landscape.VillageWorldAnchor(attackedTown) : Projection.GridToWorld(hit.Position)) + new Vector2(0, -9);
+                _feedbackPosition = Landscape is not null && Battle.VillageAt(hit.Position) is { } hitTown
+                    ? Landscape.TownHealthAnchor(hitTown) : BoardView.TownHealthAnchor(Projection.GridToWorld(hit.Position));
                 _feedback = hit.TargetVisibleToPlayer ? $"−{result.Amount:0.##}" : "";
                 if (hit.CounterDamage > 0 && (hit.AttackerVisibleToPlayer || hit.TargetVisibleToPlayer))
                 {
                     if (hit.AttackerVisibleToPlayer && FocusTarget is not null) await FocusTarget(hit.Attacker.Position);
-=======
-                await AnimateSalvo(hit.Attacker, hit.Position, null, hit.IsMortar, hit.AttackerVisibleToPlayer, hit.TargetVisibleToPlayer);
-                ApplySplash(result);
-                var town = Projection.GridToWorld(hit.Position) + new Vector2(0, -9);
-                _feedbackPosition = town;
-                _feedback = hit.TargetVisibleToPlayer ? $"−{result.Amount:0.##}" : "";
-                if (hit.CounterDamage > 0 && (hit.AttackerVisibleToPlayer || hit.TargetVisibleToPlayer))
-                {
->>>>>>> Stashed changes
                     var to = Projection.GridToWorld(hit.Attacker.Position) + new Vector2(0, -5);
                     if (hit.TargetVisibleToPlayer)
                         EmitSmoke(town, (to - town).Normalized(), .8f, false);
                     await TweenValue(.24, t => ProjectilePosition = town.Lerp(to, t) + new Vector2(0, -180 * t * (1 - t)));
                     ProjectilePosition = null;
-<<<<<<< Updated upstream
                     presentation?.Impact("village-counter");
                     if (hit.AttackerVisibleToPlayer)
                     {
@@ -193,18 +134,6 @@ public partial class FleetView
 
                     if (Battle.Find(hit.Attacker.Id)is null)
                         await Sink(hit.Attacker, hit.AttackerVisibleToPlayer);
-=======
-                    if (hit.AttackerVisibleToPlayer)
-                    {
-                        HitEffect(hit.Attacker, to, (to - town).Normalized(), false);
-                        _feedbackPosition = to;
-                        _feedbackColor = new("ffe28c");
-                        _feedback = $"Counter −{hit.CounterDamage:0.##}";
-                    }
-
-                    if (Battle.Find(hit.Attacker.Id) is null)
-                        _snapshots.Remove(hit.Attacker.Id);
->>>>>>> Stashed changes
                     else if (hit.AttackerVisibleToPlayer)
                         _snapshots[hit.Attacker.Id] = hit.Attacker with
                         {
@@ -220,8 +149,9 @@ public partial class FleetView
             {
                 _feedbackColor = new("85e6a0");
                 _feedback = $"+{result.Amount:0.##}";
-<<<<<<< Updated upstream
-                _feedbackPosition = actor is not null ? HealthAnchor(Projection.GridToWorld(actor.Position), actor.Definition.Class) : BoardView.TownHealthAnchor(Projection.GridToWorld(Battle.Villages.First(v => v.Id == result.TargetId).Position));
+                _feedbackPosition = actor is not null ? HealthAnchor(Projection.GridToWorld(actor.Position), actor.Definition.Class)
+                    : Landscape?.TownHealthAnchor(Battle.Villages.First(v => v.Id == result.TargetId))
+                        ?? BoardView.TownHealthAnchor(Projection.GridToWorld(Battle.Villages.First(v => v.Id == result.TargetId).Position));
                 await TweenValue(0.25, t => _feedbackRise = t * 20);
             }
 
@@ -232,7 +162,9 @@ public partial class FleetView
             foreach (var heal in result.HealingReceipts ?? Array.Empty<HealingReceipt>())
                 if (heal.VisibleToPlayer)
                 {
-                    _feedbackPosition = heal.IsVillage ? BoardView.TownHealthAnchor(Projection.GridToWorld(heal.Position)) : HealthAnchor(Projection.GridToWorld(heal.Position), Battle.At(heal.Position)?.Definition.Class ?? ShipClass.Garrison);
+                    _feedbackPosition = heal.IsVillage ? Landscape is not null && Battle.VillageAt(heal.Position) is { } healedTown
+                        ? Landscape.TownHealthAnchor(healedTown) : BoardView.TownHealthAnchor(Projection.GridToWorld(heal.Position))
+                        : HealthAnchor(Projection.GridToWorld(heal.Position), Battle.At(heal.Position)?.Definition.Class ?? ShipClass.Garrison);
                     _feedbackColor = new("85e6a0");
                     _feedback = $"+{heal.Amount:0}";
                     await TweenValue(.3, t => _feedbackRise = t * 20);
@@ -242,16 +174,7 @@ public partial class FleetView
         {
             presentation?.Finish();
             _sinking.Clear();
-=======
-                _feedbackPosition = Projection.GridToWorld(actor?.Position ?? Battle.Villages.First(v => v.Id == result.TargetId).Position);
-                await TweenValue(0.25, _ =>
-                {
-                });
-            }
-        }
-        finally
-        {
->>>>>>> Stashed changes
+            foreach (int wreck in _wreckArt.Keys.ToArray()) RemoveWreck(wreck);
             _movingId = 0;
             _movingShip = null;
             _movingVisible = false;
@@ -268,11 +191,7 @@ public partial class FleetView
         }
     }
 
-<<<<<<< Updated upstream
     private async Task AnimateBombs(CommandResult result, PresentedCommand? presentation)
-=======
-    private async Task AnimateBombs(CommandResult result)
->>>>>>> Stashed changes
     {
         var shots = result.Shots ?? Array.Empty<CombatShot>();
         foreach (var shot in shots)
@@ -286,24 +205,15 @@ public partial class FleetView
         foreach (var cell in centers)
         {
             var group = shots.Where(s => s.Attacker.Position == cell).ToArray();
-<<<<<<< Updated upstream
             bool visible = result.Kind == CommandKind.EndTurn || Battle.FindObserved(Side.Player, result.ActorId)is not null || Battle.Vision.IsVisible(Side.Player, cell) || group.Any(s => s.TargetVisibleToPlayer);
             if (!visible)
                 continue;
             if (FocusTarget is not null && group.Any(s => s.TargetVisibleToPlayer)) await FocusTarget(group.First(s => s.TargetVisibleToPlayer).Target.Position);
-=======
-            bool visible = result.Kind == CommandKind.EndTurn || Battle.FindObserved(Side.Player, result.ActorId) is not null || Battle.Vision.IsVisible(Side.Player, cell) || group.Any(s => s.TargetVisibleToPlayer);
-            if (!visible)
-                continue;
->>>>>>> Stashed changes
             var center = Projection.GridToWorld(cell);
             if (result.Kind == CommandKind.Bomb)
                 await TweenValue(.34, t => ProjectilePosition = center + new Vector2(0, -56 * (1 - t * t)));
             ProjectilePosition = null;
-<<<<<<< Updated upstream
             presentation?.Impact("bomb");
-=======
->>>>>>> Stashed changes
             ApplyBombDamage(group);
             if (result.Kind == CommandKind.EndTurn)
             {
@@ -318,12 +228,9 @@ public partial class FleetView
                 _impact = null;
             }
 
-<<<<<<< Updated upstream
             foreach (var shot in group)
                 if (shot.TargetSunk)
                     await Sink(shot.Target, shot.TargetVisibleToPlayer);
-=======
->>>>>>> Stashed changes
             _blastDamage.Clear();
         }
 
@@ -331,10 +238,7 @@ public partial class FleetView
         // fog. Show their damage without revealing the hidden balloon's location.
         foreach (var shot in shots.Where(s => !centers.Contains(s.Attacker.Position) && s.TargetVisibleToPlayer))
         {
-<<<<<<< Updated upstream
             if (FocusTarget is not null) await FocusTarget(shot.Target.Position);
-=======
->>>>>>> Stashed changes
             ApplyBombDamage(new[] { shot });
             _impact = Projection.GridToWorld(shot.Target.Position);
             await TweenValue(.24, t => _impactSize = 5 + 24 * t);
@@ -355,11 +259,7 @@ public partial class FleetView
                     Health = shot.Target.Health - shot.Damage
                 };
             if (shot.TargetVisibleToPlayer)
-<<<<<<< Updated upstream
                 _blastDamage[shot.Target.Id] = (HealthAnchor(Projection.GridToWorld(shot.Target.Position), shot.Target.Class), $"−{shot.Damage:0}");
-=======
-                _blastDamage[shot.Target.Id] = (Projection.GridToWorld(shot.Target.Position), $"−{shot.Damage:0}");
->>>>>>> Stashed changes
         }
     }
 }

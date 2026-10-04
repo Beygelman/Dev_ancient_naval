@@ -7,7 +7,7 @@ public sealed record SettlementStart(int Level, bool IsPirateBay);
 /// <summary>Fair near-home access, with the remaining coastal settlements drawn toward the center.</summary>
 public static class WorldSettlementPlacement
 {
-    public static IReadOnlyList<GridPosition> Create(GameBoard board, int factionCount)
+    public static IReadOnlyList<GridPosition> Create(GameBoard board, int factionCount, bool requireLandNeighbor = false)
     {
         const int perFaction = 3;
         var chosen = new List<GridPosition>();
@@ -15,7 +15,8 @@ public static class WorldSettlementPlacement
         var center = board.Center(board.CentralCell);
         var coastByFaction = Enumerable.Range(0, factionCount).Select(faction => board.Tiles
             .Where(t => t.Terrain == TerrainType.Land && board.StartingTerritory(t.Position, factionCount) == faction &&
-                board.GetNeighbors(t.Position).Any(p => board.GetTile(p).Terrain != TerrainType.Land))
+                board.GetNeighbors(t.Position).Any(p => board.GetTile(p).Terrain != TerrainType.Land) &&
+                (!requireLandNeighbor || board.GetNeighbors(t.Position).Any(p => board.GetTile(p).Terrain == TerrainType.Land)))
             .Select(t => t.Position).OrderBy(p => p.Y).ThenBy(p => p.X).ToArray()).ToArray();
         if (coastByFaction.Any(coast => coast.Length < perFaction))
             throw new InvalidOperationException("The generated territory has too few coastal settlement sites.");
@@ -56,7 +57,7 @@ public static class WorldSettlementPlacement
                 return preference + System.Numerics.Vector2.Distance(board.Center(cell), center) +
                     5 / (1 + local[faction].Min(q => System.Numerics.Vector2.Distance(board.Center(cell), board.Center(q))));
             }
-            foreach (var cell in next.Pool.OrderBy(Score).ThenBy(p => p.Y).ThenBy(p => p.X))
+            foreach (var cell in next.Pool.OrderBy(p => board.MapSize is not null && board.GetNeighbors(p).Count(n => board.GetTile(n).Terrain == TerrainType.Land) < 3 ? 1 : 0).ThenBy(Score).ThenBy(p => p.Y).ThenBy(p => p.X))
             {
                 chosen.Add(cell);
                 local[faction].Add(cell);
@@ -83,7 +84,7 @@ public static class WorldSettlementPlacement
     }
 
     public static IReadOnlyDictionary<GridPosition, SettlementStart> Describe(GameBoard board,
-        IEnumerable<GridPosition> positions, bool variedPirates = false)
+        IEnumerable<GridPosition> positions, bool variedPirates = false, bool mapSizePirates = false)
     {
         var cells = positions.Distinct().OrderBy(p => p.Y).ThenBy(p => p.X).ToArray();
         var result = cells.ToDictionary(p => p, _ => new SettlementStart(1, false));
@@ -93,7 +94,7 @@ public static class WorldSettlementPlacement
             double roll = random.NextDouble();
             if (roll < .06) result[cell] = new(3, false);
             else if (roll < .18) result[cell] = new(2, false);
-            else if (variedPirates && roll < .28) result[cell] = new(random.Next(1, 5), true);
+            else if (variedPirates && !mapSizePirates && roll < .28) result[cell] = new(random.Next(1, 5), true);
         }
         var center = board.Center(board.CentralCell);
         var available = cells.OrderBy(p => System.Numerics.Vector2.DistanceSquared(board.Center(p), center)).ToList();
@@ -110,6 +111,22 @@ public static class WorldSettlementPlacement
                     12 / (1 + System.Numerics.Vector2.Distance(board.Center(p), board.Center(first))));
                 result[second] = new(3, true);
             }
+        }
+        if (mapSizePirates)
+        {
+            int desired = board.MapSize switch
+            {
+                MapSize.Lake => 2, MapSize.Bay => 3, MapSize.Sea => 4, MapSize.Ocean => 5,
+                _ => Math.Clamp(board.Tiles.Count / 300, 2, 5)
+            };
+            // An exact size quota replaces the old per-settlement random chance:
+            // adding rivals cannot itself create additional pirate bays.
+            foreach (var cell in result.Where(entry => entry.Value.IsPirateBay).Select(entry => entry.Key).ToArray())
+                result[cell] = new(3, false);
+            var pirates = cells.OrderBy(p => System.Numerics.Vector2.DistanceSquared(board.Center(p), center))
+                .ThenBy(p => p.Y).ThenBy(p => p.X).Take(Math.Min(desired, cells.Length)).ToArray();
+            for (int index = 0; index < pirates.Length; index++)
+                result[pirates[index]] = new(index < 2 ? 3 : random.Next(1, 5), true);
         }
         return result;
     }

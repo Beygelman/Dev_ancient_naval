@@ -18,27 +18,18 @@ public sealed partial class BattleState
         ship.Health = Ship.Whole(ship.Health + amount);
         ship.IsExhausted = true;
         ship.HasRepaired = true;
-<<<<<<< Updated upstream
         ship.MovementLocked = true;
-=======
->>>>>>> Stashed changes
         return new(true, $"{ship.Definition.Name}: repaired +{amount:0.##} HP", CommandKind.Repair, id, Amount: amount);
     }
 
     public CommandResult EndTurn(Side requester)
     {
-<<<<<<< Updated upstream
         if (PendingPresentation is not null || IsOver || requester != ActiveSide || PendingUpgrade(requester)is not null)
             return CommandResult.Rejected("Cannot end this turn. Resolve any pending upgrade first.");
         var outpostShots = FireOutposts(requester);
         if (IsOver)
             return new(true, "The last flagship has fallen.", CommandKind.EndTurn, OutpostShots: outpostShots);
         var healing = AutomaticRepairs(requester);
-=======
-        if (IsOver || requester != ActiveSide || PendingUpgrade(requester) is not null)
-            return CommandResult.Rejected("Cannot end this turn. Resolve any pending upgrade first.");
-        AutomaticRepairs(requester);
->>>>>>> Stashed changes
         EndSeaEventTurn(requester);
         EndVillageTurn(requester);
         ActiveSide = NextFactionTurn(requester);
@@ -53,28 +44,19 @@ public sealed partial class BattleState
             if (ship.BombCooldown > 0)
                 ship.BombCooldown--;
             if (ship.RestorationUpgrade)
-<<<<<<< Updated upstream
             {
                 double before = ship.Health;
                 ship.Health = Math.Min(ship.MaxHealth, ship.Health + 2);
                 if (ship.Health > before)
                     healing.Add(new(ship.Position, ship.Health - before, ship.Owner == Side.Player || Vision.IsVisible(Side.Player, ship.Position)));
             }
-=======
-                ship.Health = Math.Min(ship.MaxHealth, ship.Health + 2);
->>>>>>> Stashed changes
         }
 
         StartVillageTurn(ActiveSide);
         var receipts = CreditTurnIncome(ActiveSide);
-<<<<<<< Updated upstream
         var heavenly = StartHeavenlyTurn(ActiveSide);
         UpdateVision();
         return new(true, ActiveSide == Side.Player ? "Your turn." : $"{FactionName(ActiveSide)}'s turn.", CommandKind.EndTurn, IncomeReceipts: receipts, OutpostShots: outpostShots, HealingReceipts: healing, HeavenlyReceipts: heavenly);
-=======
-        UpdateVision();
-        return new(true, ActiveSide == Side.Player ? "Your turn." : $"{FactionName(ActiveSide)}'s turn.", CommandKind.EndTurn, IncomeReceipts: receipts);
->>>>>>> Stashed changes
     }
 
     private void RegisterShipIncome(Ship ship)
@@ -84,11 +66,7 @@ public sealed partial class BattleState
             SetIncomeSource(new IncomeSource($"ship:{ship.Id}", ship.Owner, income, ship.Id));
     }
 
-<<<<<<< Updated upstream
     public int GrossIncome(Side side) => _incomeSources.Where(s => s.Owner == side && (s.BoundShipId is null || Find(s.BoundShipId.Value)is not null)).Sum(s => s.Amount);
-=======
-    public int GrossIncome(Side side) => _incomeSources.Where(s => s.Owner == side && (s.BoundShipId is null || Find(s.BoundShipId.Value) is not null)).Sum(s => s.Amount);
->>>>>>> Stashed changes
     public int Upkeep(Side side)
     {
         int group = Rules.Economy.CombatShipsPerUpkeep;
@@ -97,15 +75,9 @@ public sealed partial class BattleState
         int maintained = Math.Max(0, OwnShips(side).Count(ship => ship.CountsTowardFleet) - Rules.Economy.FreeCombatShips);
         return (maintained + group - 1) / group;
     }
-<<<<<<< Updated upstream
 
     public int Income(Side side) => Math.Max(0, GrossIncome(side) - Upkeep(side));
-    public int VillageIncome(Village village) => (village.Level + Rules.Economy.VillageLevelsPerIncome - 1) / Rules.Economy.VillageLevelsPerIncome;
-=======
-    public int Income(Side side) => Math.Max(0, GrossIncome(side) - Upkeep(side));
-    public int VillageIncome(Village village) => (village.Level + Rules.Economy.VillageLevelsPerIncome - 1) / Rules.Economy.VillageLevelsPerIncome;
-
->>>>>>> Stashed changes
+    public int VillageIncome(Village village) => Rules.Economy.VillageIncomeBonus + (village.Level + Rules.Economy.VillageLevelsPerIncome - 1) / Rules.Economy.VillageLevelsPerIncome;
     private IReadOnlyList<IncomeReceipt> CreditTurnIncome(Side side)
     {
         var receipts = new List<IncomeReceipt>();
@@ -118,24 +90,16 @@ public sealed partial class BattleState
                 position = _villages.FirstOrDefault(village => village.Id == villageId)?.Position;
             receipts.Add(new(source.Id, side, position, source.Amount));
         }
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
         int gross = receipts.Sum(receipt => receipt.Amount);
         int upkeep = Math.Min(gross, Upkeep(side));
         if (upkeep > 0)
             receipts.Add(new("fleet:upkeep", side, Mothership(side)?.Position, -upkeep, true));
         _credits[(int)side] += gross - upkeep;
-<<<<<<< Updated upstream
         RecordCurrencyReceipt(side, gross);
         return receipts;
     }
 
-=======
-        return receipts;
-    }
->>>>>>> Stashed changes
     public void SetIncomeSource(IncomeSource source)
     {
         if (string.IsNullOrWhiteSpace(source.Id) || !Enum.IsDefined(source.Owner) || source.Amount < 0 || (source.BoundShipId is { } shipId && Find(shipId)?.Owner != source.Owner))

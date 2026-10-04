@@ -1,473 +1,299 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DevAncientNaval.Core.Battle;
-<<<<<<< Updated upstream
 using DevAncientNaval.Core.World;
-using MapKind = DevAncientNaval.Core.World.WorldKind;
-=======
->>>>>>> Stashed changes
 using DevAncientNaval.Presentation.Map;
 using Godot;
+using MapKind = DevAncientNaval.Core.World.WorldKind;
 
 namespace DevAncientNaval.Presentation.UI;
+
 public partial class StartScreen : CanvasLayer
 {
     public event Action<FleetColor>? StartRequested;
     public event Action? ContinueRequested, ExitRequested;
-<<<<<<< Updated upstream
-    private Control _root = null !;
-    private MenuHarborView _harbor = null !;
-    private TextureRect _title = null !;
-    private VBoxContainer _actions = null !, _colors = null !;
-    private Button _continue = null !, _start = null !;
-    private Label _footer = null !, _notice = null !, _colorTitle = null !;
-    private FleetColor _selected = FleetColor.Blue;
-    private readonly Dictionary<FleetColor, Button> _swatches = new();
-    private readonly Dictionary<int, Button> _opponents = new();
-    private Label _opponentNote = null !;
-    public bool IsOpen => Visible;
-    public FleetColor SelectedColor => _selected;
-    public AiDifficulty Difficulty { get; private set; } = AiDifficulty.Admiral;
-    private readonly Dictionary<AiDifficulty, Button> _difficultyButtons = new();
-    public int OpponentCount { get; private set; } = 3;
-    public MapKind WorldKind { get; private set; } = MapKind.Oceans;
-    private OptionButton _worldChoice = null!;
-    private PanelContainer _setupPaper = null!;
-    private ScrollContainer _setupScroll = null!;
-    private Label _worldHint = null!;
-    private bool _layingOut;
-=======
     private Control _root = null!;
     private MenuHarborView _harbor = null!;
     private TextureRect _title = null!;
-    private VBoxContainer _actions = null!, _colors = null!;
-    private Button _continue = null!, _start = null!;
-    private Label _footer = null!, _notice = null!, _colorTitle = null!;
-    private FleetColor _selected = FleetColor.Blue;
-    private readonly Dictionary<FleetColor, Button> _swatches = new();
-    private readonly Dictionary<int, Button> _opponents = new();
-    private Label _opponentNote = null!;
+    private VBoxContainer _actions = null!, _colors = null!, _settings = null!;
+    private PanelContainer _settingsPaper = null!;
+    private ScrollContainer _settingsScroll = null!;
+    private RollingVoyagePaper _setupPaper = null!;
+    private Label _footer = null!, _notice = null!;
+    private Button _continue = null!;
+    private PaintedVoyageChoice _start = null!;
+    private ColorRect _fade = null!;
+    private readonly Dictionary<FleetColor, PaintedVoyageChoice> _swatches = new();
+    private readonly Dictionary<int, PaintedVoyageChoice> _opponents = new();
+    private readonly Dictionary<AiDifficulty, PaintedVoyageChoice> _difficultyButtons = new();
+    private readonly Dictionary<MapSize, PaintedVoyageChoice> _sizes = new();
+    private readonly Dictionary<MapKind, PaintedVoyageChoice> _worlds = new();
+    private bool _layingOut;
     public bool IsOpen => Visible;
-    public FleetColor SelectedColor => _selected;
-    public int OpponentCount { get; private set; } = 3;
->>>>>>> Stashed changes
-
+    public bool Transitioning { get; private set; }
+    public FleetColor SelectedColor { get; private set; } = FleetColor.Blue;
+    public AiDifficulty Difficulty { get; private set; } = AiDifficulty.Admiral;
+    public int OpponentCount { get; private set; } = 1;
+    public MapKind WorldKind { get; private set; } = MapKind.Oceans;
+    public MapSize MapSize { get; private set; } = MapSize.Sea;
+    internal int LayoutPasses { get; private set; }
     public void SetNotice(string text) => _notice.Text = text;
+    internal void CompleteVoyage() => Transitioning = false;
+
     public override void _Ready()
     {
         Layer = 40;
-        _root = new Control
-        {
-            Name = "HomeRoot",
-            Theme = PapyrusStyle.ChartTheme(),
-            MouseFilter = Control.MouseFilterEnum.Stop
-        };
+        _root = new Control { Name = "HomeRoot", Theme = PapyrusStyle.ChartTheme(), MouseFilter = Control.MouseFilterEnum.Stop };
         AddChild(_root);
-        _root.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        _harbor = new MenuHarborView
-        {
-            Name = "LivingHarbor",
-            MouseFilter = Control.MouseFilterEnum.Ignore
-        };
+        _harbor = new MenuHarborView { Name = "LivingHarbor", MouseFilter = Control.MouseFilterEnum.Ignore };
         _root.AddChild(_harbor);
         _harbor.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        _title = new TextureRect
-        {
-            Name = "AncientNavalTitle",
-            Texture = GD.Load<Texture2D>("res://assets/ui/ancient-naval-title.png"),
-            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-            StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-            MouseFilter = Control.MouseFilterEnum.Ignore
-        };
+        _title = Logo();
         _root.AddChild(_title);
-        _actions = new VBoxContainer
-        {
-            Name = "StartActions"
-        };
+        _actions = new VBoxContainer { Name = "StartActions" };
         _actions.AddThemeConstantOverride("separation", 12);
         _root.AddChild(_actions);
-        _actions.AddChild(MakeButton("HomeNewGame", "New game", ShowColors));
-        _continue = MakeButton("HomeContinue", "Continue", () => ContinueRequested?.Invoke());
+        _actions.AddChild(HomeButton("HomeNewGame", "New game", ShowColors));
+        _continue = HomeButton("HomeContinue", "Continue", () => ContinueRequested?.Invoke());
         _actions.AddChild(_continue);
-        _actions.AddChild(MakeButton("HomeExit", "Exit game", () => ExitRequested?.Invoke()));
-<<<<<<< Updated upstream
-        _actions.AddChild(new LanguageButtons());
-        _actions.AddChild(new UiScaleSlider { OverArtwork = true });
-=======
->>>>>>> Stashed changes
-        _colors = new VBoxContainer
-        {
-            Name = "ColorSelection"
-        };
-<<<<<<< Updated upstream
-        _colors.AddThemeConstantOverride("separation", 7);
-        _setupPaper = new PanelContainer { Name = "VoyageSetupPaper" };
-        _setupPaper.AddThemeStyleboxOverride("panel", PapyrusStyle.Panel(.97f));
-        PapyrusGrain.Apply(_setupPaper);
-        _root.AddChild(_setupPaper);
-        _setupScroll = PapyrusModal.Wrap(_setupPaper, _colors, "VoyageSetupScroll");
-        var heading = new Label { Text = "CHART YOUR VOYAGE", HorizontalAlignment = HorizontalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.WordSmart };
-        heading.AddThemeFontSizeOverride("font_size", 25);
-        heading.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
-        _colors.AddChild(heading);
-        var divider = new HSeparator();
-        divider.AddThemeStyleboxOverride("separator", new StyleBoxLine { Color = PapyrusStyle.Bronze, Thickness = 1 });
-        _colors.AddChild(divider);
-        _colorTitle = new Label
-        {
-            Text = "Your fleet & its emblem",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.WordSmart
-        };
-        _colorTitle.AddThemeFontSizeOverride("font_size", 23);
-        _colorTitle.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
-        _colors.AddChild(_colorTitle);
-        var row = new GridContainer
-        {
-            Columns = 3,
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter
-        };
-        row.AddThemeConstantOverride("h_separation", 5);
-        row.AddThemeConstantOverride("v_separation", 5);
-        _colors.AddChild(row);
-        foreach (var color in Enum.GetValues<FleetColor>())
-        {
-            var swatch = MakeButton("FleetColor" + color, "", () => Choose(color));
-            swatch.CustomMinimumSize = new(68, 66);
-            swatch.AddChild(new FleetCrest { Faction = color, Position = new(0, 6), Size = new(68, 32), MouseFilter = Control.MouseFilterEnum.Ignore });
-            var colorLabel = new Label { Text = color.ToString(), Position = new(0, 41), Size = new(68, 18), HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = Control.MouseFilterEnum.Ignore };
-            colorLabel.AddThemeFontSizeOverride("font_size", 12);
-            colorLabel.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
-            swatch.AddChild(colorLabel);
-=======
-        _colors.AddThemeConstantOverride("separation", 11);
-        _root.AddChild(_colors);
-        _colorTitle = new Label
-        {
-            Text = "Choose your fleet color",
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        _colorTitle.AddThemeFontSizeOverride("font_size", 23);
-        _colorTitle.AddThemeColorOverride("font_color", new Color("f1e1ba"));
-        _colors.AddChild(_colorTitle);
-        var row = new HBoxContainer
-        {
-            Alignment = BoxContainer.AlignmentMode.Center
-        };
-        row.AddThemeConstantOverride("separation", 10);
-        _colors.AddChild(row);
-        foreach (var color in Enum.GetValues<FleetColor>())
-        {
-            var swatch = MakeButton("FleetColor" + color, "●", () => Choose(color));
-            swatch.CustomMinimumSize = new(58, 54);
->>>>>>> Stashed changes
-            swatch.TooltipText = color.ToString();
-            swatch.AddThemeColorOverride("font_color", FleetPalette.Color(color));
-            swatch.AddThemeColorOverride("font_hover_color", FleetPalette.Color(color));
-            swatch.AddThemeColorOverride("font_pressed_color", FleetPalette.Color(color));
-            swatch.AddThemeColorOverride("font_outline_color", PapyrusStyle.Ink);
-            swatch.AddThemeConstantOverride("outline_size", 2);
-            _swatches[color] = swatch;
-            row.AddChild(swatch);
-        }
-
-        var opponentTitle = new Label
-        {
-            Text = "Rival fleets",
-<<<<<<< Updated upstream
-            HorizontalAlignment = HorizontalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.WordSmart
-        };
-        opponentTitle.AddThemeFontSizeOverride("font_size", 19);
-        opponentTitle.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
-        _colors.AddChild(opponentTitle);
-        var rivals = new HBoxContainer
-        {
-            Alignment = BoxContainer.AlignmentMode.Center
-        };
-=======
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        opponentTitle.AddThemeFontSizeOverride("font_size", 19);
-        opponentTitle.AddThemeColorOverride("font_color", new Color("f1e1ba"));
-        _colors.AddChild(opponentTitle);
-        var rivals = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
->>>>>>> Stashed changes
-        rivals.AddThemeConstantOverride("separation", 10);
-        _colors.AddChild(rivals);
-        for (int count = 1; count <= 4; count++)
-        {
-            int choice = count;
-            var button = MakeButton("OpponentCount" + count, count.ToString(), () => ChooseOpponents(choice));
-<<<<<<< Updated upstream
-            button.CustomMinimumSize = new(50, 44);
-            _opponents[count] = button;
-            rivals.AddChild(button);
-        }
-
-        _opponentNote = new Label
-        {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.WordSmart
-        };
-        _opponentNote.AddThemeFontSizeOverride("font_size", 14);
-        _opponentNote.AddThemeColorOverride("font_color", PapyrusStyle.FaintInk);
-        _colors.AddChild(_opponentNote);
-        var difficultyTitle = new Label { Text = "Rival seamanship", HorizontalAlignment = HorizontalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.WordSmart };
-        difficultyTitle.AddThemeFontSizeOverride("font_size", 19);
-        difficultyTitle.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
-        _colors.AddChild(difficultyTitle);
-        var difficultyRow = new VBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
-        difficultyRow.AddThemeConstantOverride("separation", 6);
-        _colors.AddChild(difficultyRow);
-        foreach (var choice in Enum.GetValues<AiDifficulty>())
-        {
-            var button = MakeButton("Difficulty" + choice, choice.ToString(), () => ChooseDifficulty(choice));
-            button.CustomMinimumSize = new(88, 42);
-            button.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-            button.AddThemeFontSizeOverride("font_size", 16);
-            button.TooltipText = choice switch { AiDifficulty.Boatswain => "A forgiving sailor: simple attacks and modest fleets", AiDifficulty.Captain => "An experienced captain: the previous tactical rules", _ => "An admiral: coordinated guns, cautious scouts and economic recovery" };
-            _difficultyButtons[choice] = button;
-            difficultyRow.AddChild(button);
-        }
-        ChooseDifficulty(Difficulty);
-        var worldTitle = new Label { Text = "Shape of the world", HorizontalAlignment = HorizontalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.WordSmart };
-        worldTitle.AddThemeFontSizeOverride("font_size", 19);
-        worldTitle.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
-        _colors.AddChild(worldTitle);
-        _worldChoice = new OptionButton { Name = "WorldGeneration", CustomMinimumSize = new(0, 42) };
-        PapyrusStyle.Button(_worldChoice, 18);
-        AddWorldChoice("Sea World", MapKind.SeaWorld);
-        AddWorldChoice("Oceans", MapKind.Oceans);
-        AddWorldChoice("Continents", MapKind.Continents);
-        AddWorldChoice("Pangaea", MapKind.Pangaea);
-        _worldChoice.Selected = 1;
-        _worldChoice.ItemSelected += index =>
-        {
-            WorldKind = (MapKind)_worldChoice.GetItemId((int)index);
-            UpdateWorldHint();
-        };
-        _colors.AddChild(_worldChoice);
-        _worldHint = new Label { Name = "WorldDescription", HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new(0, 34) };
-        _worldHint.AddThemeFontSizeOverride("font_size", 13);
-        _worldHint.AddThemeColorOverride("font_color", PapyrusStyle.FaintInk);
-        _colors.AddChild(_worldHint);
-        UpdateWorldHint();
-        _start = MakeButton("StartBattle", "Sail with the blue fleet", () => StartRequested?.Invoke(_selected));
-        _start.CustomMinimumSize = new(0, 48);
-        _colors.AddChild(_start);
-        var back = MakeButton("CancelColor", "Back", () =>
-        {
-            _colors.Hide();
-            _actions.Show();
-            Layout();
-        });
-        back.CustomMinimumSize = new(0, 44);
-        _colors.AddChild(back);
-=======
-            button.CustomMinimumSize = new(62, 44);
-            _opponents[count] = button;
-            rivals.AddChild(button);
-        }
-        _opponentNote = new Label { HorizontalAlignment = HorizontalAlignment.Center };
-        _opponentNote.AddThemeFontSizeOverride("font_size", 14);
-        _opponentNote.AddThemeColorOverride("font_color", new Color("e1cca0"));
-        _colors.AddChild(_opponentNote);
-
-        _start = MakeButton("StartBattle", "Sail with the blue fleet", () => StartRequested?.Invoke(_selected));
-        _colors.AddChild(_start);
-        _colors.AddChild(MakeButton("CancelColor", "Back", () =>
-        {
-            _colors.Hide();
-            _actions.Show();
-        }));
->>>>>>> Stashed changes
-        _colors.Hide();
-        _notice = new Label
-        {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.WordSmart
-        };
-        _notice.AddThemeFontSizeOverride("font_size", 15);
+        _actions.AddChild(HomeButton("HomeSettings", "Settings", ShowSettings));
+        _actions.AddChild(HomeButton("HomeExit", "Exit game", () => ExitRequested?.Invoke()));
+        BuildSettings();
+        BuildSetup();
+        _notice = Heading("", 15);
         _notice.AddThemeColorOverride("font_color", new("edc69d"));
         _root.AddChild(_notice);
-        _footer = new Label
-        {
-            Text = "GitHub: Beygelman  @Ancient_Naval_v0.13 30.09.2026",
-            Modulate = new Color(1, 1, 1, .42f)
-        };
-        _footer.AddThemeFontSizeOverride("font_size", 14);
-<<<<<<< Updated upstream
-        _footer.AddThemeColorOverride("font_color", new Color(.9f, .93f, .84f, 1));
+        _footer = Heading("GitHub: Beygelman  @Ancient_Naval_v0.13 30.09.2026", 14);
+        _footer.Modulate = new Color(1, 1, 1, .42f);
+        _footer.AddThemeColorOverride("font_color", new("e5edde"));
         _root.AddChild(_footer);
+        _fade = new ColorRect { Name = "VoyageFade", Color = Colors.Black, MouseFilter = Control.MouseFilterEnum.Stop };
+        _root.AddChild(_fade);
+        _fade.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        _fade.Hide();
         _root.Resized += Layout;
         _colors.MinimumSizeChanged += Layout;
-        Language.Changed += Layout;
-        Choose(_selected);
-        ChooseOpponents(OpponentCount);
+        Language.Changed += UpdateCaptions;
         UiScale.Bind(this, _root, Layout);
-=======
-        _root.AddChild(_footer);
-        _root.Resized += Layout;
-        Choose(_selected);
+        Choose(SelectedColor);
         ChooseOpponents(OpponentCount);
->>>>>>> Stashed changes
-        Layout();
+        ChooseDifficulty(Difficulty);
+        ChooseSize(MapSize);
+        ChooseWorld(WorldKind);
+        ShowHome(false);
     }
-
-    private static Button MakeButton(string name, string text, Action action)
+    private static TextureRect Logo() => new() { Name = "AncientNavalTitle",
+        Texture = GD.Load<Texture2D>("res://assets/ui/ancient-naval-title.png"),
+        ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+        MouseFilter = Control.MouseFilterEnum.Ignore, CustomMinimumSize = new(0, 80) };
+    private static Label Heading(string text, int size = 18)
     {
-        var b = new Button
-        {
-            Name = name,
-            Text = text,
-<<<<<<< Updated upstream
-            CustomMinimumSize = new(0, 56),
-            AutowrapMode = TextServer.AutowrapMode.WordSmart,
-=======
-            CustomMinimumSize = new(340, 56),
->>>>>>> Stashed changes
-            FocusMode = Control.FocusModeEnum.All
-        };
-        PapyrusStyle.Button(b, 21);
-        b.Pressed += action;
-        return b;
+        var label = new Label { Text = text, HorizontalAlignment = HorizontalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart, MouseFilter = Control.MouseFilterEnum.Ignore };
+        label.AddThemeFontSizeOverride("font_size", size);
+        label.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
+        return label;
     }
-
+    private static Button HomeButton(string name, string text, Action action)
+    {
+        var button = new Button { Name = name, Text = text, CustomMinimumSize = new(0, 48),
+            AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        PapyrusStyle.Button(button, 20);
+        button.Pressed += action;
+        return button;
+    }
+    private static PaintedVoyageChoice Choice(string name, string text, VoyageMotif motif, int variant, Action action)
+    {
+        var button = new PaintedVoyageChoice { Name = name, Text = text, Motif = motif, Variant = variant,
+            CustomMinimumSize = new(motif == VoyageMotif.World ? 89 : 76, motif == VoyageMotif.None ? 46 : 86),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        button.Pressed += action;
+        return button;
+    }
+    private HBoxContainer Row()
+    {
+        var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        row.AddThemeConstantOverride("separation", 6);
+        _colors.AddChild(row);
+        return row;
+    }
+    private void BuildSetup()
+    {
+        _colors = new VBoxContainer { Name = "ColorSelection" };
+        _colors.AddThemeConstantOverride("separation", 8);
+        _setupPaper = new RollingVoyagePaper();
+        _root.AddChild(_setupPaper);
+        _setupPaper.Bind(_colors);
+        var setupLogo = Logo(); setupLogo.Name = "VoyageLogo"; _colors.AddChild(setupLogo);
+        _colors.AddChild(Heading("CHART YOUR VOYAGE", 21));
+        _colors.AddChild(Heading("Your fleet & its emblem"));
+        var nationRow = new GridContainer { Columns = 3 };
+        nationRow.AddThemeConstantOverride("h_separation", 9);
+        nationRow.AddThemeConstantOverride("v_separation", 3);
+        _colors.AddChild(nationRow);
+        foreach (var color in Enum.GetValues<FleetColor>())
+        {
+            var swatch = Choice("FleetColor" + color, "", VoyageMotif.None, 0, () => Choose(color));
+            swatch.CustomMinimumSize = new(82, 72);
+            var crest = new FleetCrest { Faction = color, MouseFilter = Control.MouseFilterEnum.Ignore };
+            swatch.AddChild(crest); crest.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopWide);
+            crest.OffsetBottom = 38;
+            var label = Heading(color.ToString(), 13); swatch.AddChild(label);
+            label.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomWide); label.OffsetTop = -26;
+            swatch.TooltipText = color.ToString();
+            _swatches.Add(color, swatch); nationRow.AddChild(swatch);
+        }
+        _colors.AddChild(Heading("Waters to explore"));
+        var sizes = Row();
+        foreach (var size in Enum.GetValues<MapSize>())
+        {
+            var button = Choice("MapSize" + size, size.ToString(), VoyageMotif.Size, (int)size, () => ChooseSize(size));
+            _sizes.Add(size, button); sizes.AddChild(button);
+        }
+        _colors.AddChild(Heading("Rival fleets"));
+        var rivals = Row();
+        for (int count = 1; count <= 4; count++)
+        {
+            int selected = count;
+            var button = Choice("OpponentCount" + count, "", VoyageMotif.Rival, 0, () => ChooseOpponents(selected));
+            button.CustomMinimumSize = new(68, 65);
+            button.TooltipText = count + " rival fleets";
+            _opponents.Add(count, button); rivals.AddChild(button);
+        }
+        _colors.AddChild(Heading("Rival seamanship"));
+        var difficulties = Row();
+        foreach (var difficulty in Enum.GetValues<AiDifficulty>())
+        {
+            var button = Choice("Difficulty" + difficulty, difficulty.ToString(), VoyageMotif.Difficulty, (int)difficulty,
+                () => ChooseDifficulty(difficulty));
+            button.TooltipText = difficulty switch { AiDifficulty.Boatswain => "A forgiving sailor: simple attacks and modest fleets",
+                AiDifficulty.Captain => "An experienced captain: the previous tactical rules",
+                _ => "An admiral: coordinated guns, cautious scouts and economic recovery" };
+            _difficultyButtons.Add(difficulty, button); difficulties.AddChild(button);
+        }
+        _colors.AddChild(Heading("Shape of the world"));
+        var worlds = Row();
+        foreach (var (kind, caption, variant) in new[] { (MapKind.SeaWorld, "Oceanic world", 0), (MapKind.Oceans, "Island chains", 1),
+            (MapKind.Continents, "Continents", 2), (MapKind.Pangaea, "Pangaea", 3) })
+        {
+            var button = Choice("World" + kind, caption, VoyageMotif.World, variant, () => ChooseWorld(kind));
+            _worlds.Add(kind, button); worlds.AddChild(button);
+        }
+        _start = Choice("StartBattle", "", VoyageMotif.Hand, 0, () =>
+        {
+            if (!Transitioning) StartRequested?.Invoke(SelectedColor);
+        });
+        _start.CustomMinimumSize = new(0, 64);
+        _colors.AddChild(_start);
+        _colors.AddChild(Choice("CancelColor", "Back", VoyageMotif.None, 0, () => { if (!Transitioning) ShowHome(!_continue.Disabled); }));
+        _setupPaper.Hide();
+    }
+    private void BuildSettings()
+    {
+        _settingsPaper = new PanelContainer { Name = "HomeSettingsPaper" };
+        _settingsPaper.AddThemeStyleboxOverride("panel", PapyrusStyle.Panel()); PapyrusGrain.Apply(_settingsPaper);
+        _root.AddChild(_settingsPaper);
+        _settings = new VBoxContainer(); _settings.AddThemeConstantOverride("separation", 12);
+        _settingsScroll = PapyrusModal.Wrap(_settingsPaper, _settings, "HomeSettingsScroll");
+        _settings.AddChild(Heading("Settings", 23));
+        _settings.AddChild(new LanguageButtons());
+        _settings.AddChild(new UiScaleSlider());
+        _settings.AddChild(new UiHintsToggle());
+        _settings.AddChild(HomeButton("CloseHomeSettings", "Back", () => ShowHome(!_continue.Disabled)));
+        _settingsPaper.Hide();
+    }
+    private void ShowSettings()
+    {
+        if (Transitioning) return;
+        _actions.Hide(); _setupPaper.Hide(); _settingsPaper.Show(); Layout();
+    }
     private void Choose(FleetColor color)
     {
-        _selected = color;
-        _harbor.FleetColor = color;
-        _start.Text = $"Sail with the {color.ToString().ToLowerInvariant()} fleet";
-<<<<<<< Updated upstream
-        foreach (var(choice, b)in _swatches)
-        {
-            b.AddThemeStyleboxOverride("normal", PapyrusStyle.Panel(choice == color ? 1 : .45f));
-            b.Modulate = choice == color ? Colors.White : new Color(1,1,1,.75f);
-        }
+        if (Transitioning) return;
+        SelectedColor = color; _harbor.FleetColor = color;
+        foreach (var (key, button) in _swatches) button.Mark(key == color);
+        UpdateCaptions();
     }
-
+    private void UpdateCaptions()
+    {
+        _start.Text = Language.Translate("Embark with the {0} nation").Replace("{0}", Language.Translate(SelectedColor.ToString()));
+        Layout();
+    }
     private void ChooseDifficulty(AiDifficulty difficulty)
     {
+        if (Transitioning) return;
         Difficulty = difficulty;
-        foreach (var (choice, button) in _difficultyButtons)
-            button.Text = choice == difficulty ? $"‹ {choice} ›" : choice.ToString();
+        foreach (var (key, button) in _difficultyButtons) button.Mark(key == difficulty);
     }
-
-    private void AddWorldChoice(string title, MapKind kind) => _worldChoice.AddItem(title, (int)kind);
-
-    private void UpdateWorldHint()
+    private void ChooseSize(MapSize size)
     {
-        _worldChoice.TooltipText = WorldKind switch
-        {
-            MapKind.SeaWorld => "Open sea, mountain islets and chains of one to three land tiles",
-            MapKind.Continents => "Several broad islands, shallow winding rivers and island chains",
-            MapKind.Pangaea => "A central great land with river channels, lakes and sheltered bays",
-            _ => "The familiar scattered archipelagos and wide ocean passages"
-        };
-        if (_worldHint is not null) _worldHint.Text = _worldChoice.TooltipText;
-=======
-        foreach (var (choice, b) in _swatches)
-            b.Text = choice == color ? "◆" : "●";
->>>>>>> Stashed changes
+        if (Transitioning) return;
+        MapSize = size;
+        foreach (var (key, button) in _sizes) button.Mark(key == size);
     }
-
+    private void ChooseWorld(MapKind world)
+    {
+        if (Transitioning) return;
+        WorldKind = world;
+        foreach (var (key, button) in _worlds) button.Mark(key == world);
+    }
     private void ChooseOpponents(int count)
     {
+        if (Transitioning) return;
         OpponentCount = Math.Clamp(count, 1, 4);
-<<<<<<< Updated upstream
-        foreach (var(choice, button)in _opponents)
-=======
-        foreach (var (choice, button) in _opponents)
->>>>>>> Stashed changes
-        {
-            button.Text = choice == OpponentCount ? $"‹ {choice} ›" : choice.ToString();
-            button.TooltipText = $"{choice} rival fleet{(choice == 1 ? "" : "s")}";
-        }
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
-        _opponentNote.Text = OpponentCount switch
-        {
-            1 => "A close sea · one rival captain",
-            2 => "A wider sea · two rival captains",
-            3 => "The great sea · three rival captains",
-            _ => "An open expanse · four rival captains"
-        };
+        foreach (var (key, button) in _opponents) button.Mark(key <= OpponentCount);
     }
-
     public void ShowHome(bool canContinue, string notice = "")
     {
-        Show();
-        _root.Show();
-        _continue.Disabled = !canContinue;
-<<<<<<< Updated upstream
-        _continue.Visible = canContinue;
-=======
->>>>>>> Stashed changes
-        _actions.Show();
-        _colors.Hide();
-        _notice.Text = notice;
-        Layout();
+        Transitioning = false; _fade.Hide(); _setupPaper.Scale = Vector2.One;
+        _start.Disabled = false; _start.Mark(false);
+        Show(); _root.Show(); _continue.Disabled = !canContinue; _continue.Visible = canContinue;
+        _actions.Show(); _colors.Show(); _setupPaper.Hide(); _settingsPaper.Hide(); _notice.Text = notice; Layout();
     }
-
     public void ShowColors()
     {
-        Show();
-        _actions.Hide();
-        _colors.Show();
-        _notice.Text = "";
+        if (Transitioning) return;
+        Show(); _actions.Hide(); _settingsPaper.Hide(); _setupPaper.Show(); _notice.Text = "";
+        _setupPaper.Scroll.ScrollVertical = 0;
         Layout();
     }
-
-    internal int LayoutPasses { get; private set; }
-
+    internal async Task CloseForVoyage(bool fast)
+    {
+        Transitioning = true;
+        _start.Disabled = true;
+        _start.Mark(true); _start.BeginHandprint();
+        if (fast) { _fade.Show(); return; }
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
+        _setupPaper.PivotOffset = _setupPaper.Size * .5f;
+        var roll = CreateTween();
+        roll.TweenProperty(_setupPaper, "scale:y", .015f, .42).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+        await ToSignal(roll, Tween.SignalName.Finished);
+        _fade.Modulate = new Color(1, 1, 1, 0); _fade.Show();
+        var fade = CreateTween(); fade.TweenProperty(_fade, "modulate:a", 1f, .3);
+        await ToSignal(fade, Tween.SignalName.Finished);
+    }
     private void Layout()
     {
-<<<<<<< Updated upstream
-        if (_root is null || _footer is null || _layingOut)
-            return;
-        _layingOut = true;
-        LayoutPasses++;
+        if (_root is null || _footer is null || _layingOut) return;
+        _layingOut = true; LayoutPasses++;
         var size = UiScale.LogicalViewport(this);
-        float width = Math.Min(Math.Clamp(size.X * .37f, 300, 470), Math.Max(220, size.X - 32));
-        float x = Mathf.Clamp(size.X * .73f - width * .5f, 16, Math.Max(16, size.X - width - 16));
-        bool choosing = _colors.Visible;
-        _title.Position = new(x - 90, choosing ? 8 : size.Y * .105f);
-        _title.Size = new(width + 180, choosing ? Math.Min(90, size.Y * .13f) : size.Y * .23f);
-        _actions.Position = new(x, Math.Min(size.Y * .395f, Math.Max(24, size.Y - _actions.GetCombinedMinimumSize().Y - 42)));
-        _actions.Size = new(width, 0);
-        PapyrusModal.Layout(_setupPaper, _setupScroll, _colors, size);
-        _setupPaper.Scale = Vector2.One;
-        _setupPaper.Position = new(Math.Max(12, size.X - _setupPaper.Size.X - 24), (size.Y - _setupPaper.Size.Y) / 2);
-        _setupPaper.Visible = choosing;
-        _notice.Position = new(x, size.Y * .82f);
-        _notice.Size = new(width, 65);
-        _footer.Position = new(22, size.Y - 32);
+        float width = Math.Min(420, Math.Max(260, size.X * .36f));
+        float x = Math.Max(16, size.X - width - 32);
+        _title.Visible = !_setupPaper.Visible;
+        _title.Position = new(x - 50, size.Y * .09f);
+        _title.Size = new(Math.Min(width + 100, size.X - _title.Position.X - 16), size.Y * .23f);
+        _actions.Position = new(x, size.Y * .39f); _actions.Size = new(width, 0);
+        float paperWidth = Math.Min(420, Math.Max(300, size.X - 32));
+        float height = size.Y * .6f;
+        _setupPaper.CustomMinimumSize = new(paperWidth, 0);
+        _setupPaper.Scroll.CustomMinimumSize = new(0, Math.Max(1, height - 24));
+        _setupPaper.Size = new(paperWidth, height);
+        _setupPaper.Position = new(Math.Max(16, size.X - paperWidth - 24), (size.Y - height) * .5f);
+        PapyrusModal.Layout(_settingsPaper, _settingsScroll, _settings, size);
+        _notice.Position = new(x, size.Y * .82f); _notice.Size = new(width, 65);
+        _footer.Position = new(22, size.Y - 32); _footer.Size = new(size.X - 44, 24);
         _layingOut = false;
     }
-    public override void _ExitTree() => Language.Changed -= Layout;
-=======
-        if (_root is null || _footer is null)
-            return;
-        LayoutPasses++;
-        var size = GetViewport().GetVisibleRect().Size;
-        float width = Math.Clamp(size.X * .37f, 330, 470);
-        float x = Math.Clamp(size.X * .73f - width * .5f, 20, size.X - width - 20);
-        _title.Position = new(x - 90, size.Y * .105f);
-        _title.Size = new(width + 180, size.Y * .23f);
-        _actions.Position = new(x, size.Y * .395f);
-        _actions.Size = new(width, 0);
-        _colors.Position = new(x, size.Y * .32f);
-        _colors.Size = new(width, 0);
-        _notice.Position = new(x, size.Y * .82f);
-        _notice.Size = new(width, 65);
-        _footer.Position = new(22, size.Y - 32);
-    }
->>>>>>> Stashed changes
+    public override void _ExitTree() => Language.Changed -= UpdateCaptions;
 }

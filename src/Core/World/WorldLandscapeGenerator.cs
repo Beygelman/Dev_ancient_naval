@@ -6,11 +6,11 @@ namespace DevAncientNaval.Core.World;
 /// <summary>World-space coast shapes and edge-connected channels on the shared cell graph.</summary>
 internal static class WorldLandscapeGenerator
 {
-    internal static GameBoard Create(OrganicMesh mesh, int seed, int factionCount, WorldKind kind)
+    internal static GameBoard Create(OrganicMesh mesh, int seed, int factionCount, WorldKind kind, MapSize? mapSize = null, int? terrainSeed = null)
     {
         var empty = new GameBoard(mesh.Width, mesh.Height, _ => TerrainType.Water, seed,
-            mesh.Faces.ContainsKey, mesh.Boundary, mesh, kind);
-        var layout = new Landscape(empty, seed, factionCount);
+            mesh.Faces.ContainsKey, mesh.Boundary, mesh, kind, mapSize);
+        var layout = new Landscape(empty, terrainSeed ?? seed, factionCount);
         var land = kind switch
         {
             WorldKind.SeaWorld => layout.SmallIslands(),
@@ -21,7 +21,7 @@ internal static class WorldLandscapeGenerator
         ConnectWater(mesh, land);
         return new GameBoard(mesh.Width, mesh.Height,
             p => land.Contains(p) ? TerrainType.Land : TerrainType.Water, seed,
-            mesh.Faces.ContainsKey, mesh.Boundary, mesh, kind);
+            mesh.Faces.ContainsKey, mesh.Boundary, mesh, kind, mapSize);
     }
 
     private sealed class Landscape

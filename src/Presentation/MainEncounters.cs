@@ -19,7 +19,8 @@ public partial class Main
         foreach (var encounter in Battle.Encounters) _shownEncounters.Add(encounter.Side);
     }
     private Task FocusVisibleTarget(GridPosition cell) => FastChecks || !Battle.Vision.IsVisible(Side.Player, cell)
-        ? Task.CompletedTask : MapCamera.FocusAsync(BoardView.ToGlobal(BoardView.Projection.GridToWorld(cell)), Camera.MapCamera.ActionSeconds);
+        ? Task.CompletedTask : MapCamera.FocusAsync(BoardView.ToGlobal(Battle.VillageAt(cell) is { } town
+            ? BoardView.VillageWorldAnchor(town) : BoardView.Projection.GridToWorld(cell)), Camera.MapCamera.ActionSeconds);
 
     private async Task PresentEncounters()
     {

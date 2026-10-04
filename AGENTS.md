@@ -1,10 +1,6 @@
 # Ancient Naval — project development guide
 
-<<<<<<< Updated upstream
 Version 3.0 · 2 October 2026 · Godot 4.7.2 .NET / C# / .NET 8
-=======
-Version 2.1 · 30 September 2026 · Godot 4.7.2 .NET / C# / .NET 8
->>>>>>> Stashed changes
 
 This guide adapts the supplied Version 1.0 document to the actual project.
 The original remains in `docs/AGENT-GUIDELINES-ORIGINAL.md`. Read this file, `README.md` and the
@@ -15,11 +11,7 @@ scope; historical design notes are context, not new work orders.
 
 - Refactors preserve rules, visuals, seeded outcomes and existing saves unless
   the user requests a behavior change. State any intentional fixes explicitly.
-<<<<<<< Updated upstream
 - Player-facing text supports English, Ukrainian and Dutch. Add complete catalog messages and preserve proper names and numerals. Keep the requested menu signature intact.
-=======
-- All player-facing text is English. Keep the requested menu signature intact.
->>>>>>> Stashed changes
 - Internal names such as `Invader`, `Togus` and `Garrison` are serialized legacy
   identifiers. Display names are Galleon, Granado and Brig; do not rename enums
   to match the UI without a migration.
@@ -28,7 +20,6 @@ scope; historical design notes are context, not new work orders.
   Earlier pentagon specifications are historical.
 - Never overwrite a shipped build or user save while testing. Use a new output
   folder and explicit `--save-file=` paths for persistence tests.
-<<<<<<< Updated upstream
 - The authoritative project is `C:/__Beygelman/! -11/dev-ancient-naval`.
   Edit its source/assets/data/README in place. Every delivered version must also
   have complete copies under this repository's `releases/<version>/`; `outputs`
@@ -39,8 +30,6 @@ scope; historical design notes are context, not new work orders.
   GitHub's file limit. Never add caches, saves or signing credentials to Git.
   Exclude `releases/` when making a source ZIP or exporting Godot resources;
   otherwise exports can recursively contain previous builds.
-=======
->>>>>>> Stashed changes
 
 ## Architectural boundaries
 
@@ -56,12 +45,9 @@ scope; historical design notes are context, not new work orders.
   battle identity, selected ship, movement budget/position and Vision.Revision match.
 - `src/Presentation` translates input to commands and renders their results.
   Damage happens once in Core; projectile count and timing cannot change it.
-<<<<<<< Updated upstream
   Projectile orders use `BattleState.Prepare`; commit each impact after its
   flight, then finish before saving or accepting another order. Simulations
   may use the immediate command facade. Movement needs no staged combat clone.
-=======
->>>>>>> Stashed changes
 - `Main` composes the scene; selection, command orchestration, view refresh and
   session lifecycle have separate files. Avoid business rules in HUD callbacks.
 - Save DTOs are an explicit compatibility contract, not live scene objects.
@@ -83,11 +69,10 @@ scope; historical design notes are context, not new work orders.
 - Keep deterministic iteration and random draw order. Cosmetics must never
   consume simulation randomness. New randomness must survive save/resume.
 
-<<<<<<< Updated upstream
 ## Version and release checks
 
 - Version labels follow `v020`, `v020.1` through `v020.9`, then `v021`.
-  The corrected v020.2 remains archived; the current requested release is `v020.4`.
+  The corrected v020.2 remains archived; the current requested release is `v020.6`.
 - Before **every** delivery, build and run meaningful Core/native checks, then
   run `tools/Check-ReleaseSmoothness.ps1` on the final Debug build with a native
   renderer. Preserve its reports under `docs/diagnostics/<version>/`.
@@ -98,8 +83,6 @@ scope; historical design notes are context, not new work orders.
   share a flight; staged impacts still commit exactly once. Radar-only attacks
   must never disclose hidden hulls, health, damage digits or sunk outcomes.
 
-=======
->>>>>>> Stashed changes
 ## Turn-based performance
 
 - AI, income, production, healing and cooldowns advance through commands/turns,
@@ -111,7 +94,6 @@ scope; historical design notes are context, not new work orders.
   invalidation boundary. Never let caches expose hidden ships or stale terrain.
 - Streaming, pooling, ECS and a global event bus are optional responses to an
   observed problem. The current map does not require introducing them in advance.
-<<<<<<< Updated upstream
 - Static terrain has a bounded raster and separately retained per-cell sources.
   Discoveries build only new cells; known cells change tint on fog updates.
   A new world invalidates every cell source. Hover cannot update the raster. Retain world-space range/resource/trade commands across camera movement; native clipping handles their viewport. A new manually culled overlay needs explicit camera invalidation. Keep fog in the cache key.
@@ -142,13 +124,6 @@ scope; historical design notes are context, not new work orders.
 - TerrainFeatures is the deterministic, board-owned source for mountain cells, forest density and coast depth. Optical rays use actual mesh polygons; radar ignores mountains. Rendering cannot invent extra blocking peaks.
 - Heavenly aid counters persist in staged snapshots and Continue. Pay once at each fifth personal turn start; direct flagship kills exclude collapse scuttling. Never reveal an unknown nation through the aid plaque.
 - Village ground and wheat are clipped to land minus beach, including fully enclosed holes. Native polygon subtraction can return hole rings; these require proper decomposition before drawing.
-=======
-- Static terrain is rasterized once into a bounded texture; redraw only when actual
-  explored/visible masks or world geometry change. Live overlays must redraw after
-  camera movement because they cull offscreen objects. Keep fog in the cache key.
-- Animation populations remain bounded. Stop processing hidden menu scenery;
-  respond to resize/command events instead of repeating unchanged work per frame.
->>>>>>> Stashed changes
 
 ## Safety invariants to test
 

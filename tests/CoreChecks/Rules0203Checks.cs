@@ -21,10 +21,10 @@ internal static class Rules0203Checks
                 (Side.Enemy,ShipClass.Mothership,new GridPosition(28,28))}.Concat(extra),
             Array.Empty<GridPosition>(),villageSpots:Array.Empty<GridPosition>());
 
-        Check(rules.StartingCredits == 8 && rules.RepairAmount == 4 && rules.AutoRepairAmount == 4
+        Check(rules.StartingCredits == 8 && rules.RepairAmount == (rules.FishingCannonTowers ? 3 : 4) && rules.AutoRepairAmount == 4
             && rules.AncientAutoRepairAmount == 2,"starting treasury and active/passive healing balance");
         Check(rules.Get(ShipClass.Garrison).Price == 5 && rules.Get(ShipClass.Fishing).Price == 4
-            && rules.Get(ShipClass.Fishing).IncomePerTurn == 1 && rules.Get(ShipClass.Togus).Price == 16,
+            && rules.Get(ShipClass.Fishing).IncomePerTurn == (rules.FishingCannonTowers ? 0 : 1) && rules.Get(ShipClass.Togus).Price == 16,
             "Brig, fishing income and Granado construction balance");
         Check(new[] {ShipClass.Mothership,ShipClass.Invader,ShipClass.Kolonel}.All(c=>rules.Get(c).AttackRange==2)
             && rules.Balloon.AntiAirRange==2,"short base cannon and anti-air ranges");
@@ -36,6 +36,8 @@ internal static class Rules0203Checks
             (Side.Player,ShipClass.Garrison,new(1,2)),(Side.Player,ShipClass.Fishing,new(2,2)),
             (Side.Player,ShipClass.Balloon,new(1,1)),(Side.Player,ShipClass.Lighthouse,new(5,5)),
             (Side.Player,ShipClass.CannonTower,new(6,6)),(Side.Player,ShipClass.AncientGun,new(7,7)));
+        // Keep this capacity fixture away from the new empty outer spawn ring.
+        fleet.Find(1)!.Position = new(3,3);
         Check(fleet.FleetUsed(Side.Player)==4 && fleet.FleetCapacity(Side.Player)==4,
             "flagship, armed hulls and fishing vessels count; air and buildings do not");
         Check(fleet.BuildBlockReason(Side.Player,1,ShipClass.Fishing)?.StartsWith("Fleet limit:")==true
@@ -77,7 +79,7 @@ internal static class Rules0203Checks
             "flagship and opposing hull cannot be dismantled");
         Check(scuttle.Scuttle(Side.Player,3).Success && scuttle.Find(3) is null
             && scuttle.Credits(Side.Player)==money && scuttle.FleetUsed(Side.Player)==used-1
-            && scuttle.GrossIncome(Side.Player)==income-1,"dismantling frees capacity and bound income without refund");
+            && scuttle.GrossIncome(Side.Player)==income-rules.Get(ShipClass.Fishing).IncomePerTurn,"dismantling frees capacity and bound income without refund");
         Check(!scuttle.Scuttle(Side.Player,3).Success,"dismantling cannot be repeated");
 
         foreach(var kind in new[] {ShipClass.Invader,ShipClass.Kolonel})
@@ -98,11 +100,11 @@ internal static class Rules0203Checks
         foreach(var id in new[] {3,4})
         {
             var gun=mortars.Find(id)!;
-            Check(!mortars.WeaponCovers(gun,new(gun.Position.X+2,gun.Position.Y))
+            Check(!mortars.WeaponCovers(gun,new(gun.Position.X+mortars.MortarDeadZone(gun),gun.Position.Y))
                 && mortars.WeaponCovers(gun,new(gun.Position.X+3,gun.Position.Y))
                 && mortars.WeaponCovers(gun,new(gun.Position.X+5,gun.Position.Y))
                 && !mortars.WeaponCovers(gun,new(gun.Position.X+6,gun.Position.Y)),
-                "mortar-only hull and ancient tower exclude inner two tiles and stop at five");
+                "mortar-only hull and ancient tower exclude their configured inner radius and stop at five");
             Check(!mortars.WeaponCovers(gun,new(gun.Position.X+3,gun.Position.Y),true),"mortar-only weapons never counterattack");
         }
         var mother=mortars.Find(1)!; mother.HasMortar=true;
@@ -132,9 +134,9 @@ internal static class Rules0203Checks
         Check(healing.EndTurn(Side.Player).Success && healing.Find(3)!.Health==8 && healing.Find(4)!.Health==6,
             "unused ship repairs four and unused ancient tower repairs two");
         var activeHeal=Create((Side.Player,ShipClass.Invader,new(5,5))); activeHeal.Find(3)!.Health=4;
-        Check(activeHeal.Repair(Side.Player,3).Success && activeHeal.Find(3)!.Health==8,"active repair restores four");
+        Check(activeHeal.Repair(Side.Player,3).Success && activeHeal.Find(3)!.Health==4+rules.RepairAmount,"active repair restores the configured amount");
         activeHeal.EndTurn(Side.Player);
-        Check(activeHeal.Find(3)!.Health==8,"active repair cannot also receive passive repair that turn");
+        Check(activeHeal.Find(3)!.Health==4+rules.RepairAmount,"active repair cannot also receive passive repair that turn");
 
         var awards=Create((Side.Player,ShipClass.Garrison,new(5,5)),(Side.Enemy,ShipClass.Fishing,new(6,5)));
         var nation=awards.PendingAwards.Single(a=>a.Kind==AwardKind.Nation);

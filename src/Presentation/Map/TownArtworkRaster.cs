@@ -42,7 +42,10 @@ public partial class BoardView
     {
         // Tall front corner towers extend above the compact walls; the rear
         // tower lives in the back layer. Leave room for every coastal fit.
-        var bounds = front ? new Rect2(-58, -64, 116, 108) : new Rect2(-56, -92, 112, 106);
+        var bounds = front ? new Rect2(-92, -104, 184, 156) : new Rect2(-92, -132, 184, 166);
+        var placement=VillagePlacement(town);
+        foreach(var corner in new[] {new Vector2(-58,-145),new Vector2(58,-145),new Vector2(-58,40),new Vector2(58,40)})
+            bounds=bounds.Expand(placement.Point(corner));
         if (town.HasPort)
         {
             var shore = PortShore(ObserveTownArt(town));
@@ -91,7 +94,7 @@ public partial class BoardView
                 }
                 if (placement.Scale > 0)
                 {
-                    source.DrawSetTransform(-bounds.Position + placement.Offset, 0, Vector2.One * placement.Scale);
+                    source.DrawSetTransformMatrix(placement.Transform(-bounds.Position));
                     if (front) DrawVillageForeground(source, observedArt, Vector2.Zero);
                     else DrawVillage(source, observedArt, Vector2.Zero);
                 }

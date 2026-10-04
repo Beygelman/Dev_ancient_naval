@@ -1,15 +1,22 @@
-<<<<<<< Updated upstream
-# Ancient Naval — v020.4 — Harbors and Blessings
+# Ancient Naval — v020.6 — The Watchful Voyage
 
-A turn-based naval tactics game built with **Godot 4.7.2 .NET**, C# and .NET 8. Open `project.godot`, stop the previous run with **F8**, then press **F5**. The title screen offers **New game**, **Continue** and **Exit game**. New game opens a six-color fleet and emblem selector and a choice of 1–4 rival fleets and Boatswain, Captain or Admiral difficulty, plus **Sea World**, **Oceans**, **Continents** or **Pangaea**.
+A turn-based naval tactics game built with **Godot 4.7.2 .NET**, C# and .NET 8. Open `project.godot`, stop the previous run with **F8**, then press **F5**. The title screen offers **New game**, **Continue**, **Settings** and **Exit game**. New game opens a six-color fleet and emblem selector and a choice of 1–4 rival fleets and Boatswain, Captain or Admiral difficulty, plus **Sea World**, **Oceans**, **Continents** or **Pangaea**.
 
-Defeat the rival Motherships while exploring, collecting resources and capturing coastal villages. The interface supports English, Ukrainian and Dutch; language buttons are available on the title screen and in the game menu. Core gameplay remains independent of Godot; rendering and input live in Presentation.
+Defeat the rival Motherships while exploring, collecting resources and capturing coastal villages. The interface supports English, Ukrainian and Dutch; language buttons and interface scale are available in Settings on the title screen and in the game menu. Core gameplay remains independent of Godot; rendering and input live in Presentation.
 
 ## Download and local release copies
 
 The working project, sources, assets, balance, tests and this README are edited
 directly in this Git repository. Delivered files are also copied to `releases/`
 inside the same project; the external `outputs` folder is an additional mirror.
+
+- [Windows v020.6 ZIP](releases/v020.6/Ancient_Naval_v020.6_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
+- [Source v020.6 ZIP](releases/v020.6/Ancient_Naval_v020.6_Source.zip), [Russian notes](releases/v020.6/Ancient_Naval_v020.6_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.6.txt).
+- Local launch copy: `releases/v020.6/playable/Ancient Naval.exe`.
+
+- [Windows v020.5 ZIP](releases/v020.5/Ancient_Naval_v020.5_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
+- [Source v020.5 ZIP](releases/v020.5/Ancient_Naval_v020.5_Source.zip), [Russian notes](releases/v020.5/Ancient_Naval_v020.5_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.5.txt).
+- Local launch copy: `releases/v020.5/playable/Ancient Naval.exe`.
 
 - [Windows v020.4 ZIP](releases/v020.4/Ancient_Naval_v020.4_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
 - [Source v020.4 ZIP](releases/v020.4/Ancient_Naval_v020.4_Source.zip), [Russian notes](releases/v020.4/Ancient_Naval_v020.4_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.4.txt).
@@ -45,6 +52,28 @@ notes remain visible to Git. [GitHub size limits](https://docs.github.com/en/rep
 Godot ignores the release directory so copied exports never re-enter game assets.
 See [release-copy workflow](releases/README.md). Files reach GitHub after the
 repository changes are committed and pushed; copying files alone is not a push.
+
+## v020.6 — 4 October 2026 — The Watchful Voyage
+
+Optional guidance shows a nation-colored amphora counting objects with useful affordable actions. Ending the turn stamps a left-unrolled parchment and, with hints enabled, opens a five-column object confirmation. Reward, capture and relic guidance sits below the scrolls. Five closeable upper-left advice cards use native game screenshots and appear once per voyage for resources, Kolonel, trade, repair and radar. Both Settings menus contain the toggle; disabling hints bypasses confirmation. English, Ukrainian and Dutch are supported.
+
+New voyages remove combat ship upkeep, increase settlement income and dock sight, give Granado three movement and mortar range two through five. Double salvo uses two equal damage charges. Starting escorts leave a tile between themselves and the flagship; the outer ring stays empty, fish are slightly more frequent and pirate counts follow area size. Tower/lighthouse construction removes a treasury without looting it. White pencil construction ghosts include prospective lighthouse trade links.
+
+Uniform house scale and compact inland plans prevent miniature settlements. Rivers favor coves and avoid narrow necks/beaches away from mouths; estuaries retain ocean tint. Faction shrines emit different light/foliage effects, including the white nation's red R. More bounded gulls flee nearby gunfire; waves gain subtle relief. Solid wreck parts rotate and submerge independently: decks, houses, broken sanctuaries, falling masts and rolling guns.
+
+[Validation and compatibility](docs/MILESTONE-v020.6.md). Start a new voyage for revised rules; older saves retain their embedded balance.
+
+## v020.5 — 3 October 2026 — The Painted Voyage
+
+New voyages open on an aged rolling parchment: fleet emblem, independent Lake/Bay/Sea/Ocean size, 1–4 rival figures, painted difficulty signs and four world illustrations. Wheel scrolling has no visible scrollbar. Embark leaves a four-finger handprint, folds the scroll, fades the view and descends toward the flagship before the elders' welcome. Language and interface scale are in Settings on both menus; English, Ukrainian and Dutch remain available.
+
+Fishing is now displayed as Support Brig, with workshop houses and a shared workshop icon. It collects supplies and builds docks, cannon towers and lighthouses without passive income. Repair restores 3 HP and spends the turn's remaining actions. New paid town levels cost 5/7/10/15 Thors; fishing docks yield +2. Direct port routes span at most six navigable tile transitions. Hovering a legal construction site shows a wireframe volume; cannon towers show fire range and lighthouses optical sight. Hidden/illegal sites have no blueprint.
+
+Towns use a consistent medium footprint fitted to adjoining inland ground, with five to seventeen homes and taller buildings as levels rise. Stronger within-cell river bends have variable banks and translucent estuaries cutting the painted beach. These illustrations do not change navigation. Uncollected sea ruins shine upward; collection extinguishes their glow and removes their information/actions while their scenery remains.
+
+The actual two-Thor flagship level reward is retained; its redundant upgrade-choice label is removed. Older saves retain their embedded balance; absent new size/port/support fields preserve legacy behavior. Start a new voyage for the complete new rules.
+
+Validation and captured native frames: [v020.5 milestone](docs/MILESTONE-v020.5.md). The working checkout had committed merge markers; complete pre-repair copies were preserved externally and current released code was recovered before development. No user Git checkout/index or historical release archive was replaced.
 
 ## v020.4 — 3 October 2026
 
@@ -256,97 +285,6 @@ Permanent, with **1 HP**, movement 4 (the Galleon's base movement), vision 6. Fl
 
 ## Sea discoveries and pirates
 
-=======
-# Ancient Naval — 0.15 — Charted Seas
-
-A turn-based naval tactics game built with **Godot 4.7.2 .NET**, C# and .NET 8. Open `project.godot`, stop the previous run with **F8**, then press **F5**. The title screen offers **New game**, **Continue** and **Exit game**. New game opens a five-color fleet selector and a choice of 1–4 rival fleets.
-
-Defeat the rival Motherships while exploring, collecting resources and capturing coastal villages. The entire interface is in English. Core gameplay remains independent of Godot; rendering and input live in Presentation.
-
-## Changes in 0.15 — 30 September 2026
-
-- Diagnose real cursor/ship lag; cache the landscape in a bounded texture, draw live actions separately, reuse one route plan per observed state and serialize saves away from the drawing thread. See [debug evidence](docs/DEBUG-0.15.md).
-- Select 1–4 independent rival fleets with unique colors. Sea area scales with rival count, with equal village/treasury counts per starting territory. Rivals attack each other as well as you.
-- Rebalance construction and income: starting reserve 8, starting income 3, Fishing Schooner 9, Galleon 12, Granado 18, Kolonel 20; combat fleet upkeep discourages unlimited expansion.
-- Collect resources from the same or a directly adjacent tile. Build a Cannon Tower from level 2. Kolonel and Galleon cannon range is 2.
-- Generate shared flowing seams with less deformation, rounded connected coastlines, dense groves, larger mountain ridges and soft drifting clouds.
-- Rebuild the Mothership and title close-up as an asymmetric terraced city, with a white gold-domed temple, irregular beige homes, market, crates, laundry and moving carts.
-- Unfold a papyrus command arc, read an object's sage-style numerical chart with Info, and cancel selection with right-click. Hostile HP is red; income rises from its sources at turn start.
-- Turn cannon hulls broadside before firing; mortars aim their barrels independently. Visual shell count remains independent of damage.
-- New game replaces the sole voyage slot and deletes the previous voyage's backup. Recovery copies subsequently belong only to the new voyage.
-
-## Changes in 0.14.1 — 30 September 2026
-
-- Split navigation, combat, production and turn handling behind the existing battle command facade. Separate scene composition, input, commands and view refresh.
-- Extract stable path search and command-scoped navigation policy. Enemy occupancy/threats are indexed once per query, preserving fog, friendly transit and equal-cost route order.
-- Move mortar, balloon and treasury mechanics into validated typed balance settings with defaults compatible with 0.14 saves.
-- Separate ship drawing from command animation; reuse rendering buffers and lay out the title menu on resize.
-- Protect good save backups after a damaged primary is recovered or replaced by New game. Validate saved geometry and state before restoring it.
-- Add a project-specific [development guide](AGENTS.md), [architecture contracts](docs/ARCHITECTURE.md), and [change history](CHANGELOG.md).
-
-Verification: build succeeds with no warnings; 1,535 basic checks, 1,195,229 rules/navigation/map checks, 8 complete AI games, 20 save compatibility checks including two released v1 fixtures, and Godot gameplay/render/menu checks pass. On synthetic full-board searches, temporary managed allocations decreased by **95–98%**; idle draw preparation decreased by **27–59%**. These measurements cover specific operations, not whole-game FPS. [Measurements and limits](docs/MILESTONE-0.14.1.md).
-
-## Changes in 0.14 — 30 September 2026
-
-- Animated title scene with a living floating town, waves, gulls, color selection and recoverable Save/Continue.
-- A larger irregular hexagon with smoother varied cells, opposed starts and equal villages/treasuries per territory.
-- Weighted discoveries, 2-HP automatic ship repair, enemy-only mortar splash, level-4 movement, vulnerable Balloons and expanded village shipyards.
-- New island details, docks, clouds, shadows, stronger hull motion and impact effects.
-- Save/load and geometry logic stay in engine-independent Core; scenery and fleet anchors are cached, and effect populations are bounded.
-
-The requested menu signature intentionally remains `GitHub: Beygelman  @Ancient_Naval_v0.13 30.09.2026`; the playable checkpoint is **0.15**. [Title asset and generation prompt](docs/TITLE-ASSET.md).
-
-## Controls
-
-- Select a ship and click its destination. Movement uses a translucent outer contour with a short inward glow. Hovering previews a path.
-- Only targets the selected ship can attack receive a coral outline. There is no filled attack area. Radar uses a green contour; unseen contacts remain anonymous, even during attacks.
-- Glowing fish/shoal icons are within your fleet's collection reach. **No ship selection is required.** Click the resource, then its purchase sector. Only the icon is highlighted.
-- The papyrus arc includes available and locked commands. **Info** explains the object and its current numbers. **Right-click** closes the arc and clears selection.
-- Click a village to inspect it. Reduce its defenses to 0 HP, hold an eligible combat ship adjacent until its next turn, then click the flag to capture. Capture spends that ship's actions. Towns cannot be destroyed.
-- Select a Balloon by its elevated model. Move it, then use **Drop bomb**. It recharges every three owner turns; Balloons no longer expire.
-- Drag to pan; wheel/pinch to zoom; Escape for the menu. Creative mode removes player construction, collection and village fortification costs, preserving unlocks. Radar/mortar remain paid.
-
-## Balance
-
-| Unit | Shipyard level | Price | Base HP | Base damage | Movement |
-|---|---:|---:|---:|---:|---:|
-| Mothership | — | — | 20 | 3 | 1 |
-| Brig | 1 | 6 | 5 | 3 | 4 |
-| Fishing Schooner | 1 | 9 | 5 | — | 2 |
-| Fishing Dock | 2 | 10 | 10 | — | 0 |
-| Galleon | 3 | 12 | 10 | 5 | 4 |
-| Kolonel | 4 | 20 | 15 | 4, twice per turn | 3 |
-| Granado | 5 | 18 | 5 | 8 | 2 |
-| Cannon Tower | 2 | 8 | 10 | 3, range 2 | 0 |
-
-Galleon retains internal identifier `Invader`. The Mothership is a broad catamaran with two hulls and houses of different sizes. Ships, towns, flags and effects use procedural art. The generated transparent title image is bundled in `assets/ui`; no external downloads are needed.
-
-Motherships produce once per turn and cannot move after production. The first ordinary Mothership production is immediately ready; later ships and village-produced ships become ready next turn. The normal fleet cap is 12 combat naval ships, excluding Fishing Schooners, structures and Balloons.
-
-## Economy and progression
-
-Each fleet starts with 8 Thors, a Mothership, Brig and Fishing Schooner. Starting income is 3: 2 from the Mothership and 1 from the Fishing Schooner. Mothership levels no longer raise income. Villages supply 1/1/2/2/3 at levels 1–5. The first two combat naval ships are free of upkeep; each additional pair (rounded up) costs 1 Thor per owner turn. Upkeep is deducted from gross income, never below zero. Fishing ships, structures and Balloons pay no fleet upkeep. At turn start, source-specific coin labels show gross gains and the upkeep deduction at the Mothership.
-
-Ordinary fish cost 2 Thors and grant one resource. Motherships and Fishing Schooners collect on their own or a directly adjacent tile; the fisher transfers resources regardless of distance from its Mothership. From level 2, shoals can become docks for 10 Thors: two resources once, then one income per turn. Ordinary resources do not regenerate. Destroying a Fishing Dock restores its original shoal, allowing another dock to be built there.
-
-| New level | Required resources | Base maximum HP | Choose one upgrade |
-|---|---:|---:|---|
-| 2 | 2 | 25 | +1 movement OR one additional Fishing Schooner |
-| 3 | 3 | 30 | +2 vision and +2 radar range OR +5 maximum HP and passive repair of 2 HP each turn |
-| 4 | 4 | 35 | Launch a Balloon OR +1 shot per turn |
-| 5 | 5 | 40 | 25% cheaper ships OR +3 shot damage and +2 counterattack damage |
-
-Levels preserve damage and add 5 current/maximum HP. Level 4 also grants +1 movement automatically, independently of the chosen upgrade and stacking with level-2 Mobility. Restoration adds another 5 HP and repairs at the owner's turn start, capped at maximum health. Vision also boosts radar installed later. Shipwright applies to Mothership and village production; prices round down, minimum one Thor outside creative mode. Upgrade choices are defined per level in `data/balance.json`.
-
-Radar costs 2 Thors on Mothership/Kolonel. Mothership mortar requires level 5 plus radar, costs 10 and shares normal attacks. Granado and installed Mothership mortars deal 8 base damage at ranges 4–5, plus 2 against villages before fortification resistance. Mortar shells also deal 2 splash damage to adjacent enemies; allied ships and villages are safe from mortar splash. Fortified villages reduce splash by 25%. Motherships use ordinary cannons at ranges 1–3 and mortars at ranges 4–5, with separate damage values. Ships with mortars must fire before moving. Granado has built-in radar/mortar and cannot counterattack. Mothership base vision is 2 and installed radar 5; Galleon gun range is 2.
-
-## Balloon
-
-Permanent, with **1 HP**, movement 4 (the Galleon's base movement), vision 8. Flight ignores terrain and may share a tile with another unit. After moving, the Balloon can bomb its current cell: 6 damage directly below and 2 to adjacent cells, including friendly ships and villages. The bomb recharges at the start of three subsequent owner turns. Fortified villages retain their resistance. Ancient Balloons have the same rules and a distinct gold/bronze design. Bombs can damage Motherships. Only a Mothership can shoot a Balloon down, using cannons at up to 3 tiles; radar/installed mortars do not extend this anti-air range. Click the elevated Balloon model to target it separately from a ship below.
-
-## Sea discoveries and pirates
-
->>>>>>> Stashed changes
 Three ancient treasuries per fleet are scattered across open water, equally divided among starting territories. Hold a combat ship on one until its next turn, then use **Plunder treasury** before other actions. The ship spends its actions and the treasury disappears. The whirlpool has a **12%** chance; each of the other four outcomes has a **22%** chance:
 
 - Ancient Mortar Tower: owned by the looter, 10 HP, damage 5, range/radar 5, sight 3. Stationary; no repair or production. Placed in the nearest free water; ready next turn.
@@ -363,21 +301,13 @@ Small towns occupy coastal land, at most one per island, with equal nonempty cou
 
 A captured village supplies 1/1/2/2/3 Thors at levels 1/2/3/4/5 and automatically gains a level every two completed owner turns, adding 5 HP. Maximum: level 5 / 25 HP. Growth never offers upgrade choices. Its shipyard unlocks Fishing Schooners at level 1, Brigs at level 2, Galleons at level 3, Kolonels at level 4 and Granados at level 5. Production is once per turn into adjacent free water.
 
-<<<<<<< Updated upstream
 **Fortification** costs 8 Thors by default (`VillageFortificationPrice` in balance settings). Incoming damage is reduced by exactly 25%; from level 2, a surviving outpost counterattacks for level + 1 damage within 2 tiles. At the end of its owner turn, it fires once at the lowest-HP visible hostile surface ship within 2; active damage equals its level (2/3/4/5). Level-one outposts cannot shoot or counter. Active repair takes precedence over automatic fire. Villages cannot build Cannon Towers. Sight increases from 3 to 5 immediately. Fractional HP are supported. A town must reach 0 HP before capture, irrespective of its owner.
-=======
-**Fortification** costs 8 Thors by default (`VillageFortificationPrice` in balance settings). Incoming damage is reduced by exactly 25%; a surviving village counterattacks for 3 within range 3. Sight increases from 3 to 5 immediately. Fractional HP are supported. A town must reach 0 HP before capture, irrespective of its owner.
->>>>>>> Stashed changes
 
 ## Navigation and combat
 
 Neighbors share an edge or corner of the actual mesh; **diagonals cost the same as edge-adjacent steps**. Existing coastal/narrow-channel multipliers still apply. Ships pass through friendly units but finish on a free tile. Enemy tiles block passage; entering a tile adjacent to an enemy armed sea unit costs at least 2 movement points, including diagonal travel. Radar contacts also block their occupied tile. Balloons may stop above units. Land, boundaries and heavy-ship passage restrictions remain.
 
-<<<<<<< Updated upstream
 Brig moves after firing. Galleon/Mothership retain movement/attack profiles; Kolonel has two attacks but cannot move after firing. Manual repair restores up to 5 HP and replaces actions. At the end of an owner turn, an eligible ship that did not attack or repair automatically receives **2 HP**. Living villages retain **5 HP**, matching their active repair. Counterattacks do not prevent this; movement alone does not prevent it. Active village repair consumes production. Zero-HP villages stay defeated; ancient towers and Balloons never repair. Damage scales with hull condition; below 25% HP movement falls by one. Three ship kills grant veterancy, full repair and +25% maximum HP/base damage; Cannon and Ancient Mortar Towers also earn this promotion; Motherships do not gain veterancy.
-=======
-Brig moves after firing. Galleon/Mothership retain movement/attack profiles; Kolonel has two attacks but cannot move after firing. Manual repair restores up to 5 HP and replaces actions. At the end of an owner turn, an eligible ship that did not attack or repair automatically receives **2 HP**. Living villages retain **5 HP**, matching their active repair. Counterattacks do not prevent this; movement alone does not prevent it. Active village repair consumes production. Zero-HP villages stay defeated; ancient towers and Balloons never repair. Damage scales with hull condition; below 25% HP movement falls by one. Three ship kills grant veterancy, full repair and +25% maximum HP/base damage; Motherships do not gain veterancy.
->>>>>>> Stashed changes
 
 Every generated map has **six straight sides of different lengths, each containing 24–30 actual boundary tiles**. Six fitted patches, nonuniform spacing, local row reconnections and constrained deformation create flowing bands of irregular quadrilaterals, with triangles and pentagons. Roughly 91% are quads; projected polygon corners stay at least 32°. Curved shared seams, picking and gameplay use the same topology. See [generator design](docs/MAP-GENERATION.md).
 
@@ -403,8 +333,4 @@ Every suite must print **PASS**. Tests cover seeded maps, geometry/picking, upgr
 
 Autosave records each completed player action and AI action, and saves again when returning to the title or exiting. Continue restores the exact mesh, ships, upgrades, economy, fog, village/treasury waits, random-event state and camera. A complete previous checkpoint of the **same voyage** is retained as `.bak`. On Windows the default slot is `%APPDATA%/Godot/app_userdata/Ancient Naval/last_battle.json`. Debug checks and map previews never overwrite it. Starting a new game atomically replaces the slot and removes the old voyage backup. No older voyage can be continued.
 
-<<<<<<< Updated upstream
 Android export/device testing remain future work. See the [beta roadmap](docs/ROADMAP-TO-BETA.md) and [current milestone](docs/MILESTONE-0.17.md). Earlier milestones describe historical rules.
-=======
-Android export/device testing remain future work. See the [beta roadmap](docs/ROADMAP-TO-BETA.md) and [current milestone](docs/MILESTONE-0.15.md). Earlier milestones describe historical rules.
->>>>>>> Stashed changes

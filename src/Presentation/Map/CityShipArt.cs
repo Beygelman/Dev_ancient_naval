@@ -7,8 +7,8 @@ namespace DevAncientNaval.Presentation.Map;
 /// <summary>Reusable, rotation-safe city geometry with upright buildings and visible faces.</summary>
 internal sealed class CityShipArt : IComparer<int>
 {
-    private readonly record struct Home(float X, float Y, float Z, float W, float D, float H, int Tone);
-    private static readonly Home[] Homes =
+    internal readonly record struct Home(float X, float Y, float Z, float W, float D, float H, int Tone);
+    internal static readonly Home[] Homes =
     {
         new(-27, -6, 0, 7, 5, 7, 0),
         new(27, -5, 0, 6, 5, 6, 2),
@@ -164,7 +164,11 @@ internal sealed class CityShipArt : IComparer<int>
         {
             int index = _order[slot];
             if (index == Homes.Length)
+            {
                 FactionSanctuaryArt.Draw(_canvas, (x, y, z) => _p(x, y - 2, z * (1 + .1f * (cityLevel - 1)) + 6), faction);
+                if (fracture < .01f) FactionSanctuaryArt.DrawEffects(_canvas,
+                    (x,y,z) => _p(x,y-2,z*(1+.1f*(cityLevel-1))+6), faction,time);
+            }
             else
                 House(Homes[index] with { H = Homes[index].H + (cityLevel - 3) * 1.1f }, accent.Darkened(index % 4 * .035f), index);
         }

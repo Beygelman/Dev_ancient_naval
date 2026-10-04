@@ -4,7 +4,6 @@ using Godot;
 namespace DevAncientNaval.Presentation.Map;
 public partial class WorldAmbience
 {
-<<<<<<< Updated upstream
     private static readonly Vector2[] CloudFacet =
     {
         new(-3, -1),
@@ -38,26 +37,6 @@ public partial class WorldAmbience
             DrawWorld = DrawSky
         };
         AddChild(_sky);
-=======
-    private GradientTexture2D? _cloudTexture;
-
-    private void EnsureCloudTexture()
-    {
-        if (_cloudTexture is not null) return;
-        _cloudTexture = new GradientTexture2D
-        {
-            Width = 96,
-            Height = 96,
-            Fill = GradientTexture2D.FillEnum.Radial,
-            FillFrom = new Vector2(.5f, .5f),
-            FillTo = new Vector2(1, .5f),
-            Gradient = new Gradient
-            {
-                Offsets = new[] { 0f, .45f, .78f, 1f },
-                Colors = new[] { new Color(1, 1, 1, .9f), new Color(1, 1, 1, .65f), new Color(1, 1, 1, .20f), new Color(1, 1, 1, 0) }
-            }
-        };
->>>>>>> Stashed changes
     }
 
     private bool VisibleSurface(Vector2 point)
@@ -66,7 +45,6 @@ public partial class WorldAmbience
         return _battle!.Board.Contains(cell) && _battle.Vision.IsVisible(DevAncientNaval.Core.Units.Side.Player, cell);
     }
 
-<<<<<<< Updated upstream
     private void DrawSky(Node2D canvas)
     {
         DrawClouds(canvas, shadows: false);
@@ -74,14 +52,10 @@ public partial class WorldAmbience
     }
 
     private void DrawClouds(Node2D canvas, bool shadows)
-=======
-    private void DrawCloudsAndHarborGulls()
->>>>>>> Stashed changes
     {
         if (_battle is null)
             return;
         var bounds = _seaBounds;
-<<<<<<< Updated upstream
         for (int cloud = 0; cloud < 5; cloud++)
         {
             float x = Mathf.PosMod(cloud * bounds.Size.X * .27f + _time * 4 + _battle.Board.Seed % 701, bounds.Size.X);
@@ -127,7 +101,7 @@ public partial class WorldAmbience
         foreach (var gull in _gulls)
         {
             float age = _time - gull.Born;
-            var water = gull.Circling ? gull.Start + new Vector2(MathF.Cos(age * .38f + gull.Phase) * 28, MathF.Sin(age * .38f + gull.Phase) * 12) : gull.Start + gull.Velocity * age + new Vector2(MathF.Sin(age * .24f + gull.Phase) * 13, 0);
+            var water = GullPosition(gull);
             if (!_drawBounds.HasPoint(water) || !VisibleWater(water))
                 continue;
             float fade = Math.Min(1, Math.Min(age, gull.Lifetime - age));
@@ -140,67 +114,42 @@ public partial class WorldAmbience
             else
             {
                 var bird = water + new Vector2(0, -38 - MathF.Sin(age * .4f + gull.Phase) * 5);
-                SetGullWings(bird, MathF.Sin(age * 4.2f + gull.Phase) * 2.6f, 7, 3);
+                SetGullWings(bird, MathF.Sin(age * 4.2f * (gull.Scared ? 1.5f : 1) + gull.Phase) * 2.6f, 7, 3);
                 canvas.DrawPolyline(_gullWings, new Color(.95f, .96f, .86f, .85f * fade), 1.8f, true);
-=======
-        EnsureCloudTexture();
-        for (int cloud = 0; cloud < 5; cloud++)
-        {
-            float x = Mathf.PosMod(cloud * bounds.Size.X * .27f + _time * 4 + _battle.Board.Seed % 701, bounds.Size.X);
-            float y = bounds.Position.Y + bounds.Size.Y * (.13f + cloud * .17f);
-            var center = new Vector2(bounds.Position.X + x, y);
-            for (int puff = 0; puff < 6; puff++)
-            {
-                var water = center + new Vector2((puff - 2.5f) * 27, MathF.Sin(puff * 2.7f + cloud) * 13);
-                if (!_drawBounds.HasPoint(water)) continue;
-                if (!VisibleSurface(water))
-                    continue;
-                float radius = 34 + MathF.Sin(puff * 3.1f + cloud) * 10;
-                var shadowSize = new Vector2(radius * 3.2f, radius * 1.25f);
-                var cloudSize = new Vector2(radius * 2.9f, radius * 1.4f);
-                DrawTextureRect(_cloudTexture!, new Rect2(water - shadowSize * .5f, shadowSize), false, new Color(.02f, .08f, .1f, .13f));
-                DrawTextureRect(_cloudTexture!, new Rect2(water + new Vector2(-20, -65) - cloudSize * .5f, cloudSize), false, new Color(.91f, .96f, .94f, .16f));
->>>>>>> Stashed changes
             }
         }
 
         foreach (var dock in _docks)
         {
             var center = dock.Center;
-<<<<<<< Updated upstream
-            if (!_drawBounds.HasPoint(center))
-                continue;
+            bool startled = _dockAlarms.TryGetValue(dock.Id, out var alarm) && _time - alarm.Born < 18;
             for (int i = 0; i < 3; i++)
             {
-                float phase = _time * .43f + i * 1.7f + dock.Id;
+                float phase = (startled ? alarm.Born : _time) * .43f + i * 1.7f + dock.Id;
                 var water = center + new Vector2(MathF.Cos(phase) * (25 + i * 4), MathF.Sin(phase) * 14);
-                if (!VisibleWater(water))
+                float opacity = 1;
+                if (startled)
+                {
+                    float elapsed = _time - alarm.Born;
+                    var away = (water - alarm.Origin).Normalized();
+                    if (away == Vector2.Zero) away = Vector2.Right;
+                    water += away * elapsed * (20 + i * 2);
+                    opacity = Math.Clamp((18 - elapsed) / 2, 0, 1);
+                }
+                if (!_drawBounds.HasPoint(water) || !VisibleWater(water))
                     continue;
                 if (shadows)
                 {
                     canvas.DrawSetTransform(water, 0, new Vector2(1, .32f));
-                    canvas.DrawCircle(Vector2.Zero, 4, new Color(0, .08f, .1f, .2f));
+                    canvas.DrawCircle(Vector2.Zero, 4, new Color(0, .08f, .1f, .2f * opacity));
                     canvas.DrawSetTransform(Vector2.Zero);
                 }
                 else
                 {
                     var bird = water + new Vector2(0, -37 - i * 4);
-                    SetGullWings(bird, MathF.Sin(_time * 4.8f + i) * 2.4f, 6, 2);
-                    canvas.DrawPolyline(_gullWings, new Color("f2f0dc"), 1.7f, true);
+                    SetGullWings(bird, MathF.Sin(_time * 4.8f * (startled ? 1.5f : 1) + i) * 2.4f, 6, 2);
+                    canvas.DrawPolyline(_gullWings, new Color(new Color("f2f0dc"), opacity), 1.7f, true);
                 }
-=======
-            for (int i = 0; i < 4; i++)
-            {
-                float phase = _time * .43f + i * 1.7f + dock.Id;
-                var water = center + new Vector2(MathF.Cos(phase) * (25 + i * 6), MathF.Sin(phase) * 14);
-                DrawSetTransform(water, 0, new Vector2(1, .32f));
-                DrawCircle(Vector2.Zero, 4, new Color(0, .08f, .1f, .2f));
-                DrawSetTransform(Vector2.Zero);
-                var bird = water + new Vector2(0, -37 - i * 5);
-                float wing = MathF.Sin(_time * 4.8f + i) * 2.4f;
-                SetGullWings(bird, wing, 6, 2);
-                DrawPolyline(_gullWings, new Color("f2f0dc"), 1.7f, true);
->>>>>>> Stashed changes
             }
         }
     }

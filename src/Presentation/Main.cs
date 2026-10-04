@@ -22,7 +22,6 @@ public enum OrderMode
 
 public partial class Main : Node2D
 {
-<<<<<<< Updated upstream
     public BoardView BoardView { get; private set; } = null !;
     public MapCamera MapCamera { get; private set; } = null !;
     public MapInput MapInput { get; private set; } = null !;
@@ -30,15 +29,6 @@ public partial class Main : Node2D
     public FleetView Fleet { get; private set; } = null !;
     public WorldAmbience Ambience { get; private set; } = null !;
     public BattleState Battle { get; private set; } = null !;
-=======
-    public BoardView BoardView { get; private set; } = null!;
-    public MapCamera MapCamera { get; private set; } = null!;
-    public MapInput MapInput { get; private set; } = null!;
-    public DebugHud Hud { get; private set; } = null!;
-    public FleetView Fleet { get; private set; } = null!;
-    public WorldAmbience Ambience { get; private set; } = null!;
-    public BattleState Battle { get; private set; } = null!;
->>>>>>> Stashed changes
     public int? SelectedShipId { get; private set; }
     public int? SelectedVillageId { get; private set; }
     public bool Busy { get; private set; }
@@ -46,11 +36,7 @@ public partial class Main : Node2D
     public OrderMode Mode { get; private set; }
     public Task CurrentOrder { get; private set; } = Task.CompletedTask;
 
-<<<<<<< Updated upstream
     private BattleRules _rules = null !;
-=======
-    private BattleRules _rules = null!;
->>>>>>> Stashed changes
     private ShipClass? _building;
     private GridPosition? _resourceCell;
     private bool _resourceIsDock;
@@ -60,10 +46,7 @@ public partial class Main : Node2D
     private readonly bool _mapPreview = Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--map-preview");
     public override void _Ready()
     {
-<<<<<<< Updated upstream
         Language.Initialize();
-=======
->>>>>>> Stashed changes
         _rules = BattleRules.FromJson(FileAccess.GetFileAsString("res://data/balance.json"));
         var board = PrototypeBoard.Create();
         var projection = new IsometricProjection(board);
@@ -82,21 +65,16 @@ public partial class Main : Node2D
             BoardView = BoardView
         };
         AddChild(Ambience);
-<<<<<<< Updated upstream
         BoardView.DrawTownLife = Ambience.DrawTownLife;
         Fleet = new FleetView
         {
             Name = "Fleet",
             Landscape = BoardView,
-=======
-        Fleet = new FleetView
-        {
-            Name = "Fleet",
->>>>>>> Stashed changes
             Battle = Battle,
             Projection = projection
         };
         AddChild(Fleet);
+        Fleet.GunFired = Ambience.ScareGulls;
         MapCamera = new MapCamera
         {
             Name = "MapCamera",
@@ -111,32 +89,24 @@ public partial class Main : Node2D
             Camera = MapCamera
         };
         MapInput.Tapped += SelectAtScreen;
-<<<<<<< Updated upstream
         MapInput.Held += SelectAtScreen;
         MapInput.Hovered += PreviewAtScreen;
         MapInput.Canceled += CancelOrder;
-        MapInput.KeyboardEnabled = () => _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && Battle.PendingUpgrade(Side.Player) is null;
+        MapInput.KeyboardEnabled = () => !_endingStamp && !Hud.TurnConfirmationVisible && _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && Battle.PendingUpgrade(Side.Player) is null;
         MapInput.GameplayShortcutsEnabled = () => CanCommand && Battle.PendingUpgrade(Side.Player) is null;
-        MapInput.EndTurnRequested += () => RunSafely(EndPlayerTurn);
+        MapInput.EndTurnRequested += () => RunSafely(RequestEndPlayerTurn);
         MapInput.RepairRequested += () => RunSafely(RepairSelected);
-=======
-        MapInput.Hovered += PreviewAtScreen;
-        MapInput.Canceled += CancelOrder;
->>>>>>> Stashed changes
         AddChild(MapInput);
         Hud = new DebugHud
         {
             Name = "DebugHud"
         };
-        Hud.EndTurnRequested += () => RunSafely(EndPlayerTurn);
+        Hud.EndTurnRequested += () => RunSafely(RequestEndPlayerTurn);
         Hud.RepairRequested += () => RunSafely(RepairSelected);
         Hud.BuildRequested += BeginBuild;
-<<<<<<< Updated upstream
         Hud.CanScuttleShip = ship => CanCommand && Battle.CanScuttle(Side.Player, ship.Id);
         Hud.ScuttleRequested += () => RunSafely(() => SelectedShipId is { } id ? Perform(b => b.Scuttle(Side.Player, id)) : Task.CompletedTask);
         Hud.SalvoRequested += twice => RunSafely(() => ChooseSalvo(twice));
-=======
->>>>>>> Stashed changes
         Hud.MortarRequested += () => RunSafely(BuyMortar);
         Hud.ResourceRequested += () => RunSafely(ConfirmResource);
         Hud.RadarRequested += () => RunSafely(BuyRadar);
@@ -144,7 +114,6 @@ public partial class Main : Node2D
         Hud.LootRequested += () => RunSafely(LootTreasury);
         Hud.BombRequested += () => RunSafely(DropBomb);
         Hud.CaptureRequested += () => RunSafely(CaptureVillage);
-<<<<<<< Updated upstream
         Hud.CaptureStoryRequested += id => RunSafely(() => CaptureVillage(id));
         Hud.TreasuryStoryRequested += id => RunSafely(() => LootTreasury(id));
         Hud.FortifyRequested += () => RunSafely(FortifyVillage);
@@ -156,9 +125,6 @@ public partial class Main : Node2D
             Refresh();
             await SaveSessionAsync();
         });
-=======
-        Hud.FortifyRequested += () => RunSafely(FortifyVillage);
->>>>>>> Stashed changes
         Hud.CreativeRequested += () =>
         {
             Battle.SetCreative(!Battle.Creative);
@@ -174,19 +140,33 @@ public partial class Main : Node2D
         Hud.HomeRequested += ShowHome;
         Hud.RestartRequested += ShowColorSelection;
         AddChild(Hud);
-<<<<<<< Updated upstream
+        InitializeTurnGuidance();
         InitializeRewards();
         Fleet.FocusTarget = FocusVisibleTarget;
         MapCamera.ViewChanged += PositionActions;
         InitializeOutcome();
-=======
->>>>>>> Stashed changes
         GetViewport().SizeChanged += OnViewportResized;
         Refresh();
         Hud.ShowMessage("Select a ship, then a tile or highlighted target. Glowing fish can be collected directly.");
         InitializeSession();
-<<<<<<< Updated upstream
+        InitializeTutorials();
         UiScale.Changed += Refresh;
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--tutorial-capture0206-test"))
+            AddChild(new Tests.Runtime.TutorialCapture0206Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--tutorial0206-test"))
+            AddChild(new Tests.Runtime.Tutorial0206Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--hints0206-test"))
+            AddChild(new Tests.Runtime.Hints0206Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--world-visual0206-test"))
+            AddChild(new Tests.Runtime.NativeWorld0206Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--animation0206-test"))
+            AddChild(new Tests.Runtime.Animation0206Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--ui0205-test"))
+            AddChild(new Tests.Runtime.Ui0205Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--construction0205-test"))
+            AddChild(new Tests.Runtime.Construction0205Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--world-visual0205-test"))
+            AddChild(new Tests.Runtime.WorldVisual0205Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--ui0204-test"))
             AddChild(new Tests.Runtime.Ui0204Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--trade-glyph0204-test"))
@@ -219,8 +199,6 @@ public partial class Main : Node2D
             AddChild(new Tests.Runtime.VictoryChecks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--ports-test"))
             AddChild(new Tests.Runtime.PortCityChecks { Game = this });
-=======
->>>>>>> Stashed changes
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--menu-test"))
             AddChild(new Tests.Runtime.MenuChecks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--smoke-test"))
@@ -259,11 +237,7 @@ public partial class Main : Node2D
         }
     }
 
-<<<<<<< Updated upstream
-    private bool CanCommand => _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && !Battle.IsOver && !Battle.PlayerDefeated && Battle.ActiveSide == Side.Player;
-=======
-    private bool CanCommand => !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && !Battle.IsOver && !Battle.PlayerDefeated && Battle.ActiveSide == Side.Player;
->>>>>>> Stashed changes
+    private bool CanCommand => !_endingStamp && !Hud.TurnConfirmationVisible && _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && !Battle.IsOver && !Battle.PlayerDefeated && Battle.ActiveSide == Side.Player;
     private Ship? Selected => SelectedShipId is { } id ? Battle.FindObserved(Side.Player, id) : null;
     private Village? SelectedVillage => SelectedVillageId is { } id ? Battle.ObservedVillages(Side.Player).FirstOrDefault(v => v.Id == id) : null;
 
@@ -280,19 +254,15 @@ public partial class Main : Node2D
 
     internal void LoadScenario(BattleState battle)
     {
-<<<<<<< Updated upstream
+        SuspendTutorials();
+        Hud.CloseTurnConfirmation();
         HideOutcome();
         Hud.HideHeavenlyAssistance();
-=======
->>>>>>> Stashed changes
         var projection = new IsometricProjection(battle.Board);
         BoardView.Projection = projection;
         Fleet.Projection = projection;
         Battle = battle;
-<<<<<<< Updated upstream
         ResetEncounterPresentation();
-=======
->>>>>>> Stashed changes
         InvalidateGameplayPresentation();
         Fleet.Battle = battle;
         BoardView.Battle = battle;
@@ -307,7 +277,6 @@ public partial class Main : Node2D
     {
         MapInput.CancelGesture();
         MapCamera.FitBoard();
-<<<<<<< Updated upstream
     }
 
     public override void _ExitTree()
@@ -315,9 +284,4 @@ public partial class Main : Node2D
         GetViewport().SizeChanged -= OnViewportResized;
         UiScale.Changed -= Refresh;
     }
-=======
-    }
-
-    public override void _ExitTree() => GetViewport().SizeChanged -= OnViewportResized;
->>>>>>> Stashed changes
 }

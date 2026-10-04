@@ -11,7 +11,7 @@ New-Item -ItemType Directory -Path $taskReports -Force | Out-Null
 # Frame timings must use the real renderer, in serial, after the final Debug build.
 $taskCases = @(
     @{Name='performance-pangaea'; Extra=@('--world-kind=Pangaea','--wide-view')},
-    @{Name='performance-live-fog'; Extra=@('--live-fog',"--save-file=$taskReports/smoothness-disposable-save.json")}
+    @{Name='performance-live-fog'; Extra=@('--live-fog')}
 )
 foreach ($taskCase in $taskCases) {
     $taskName = $taskCase.Name
@@ -19,7 +19,10 @@ foreach ($taskCase in $taskCases) {
     $taskLog = Join-Path $taskReports "$taskName.log"
     $taskError = Join-Path $taskReports "$taskName.err"
     $taskArguments = @('--path', ('"'+$taskRoot+'"'), '--', '--performance-test', '--verify-smoothness',
-        '--scaled-map', '--opponents=4', ('"--report='+$taskReport+'"'))
+        '--scaled-map', '--opponents=4', '--map-size=Ocean', '--hints=on', '--language=en',
+        ('"--save-file='+$taskReports+'/'+$taskName+'-disposable-save.json"'),
+        ('"--ui-settings-file='+$taskReports+'/'+$taskName+'-interface.txt"'),
+        ('"--report='+$taskReport+'"'))
     $taskArguments += $taskCase.Extra | ForEach-Object { '"'+$_+'"' }
     $taskProcess = Start-Process -FilePath $taskGodot -ArgumentList $taskArguments -WindowStyle Hidden -PassThru `
         -RedirectStandardOutput $taskLog -RedirectStandardError $taskError
