@@ -11,6 +11,7 @@ namespace DevAncientNaval.Presentation.UI;
 
 public partial class DebugHud
 {
+    private ActionGlyph _objectIcon = null!;
     private PanelContainer _informationPanel = null!;
     private Label _informationTitle = null!;
     private ScrollContainer _informationScroll = null!;
@@ -41,7 +42,8 @@ public partial class DebugHud
         _informationTitle = Label("", 20);
         _informationTitle.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         heading.AddChild(_informationTitle);
-        var close = TextButton("×", () => _informationPanel.Hide());
+        var close = new BrushPaperButton { Text = "×" };
+        close.Pressed += () => _informationPanel.Hide();
         close.Name = "CloseInformation";
         close.CustomMinimumSize = new(34, 30);
         heading.AddChild(close);
@@ -49,6 +51,7 @@ public partial class DebugHud
         {
             Name = "InformationContentScroll",
             HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.ShowNever,
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
         };

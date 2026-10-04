@@ -14,6 +14,7 @@ public partial class Main
         TreeExiting += () => UiHints.Changed -= Refresh;
         Hud.TurnConfirmed += () => RunSafely(EndPlayerTurn);
         Hud.TurnConfirmationClosed += () => { MapInput.CancelGesture(); Refresh(); };
+        Hud.ReadyActionsMenuChanged += MapInput.CancelGesture;
         Hud.ReadyObjectSelected += item => RunSafely(() => ReturnToReadyObject(item));
     }
     private async Task RequestEndPlayerTurn()
@@ -39,6 +40,7 @@ public partial class Main
     private async Task ReturnToReadyObject(ReadyActionObject item)
     {
         if (!CanCommand) return;
+        Hud.CloseReadyActionsMenu();
         ClearMode();
         SelectedShipId = item.ShipClass is null ? null : item.Id;
         SelectedVillageId = item.ShipClass is null ? item.Id : null;

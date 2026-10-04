@@ -141,7 +141,7 @@ public partial class StartScreen : CanvasLayer
             crest.OffsetBottom = 38;
             var label = Heading(color.ToString(), 13); swatch.AddChild(label);
             label.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomWide); label.OffsetTop = -26;
-            swatch.TooltipText = color.ToString();
+            swatch.TooltipText = NationIdentity.Name(color);
             _swatches.Add(color, swatch); nationRow.AddChild(swatch);
         }
         _colors.AddChild(Heading("Waters to explore"));
@@ -217,7 +217,7 @@ public partial class StartScreen : CanvasLayer
     }
     private void UpdateCaptions()
     {
-        _start.Text = Language.Translate("Embark with the {0} nation").Replace("{0}", Language.Translate(SelectedColor.ToString()));
+        _start.Text = Language.Translate("Embark with the {0} nation").Replace("{0}", NationIdentity.Name(SelectedColor));
         Layout();
     }
     private void ChooseDifficulty(AiDifficulty difficulty)
@@ -284,12 +284,13 @@ public partial class StartScreen : CanvasLayer
         _title.Position = new(x - 50, size.Y * .09f);
         _title.Size = new(Math.Min(width + 100, size.X - _title.Position.X - 16), size.Y * .23f);
         _actions.Position = new(x, size.Y * .39f); _actions.Size = new(width, 0);
-        float paperWidth = Math.Min(420, Math.Max(300, size.X - 32));
-        float height = size.Y * .6f;
+        float margin = Mathf.Clamp(size.Y * .045f, 14, 32);
+        float paperWidth = Math.Min(420, Math.Max(200, size.X - margin * 2));
+        float height = Math.Max(100, size.Y - margin * 2);
         _setupPaper.CustomMinimumSize = new(paperWidth, 0);
         _setupPaper.Scroll.CustomMinimumSize = new(0, Math.Max(1, height - 24));
         _setupPaper.Size = new(paperWidth, height);
-        _setupPaper.Position = new(Math.Max(16, size.X - paperWidth - 24), (size.Y - height) * .5f);
+        _setupPaper.Position = new(size.X - paperWidth - margin, margin);
         PapyrusModal.Layout(_settingsPaper, _settingsScroll, _settings, size);
         _notice.Position = new(x, size.Y * .82f); _notice.Size = new(width, 65);
         _footer.Position = new(22, size.Y - 32); _footer.Size = new(size.X - 44, 24);

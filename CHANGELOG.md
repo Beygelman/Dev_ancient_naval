@@ -1,5 +1,17 @@
 # Ancient Naval change history
 
+## v020.7 — 2026-10-04 — The Sacred Voyage
+
+- Diagonal town shipyards and persisted ports chosen by navigable proximity to existing friendly harbors/beacons.
+- Weighted fleet slots, actual-price 40% demolition refunds and staged two-damage balloon crashes over nine cells.
+- Clickable patterned action amphora, vertical ready-object list, exact hover orders and shared-cell occupant cycling.
+- Static event advice with bottom hand acknowledgement; rolling menu/outcome/welcome paper, invisible brush buttons, icon mode row and modal wheel isolation.
+- Right-folding end-turn parchment after commitment, equal-margin voyage setup, larger object glyph and always-reachable welcome/outcome footer actions.
+- Restored persistent three-skin merchant traffic, rotating lighthouse light, idle battery turns and stronger faction ritual effects/pirate smoke.
+- Rose Crown and serif crimson R, six faith-based nation identities/ornaments, slower camera descent and personal difficulty-aware expedition judgements.
+- Saved rival kill, construction and stronghold evidence; full English/Ukrainian/Dutch text and historical save defaults.
+
+
 ## v020.6 — 2026-10-04
 
 - Add persisted hints, accurate ready-object guidance, five-column turn confirmation and a hand-stamped end-turn parchment.

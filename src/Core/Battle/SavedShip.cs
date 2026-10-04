@@ -8,6 +8,7 @@ public sealed class SavedShip
     public int Id { get; set; }
     public Side Owner { get; set; }
     public ShipClass Kind { get; set; }
+    public int? ConstructionPrice { get; set; }
     public GridPosition Position { get; set; }
     public double Health { get; set; }
     public int Kills { get; set; }
@@ -41,6 +42,7 @@ public sealed class SavedShip
         Id = s.Id,
         Owner = s.Owner,
         Kind = s.Definition.Class,
+        ConstructionPrice = s.ConstructionPrice,
         Position = s.Position,
         Health = s.Health,
         Kills = s.Kills,
@@ -79,6 +81,7 @@ public sealed class SavedShip
     internal void Apply(Ship ship)
     {
         ship.Position = Position;
+        ship.ConstructionPrice = ConstructionPrice;
         ship.Health = Health;
         ship.Kills = Kills;
         ship.IsVeteran = IsVeteran;

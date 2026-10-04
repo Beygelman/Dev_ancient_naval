@@ -16,29 +16,26 @@ public sealed class TradeNetwork
     public bool Contains(GridPosition from, GridPosition to) => _edges.Contains((from, to));
     public bool IsEmpty => _edges.Count == 0;
 
+    internal static int? SeaStepCost(GameBoard board, GridPosition from, GridPosition to,
+        Func<GridPosition, bool> sea)
+    {
+        if (!sea(to)) return null;
+        if (!board.GetNeighbors(from).Contains(to))
+        {
+            var corners = board.Mesh is null ? new[]
+            {
+                new GridPosition(from.X, to.Y), new GridPosition(to.X, from.Y)
+            } : board.GetNeighbors(from).Intersect(board.GetNeighbors(to));
+            if (!corners.All(sea)) return null;
+        }
+        return 1;
+    }
+
     internal static TradeNetwork Create(GameBoard board, GridPosition[] ports, IReadOnlySet<GridPosition> forbidden, int maximumRouteLength = 0, Func<GridPosition, bool>? navigable = null)
     {
         var result = new TradeNetwork();
         bool Sea(GridPosition p) => (navigable?.Invoke(p) ?? board.GetTile(p).Terrain != TerrainType.Land) && !forbidden.Contains(p);
-        int? Cost(GridPosition from, GridPosition to)
-        {
-            if (!Sea(to))
-                return null;
-            if (!board.GetNeighbors(from).Contains(to))
-            {
-                var corners = board.Mesh is null ? new[]
-                {
-                    new GridPosition(from.X, to.Y),
-                    new GridPosition(to.X, from.Y)
-                }
-
-                : board.GetNeighbors(from).Intersect(board.GetNeighbors(to));
-                if (!corners.All(Sea))
-                    return null;
-            }
-
-            return 1;
-        }
+        int? Cost(GridPosition from, GridPosition to) => SeaStepCost(board, from, to, Sea);
 
         for (int i = 0; i < ports.Length; i++)
         {

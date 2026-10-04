@@ -26,6 +26,7 @@ public enum CommandKind
 public sealed record CommandResult(bool Success, string Message, CommandKind Kind = CommandKind.None, int ActorId = 0, int TargetId = 0, double Amount = 0, IReadOnlyList<GridPosition>? Path = null, IReadOnlyList<CombatShot>? Shots = null, IReadOnlyList<MovementFrame>? Movement = null, StructureHit? StructureHit = null, IReadOnlyList<CombatShot>? Splash = null, IReadOnlyList<AreaHit>? AreaHits = null, IReadOnlyList<IncomeReceipt>? IncomeReceipts = null, IReadOnlyList<OutpostShot>? OutpostShots = null, IReadOnlyList<HealingReceipt>? HealingReceipts = null, IReadOnlyList<HeavenlyReceipt>? HeavenlyReceipts = null)
 {
     public int SalvoCharges { get; init; } = 1;
+    public IReadOnlyList<BalloonCrash> BalloonCrashes { get; init; } = Array.Empty<BalloonCrash>();
     public static CommandResult Rejected(string message) => new(false, message);
 }
 

@@ -56,6 +56,7 @@ public partial class Main
         BoardView.Collection = CanCommand && Mode == OrderMode.None ? Battle.CollectionCells(Side.Player) : Array.Empty<GridPosition>();
         BoardView.DockSites = CanCommand && Mode == OrderMode.None ? Battle.DockCells(Side.Player) : Array.Empty<GridPosition>();
         BoardView.Building = Mode == OrderMode.Build;
+        Hud.InstantPaperAnimations = FastChecks;
         Hud.UpdateBattle(Battle, selected, Busy, Mode, village);
         if (CanCommand && _salvoCell is { } target && SelectedShipId == _salvoActorId)
             Hud.ShowSalvoChoice(Battle.CanDoubleSalvo(_salvoActorId, target));

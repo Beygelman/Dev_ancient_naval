@@ -92,7 +92,11 @@ public partial class Main : Node2D
         MapInput.Held += SelectAtScreen;
         MapInput.Hovered += PreviewAtScreen;
         MapInput.Canceled += CancelOrder;
-        MapInput.KeyboardEnabled = () => !_endingStamp && !Hud.TurnConfirmationVisible && _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && Battle.PendingUpgrade(Side.Player) is null;
+        MapInput.KeyboardEnabled = () => !_endingStamp && !Hud.TurnConfirmationVisible && !Hud.ReadyActionsMenuVisible && _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && Battle.PendingUpgrade(Side.Player) is null;
+        MapInput.PointerEnabled = () => !_endingStamp && !Hud.TurnConfirmationVisible && _voyageWelcome?.IsOpen != true
+            && _victory?.IsOpen != true && _rewards?.IsOpen != true && !_sessionLoading && _home?.IsOpen != true
+            && !Hud.MenuVisible && Battle.PendingUpgrade(Side.Player) is null;
+        MapInput.ZoomEnabled = () => !Hud.ReadyActionsMenuVisible && MapInput.PointerEnabled?.Invoke() != false;
         MapInput.GameplayShortcutsEnabled = () => CanCommand && Battle.PendingUpgrade(Side.Player) is null;
         MapInput.EndTurnRequested += () => RunSafely(RequestEndPlayerTurn);
         MapInput.RepairRequested += () => RunSafely(RepairSelected);
@@ -105,7 +109,7 @@ public partial class Main : Node2D
         Hud.RepairRequested += () => RunSafely(RepairSelected);
         Hud.BuildRequested += BeginBuild;
         Hud.CanScuttleShip = ship => CanCommand && Battle.CanScuttle(Side.Player, ship.Id);
-        Hud.ScuttleRequested += () => RunSafely(() => SelectedShipId is { } id ? Perform(b => b.Scuttle(Side.Player, id)) : Task.CompletedTask);
+        Hud.ScuttleRequested += () => RunSafely(() => SelectedShipId is { } id ? Perform(b => b.Scuttle(Side.Player, id), deferImpacts: true) : Task.CompletedTask);
         Hud.SalvoRequested += twice => RunSafely(() => ChooseSalvo(twice));
         Hud.MortarRequested += () => RunSafely(BuyMortar);
         Hud.ResourceRequested += () => RunSafely(ConfirmResource);
@@ -140,6 +144,7 @@ public partial class Main : Node2D
         Hud.HomeRequested += ShowHome;
         Hud.RestartRequested += ShowColorSelection;
         AddChild(Hud);
+        Hud.InstantPaperAnimations = FastChecks;
         InitializeTurnGuidance();
         InitializeRewards();
         Fleet.FocusTarget = FocusVisibleTarget;
@@ -151,6 +156,12 @@ public partial class Main : Node2D
         InitializeSession();
         InitializeTutorials();
         UiScale.Changed += Refresh;
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--voyage0207-test"))
+            AddChild(new Tests.Runtime.Voyage0207Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--animation0207-test"))
+            AddChild(new Tests.Runtime.Animation0207Checks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--ui0207-test"))
+            AddChild(new Tests.Runtime.Ui0207Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--tutorial-capture0206-test"))
             AddChild(new Tests.Runtime.TutorialCapture0206Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--tutorial0206-test"))

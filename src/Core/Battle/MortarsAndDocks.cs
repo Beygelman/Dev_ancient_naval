@@ -109,8 +109,10 @@ public sealed partial class BattleState
         _credits[(int)requester] -= DockPrice(requester);
         _shoals.Remove(cell);
         _fish.Remove(cell);
-        var dock = new Ship(_nextId++, requester, Rules.Get(ShipClass.FishingDock), cell);
+        var dock = new Ship(_nextId++, requester, Rules.Get(ShipClass.FishingDock), cell)
+            { ConstructionPrice = DockPrice(requester) };
         _ships.Add(dock);
+        RecordShipConstruction(dock);
         RegisterShipIncome(dock);
         GrantResources(mother, Rules.DockResourceReward);
         UpdateVision();

@@ -67,7 +67,8 @@ internal sealed class CityShipArt : IComparer<int>
         Triangle(a, c, d, color);
     }
 
-    public void Draw(CanvasItem canvas, Func<float, float, float, Vector2> project, Color accent, float time, float fracture = 0, FleetColor faction = FleetColor.Blue, int cityLevel = 5)
+    public void Draw(CanvasItem canvas, Func<float, float, float, Vector2> project, Color accent, float time, float fracture = 0,
+        FleetColor faction = FleetColor.Blue, int cityLevel = 5, bool effects = true)
     {
         _canvas = canvas;
         _p = (x, y, z) => project(x, y + MathF.Sign(y) * fracture * 14, z - fracture * MathF.Abs(y) * .24f);
@@ -166,7 +167,7 @@ internal sealed class CityShipArt : IComparer<int>
             if (index == Homes.Length)
             {
                 FactionSanctuaryArt.Draw(_canvas, (x, y, z) => _p(x, y - 2, z * (1 + .1f * (cityLevel - 1)) + 6), faction);
-                if (fracture < .01f) FactionSanctuaryArt.DrawEffects(_canvas,
+                if (effects && fracture < .01f) FactionSanctuaryArt.DrawEffects(_canvas,
                     (x,y,z) => _p(x,y-2,z*(1+.1f*(cityLevel-1))+6), faction,time);
             }
             else

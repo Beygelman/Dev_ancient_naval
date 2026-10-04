@@ -1,14 +1,26 @@
-# Ancient Naval — v020.6 — The Watchful Voyage
+# Ancient Naval — v020.7 — The Sacred Voyage
 
 A turn-based naval tactics game built with **Godot 4.7.2 .NET**, C# and .NET 8. Open `project.godot`, stop the previous run with **F8**, then press **F5**. The title screen offers **New game**, **Continue**, **Settings** and **Exit game**. New game opens a six-color fleet and emblem selector and a choice of 1–4 rival fleets and Boatswain, Captain or Admiral difficulty, plus **Sea World**, **Oceans**, **Continents** or **Pangaea**.
 
 Defeat the rival Motherships while exploring, collecting resources and capturing coastal villages. The interface supports English, Ukrainian and Dutch; language buttons and interface scale are available in Settings on the title screen and in the game menu. Core gameplay remains independent of Godot; rendering and input live in Presentation.
+
+## v020.7: the sacred voyage
+
+The action amphora opens a side parchment of objects with useful orders; hover an icon for its remaining actions and select it to return there. Repeated clicks on a shared cell alternate between the ship and the resource/ruin below. Town shipyards and ports include diagonal shores, and a newly built port selects the shortest legal approach to the nearest owned port or lighthouse.
+
+New voyages use weighted capacity: flagship 0, Brig/Support Brig 1, Galleon 2, Granado 3 and Kolonel 4; balloons and structures occupy none. Dismantling refunds 40% of the paid price, rounded to whole Thors; gifts and initial escorts return zero. A destroyed balloon hits its underlying cell and eight nearest neighbors for 2 damage, including friendly objects.
+
+Menus, advice and outcomes use rolling worn papyrus, invisible brush choices and hand acknowledgements. The new-voyage paper follows equal top, bottom and right margins. Welcome ornaments and six nation names follow their faith; the Rose Crown and bold crimson R have new art. Shrines glow more richly, pirate chapels smoke, lighthouse beams rotate and idle batteries slowly turn. Trade boats survive routine game updates. Personal ending stories reflect direct kills, conquest, efficiency, economy and difficulty. Start a **new game** for the new rules; older voyages retain their saved balance.
 
 ## Download and local release copies
 
 The working project, sources, assets, balance, tests and this README are edited
 directly in this Git repository. Delivered files are also copied to `releases/`
 inside the same project; the external `outputs` folder is an additional mirror.
+
+- [Windows v020.7 ZIP](releases/v020.7/Ancient_Naval_v020.7_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
+- [Source v020.7 ZIP](releases/v020.7/Ancient_Naval_v020.7_Source.zip), [Russian notes](releases/v020.7/Ancient_Naval_v020.7_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.7.txt).
+- Local launch copy: `releases/v020.7/playable/Ancient Naval.exe`.
 
 - [Windows v020.6 ZIP](releases/v020.6/Ancient_Naval_v020.6_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
 - [Source v020.6 ZIP](releases/v020.6/Ancient_Naval_v020.6_Source.zip), [Russian notes](releases/v020.6/Ancient_Naval_v020.6_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.6.txt).

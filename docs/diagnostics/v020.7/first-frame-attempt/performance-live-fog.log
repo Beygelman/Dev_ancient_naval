@@ -1,0 +1,144 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 581.29 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PAN frames=119, p50_ms=16.639, p95_ms=27.007, max_ms=60.722
+INTERACTION world=Oceans, wide_view=False, tiles=1759, opponents=4, live_fog=True, hover_calls=64, hover_p50_ms=0.051, hover_p95_ms=0.080, hover_max_ms=0.495, frame_p95_ms=17.893, frame_max_ms=69.481, process_p95_ms=63.759, draw_calls_p95=920, movement_elapsed_ms=1601.238
+SLOW_FRAMES
+phase=pan, frame_ms=60,722, GC_delta=0/0/0, process_ms=16,939, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=69,481, GC_delta=0/0/0, process_ms=17,829, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+{
+  "Fleet.Water.Draw": {
+    "Calls": 394,
+    "TotalMs": 6.901500000000001,
+    "MaxMs": 0.142,
+    "Bytes": 90624
+  },
+  "Fleet.Hulls.Refresh": {
+    "Calls": 394,
+    "TotalMs": 11.527599999999996,
+    "MaxMs": 0.2878,
+    "Bytes": 887840
+  },
+  "Fleet.Draw": {
+    "Calls": 394,
+    "TotalMs": 18.842699999999976,
+    "MaxMs": 0.2906,
+    "Bytes": 978560
+  },
+  "Ambience.Fish": {
+    "Calls": 144,
+    "TotalMs": 16.88060000000001,
+    "MaxMs": 1.0604,
+    "Bytes": 37384
+  },
+  "Ambience.Draw": {
+    "Calls": 144,
+    "TotalMs": 21.373799999999996,
+    "MaxMs": 1.0885,
+    "Bytes": 40888
+  },
+  "Hull.Draw": {
+    "Calls": 139,
+    "TotalMs": 38.71850000000003,
+    "MaxMs": 1.0439,
+    "Bytes": 136232
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 2.9859999999999993,
+    "MaxMs": 0.2285,
+    "Bytes": 95056
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 24.254499999999997,
+    "MaxMs": 1.461,
+    "Bytes": 517960
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 3.8121,
+    "MaxMs": 3.8121,
+    "Bytes": 236152
+  },
+  "Ambience.Waves.Build": {
+    "Calls": 1,
+    "TotalMs": 0.3194,
+    "MaxMs": 0.3194,
+    "Bytes": 374544
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 0.6746,
+    "MaxMs": 0.6746,
+    "Bytes": 385008
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 1.5383,
+    "MaxMs": 1.2227,
+    "Bytes": 309880
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 3.1394,
+    "MaxMs": 1.5789,
+    "Bytes": 720080
+  },
+  "Animation.TravelRoute": {
+    "Calls": 1,
+    "TotalMs": 0.4113,
+    "MaxMs": 0.4113,
+    "Bytes": 2440
+  },
+  "Animation.Start": {
+    "Calls": 1,
+    "TotalMs": 6.8075,
+    "MaxMs": 6.8075,
+    "Bytes": 9040
+  },
+  "Selection.Dispatch": {
+    "Calls": 1,
+    "TotalMs": 13.3377,
+    "MaxMs": 13.3377,
+    "Bytes": 679544
+  },
+  "Board.Terrain.Draw": {
+    "Calls": 29,
+    "TotalMs": 1.6574,
+    "MaxMs": 0.1042,
+    "Bytes": 1856
+  },
+  "Board.Terrain.Shore.Draw": {
+    "Calls": 29,
+    "TotalMs": 1.1524999999999994,
+    "MaxMs": 0.2746,
+    "Bytes": 315904
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0053,
+    "MaxMs": 0.0053,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 0.0835,
+    "MaxMs": 0.0563,
+    "Bytes": 3576
+  },
+  "Save.Capture": {
+    "Calls": 1,
+    "TotalMs": 0.4381,
+    "MaxMs": 0.4381,
+    "Bytes": 322360
+  },
+  "Save.Write": {
+    "Calls": 1,
+    "TotalMs": 13.8611,
+    "MaxMs": 13.8611,
+    "Bytes": 856176
+  }
+}
+RENDER_MEMORY video_peak_mib=205.69, texture_peak_mib=166.85, buffer_peak_mib=38.84
+

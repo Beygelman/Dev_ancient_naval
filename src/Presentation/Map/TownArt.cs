@@ -21,10 +21,13 @@ public partial class BoardView
     internal Vector2[] VillageMills(Village town) => VillagePlacement(town).Compact ? Array.Empty<Vector2>() : TownMills(town);
     internal void DrawSanctuaryOverlay(Node2D canvas, Village town, Vector2 center, float time)
     {
-        if (town.Owner is null or Side.Pirates) return;
+        if (town.Owner is null) return;
         Vector2 Monument(float x, float y, float z) => center + new Vector2((x - y + 4) * .85f,
             (x + y - 4) * .42f - z * SanctuaryHeightScale(town.Level) - 1);
-        FactionSanctuaryArt.DrawEffects(canvas, Monument, Battle.ColorFor(town.Owner.Value), time, town.Id);
+        if (town.Owner == Side.Pirates)
+            FactionSanctuaryArt.DrawPirateEffects(canvas, Monument, time, town.Id);
+        else
+            FactionSanctuaryArt.DrawEffects(canvas, Monument, Battle.ColorFor(town.Owner.Value), time, town.Id);
     }
     private static Vector2[] TownMills(int level) => level < 2 ? Array.Empty<Vector2>() : level < 4 ? new[]
     {

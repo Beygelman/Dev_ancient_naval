@@ -12,6 +12,9 @@ internal static class BattleSaveValidation
         if (saved.PendingAwards is null || saved.PendingAwards.Length > 1000 || saved.PendingAwards.Any(a => a is null || string.IsNullOrWhiteSpace(a.Id) || a.Id.Length > 60 || !Enum.IsDefined(a.Kind) || a.Owner != Side.Player || a.Amount is < 0 or > 1000 || a.Turn < 0 || a.Turn > saved.TurnSerial) || saved.PendingAwards.Select(a => a.Id).Distinct().Count() != saved.PendingAwards.Length)
             throw new ArgumentException("Invalid saved pending rewards.");
         saved.Statistics.Validate();
+        if (saved.DirectShipKills is null || saved.DirectShipKills.Length is not (0 or BattleState.SideSlots)
+            || saved.DirectShipKills.Any(n => n < 0))
+            throw new ArgumentException("Invalid saved direct ship losses.");
         if (saved.FlagshipSightings is null || saved.FlagshipSightings.Length > 20
             || saved.FlagshipSightings.Any(record => record is null
                 || !BattleState.PlayableSides.Contains(record.Observer)
@@ -41,8 +44,14 @@ internal static class BattleSaveValidation
         PendingAwardValidation.Validate(saved, board, rules);
         if (saved.Ships.Any(s => s is null || s.Id <= 0 || !Enum.IsDefined(s.Owner) || !Enum.IsDefined(s.Kind) || !board.Contains(s.Position) || !double.IsFinite(s.Health) || s.Health <= 0 || s.Level is < 1 or > 5 || s.BombCooldown < 0 || s.BombCooldown > rules.Balloon.CooldownTurns || s.Kills < 0 || s.Resources < 0 || s.MovementSpentUnits < 0 || s.TradeStreak is < 0 or > 100 || s.AttacksUsed < 0))
             throw new ArgumentException("Invalid saved fleet.");
+        if (saved.Ships.Any(s => s.ConstructionPrice is < 0))
+            throw new ArgumentException("Invalid saved ship construction price.");
         if (saved.Villages.Any(v => v is null || v.Id <= 0 || !board.Contains(v.Position) || v.Owner is { } owner && !Enum.IsDefined(owner) || v.Level is < 1 or > 5 || !double.IsFinite(v.Health) || v.Health < 0 || v.Health > v.Level * 5 || v.TurnsOwned < 0 || v.Port && v.Level < 3) || saved.Treasuries.Any(t => t is null || t.Id <= 0 || !board.Contains(t.Position)))
             throw new ArgumentException("Invalid saved settlements or treasuries.");
+        if (saved.Villages.Any(v => v.PortCell is { } cell && (!v.Port || !board.Contains(cell)
+            || board.GetTile(cell).Terrain == TerrainType.Land
+            || !(rules.DiagonalVillageBerths ? board.GetSurrounding(v.Position) : board.GetNeighbors(v.Position)).Contains(cell))))
+            throw new ArgumentException("Invalid saved port berth.");
         if (saved.FactionNames is null || saved.FactionNames.Length > 4 || saved.FactionNames.Any(e => e is null || e.Side == Side.Player || e.Side == Side.Pirates || !Enum.IsDefined(e.Side) || !WorldNames.Captains.Contains(e.Name)) || saved.FactionNames.Select(e => e.Side).Distinct().Count() != saved.FactionNames.Length || saved.FactionNames.Select(e => e.Name).Distinct().Count() != saved.FactionNames.Length || saved.Villages.Any(v => v.Name is null || v.Name.Length > 60 || v.Name.Any(char.IsControl)))
             throw new ArgumentException("Invalid saved world identities.");
         var roster = saved.Factions.Length == 0 ? new[]

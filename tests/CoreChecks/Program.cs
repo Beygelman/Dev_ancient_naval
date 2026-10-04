@@ -3,6 +3,12 @@ using DevAncientNaval.Core.World;
 
 try
 {
+    if (args.Contains("--v0207-only"))
+    {
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        Console.WriteLine($"PASS: {Rules0207Checks.Run(rules)} v020.7 fleet, diagonal ports, refunds and balloon-crash checks.");
+        return;
+    }
     if (args.Contains("--v0206-only"))
     {
         var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
@@ -98,6 +104,7 @@ try
     Console.WriteLine($"PASS: {Rules0204Checks.Run(currentRules)} v020.4 paid town, level rewards and repair locks.");
     Console.WriteLine($"PASS: {Rules0205Checks.Run(currentRules)} v020.5 support brig, trade, map size and repair checks.");
 
+    Console.WriteLine($"PASS: {Rules0207Checks.Run(currentRules)} v020.7 fleet, diagonal ports, refunds and balloon-crash checks.");
     Console.WriteLine($"PASS: {Rules0206Checks.Run(currentRules)} v020.6 guidance, economy, annulus and generation checks.");
 }
 catch (Exception error)

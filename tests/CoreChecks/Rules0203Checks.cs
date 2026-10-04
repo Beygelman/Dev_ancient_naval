@@ -9,6 +9,10 @@ internal static class Rules0203Checks
 {
     internal static int Run(BattleRules rules)
     {
+        // Keep the released single-slot policy under test; weighted admission is covered by v020.7.
+        var released = JsonNode.Parse(JsonSerializer.Serialize(rules))!.AsObject();
+        released["WeightedFleetCapacity"] = false;
+        rules = BattleRules.FromJson(released.ToJsonString());
         int checks = 0;
         void Check(bool value, string message)
         {

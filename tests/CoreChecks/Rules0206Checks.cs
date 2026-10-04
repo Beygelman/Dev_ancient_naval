@@ -8,6 +8,10 @@ internal static class Rules0206Checks
 {
     internal static int Run(BattleRules rules)
     {
+        // v020.6's slot assertions describe its released one-slot balance.
+        var released = JsonNode.Parse(System.Text.Json.JsonSerializer.Serialize(rules))!.AsObject();
+        released["WeightedFleetCapacity"] = false;
+        rules = BattleRules.FromJson(released.ToJsonString());
         int checks = 0;
         void Check(bool condition, string message)
         {

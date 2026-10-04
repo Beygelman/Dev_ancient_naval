@@ -55,6 +55,11 @@ public partial class FleetView
             _impulses.Clear();
             _deckAngles.Clear();
             _barrelAngles.Clear();
+            _idleBatteries.Clear();
+            _fallingBalloons.Clear();
+            _crashes.Clear();
+            _crashImpacts.Clear();
+            _crashPresentation = null;
             _incomeLabels.Clear();
             _clock = 0;
         }

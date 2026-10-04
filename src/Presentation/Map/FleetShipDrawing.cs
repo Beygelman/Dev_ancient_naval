@@ -46,7 +46,7 @@ public partial class FleetView
 
         if (ship.Class == ShipClass.Lighthouse)
         {
-            DrawLighthouse(center, FleetPalette.For(Battle, ship.Owner));
+            DrawLighthouse(center, FleetPalette.For(Battle, ship.Owner), ship.Id, !silhouette && !wreckSource);
             if (ship.Id == SelectedId)
                 Ink.DrawArc(center + LighthouseOffset, 20, 0, Mathf.Tau, 32, new Color("ffe298"), 1.7f, true);
             return;
@@ -86,7 +86,8 @@ public partial class FleetView
         }
         else if (ship.Class == ShipClass.Mothership)
         {
-            _cityShip.Draw(Ink, P, accent, _clock, sinking, Battle.ColorFor(ship.Owner), ship.Level);
+            _cityShip.Draw(Ink, P, accent, _clock, sinking, Battle.ColorFor(ship.Owner), ship.Level,
+                effects: !silhouette && !wreckSource);
         }
         else
         {
