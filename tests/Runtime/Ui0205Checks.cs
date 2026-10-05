@@ -39,7 +39,7 @@ public partial class Ui0205Checks : Node
         GetViewport().PushInput(new InputEventMouseMotion { Position = point, GlobalPosition = point }, true);
         foreach (bool pressed in new[] { true, false })
             GetViewport().PushInput(new InputEventMouseButton { Position = point, GlobalPosition = point,
-                ButtonIndex = MouseButton.Left, Pressed = pressed }, true);
+                ButtonIndex = MouseButton.Left, Pressed = pressed, ButtonMask = pressed ? MouseButtonMask.Left : (MouseButtonMask)0 }, true);
     }
     private async Task Reveal(Button button)
     {
@@ -84,13 +84,16 @@ public partial class Ui0205Checks : Node
         foreach (float scale in new[] { .8f, 1.25f })
         {
             UiScale.Set(scale, persist: false); await Frames();
-            Check(paper.Size.Y <= UiScale.LogicalViewport(this).Y * .6f + 1, "scaled parchment never exceeds sixty percent of screen height");
+            var viewport = UiScale.LogicalViewport(this);
+            float rightMargin = viewport.X - paper.Position.X - paper.Size.X;
+            Check(Math.Abs(paper.Position.Y - rightMargin) < 1 && Math.Abs(viewport.Y - paper.Position.Y - paper.Size.Y - rightMargin) < 1,
+                "scaled setup follows equal top, bottom and right margins");
             foreach (string locale in new[] { "en", "uk", "nl" })
             {
                 Language.Set(locale, persist: false); await Frames();
                 await Reveal(HomeButton("FleetColorRed")); Click(HomeButton("FleetColorRed")); await Frames();
                 Check(Game.Home.SelectedColor == FleetColor.Red, "actual transformed red nation click " + locale);
-                Check(HomeButton("StartBattle").Text == Language.Translate("Embark with the {0} nation").Replace("{0}", Language.Translate("Red")),
+                Check(HomeButton("StartBattle").Text == Language.Translate("Embark with the {0} nation").Replace("{0}", NationIdentity.Name(FleetColor.Red)),
                     "the voyage inscription names the selected nation in the active language");
             }
         }
@@ -137,10 +140,10 @@ public partial class Ui0205Checks : Node
         var clickPoint = start.GetGlobalTransformWithCanvas() * (start.Size * .5f);
         GetViewport().PushInput(new InputEventMouseMotion { Position = clickPoint, GlobalPosition = clickPoint }, true);
         GetViewport().PushInput(new InputEventMouseButton { Position = clickPoint, GlobalPosition = clickPoint,
-            ButtonIndex = MouseButton.Left, Pressed = true }, true);
+            ButtonIndex = MouseButton.Left, Pressed = true, ButtonMask = MouseButtonMask.Left }, true);
         await Frames(2);
         GetViewport().PushInput(new InputEventMouseButton { Position = clickPoint, GlobalPosition = clickPoint,
-            ButtonIndex = MouseButton.Left, Pressed = false }, true);
+            ButtonIndex = MouseButton.Left, Pressed = false, ButtonMask = (MouseButtonMask)0 }, true);
         await Frames(1);
         Check(submitted, "a real mouse release reaches the embark inscription: disabled=" + start.Disabled
             + ", control=" + start.GetGlobalTransformWithCanvas().Origin + ", size=" + start.Size

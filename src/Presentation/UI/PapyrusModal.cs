@@ -26,6 +26,33 @@ internal static class PapyrusModal
         scroll.AddChild(body);
         return scroll;
     }
+    internal static ScrollContainer WrapWithFooter(PanelContainer paper, Control body, Control footer, string name)
+    {
+        var host = new VBoxContainer();
+        host.AddThemeConstantOverride("separation", 10);
+        paper.AddChild(host);
+        var scroll = new ScrollContainer { Name = name, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.ShowNever, SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        host.AddChild(scroll);
+        body.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        scroll.AddChild(body);
+        host.AddChild(footer);
+        return scroll;
+    }
+    internal static void LayoutWithFooter(PanelContainer paper, ScrollContainer scroll, Control body,
+        Control footer, Vector2 viewport)
+    {
+        float width = Math.Min(420, Math.Max(220, viewport.X - 24));
+        float ceiling = Math.Max(80, viewport.Y * HeightFraction);
+        var margin = paper.GetThemeStylebox("panel").GetMinimumSize();
+        float fixedHeight = footer.GetCombinedMinimumSize().Y + margin.Y + 10;
+        float content = Math.Min(body.GetCombinedMinimumSize().Y, Math.Max(1, ceiling - fixedHeight));
+        paper.CustomMinimumSize = new(width, 0);
+        scroll.CustomMinimumSize = new(0, content);
+        paper.Size = new(width, Math.Min(ceiling, content + fixedHeight));
+        paper.Position = (viewport - paper.Size) * .5f;
+    }
     internal static void Layout(PanelContainer paper, ScrollContainer scroll, Control body, Vector2 viewport)
     {
         var margin = paper.GetThemeStylebox("panel").GetMinimumSize();

@@ -8,12 +8,15 @@ public partial class FleetView
     internal static Vector2 LighthouseOffset => new(-20, -10);
     internal int LighthouseDrawCount { get; private set; }
 
-    private void DrawLighthouse(Vector2 center, Color accent)
+    internal static float LighthouseBeamAngle(float seconds, int id) => seconds * .16f + id * .73f;
+
+    private void DrawLighthouse(Vector2 center, Color accent, int id, bool effects)
     {
         LighthouseDrawCount++;
         var anchor = center + LighthouseOffset;
         const float scale = .85f;
         Vector2 P(float x, float y, float z) => anchor + new Vector2((x - y) * scale, (x + y) * .42f * scale - z * scale);
+        if (effects) DrawLighthouseBeam(P, LighthouseBeamAngle(_clock, id));
         var rock = new[] { new Vector2(-15, 1), new(-11, -5), new(-4, -8), new(7, -7),
             new(15, -2), new(13, 5), new(4, 9), new(-8, 7) };
         var surface = Array.ConvertAll(rock, p => anchor + p);
@@ -77,5 +80,24 @@ public partial class FleetView
         Ink.DrawLine(P(-5, 6, 32), P(5, 6, 32), new Color("b1a17b"), .8f, true);
         for (int stair = 0; stair < 4; stair++)
             Ink.DrawLine(P(-2.5f, 7 + stair * 1.4f, 3 - stair * .7f), P(2.5f, 7 + stair * 1.4f, 3 - stair * .7f), new Color("d6c8a8"), 1, true);
+    }
+
+    private void DrawLighthouseBeam(Func<float, float, float, Vector2> p, float heading)
+    {
+        const float spread = .26f;
+        var origin = p(0, 0, 35);
+        // Overlapping short bands yield a soft spreading cone without building a mesh each tick.
+        for (int band = 4; band >= 0; band--)
+        {
+            float inner = band * 22 + 2, outer = (band + 1) * 22 + 2;
+            var a = p(MathF.Cos(heading - spread) * inner, MathF.Sin(heading - spread) * inner, 35);
+            var b = p(MathF.Cos(heading - spread) * outer, MathF.Sin(heading - spread) * outer, 35);
+            var c = p(MathF.Cos(heading + spread) * outer, MathF.Sin(heading + spread) * outer, 35);
+            var d = p(MathF.Cos(heading + spread) * inner, MathF.Sin(heading + spread) * inner, 35);
+            DrawProjectedPolygon(new[] { a, b, c, d }, new(1, .93f, .67f, .23f - band * .032f));
+        }
+        var tip = p(MathF.Cos(heading) * 112, MathF.Sin(heading) * 112, 35);
+        Ink.DrawLine(origin, tip, new(1, .96f, .79f, .32f), .8f, true);
+        Ink.DrawCircle(origin, 4, new(1, .92f, .6f, .46f));
     }
 }

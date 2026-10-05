@@ -56,7 +56,9 @@ public sealed partial class BattleState
 
     private void AddVillage(GridPosition cell)
     {
-        if (!Board.Contains(cell) || Board.GetTile(cell).Terrain != TerrainType.Land || !Board.GetNeighbors(cell).Any(p => Board.GetTile(p).Terrain != TerrainType.Land))
+        if (!Board.Contains(cell) || Board.GetTile(cell).Terrain != TerrainType.Land
+            || !(Rules.DiagonalVillageBerths ? Board.GetSurrounding(cell) : Board.GetNeighbors(cell))
+                .Any(p => Board.GetTile(p).Terrain != TerrainType.Land))
             throw new ArgumentException("A village must occupy a coastal land tile.");
         _villages.Add(new Village(_nextId++, cell));
     }
@@ -135,7 +137,9 @@ public sealed partial class BattleState
             SetIncomeSource(new IncomeSource($"village:{village.Id}", owner, VillageIncome(village) + (village.HasPort ? Rules.Ports.Income : 0)));
     }
 
-    public IReadOnlyList<GridPosition> VillageSpawnCells(int villageId) => _villages.FirstOrDefault(v => v.Id == villageId)is { } village ? Board.GetNeighbors(village.Position).Where(p => IsFreeWater(p) && (!Rules.EmptyOuterRim || !Board.IsOuterCell(p))).ToArray() : Array.Empty<GridPosition>();
+    public IReadOnlyList<GridPosition> VillageSpawnCells(int villageId) => _villages.FirstOrDefault(v => v.Id == villageId)is { } village
+        ? VillageBerths(village).Where(p => IsFreeWater(p) && (!Rules.EmptyOuterRim || !Board.IsOuterCell(p))).ToArray()
+        : Array.Empty<GridPosition>();
     private string? ValidateVillage(Side side, int villageId, out Village? village)
     {
         village = _villages.FirstOrDefault(v => v.Id == villageId);
@@ -170,7 +174,7 @@ public sealed partial class BattleState
             return $"Available at village level {VillageRequiredLevel(kind)}.";
         if (village.HasProduced)
             return "This village has already built a ship this turn.";
-        if (UsesFleetSlot(kind) && FleetUsed(requester) >= FleetCapacity(requester))
+        if (!CanFitFleet(requester, kind))
             return $"Fleet limit: {FleetCapacity(requester)}.";
         if (Credits(requester) < VillageBuildPrice(villageId, kind))
             return "Not enough Thors.";
@@ -185,15 +189,17 @@ public sealed partial class BattleState
         if (!VillageSpawnCells(villageId).Contains(spawn))
             return CommandResult.Rejected("Choose a free water tile beside the village.");
         var village = _villages.First(v => v.Id == villageId);
+        int price = VillageBuildPrice(villageId, kind);
         var ship = new Ship(_nextId++, requester, Rules.Get(kind), spawn)
         {
-            IsExhausted = true
+            IsExhausted = true,
+            ConstructionPrice = price
         };
         _ships.Add(ship);
         RecordShipConstruction(ship);
         RegisterShipIncome(ship);
         ClearRuinsForConstruction(kind, spawn);
-        _credits[(int)requester] -= VillageBuildPrice(villageId, kind);
+        _credits[(int)requester] -= price;
         _everProduced[(int)requester] = true;
         village.HasProduced = true;
         UpdateVision();

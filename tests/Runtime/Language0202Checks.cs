@@ -73,10 +73,16 @@ public partial class Language0202Checks : Node
         if (name == "StartBattle")
         {
             string localized = Language.Translate("Embark with the {0} nation")
-                .Replace("{0}", Language.Translate(Game.Home.SelectedColor.ToString()));
+                .Replace("{0}", NationIdentity.Name(Game.Home.SelectedColor));
             Check(button.Text == localized && (Language.Current == "en" || localized !=
                 "Embark with the " + Game.Home.SelectedColor + " nation"),
                 "the dynamic voyage inscription names the selected nation in the active language");
+        }
+        else if (name is "Creative" or "GodEye")
+        {
+            Check(button.Text.Length == 0 && button.TooltipText.Length > 0, "special modes are pictorial with hover explanations");
+            Check(Language.Current == "en" || LocalizedMessages.Translate(button.TooltipText, Language.Current) != button.TooltipText,
+                "icon hover explanation is translated: " + name);
         }
         else Check(Language.Current == "en" || expected != button.Text, "Visible action is translated: " + button.Text);
     }

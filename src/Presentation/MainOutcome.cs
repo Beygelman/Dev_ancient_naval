@@ -51,7 +51,9 @@ public partial class Main
         Hud.Hide();
         _outcomeOwnsInput = true;
         _celebratedBattle = Battle;
-        _victory.ShowOutcome(Battle.Statistics, Battle.Round, Battle.Winner == Side.Player);
+        _victory.InstantAnimations = FastChecks;
+        _victory.ShowOutcome(Battle.Statistics, Battle.Round, Battle.Winner == Side.Player,
+            VoyageJudgement.Build(Battle, Battle.Winner == Side.Player), Map.FleetPalette.Color(Battle.PlayerColor));
     }
 
     private void HideOutcome()

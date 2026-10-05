@@ -1,0 +1,132 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 581.29 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PAN frames=119, p50_ms=16.680, p95_ms=20.972, max_ms=40.255
+INTERACTION world=Pangaea, wide_view=True, tiles=1759, opponents=4, live_fog=False, hover_calls=64, hover_p50_ms=0.054, hover_p95_ms=0.074, hover_max_ms=0.462, frame_p95_ms=21.475, frame_max_ms=56.893, process_p95_ms=55.598, draw_calls_p95=3621, movement_elapsed_ms=1578.848
+SLOW_FRAMES
+
+{
+  "Fleet.Water.Draw": {
+    "Calls": 394,
+    "TotalMs": 6.6124,
+    "MaxMs": 0.1413,
+    "Bytes": 90624
+  },
+  "Fleet.Hulls.Refresh": {
+    "Calls": 394,
+    "TotalMs": 40.52909999999999,
+    "MaxMs": 0.4779,
+    "Bytes": 5877480
+  },
+  "Fleet.Draw": {
+    "Calls": 394,
+    "TotalMs": 47.59749999999998,
+    "MaxMs": 0.4804,
+    "Bytes": 5968200
+  },
+  "Ambience.Fish": {
+    "Calls": 138,
+    "TotalMs": 88.8422,
+    "MaxMs": 0.9012,
+    "Bytes": 0
+  },
+  "Ambience.Draw": {
+    "Calls": 138,
+    "TotalMs": 98.8838,
+    "MaxMs": 1.036,
+    "Bytes": 3360
+  },
+  "Hull.Draw": {
+    "Calls": 329,
+    "TotalMs": 108.86860000000007,
+    "MaxMs": 1.7074,
+    "Bytes": 823064
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 2.9679,
+    "MaxMs": 0.2113,
+    "Bytes": 93848
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 21.5414,
+    "MaxMs": 1.1752,
+    "Bytes": 586552
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 4.2918,
+    "MaxMs": 4.2918,
+    "Bytes": 198048
+  },
+  "Ambience.Waves.Build": {
+    "Calls": 1,
+    "TotalMs": 8.2949,
+    "MaxMs": 8.2949,
+    "Bytes": 3629280
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 9.6879,
+    "MaxMs": 9.6879,
+    "Bytes": 3785432
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 1.4659,
+    "MaxMs": 1.0907,
+    "Bytes": 315528
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 11.688300000000002,
+    "MaxMs": 10.2984,
+    "Bytes": 4152472
+  },
+  "Animation.TravelRoute": {
+    "Calls": 1,
+    "TotalMs": 0.4182,
+    "MaxMs": 0.4182,
+    "Bytes": 2440
+  },
+  "Animation.Start": {
+    "Calls": 1,
+    "TotalMs": 6.8828,
+    "MaxMs": 6.8828,
+    "Bytes": 9040
+  },
+  "Selection.Dispatch": {
+    "Calls": 1,
+    "TotalMs": 22.8732,
+    "MaxMs": 22.8732,
+    "Bytes": 4061632
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0053,
+    "MaxMs": 0.0053,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 0.0802,
+    "MaxMs": 0.0521,
+    "Bytes": 3576
+  },
+  "Save.Capture": {
+    "Calls": 1,
+    "TotalMs": 0.573,
+    "MaxMs": 0.573,
+    "Bytes": 333960
+  },
+  "Save.Write": {
+    "Calls": 1,
+    "TotalMs": 21.3038,
+    "MaxMs": 21.3038,
+    "Bytes": 875824
+  }
+}
+RENDER_MEMORY video_peak_mib=484.18, texture_peak_mib=353.44, buffer_peak_mib=130.74
+
+PASS: real-map interaction profiling completed.

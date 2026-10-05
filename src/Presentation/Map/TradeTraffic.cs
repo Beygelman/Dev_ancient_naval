@@ -44,6 +44,7 @@ internal partial class TradeTraffic : Node2D
         internal float[] Lengths = Array.Empty<float>();
         internal float Distance;
         internal int Segment, Source, Destination;
+        internal GridPosition[] Cells = Array.Empty<GridPosition>();
     }
 
     public override void _Ready()
@@ -79,11 +80,21 @@ internal partial class TradeTraffic : Node2D
                 if (!_adjacency.TryGetValue(edge.Item2,out var second)) _adjacency[edge.Item2]=second=new();
                 first.Add(edge.Item2); second.Add(edge.Item1);
             }
-            // A destroyed port or a new permanent hazard cannot leave ghost traffic on an obsolete lane.
-            foreach (var boat in _boats) boat.Canvas.QueueFree();
-            _boats.Clear();
+            // Staged command restoration clears the Core cache even when every route is unchanged.
+            // Preserve those voyages; remove only boats whose port or actual lane disappeared.
+            for (int index = _boats.Count - 1; index >= 0; index--)
+            {
+                var boat = _boats[index];
+                bool valid = ids.Contains(boat.Source) && ids.Contains(boat.Destination);
+                for (int cell = 1; valid && cell < boat.Cells.Length; cell++)
+                    valid = _adjacency.TryGetValue(boat.Cells[cell - 1], out var adjacent)
+                        && adjacent.Contains(boat.Cells[cell]);
+                if (valid) continue;
+                boat.Canvas.QueueFree();
+                _boats.RemoveAt(index);
+            }
         }
-        SetProcess(_ports.Length>=2 || _boats.Count>0);
+        SetProcess(IsVisibleInTree() && (_ports.Length>=2 || _boats.Count>0));
     }
 
     private float Interval() => 12+(float)_random.NextDouble()*8;
@@ -134,7 +145,8 @@ internal partial class TradeTraffic : Node2D
             if (lengths.Length==0 || lengths.Any(length=>length<.001f)) continue;
             var canvas=new MerchantCanvas { Name="Merchant"+Departures, Skin=(_skinOffset+Departures)%3, Position=points[0] };
             AddChild(canvas);
-            _boats.Add(new MerchantVoyage { Canvas=canvas,Points=points,Lengths=lengths,Source=source.Id,Destination=destination.Id });
+            _boats.Add(new MerchantVoyage { Canvas=canvas,Points=points,Lengths=lengths,Source=source.Id,
+                Destination=destination.Id,Cells=cells });
             Departures++;
             return;
         }

@@ -126,9 +126,15 @@ public partial class DebugHud : CanvasLayer
         _root.AddChild(_banner);
         _banner.Hide();
         _shipCard = Panel(_root);
+        var cardRow = new HBoxContainer();
+        cardRow.AddThemeConstantOverride("separation", 12);
+        _shipCard.AddChild(cardRow);
+        _objectIcon = new ActionGlyph { Name = "SelectedObjectGlyph", CustomMinimumSize = new(64, 70),
+            MouseFilter = Control.MouseFilterEnum.Ignore };
+        cardRow.AddChild(_objectIcon);
         var stats = new VBoxContainer();
         stats.AddThemeConstantOverride("separation", 4);
-        _shipCard.AddChild(stats);
+        cardRow.AddChild(stats);
         _ship = Label("", 18);
         stats.AddChild(_ship);
         _health = Label("", 15);
@@ -330,6 +336,8 @@ public partial class DebugHud : CanvasLayer
         UpdateReadyActions(battle, canAct);
         _restart.Disabled = busy;
         _shipCard.Visible = selected is not null || village is not null;
+        _objectIcon.Symbol = NavalGlyphArt.Symbol(selected?.Definition.Class);
+        _objectIcon.QueueRedraw();
         if (selected is not null)
         {
             _health.AddThemeColorOverride("font_color", selected.Owner == Side.Player ? PapyrusStyle.Health : PapyrusStyle.EnemyHealth);
@@ -356,6 +364,7 @@ public partial class DebugHud : CanvasLayer
         _repair.SetMeta("applicable", (selected is { Owner: Side.Player, IsAirborne: false } && selected.Definition.Class != ShipClass.AncientGun) || village?.Owner == Side.Player);
         _scuttle.SetMeta("applicable", selected is { Owner: Side.Player, IsMothership: false });
         Availability(_scuttle, ownShip && selected is not null && CanScuttleShip?.Invoke(selected) == true, "");
+        _scuttle.TooltipText = selected is null ? "Dismantle ship" : $"Dismantle ship · return {battle.ScuttleRefund(Side.Player, selected.Id)} Thors";
         Availability(_yard, (ownShip && (selected!.IsMothership || fishingBuilder) && !selected.HasProduced) || (ownVillage && !village!.HasProduced), "");
         Availability(_radar, ownShip && battle.RadarBlockReason(Side.Player, selected!.Id)is null, selected?.HasRadar == true ? "✓" : selected?.Definition.RadarPrice.ToString() ?? "");
         Availability(_mortar, ownShip && battle.MortarBlockReason(Side.Player, selected!.Id)is null, selected?.HasMortar == true ? "✓" : battle.Rules.Mortar.PurchasePrice.ToString());

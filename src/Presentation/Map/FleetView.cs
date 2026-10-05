@@ -50,6 +50,7 @@ public partial class FleetView : Node2D
         }
 
         DrawAirEffects();
+        DrawFallingBalloonFire();
         if (_projectiles.Count == 0 && ProjectilePosition is { } projectile)
         {
             Ink.DrawCircle(projectile + new Vector2(-3, -2), 6, new Color(1, 0.7f, 0.3f, 0.3f));

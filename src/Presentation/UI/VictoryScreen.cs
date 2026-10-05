@@ -12,6 +12,7 @@ public partial class VictoryScreen : CanvasLayer
     private Control _root = null!;
     private ColorRect _shade = null!;
     private PanelContainer _paper = null!;
+    private VBoxContainer _footer = null!;
     private ScrollContainer _scroll = null!;
     private VBoxContainer _body = null!;
     private Label _heading = null!, _currency = null!, _built = null!, _sunk = null!, _nations = null!, _footnote = null!;
@@ -20,6 +21,9 @@ public partial class VictoryScreen : CanvasLayer
     private VictoryCelebration _celebration = null!;
     private float _age;
     private bool _layingOut;
+    private bool _closing;
+    private Color _nationInk = PaintedVoyageChoice.Burgundy;
+    internal bool InstantAnimations { get; set; }
 
     public event Action? HomeRequested, ExitRequested, CloseRequested;
     public bool IsOpen => Visible;
@@ -51,20 +55,17 @@ public partial class VictoryScreen : CanvasLayer
         var center = new CenterContainer { Name = "VictoryCenter", MouseFilter = Control.MouseFilterEnum.Ignore };
         _root.AddChild(center);
         center.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        _paper = new PanelContainer { Name = "VictoryPaper", MouseFilter = Control.MouseFilterEnum.Stop };
-        var parchment = PapyrusStyle.Panel(.95f);
-        parchment.BgColor = new Color("192c32");
-        parchment.BorderColor = new Color("b89a61");
-        parchment.ContentMarginLeft = parchment.ContentMarginRight = 16;
-        parchment.ContentMarginTop = parchment.ContentMarginBottom = 12;
-        _paper.AddThemeStyleboxOverride("panel", parchment);
+        _paper = new RollingModalPaper { Name = "VictoryPaper", MouseFilter = Control.MouseFilterEnum.Stop };
         center.AddChild(_paper);
         var column = new VBoxContainer { Name = "VictoryContent" };
         _body = column;
         column.AddThemeConstantOverride("separation", 17);
-        _scroll = PapyrusModal.Wrap(_paper, column, "VictoryScroll");
+        _footer = new VBoxContainer();
+        _footer.AddThemeConstantOverride("separation", 6);
+        _scroll = PapyrusModal.WrapWithFooter(_paper, column, _footer, "VictoryScroll");
+        _scroll.VerticalScrollMode = ScrollContainer.ScrollMode.ShowNever;
 
-        _heading = Text("VICTORY", 66, new Color("f8e7b0"));
+        _heading = Text("VICTORY", 66, PapyrusStyle.Ink);
         _heading.Name = "VictoryHeading";
         _heading.AddThemeFontOverride("font", new SystemFont { FontNames = new[] { "Georgia", "Times New Roman" } });
         _heading.AddThemeColorOverride("font_shadow_color", new Color(1, .77f, .30f, .34f));
@@ -73,11 +74,11 @@ public partial class VictoryScreen : CanvasLayer
         _heading.AddThemeConstantOverride("shadow_offset_y", 0);
         column.AddChild(_heading);
 
-        var story = _story = Text("You preserved your people.\nThe ship of new hope sails on.", 20, new Color("e9d9b8"));
+        var story = _story = Text("You preserved your people.\nThe ship of new hope sails on.", 18, PapyrusStyle.Ink);
         story.Name = "VictoryStory";
         story.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         column.AddChild(story);
-        column.AddChild(Text("—   THE VOYAGE REMEMBERED   —", 13, new Color("bca779")));
+        column.AddChild(Text("—   THE VOYAGE REMEMBERED   —", 13, PapyrusStyle.FaintInk));
         var ledger = new GridContainer { Name = "VictoryStatistics", Columns = 2 };
         ledger.AddThemeConstantOverride("h_separation", 28);
         ledger.AddThemeConstantOverride("v_separation", 18);
@@ -86,18 +87,33 @@ public partial class VictoryScreen : CanvasLayer
         _nations = Statistic(ledger, "Enemy flagships sunk", "VictoryNations");
         _built = Statistic(ledger, "Ships built", "VictoryBuilt");
         _sunk = Statistic(ledger, "Enemy vessels sunk", "VictorySunk");
-        _footnote = Text("", 13, new Color("b9b7a5"));
+        _footnote = Text("", 13, PapyrusStyle.FaintInk);
         _footnote.Name = "VictoryFootnote";
         _footnote.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         column.AddChild(_footnote);
 
-        column.AddChild(Action("InspectMap", "View the map", () => CloseRequested?.Invoke()));
+        _footer.AddChild(Action("InspectMap", "View the map", async () =>
+        {
+            if (_closing) return;
+            await FoldOutcome();
+            CloseRequested?.Invoke();
+        }));
         var buttons = new VBoxContainer { Name = "VictoryActions" };
-        buttons.AddThemeConstantOverride("separation", 14);
-        column.AddChild(buttons);
-        _home = Action("VictoryHome", "Return to menu", () => HomeRequested?.Invoke());
+        buttons.AddThemeConstantOverride("separation", 6);
+        _footer.AddChild(buttons);
+        _home = Action("VictoryHome", "Return to menu", async () =>
+        {
+            if (_closing) return;
+            await FoldOutcome();
+            HomeRequested?.Invoke();
+        });
         buttons.AddChild(_home);
-        buttons.AddChild(Action("VictoryExit", "Exit game", () => ExitRequested?.Invoke()));
+        buttons.AddChild(Action("VictoryExit", "Exit game", async () =>
+        {
+            if (_closing) return;
+            await FoldOutcome();
+            ExitRequested?.Invoke();
+        }));
         UiScale.Bind(this, _root, Layout);
         _body.MinimumSizeChanged += Layout;
         Layout();
@@ -123,18 +139,17 @@ public partial class VictoryScreen : CanvasLayer
         var cell = new VBoxContainer { Name = name + "Cell", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         cell.AddThemeConstantOverride("separation", 3);
         ledger.AddChild(cell);
-        cell.AddChild(Text(caption, 15, new Color("c5baa0")));
-        var amount = Text("0", 30, new Color("f6e3b3"));
+        cell.AddChild(Text(caption, 15, PapyrusStyle.FaintInk));
+        var amount = Text("0", 30, PapyrusStyle.Ink);
         amount.Name = name;
         cell.AddChild(amount);
         return amount;
     }
 
-    private static Button Action(string name, string text, System.Action action)
+    private Button Action(string name, string text, System.Action action)
     {
-        var button = new Button { Name = name, Text = text, CustomMinimumSize = new(0, 47),
-            AutowrapMode = TextServer.AutowrapMode.WordSmart };
-        PapyrusStyle.Button(button, 17);
+        var button = new BrushPaperButton { Name = name, Text = text, CustomMinimumSize = new(0, 47),
+            AutowrapMode = TextServer.AutowrapMode.WordSmart, Ink = _nationInk, Underline = name == "InspectMap" };
         button.Pressed += action;
         return button;
     }
@@ -145,35 +160,64 @@ public partial class VictoryScreen : CanvasLayer
         _layingOut = true;
         var viewport = UiScale.LogicalViewport(this);
         _heading.AddThemeFontSizeOverride("font_size", 42);
-        PapyrusModal.Layout(_paper, _scroll, _body, viewport);
+        PapyrusModal.LayoutWithFooter(_paper, _scroll, _body, _footer, viewport);
         _layingOut = false;
     }
 
     public void ShowVictory(VoyageStatistics statistics, int round) => ShowOutcome(statistics, round, true);
 
-    public void ShowOutcome(VoyageStatistics statistics, int round, bool won)
+    public void ShowOutcome(VoyageStatistics statistics, int round, bool won, string? narration = null, Color? nationColor = null)
     {
         _heading.Text = won ? "VICTORY" : "DEFEAT";
-        _story.Text = won ? "You preserved your people.\nThe ship of new hope sails on." : "Your flagship has fallen.\nYour voyage will be remembered.";
+        _story.Text = narration ?? (won ? "You preserved your people.\nThe ship of new hope sails on." : "Your flagship has fallen.\nYour voyage will be remembered.");
+        _nationInk = nationColor?.Darkened(.25f) ?? PaintedVoyageChoice.Burgundy;
+        foreach (var button in DescendantButtons(_paper))
+        {
+            button.Disabled = false;
+            button.Ink = _nationInk;
+            button.ResetStamp();
+        }
         _currency.Text = statistics.CurrencyEarned.ToString("N0") + " Thors";
         _built.Text = statistics.ShipsBuilt.ToString("N0");
         _sunk.Text = statistics.EnemyShipsDestroyed.ToString("N0");
         _nations.Text = statistics.NationsDefeated.ToString("N0");
         _footnote.Text = $"Turn {round} · Ships and flagships sunk by your fleet.\nIncome includes rewards; the starting reserve is excluded.";
+        _scroll.ScrollVertical = 0;
         _age = 0;
+        _closing = false;
         ShowCount++;
         Visible = true;
-        _paper.Modulate = new Color(1, 1, 1, 0);
-        _shade.Modulate = new Color(1, 1, 1, 0);
+        _paper.Modulate = new Color(1, 1, 1, InstantAnimations ? 1 : 0);
+        _shade.Modulate = new Color(1, 1, 1, InstantAnimations ? 1 : 0);
+        Layout();
+        _ = ((RollingModalPaper)_paper).OpenAsync(InstantAnimations);
         if (won) _celebration.Start(); else _celebration.Stop();
         SetProcess(true);
         SetProcessInput(true);
         _home.GrabFocus();
     }
 
+    private static IEnumerable<BrushPaperButton> DescendantButtons(Node root)
+    {
+        foreach (Node node in root.GetChildren())
+        {
+            if (node is BrushPaperButton button) yield return button;
+            foreach (var child in DescendantButtons(node)) yield return child;
+        }
+    }
+
+    private async System.Threading.Tasks.Task FoldOutcome()
+    {
+        if (_closing) return;
+        _closing = true;
+        foreach (var button in DescendantButtons(_paper)) button.Disabled = true;
+        await ((RollingModalPaper)_paper).FoldAsync(InstantAnimations);
+    }
+
     public void Close()
     {
         Visible = false;
+        _closing = false;
         SetProcess(false);
         SetProcessInput(false);
         _celebration?.Stop();
@@ -182,10 +226,10 @@ public partial class VictoryScreen : CanvasLayer
     public override void _Process(double delta)
     {
         _age += (float)delta;
-        float fade = Math.Clamp(_age / .65f, 0, 1);
+        float fade = InstantAnimations ? 1 : Math.Clamp(_age / .65f, 0, 1);
         fade = fade * fade * (3 - 2 * fade);
         _shade.Modulate = new Color(1, 1, 1, fade);
-        _paper.Modulate = new Color(1, 1, 1, Math.Clamp((_age - .12f) / .65f, 0, 1));
+        _paper.Modulate = new Color(1, 1, 1, InstantAnimations ? 1 : Math.Clamp((_age - .12f) / .65f, 0, 1));
         float pulse = _age < 7 ? .30f + .10f * MathF.Sin(_age * 2.2f) : .32f;
         _heading.AddThemeColorOverride("font_shadow_color", new Color(1, .77f, .30f, pulse));
         if (_age >= 8)
@@ -194,11 +238,17 @@ public partial class VictoryScreen : CanvasLayer
 
     public override void _Input(InputEvent input)
     {
-        if (IsOpen && input is InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape })
+        if (IsOpen && !_closing && input is InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape })
         {
-            CloseRequested?.Invoke();
+            CloseByEscape();
             GetViewport().SetInputAsHandled();
         }
+    }
+
+    private async void CloseByEscape()
+    {
+        await FoldOutcome();
+        CloseRequested?.Invoke();
     }
 
 }

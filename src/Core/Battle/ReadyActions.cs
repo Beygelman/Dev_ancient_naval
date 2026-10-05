@@ -104,6 +104,8 @@ public sealed partial class BattleState
             }
             int charges = CanDoubleSalvo(attacker.Id, target.Position) ? 2 : 1;
             double remaining = target.Health - Damage(attacker, target) * charges;
+            if (remaining <= 0 && target.IsAirborne && Rules.Balloon.CrashDamage >= attacker.Health
+                && Board.BlastCells(target.Position).Contains(attacker.Position)) continue;
             if (remaining <= 0 || !CanCounterattack(target, attacker)) return true;
             double reply = Math.Max(1, Ship.Whole(target.FullDamage * (.5 + .5 * remaining / target.MaxHealth))
                 + target.CounterDamageBonus - attacker.Definition.Armor);

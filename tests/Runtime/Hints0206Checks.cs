@@ -87,6 +87,8 @@ public partial class Hints0206Checks : Node
         Check(gameToggle.IsVisibleInTree(), "guidance preference is in in-game settings");
         Click(gameToggle); await Frames(); Check(UiHints.Enabled != old, "both menus share one preference");
         Click(gameToggle); await Frames(); Game.Hud.SetMenuVisible(false);
+        await ToSignal(GetTree().CreateTimer(.4), SceneTreeTimer.SignalName.Timeout);
+        await Frames();
     }
     private async Task CheckConfirmation()
     {
@@ -109,7 +111,9 @@ public partial class Hints0206Checks : Node
         await Capture("end-turn-stamp");
         await Game.CurrentOrder; await Frames();
         Check(Game.Hud.TurnConfirmationVisible, "animated stamp proceeds to confirmation");
-        Click(Button("CancelEndTurn")); await Frames();
+        Click(Button("CancelEndTurn"));
+        await ToSignal(GetTree().CreateTimer(.4), SceneTreeTimer.SignalName.Timeout);
+        await Frames();
         Game.FastChecks = true;
         Click(Button("EndTurn")); await Game.CurrentOrder; await Frames();
         Check(Game.Hud.TurnConfirmationVisible && Game.Battle.SaveJson() == untouched, "native end-turn click confirms before mutation");

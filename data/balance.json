@@ -260,6 +260,7 @@
     "granadoDeadZone": 1
   },
   "balloon": {
+    "crashDamage": 2,
     "kolonelAntiAir": true,
     "bombDamage": 6,
     "splashDamage": 2,
@@ -324,5 +325,8 @@
   "emptyOuterRim": true,
   "separatedStartingEscorts": true,
   "mapSizePirateSettlements": true,
-  "equalDoubleSalvoDamage": true
+  "equalDoubleSalvoDamage": true,
+  "weightedFleetCapacity": true,
+  "diagonalVillageBerths": true,
+  "scuttleRefundFraction": 0.4
 }

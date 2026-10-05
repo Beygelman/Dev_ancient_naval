@@ -143,7 +143,7 @@ public sealed partial class BattleState
                 mother.SecondAttackUpgrade = true;
                 break;
             case UpgradeChoice.FishingBoat:
-                if (UsesFleetSlot(ShipClass.Fishing) && FleetUsed(requester) >= FleetCapacity(requester))
+                if (!CanFitFleet(requester, ShipClass.Fishing))
                     return CommandResult.Rejected($"Fishing expedition requires a free fleet slot. Fleet limit: {FleetCapacity(requester)}.");
                 // Occupied adjacent berths do not block delivery to other reachable water.
                 var berth = FishingRewardBerth(mother);

@@ -65,6 +65,7 @@ public partial class Tutorial0206Checks : Node
         Check(texture.Texture is not null && texture.Texture.GetSize() == new Vector2(512, 256), "native close-up asset is present for " + topic);
         await Capture(topic);
         Click(Nodes(_advice).OfType<Button>().Single(n => n.Name == "CloseTutorialAdvice"));
+        await ToSignal(GetTree().CreateTimer(.35), SceneTreeTimer.SignalName.Timeout);
         await Frames();
         Check(!_advice.IsOpen, "real close button dismisses advice");
         for (int i = 0; i < 12; i++) _history.Observe(battle, true);
@@ -150,6 +151,7 @@ public partial class Tutorial0206Checks : Node
         Check(Game.SelectedShipId == Game.Battle.Mothership(Side.Player)!.Id,
             "advice does not block map object selection");
         Click(Nodes(Game.Tutorial).OfType<Button>().Single(n => n.Name == "CloseTutorialAdvice"));
+        await ToSignal(GetTree().CreateTimer(.35), SceneTreeTimer.SignalName.Timeout);
         await Frames();
         Check(!Game.Tutorial.IsOpen, "actual tutorial also supports real close input");
         Game.Refresh();

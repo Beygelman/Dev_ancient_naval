@@ -38,7 +38,7 @@ public sealed partial class BattleState
             return !mother.IsMothership && Rules.FishingCannonTowers
                 ? "This builder has already constructed this turn."
                 : "This Mothership has already built a ship this turn.";
-        if (UsesFleetSlot(shipClass) && FleetUsed(requester) >= FleetCapacity(requester))
+        if (!CanFitFleet(requester, shipClass))
             return $"Fleet limit: {FleetCapacity(requester)}.";
         if (Credits(requester) < BuildPrice(requester, shipClass))
             return "Not enough Thors.";
@@ -57,14 +57,15 @@ public sealed partial class BattleState
                 ? "Choose a free water tile beside the Support Brig."
                 : "Choose a free water tile beside the Mothership.");
         var definition = Rules.Get(shipClass);
-        var ship = new Ship(_nextId++, requester, definition, spawn);
+        int price = BuildPrice(requester, shipClass);
+        var ship = new Ship(_nextId++, requester, definition, spawn) { ConstructionPrice = price };
         bool first = !_everProduced[(int)requester];
         ship.IsExhausted = !first;
         _ships.Add(ship);
         RecordShipConstruction(ship);
         RegisterShipIncome(ship);
         ClearRuinsForConstruction(shipClass, spawn);
-        _credits[(int)requester] -= BuildPrice(requester, shipClass);
+        _credits[(int)requester] -= price;
         _everProduced[(int)requester] = true;
         var mother = Find(mothershipId)!;
         mother.HasProduced = true;
