@@ -35,7 +35,7 @@ public partial class Hints0206Checks : Node
         GetViewport().PushInput(new InputEventMouseMotion { Position = point, GlobalPosition = point }, true);
         foreach (bool pressed in new[] { true, false })
             GetViewport().PushInput(new InputEventMouseButton { Position = point, GlobalPosition = point,
-                ButtonIndex = MouseButton.Left, Pressed = pressed }, true);
+                ButtonIndex = MouseButton.Left, Pressed = pressed, ButtonMask = pressed ? MouseButtonMask.Left : (MouseButtonMask)0 }, true);
     }
     private void KeyPress(Key key)
     {
@@ -74,6 +74,7 @@ public partial class Hints0206Checks : Node
     {
         Game.Home.ShowHome(false); await Frames();
         Click(Nodes(Game.Home).OfType<Button>().Single(b => b.Name == "HomeSettings")); await Frames();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         var toggle = Nodes(Game.Home).OfType<Button>().Single(b => b.Name == "HintsToggle");
         Check(toggle.IsVisibleInTree(), "guidance preference is in title settings");
         bool old = UiHints.Enabled; Click(toggle); await Frames();
@@ -82,11 +83,15 @@ public partial class Hints0206Checks : Node
         string? setting = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--ui-settings-file="))?[19..];
         if (setting is not null) Check(File.ReadAllText(Path.GetFullPath(setting) + ".hints").Trim() == (old ? "on" : "off"), "guidance persists separately from saved rules");
         Game.Home.Hide();
-        Game.Hud.SetMenuVisible(true); await Frames(); Click(Button("GameSettings")); await Frames();
+        Game.Hud.SetMenuVisible(true); await Frames();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
+        Click(Button("GameSettings")); await Frames();
         var gameToggle = Button("HintsToggle");
         Check(gameToggle.IsVisibleInTree(), "guidance preference is in in-game settings");
         Click(gameToggle); await Frames(); Check(UiHints.Enabled != old, "both menus share one preference");
         Click(gameToggle); await Frames(); Game.Hud.SetMenuVisible(false);
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
+        await Frames();
     }
     private async Task CheckConfirmation()
     {
@@ -94,7 +99,7 @@ public partial class Hints0206Checks : Node
         var expected = Game.Battle.ReadyActions(Side.Player);
         Check(Game.Hud.ReadyObjectCount == expected.Count && expected.Count >= 3, "amphora counts each genuinely ready object once");
         var jug = Nodes(Game.Hud).OfType<Control>().Single(n => n.Name == "ReadyActionsAmphora");
-        Check(jug.IsVisibleInTree() && jug.Position.Y + jug.Size.Y < Button("EndTurn").Position.Y, "nation amphora sits above the end-turn scroll");
+        Check(jug.IsVisibleInTree() && jug.Position.Y + jug.Size.Y * .5f < Button("EndTurn").Position.Y, "amphora count sits above the scroll while lower clay overlaps behind it");
         string untouched = Game.Battle.SaveJson();
         int searches = Game.Hud.ReadyQueryRebuilds;
         for (int i = 0; i < 20; i++) Game.Refresh();
@@ -108,13 +113,17 @@ public partial class Hints0206Checks : Node
             "ink stamp locks map orders until its ceremony finishes");
         await Capture("end-turn-stamp");
         await Game.CurrentOrder; await Frames();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         Check(Game.Hud.TurnConfirmationVisible, "animated stamp proceeds to confirmation");
-        Click(Button("CancelEndTurn")); await Frames();
+        Click(Button("CancelEndTurn"));
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
+        await Frames();
         Game.FastChecks = true;
         Click(Button("EndTurn")); await Game.CurrentOrder; await Frames();
         Check(Game.Hud.TurnConfirmationVisible && Game.Battle.SaveJson() == untouched, "native end-turn click confirms before mutation");
         var grid = Nodes(Game.Hud).OfType<GridContainer>().Single(n => n.Name == "ReadyActionGrid");
-        Check(grid.Columns == 5 && grid.GetChildCount() == expected.Count, "ready objects occupy five columns without duplicate resource sites");
+        Check(grid.Columns is >= 1 and <= 3 && grid.GetChildCount() == expected.Count,
+            "ready objects and their action glyphs use a bounded readable grid without duplicate resource sites");
         int? selected = Game.SelectedShipId;
         Game.SelectCell(new(7, 5)); KeyPress(Key.R); KeyPress(Key.Space);
         foreach (bool pressed in new[] { true, false })
@@ -138,23 +147,26 @@ public partial class Hints0206Checks : Node
                 && rect.End.X <= GetViewport().GetVisibleRect().Size.X, "localized scaled confirmation remains bounded");
             Check(grid.GetGlobalTransformWithCanvas().Origin.X >= rect.Position.X
                 && grid.GetGlobalTransformWithCanvas().Origin.X + grid.Size.X * UiScale.Value <= rect.End.X + 1,
-                "five-column object grid remains within parchment");
+                "object and remaining-action glyph grid remains within parchment");
         }
         Language.Set("en", persist: false); UiScale.Set(1, persist: false); await Frames();
         var entry = grid.GetChildren().OfType<Button>().First(); Click(entry); await Frames();
         Check(!Game.Hud.TurnConfirmationVisible && Game.Battle.SaveJson() == untouched, "selecting an object returns to map without spending actions");
         KeyPress(Key.Space); await Game.CurrentOrder; await Frames();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         Check(Game.Hud.TurnConfirmationVisible, "Space uses the same confirmation path");
         Click(Button("CancelEndTurn")); await Frames();
-        Check(!Game.Hud.TurnConfirmationVisible && Game.Battle.SaveJson() == untouched, "cancel never advances the turn");
-        KeyPress(Key.Space); await Game.CurrentOrder; await Frames(); KeyPress(Key.Escape); await Frames();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
+        Check(!Game.Hud.TurnConfirmationVisible && Game.Battle.SaveJson() == untouched, "cancel never advances the turn: visible=" + Game.Hud.TurnConfirmationVisible + ", unchanged=" + (Game.Battle.SaveJson() == untouched));
+        KeyPress(Key.Space); await Game.CurrentOrder; await Frames();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout); KeyPress(Key.Escape); await Frames();
         Check(!Game.Hud.TurnConfirmationVisible && !Game.Hud.MenuVisible && Game.Battle.SaveJson() == untouched,
             "Escape closes confirmation without opening menu or advancing the turn");
         Click(Button("EndTurn")); await Game.CurrentOrder; await Frames();
         Click(Button("ConfirmEndTurn")); await Game.CurrentOrder; await Frames();
         Check(!Game.Hud.TurnConfirmationVisible && Game.Battle.Round > 1, "explicit confirmation advances real player and rival turns");
         UiHints.Set(false); LoadFixture(); await Frames(); untouched = Game.Battle.SaveJson();
-        Check(!jug.IsVisibleInTree(), "guidance off hides action counter");
+        Check(jug.IsVisibleInTree(), "guidance off retains the nation action counter without end-turn confirmation");
         Click(Button("EndTurn")); await Game.CurrentOrder; await Frames();
         Check(!Game.Hud.TurnConfirmationVisible && Game.Battle.SaveJson() != untouched, "guidance off ends the turn directly");
     }

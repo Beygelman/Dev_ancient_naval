@@ -49,9 +49,7 @@ internal static class AncientLore
         if (ship.CanEarnVeterancy && !ship.IsVeteran)
         {
             stats.Add(new("Veterancy", $"{ship.Kills}/3 ships sunk"));
-            stats.Add(new("Progress cells", "Each enemy ship sunk fills one cell. Three kills grant veteran status, full healing and +25% maximum health and weapon strength."));
-            if (ship.Definition.VeteranRangeBonus > 0)
-                stats.Add(new("Veteran reach", $"+{ship.Definition.VeteranRangeBonus} cannon range after three kills"));
+            stats.Add(new("Progress cells", "Each enemy ship sunk fills one cell."));
         }
         sections.Add(new("At a glance", stats));
         AddWeapons(sections, battle, ship);
@@ -91,6 +89,8 @@ internal static class AncientLore
                 rows.Add(new("Counterfire", $"{ship.CurrentDamage + ship.CounterDamageBonus:0.##} damage · {ship.CannonRange} tiles; if alive"));
             if (battle.HasAntiAir(ship))
                 rows.Add(new("Anti-air", $"Balloons within {System.Math.Min(battle.Rules.Balloon.AntiAirRange, ship.CannonRange)} tiles"));
+            if (ship.Definition.Class == ShipClass.CannonTower && battle.Rules.CannonTowersIgnoreWalls)
+                rows.Add(new("Wall-piercing guns", "Full damage through town walls"));
             rows.Add(new("Radar targets", "Shared contacts within weapon range"));
         }
         if (rows.Count > 0)
@@ -176,6 +176,10 @@ internal static class AncientLore
 
     public static LorePage Village(BattleState battle, Village village)
     {
+        bool privateTrade = battle.Rules.Ports.ConnectedCityIncome && village.HasPort
+            && village.Owner is { } owner && owner != Side.Player && village.Health > 0;
+        int settlementIncome = village.Owner is null || village.Health <= 0 ? 0 : battle.VillageIncome(village);
+        int visibleIncome = settlementIncome + (privateTrade ? 0 : battle.PortIncome(village));
         var sections = new List<LoreSection>
         {
             new("At a glance", new LoreRow[]
@@ -186,13 +190,11 @@ internal static class AncientLore
             }),
             new("Town life", new LoreRow[]
             {
-                new("Income", $"+{(village.Owner is null || village.Health <= 0 ? 0 : battle.VillageIncome(village) + (village.HasPort ? battle.Rules.Ports.Income : 0))} Thors per turn"),
+                new(privateTrade ? "Settlement income" : "Income", $"+{visibleIncome} Thors per turn"),
                 new("Shipyard", CurrentShipyard(battle, village.Level, true)),
                 new("Progress cells", battle.Rules.PaidVillageUpgrades
                     ? "Town level grows through paid upgrades; each upgrade uses the town's construction for this turn."
                     : "A living owned town fills one cell each turn and grows after two turns, up to level 5."),
-                new("Next level", village.Level >= 5 ? "Maximum level" : battle.Rules.PaidVillageUpgrades
-                    ? $"{battle.VillageUpgradePrice(village.Owner ?? Side.Player, village.Id)} Thors" : "Automatic growth"),
                 new("Repair", $"+{battle.Rules.RepairAmount} HP; replaces production and fire"),
                 new("Passive repair", $"+{battle.Rules.VillageAutoRepairAmount ?? battle.Rules.RepairAmount} HP after a turn without an active attack")
             }),
@@ -219,7 +221,10 @@ internal static class AncientLore
         }
         if (village.HasPort)
         {
-            improvements.Add(new("Port", $"+{battle.Rules.Ports.Income} Thor per turn"));
+            improvements.Add(new("Port", privateTrade ? "Trade income is not observed"
+                : $"+{battle.PortIncome(village)} Thors per turn"));
+            if (battle.Rules.Ports.ConnectedCityIncome)
+                improvements.Add(new("Trade income", "1 Thor per other connected friendly city; lighthouses relay the route"));
             improvements.Add(new("Local shipyard", $"{battle.Rules.Ports.Discount:P0} cheaper ships"));
             improvements.Add(new("Trade lanes", $"At least +{battle.Rules.Ports.MinimumBonus} tiles or +{battle.Rules.Ports.MovementBonus:P0}; stay on the lane"));
         }

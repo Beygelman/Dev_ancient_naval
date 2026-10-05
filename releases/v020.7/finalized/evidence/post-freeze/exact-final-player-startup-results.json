@@ -1,0 +1,26 @@
+[
+  {
+    "test": "en",
+    "exit_code": 0,
+    "native_frames": 8,
+    "passed": true
+  },
+  {
+    "test": "uk",
+    "exit_code": 0,
+    "native_frames": 8,
+    "passed": true
+  },
+  {
+    "test": "nl",
+    "exit_code": 0,
+    "native_frames": 8,
+    "passed": true
+  },
+  {
+    "test": "map",
+    "exit_code": 0,
+    "native_frames": 8,
+    "passed": true
+  }
+]

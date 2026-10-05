@@ -1,0 +1,14 @@
+{
+  "original_source_files": 1987,
+  "unchanged_source_files": 1984,
+  "intentional_docs_changed": [
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "prior_docs_preserved_exactly": true,
+  "historical_artifacts_unchanged": 164,
+  "earlier_candidate_files_unchanged": 19,
+  "primary_head_unchanged": "299d99c434475b0b83ef17c30fd1450e978a6788",
+  "primary_index_unchanged": true
+}

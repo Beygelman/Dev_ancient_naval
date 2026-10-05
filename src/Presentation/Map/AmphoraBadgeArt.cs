@@ -7,26 +7,6 @@ namespace DevAncientNaval.Presentation.Map;
 /// <summary>Two clay seals share their cracks and motion; floor rotation never rotates their digits.</summary>
 internal static class AmphoraBadgeArt
 {
-    private static readonly Vector2[] Complete =
-    {
-        new(-4, -12), new(4, -12), new(4, -7), new(9, -3), new(10, 3),
-        new(7, 9), new(3, 12), new(-3, 12), new(-7, 9), new(-10, 3), new(-9, -3), new(-4, -7)
-    };
-    private static readonly Vector2[] Broken =
-    {
-        new(-6, -7), new(-2, -4), new(1, -8), new(5, -5), new(8, -3), new(10, 3),
-        new(7, 9), new(3, 12), new(-3, 12), new(-7, 9), new(-10, 3), new(-8, -2)
-    };
-    private static readonly Vector2[] VeteranComplete =
-    {
-        new(-4, -18), new(4, -18), new(4, -7), new(9, -3), new(10, 3),
-        new(7, 9), new(3, 12), new(-3, 12), new(-7, 9), new(-10, 3), new(-9, -3), new(-4, -7)
-    };
-    private static readonly Vector2[] Shard =
-    {
-        new(-7, -5), new(-3, -7), new(0, -4), new(4, -6), new(8, -2),
-        new(7, 5), new(3, 8), new(1, 11), new(-4, 9), new(-8, 4)
-    };
     private static readonly Color Beige = new("f1ddba");
     internal static Vector2 DigitAnchor(Vector2 center) => center + new Vector2(0, 4);
     internal static int Stage(double health, double maximum)
@@ -45,7 +25,9 @@ internal static class AmphoraBadgeArt
         string text = Math.Max(0, health).ToString("0");
         int size = text.Length > 2 ? 10 : 12;
         float width = ThemeDB.FallbackFont.GetStringSize(text, fontSize: size).X;
-        canvas.DrawString(ThemeDB.FallbackFont, DigitAnchor(center) - new Vector2(width * .5f, 0), text, fontSize: size, modulate: Beige);
+        // Keep the public popup anchor fixed; only the numeral painted on the new
+        // rounder belly sits slightly lower, away from a damaged rim.
+        canvas.DrawString(ThemeDB.FallbackFont, DigitAnchor(center) + new Vector2(-width * .5f, 3), text, fontSize: size, modulate: Beige);
     }
 
     private static void Jug(CanvasItem canvas, Vector2 center, Color clay, AmphoraMotion motion, bool veteran)
@@ -73,39 +55,8 @@ internal static class AmphoraBadgeArt
     {
         if (alpha <= .01f)
             return;
-        var silhouette = stage <= 1 ? Complete : stage == 2 ? Broken : Shard;
-        if (veteran && stage <= 1)
-            silhouette = VeteranComplete;
-        canvas.DrawSetTransform(center);
-        canvas.DrawColoredPolygon(silhouette, new Color(clay, alpha));
-        for (int edge = 0; edge < silhouette.Length; edge++)
-            canvas.DrawLine(silhouette[edge], silhouette[(edge + 1) % silhouette.Length], new Color(clay.Lightened(.2f), alpha * .8f), .55f, true);
-        // The lit shoulder and dark base give the small seal a clay volume.
-        canvas.DrawColoredPolygon(new[] { new Vector2(-8, -2), new Vector2(-4, -5), new Vector2(-3, 6), new Vector2(-6, 8), new Vector2(-8, 3) }, new Color(clay.Lightened(.15f), alpha));
-        canvas.DrawLine(new Vector2(-5, 9), new Vector2(4, 10), new Color(clay.Darkened(.26f), alpha), 1.2f, true);
-        if (stage < 2)
-        {
-            float lip = veteran ? -18 : -12;
-            canvas.DrawLine(new Vector2(-5, lip), new Vector2(5, lip), new Color(clay.Lightened(.3f), alpha), 2, true);
-            if (veteran)
-            {
-                var burgundy = new Color(new Color("783541"), alpha);
-                canvas.DrawLine(new Vector2(-4, -14), new Vector2(4, -14), burgundy, 1.5f, true);
-                canvas.DrawLine(new Vector2(-4, -10), new Vector2(4, -10), burgundy, 1.5f, true);
-            }
-            canvas.DrawArc(new Vector2(-8, -4), 4, 1.5f, 4.6f, 10, new Color(clay.Darkened(.16f), alpha), 1.8f, true);
-            canvas.DrawArc(new Vector2(8, -4), 4, -1.5f, 1.6f, 10, new Color(clay.Darkened(.16f), alpha), 1.8f, true);
-        }
-        var crack = new Color(clay.Darkened(.55f), alpha * .85f);
-        if (stage >= 1)
-            canvas.DrawPolyline(new[] { new Vector2(1, -9), new Vector2(-1, -5), new Vector2(2, -3), new Vector2(0, 0) }, crack, .85f, true);
-        if (stage >= 2)
-        {
-            canvas.DrawPolyline(new[] { new Vector2(-7, 2), new Vector2(-3, 4), new Vector2(-4, 8) }, crack, .8f, true);
-            canvas.DrawPolyline(new[] { new Vector2(7, 0), new Vector2(5, 3), new Vector2(7, 6) }, crack, .8f, true);
-        }
-        if (stage >= 3)
-            canvas.DrawLine(new Vector2(-2, 6), new Vector2(1, 9), crack, .8f, true);
+        canvas.DrawSetTransform(center, 0, Vector2.One * .40f);
+        ClayAmphoraShape.Draw(canvas, clay, stage, alpha, veteran);
         canvas.DrawSetTransform(Vector2.Zero);
     }
 

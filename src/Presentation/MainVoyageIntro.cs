@@ -25,12 +25,13 @@ public partial class Main
         Hud.Hide();
         MapInput.SetProcessInput(false); MapInput.SetProcessUnhandledInput(false);
         var descent = CreateTween().SetParallel();
-        descent.TweenProperty(MapCamera, "position", target, 1.45).SetTrans(Tween.TransitionType.Quint).SetEase(Tween.EaseType.InOut);
-        descent.TweenProperty(MapCamera, "zoom", Vector2.One * finalZoom, 1.45).SetTrans(Tween.TransitionType.Quint).SetEase(Tween.EaseType.InOut);
+        descent.TweenProperty(MapCamera, "position", target, 3.2).SetTrans(Tween.TransitionType.Quint).SetEase(Tween.EaseType.InOut);
+        descent.TweenProperty(MapCamera, "zoom", Vector2.One * finalZoom, 3.2).SetTrans(Tween.TransitionType.Quint).SetEase(Tween.EaseType.InOut);
         var reveal = _voyageWelcome.RevealSea();
         await ToSignal(descent, Tween.SignalName.Finished);
         await reveal;
         MapCamera.ForceUpdateScroll();
+        _voyageWelcome.InstantAnimations = FastChecks;
         await _voyageWelcome.Welcome(color);
         Hud.Show();
         MapInput.SetProcessInput(true); MapInput.SetProcessUnhandledInput(true);

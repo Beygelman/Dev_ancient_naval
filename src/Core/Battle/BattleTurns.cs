@@ -66,7 +66,22 @@ public sealed partial class BattleState
             SetIncomeSource(new IncomeSource($"ship:{ship.Id}", ship.Owner, income, ship.Id));
     }
 
-    public int GrossIncome(Side side) => _incomeSources.Where(s => s.Owner == side && (s.BoundShipId is null || Find(s.BoundShipId.Value)is not null)).Sum(s => s.Amount);
+    public int GrossIncome(Side side)
+    {
+        var portIncome = Rules.Ports.ConnectedCityIncome ? ConnectedPortIncomes(side) : null;
+        return _incomeSources.Where(s => s.Owner == side && (s.BoundShipId is null || Find(s.BoundShipId.Value)is not null))
+            .Sum(source => CurrentIncomeAmount(source, portIncome));
+    }
+
+    private int CurrentIncomeAmount(IncomeSource source, IReadOnlyDictionary<int, int>? portIncome)
+    {
+        if (portIncome is null || !source.Id.StartsWith("village:", StringComparison.Ordinal)
+            || !int.TryParse(source.Id.AsSpan(8), out int id)) return source.Amount;
+        var town = _villages.FirstOrDefault(village => village.Id == id);
+        if (town is null) return source.Amount; // Generic externally registered stationary source.
+        if (town.Owner != source.Owner || town.Health <= 0) return 0;
+        return VillageIncome(town) + portIncome.GetValueOrDefault(id);
+    }
     public int Upkeep(Side side)
     {
         int group = Rules.Economy.CombatShipsPerUpkeep;
@@ -81,6 +96,7 @@ public sealed partial class BattleState
     private IReadOnlyList<IncomeReceipt> CreditTurnIncome(Side side)
     {
         var receipts = new List<IncomeReceipt>();
+        var portIncome = Rules.Ports.ConnectedCityIncome ? ConnectedPortIncomes(side) : null;
         foreach (var source in _incomeSources.Where(source => source.Owner == side))
         {
             GridPosition? position = source.BoundShipId is { } id ? Find(id)?.Position : null;
@@ -88,7 +104,7 @@ public sealed partial class BattleState
                 continue;
             if (source.Id.StartsWith("village:", StringComparison.Ordinal) && int.TryParse(source.Id.AsSpan(8), out int villageId))
                 position = _villages.FirstOrDefault(village => village.Id == villageId)?.Position;
-            receipts.Add(new(source.Id, side, position, source.Amount));
+            receipts.Add(new(source.Id, side, position, CurrentIncomeAmount(source, portIncome)));
         }
 
         int gross = receipts.Sum(receipt => receipt.Amount);

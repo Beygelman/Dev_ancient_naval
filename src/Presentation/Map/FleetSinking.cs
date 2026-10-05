@@ -57,18 +57,33 @@ public partial class FleetView
             _wreckArt[ship.Id] = CreateWreck(ship, center);
             EmitRipple(center, ShipVisualProfile.For(ship.Class).Size * 1.4f);
             float previous = 0;
-            float duration = ship.Class == ShipClass.Mothership ? 3.05f : 2.2f;
+            bool balloon = ship.Class == ShipClass.Balloon;
+            float duration = ship.Class == ShipClass.Mothership ? 3.05f : balloon ? 2.7f : 2.2f;
+            if (balloon) EmitSmoke(center + new Vector2(0, -42), new Vector2(1, -.5f), 1.2f, true);
             await TweenValue(duration, t =>
             {
                 _sinking[ship.Id] = t;
                 var art = _wreckArt[ship.Id];
                 art.Geometry.Seconds = t * duration;
                 art.Root.QueueRedraw();
+                if (balloon)
+                {
+                    _fallingBalloons[ship.Id] = (center, t);
+                    if (t >= .46f) CommitBalloonCrash(ship.Id);
+                }
                 if (t - previous > .14f) { EmitRipple(center, ShipVisualProfile.For(ship.Class).Size * (1.2f + t)); previous = t; }
             });
             RemoveWreck(ship.Id);
+            _fallingBalloons.Remove(ship.Id);
             _sinking.Remove(ship.Id);
             _snapshots.Remove(ship.Id);
+        }
+
+        if (ship.Class == ShipClass.Balloon)
+        {
+            // Hidden crashes still resolve exactly once, without drawing their origin or victims.
+            CommitBalloonCrash(ship.Id);
+            await SinkBalloonVictims(ship.Id);
         }
 
         if (ship.Class != ShipClass.Mothership)

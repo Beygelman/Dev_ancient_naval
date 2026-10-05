@@ -56,6 +56,7 @@ public partial class Main
         Fleet.Visible = visible;
         Ambience.Visible = visible;
         Hud.Visible = visible;
+        if (_navigationHud is not null) _navigationHud.Visible = visible;
         Fleet.SetProcess(visible);
         Ambience.SetProcess(visible);
         Hud.SetProcess(visible);
@@ -96,10 +97,13 @@ public partial class Main
             int opponents = _home.OpponentCount;
             var kind = _home.WorldKind;
             var size = _home.MapSize;
+            var difficulty = _home.Difficulty;
+            bool piratesEnabled = _home.IncludePirates;
             var collapse = _home.CloseForVoyage(FastChecks);
-            var battle = await Task.Run(() => SkirmishSetup.Create(PrototypeBoard.Create(opponentCount: opponents, kind: kind, mapSize: size), _rules, opponents));
+            var battle = await Task.Run(() => SkirmishSetup.Create(
+                PrototypeBoard.Create(opponentCount: opponents, kind: kind, mapSize: size),
+                _rules, opponents, difficulty, piratesEnabled));
             battle.SetPlayerColor(color);
-            battle.SetDifficulty(_home.Difficulty);
             await collapse;
             SetBattleVisible(true);
             LoadScenario(battle);
@@ -142,6 +146,9 @@ public partial class Main
             _home.Hide();
             SetBattleVisible(true);
             LoadScenario(saved.Battle);
+            // Continue resumes an existing human turn; the cosmetic turn-start
+            // ceremony must wait for the next actual turn boundary.
+            _sanctuaryRound = Battle.ActiveSide == Side.Player ? Battle.Round : -1;
             BeginTutorialVoyage(newGame: false);
             _sessionStarted = true;
             MapCamera.Position = saved.Camera;

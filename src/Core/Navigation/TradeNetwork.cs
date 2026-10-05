@@ -7,6 +7,7 @@ public sealed class TradeNetwork
 {
     private readonly HashSet<(GridPosition, GridPosition)> _edges = new();
     private readonly List<IReadOnlyList<GridPosition>> _routes = new();
+    private readonly Dictionary<GridPosition, int> _components = new();
     public IReadOnlyList<IReadOnlyList<GridPosition>> Routes => _routes;
     /// <summary>Each undirected water edge appears once, even when several shortest port routes share it.</summary>
     public IReadOnlyList<(GridPosition From, GridPosition To)> Edges { get; private set; } = Array.Empty<(GridPosition, GridPosition)>();
@@ -15,30 +16,32 @@ public sealed class TradeNetwork
 
     public bool Contains(GridPosition from, GridPosition to) => _edges.Contains((from, to));
     public bool IsEmpty => _edges.Count == 0;
+    /// <summary>Connected across any number of lane segments or beacon relays.
+    /// Built once with this immutable topology, independent of ship occupancy.</summary>
+    public bool AreConnected(GridPosition from, GridPosition to) =>
+        _components.TryGetValue(from, out int first) && _components.TryGetValue(to, out int second)
+        && first == second;
+
+    internal static int? SeaStepCost(GameBoard board, GridPosition from, GridPosition to,
+        Func<GridPosition, bool> sea)
+    {
+        if (!sea(to)) return null;
+        if (!board.GetNeighbors(from).Contains(to))
+        {
+            var corners = board.Mesh is null ? new[]
+            {
+                new GridPosition(from.X, to.Y), new GridPosition(to.X, from.Y)
+            } : board.GetNeighbors(from).Intersect(board.GetNeighbors(to));
+            if (!corners.All(sea)) return null;
+        }
+        return 1;
+    }
 
     internal static TradeNetwork Create(GameBoard board, GridPosition[] ports, IReadOnlySet<GridPosition> forbidden, int maximumRouteLength = 0, Func<GridPosition, bool>? navigable = null)
     {
         var result = new TradeNetwork();
         bool Sea(GridPosition p) => (navigable?.Invoke(p) ?? board.GetTile(p).Terrain != TerrainType.Land) && !forbidden.Contains(p);
-        int? Cost(GridPosition from, GridPosition to)
-        {
-            if (!Sea(to))
-                return null;
-            if (!board.GetNeighbors(from).Contains(to))
-            {
-                var corners = board.Mesh is null ? new[]
-                {
-                    new GridPosition(from.X, to.Y),
-                    new GridPosition(to.X, from.Y)
-                }
-
-                : board.GetNeighbors(from).Intersect(board.GetNeighbors(to));
-                if (!corners.All(Sea))
-                    return null;
-            }
-
-            return 1;
-        }
+        int? Cost(GridPosition from, GridPosition to) => SeaStepCost(board, from, to, Sea);
 
         for (int i = 0; i < ports.Length; i++)
         {
@@ -59,7 +62,7 @@ public sealed class TradeNetwork
             }
         }
 
-        result.BuildRenderRoutes(ports);
+        result.BuildRenderRoutes(ports.Where(Sea));
         return result;
     }
 
@@ -79,6 +82,22 @@ public sealed class TradeNetwork
             second.Add(from);
         }
         foreach (var neighbors in adjacency.Values) neighbors.Sort(Compare);
+        // Include isolated valid berths: two cities sharing one water berth
+        // belong to the same component even when that component has no edges.
+        int component = 0;
+        foreach (var start in endpoints.Concat(adjacency.Keys).Distinct().OrderBy(p => p.Y).ThenBy(p => p.X))
+        {
+            if (_components.ContainsKey(start)) continue;
+            var pending = new Stack<GridPosition>();
+            pending.Push(start);
+            while (pending.TryPop(out var cell))
+            {
+                if (!_components.TryAdd(cell, component)) continue;
+                if (adjacency.TryGetValue(cell, out var neighbors))
+                    foreach (var next in neighbors) pending.Push(next);
+            }
+            component++;
+        }
         var stops = adjacency.Where(e => e.Value.Count != 2).Select(e => e.Key).Concat(endpoints).ToHashSet();
         var used = new HashSet<(GridPosition, GridPosition)>();
         var paths = new List<IReadOnlyList<GridPosition>>();

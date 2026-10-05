@@ -116,8 +116,8 @@ public partial class BoardView
         bool lethal = false;
         if (attackable && Battle.Find(SelectedShipId!.Value) is { } attacker)
         {
-            double damage = (Battle.UsesMortar(attacker,town.Position) ? attacker.CurrentMortarDamage + Battle.Rules.Mortar.VillageDamageBonus : attacker.CurrentDamage) + attacker.ShotDamageBonus;
-            lethal = damage * (town.IsFortified ? .75 : 1) * (Battle.CanDoubleSalvo(attacker.Id,town.Position) ? 2 : 1) >= town.Health;
+            double damage = Battle.VillageShotDamage(attacker, town);
+            lethal = damage * (Battle.CanDoubleSalvo(attacker.Id,town.Position) ? 2 : 1) >= town.Health;
         }
         bool capture = visible && Battle.CanCaptureVillage(Side.Player, town.Id);
         canvas.Material = attackable ? (lethal ? _townLethalInk : _townTargetInk) : capture ? _townCaptureInk : _sceneryMaterial;

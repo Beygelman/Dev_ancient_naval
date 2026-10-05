@@ -30,6 +30,7 @@ public partial class FleetView
         CompletedSalvos.Clear();
         CompletedLaunchSpreads.Clear();
         _playedWrecks.Clear();
+        PrepareBalloonCrashes(result, presentation);
         foreach (var doomed in presentation?.DestroyedShips ?? Array.Empty<ShipSnapshot>())
             if (doomed.Owner == Side.Player || Battle.Vision.IsVisible(Side.Player, doomed.Position))
             {
@@ -40,6 +41,7 @@ public partial class FleetView
         _feedbackColor = new("ff8f85");
         try
         {
+            if (result.Kind == CommandKind.Scuttle) presentation?.Impact("scuttle");
             await AnimateOutposts(result, presentation);
             foreach (var splash in result.Splash ?? Array.Empty<CombatShot>())
                 if (splash.TargetVisibleToPlayer)
@@ -174,6 +176,9 @@ public partial class FleetView
         {
             presentation?.Finish();
             _sinking.Clear();
+            _fallingBalloons.Clear();
+            _crashes.Clear();
+            _crashPresentation = null;
             foreach (int wreck in _wreckArt.Keys.ToArray()) RemoveWreck(wreck);
             _movingId = 0;
             _movingShip = null;

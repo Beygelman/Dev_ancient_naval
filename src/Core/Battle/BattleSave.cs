@@ -36,7 +36,7 @@ public sealed partial class BattleState
         Statistics = Statistics,
         Rules = Rules,
         Ships = _ships.Select(SavedShip.From).ToArray(),
-        Villages = _villages.Select(v => new SavedVillage(v.Id, v.Position, v.Owner, v.Level, v.Health, v.TurnsOwned, v.IsFortified, v.HasProduced, v.HasRepaired, v.HasAttacked, v.Name, v.HasPort)).ToArray(),
+        Villages = _villages.Select(v => new SavedVillage(v.Id, v.Position, v.Owner, v.Level, v.Health, v.TurnsOwned, v.IsFortified, v.HasProduced, v.HasRepaired, v.HasAttacked, v.Name, v.HasPort, v.PortCell)).ToArray(),
         Fish = _fish.ToArray(),
         Shoals = _shoals.ToArray(),
         Treasuries = _treasuries.ToArray(),
@@ -58,6 +58,7 @@ public sealed partial class BattleState
         Creative = Creative,
         GodEye = GodEye,
         Difficulty = Difficulty,
+        PiratesEnabled = PiratesEnabled,
         Color = PlayerColor,
         Factions = _factions.ToArray(),
         FactionNames = _factionNames.Select(e => new FactionIdentity(e.Key, e.Value)).ToArray(),
@@ -67,6 +68,7 @@ public sealed partial class BattleState
         FlagshipSightings = SaveFlagshipSightings(),
         PersonalTurnStarts = _personalTurnStarts.ToArray(),
         FlagshipKills = _flagshipKills.ToArray(),
+        DirectShipKills = _directShipKills.ToArray(),
         EventSeed = _eventSeed,
         EventDraws = _eventDraws,
         LastReward = LastTreasuryReward
@@ -133,6 +135,7 @@ public sealed partial class BattleState
             village.TurnsOwned = state.TurnsOwned;
             village.IsFortified = state.Fortified;
             village.HasPort = state.Port;
+            village.PortCell = state.PortCell;
             village.HasProduced = state.Produced;
             village.HasRepaired = state.Repaired;
             village.HasAttacked = state.Attacked;
@@ -163,6 +166,8 @@ public sealed partial class BattleState
         Array.Clear(_flagshipKills);
         Array.Copy(saved.PersonalTurnStarts, _personalTurnStarts, saved.PersonalTurnStarts.Length);
         Array.Copy(saved.FlagshipKills, _flagshipKills, saved.FlagshipKills.Length);
+        Array.Clear(_directShipKills);
+        Array.Copy(saved.DirectShipKills, _directShipKills, saved.DirectShipKills.Length);
         _pendingAwards.Clear();
         _pendingAwards.AddRange(saved.PendingAwards);
         _encounters.Clear();
@@ -180,6 +185,7 @@ public sealed partial class BattleState
         Creative = saved.Creative;
         GodEye = saved.GodEye;
         Difficulty = saved.Difficulty;
+        PiratesEnabled = saved.PiratesEnabled;
         Statistics = saved.Statistics;
         PlayerColor = saved.Color;
         _factions.Clear();

@@ -1,0 +1,181 @@
+PAN frames=119, p50_ms=16.677, p95_ms=17.187, max_ms=33.010
+INTERACTION world=Oceans, wide_view=False, tiles=1759, opponents=4, live_fog=True, hover_calls=64, hover_p50_ms=0.027, hover_p95_ms=0.059, hover_max_ms=0.462, frame_p95_ms=17.150, frame_max_ms=71.918, process_p95_ms=73.113, draw_calls_p95=1223, movement_elapsed_ms=1590.819
+SLOW_FRAMES
+phase=move/encounter/save, frame_ms=71,918, GC_delta=1/0/0, process_ms=16,866, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+{
+  "Terrain.Detail.BuildChunk": {
+    "Calls": 240,
+    "TotalMs": 32.497400000000006,
+    "MaxMs": 0.9012,
+    "Bytes": 63360
+  },
+  "Terrain.Detail.View": {
+    "Calls": 120,
+    "TotalMs": 37.426899999999996,
+    "MaxMs": 1.1494,
+    "Bytes": 334216
+  },
+  "Fleet.Water.Draw": {
+    "Calls": 393,
+    "TotalMs": 5.923500000000001,
+    "MaxMs": 0.0885,
+    "Bytes": 90624
+  },
+  "Fleet.Hulls.Refresh": {
+    "Calls": 393,
+    "TotalMs": 8.357699999999996,
+    "MaxMs": 0.1658,
+    "Bytes": 885552
+  },
+  "Fleet.Draw": {
+    "Calls": 393,
+    "TotalMs": 14.424100000000008,
+    "MaxMs": 0.1682,
+    "Bytes": 976272
+  },
+  "Terrain.Coarse.FinishFrame": {
+    "Calls": 297,
+    "TotalMs": 2.0622999999999996,
+    "MaxMs": 0.3217,
+    "Bytes": 12120
+  },
+  "Terrain.Detail.FinishFrame": {
+    "Calls": 297,
+    "TotalMs": 4.081699999999997,
+    "MaxMs": 0.292,
+    "Bytes": 12800
+  },
+  "Ambience.Fish": {
+    "Calls": 146,
+    "TotalMs": 13.060300000000002,
+    "MaxMs": 0.1543,
+    "Bytes": 37384
+  },
+  "Ambience.Draw": {
+    "Calls": 146,
+    "TotalMs": 16.475599999999996,
+    "MaxMs": 0.3482,
+    "Bytes": 40936
+  },
+  "Hull.Draw": {
+    "Calls": 139,
+    "TotalMs": 34.0089,
+    "MaxMs": 0.5806,
+    "Bytes": 138864
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 1.7801999999999996,
+    "MaxMs": 0.2072,
+    "Bytes": 95056
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 22.142800000000005,
+    "MaxMs": 1.204,
+    "Bytes": 517960
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 11.4767,
+    "MaxMs": 11.4767,
+    "Bytes": 255312
+  },
+  "Terrain.Coarse.PrepareRegion": {
+    "Calls": 5,
+    "TotalMs": 0.7081,
+    "MaxMs": 0.2571,
+    "Bytes": 0
+  },
+  "Terrain.Coarse.Invalidate": {
+    "Calls": 1,
+    "TotalMs": 0.3403,
+    "MaxMs": 0.3403,
+    "Bytes": 968
+  },
+  "Terrain.Detail.Invalidate": {
+    "Calls": 1,
+    "TotalMs": 0.2645,
+    "MaxMs": 0.2645,
+    "Bytes": 40
+  },
+  "Ambience.Waves.Build": {
+    "Calls": 1,
+    "TotalMs": 0.3025,
+    "MaxMs": 0.3025,
+    "Bytes": 251472
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 0.5014,
+    "MaxMs": 0.5014,
+    "Bytes": 261800
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 6.008500000000001,
+    "MaxMs": 5.4114,
+    "Bytes": 368832
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 7.542199999999999,
+    "MaxMs": 6.7185,
+    "Bytes": 668032
+  },
+  "Animation.TravelRoute": {
+    "Calls": 1,
+    "TotalMs": 0.4242,
+    "MaxMs": 0.4242,
+    "Bytes": 2440
+  },
+  "Animation.Start": {
+    "Calls": 1,
+    "TotalMs": 6.4348,
+    "MaxMs": 6.4348,
+    "Bytes": 9040
+  },
+  "Selection.Dispatch": {
+    "Calls": 1,
+    "TotalMs": 25.7933,
+    "MaxMs": 25.7933,
+    "Bytes": 892936
+  },
+  "Board.Terrain.Draw": {
+    "Calls": 108,
+    "TotalMs": 6.168000000000004,
+    "MaxMs": 0.198,
+    "Bytes": 6912
+  },
+  "Board.Terrain.Shore.Draw": {
+    "Calls": 108,
+    "TotalMs": 2.1585999999999976,
+    "MaxMs": 0.1923,
+    "Bytes": 948000
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0047,
+    "MaxMs": 0.0047,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 0.09,
+    "MaxMs": 0.0654,
+    "Bytes": 3576
+  },
+  "Save.Capture": {
+    "Calls": 1,
+    "TotalMs": 0.4901,
+    "MaxMs": 0.4901,
+    "Bytes": 355576
+  },
+  "Save.Write": {
+    "Calls": 1,
+    "TotalMs": 13.9989,
+    "MaxMs": 13.9989,
+    "Bytes": 1437736
+  }
+}
+RENDER_MEMORY video_peak_mib=285.75, texture_peak_mib=244.99, buffer_peak_mib=42.37

@@ -70,15 +70,24 @@ public partial class Ui0204Checks : Node
     private void CheckPaper(PanelContainer paper, string context)
     {
         var size = UiScale.LogicalViewport(this);
-        Check(paper.Size.Y <= size.Y * .6f + 2, context + " is limited to 60% of the screen height");
-        float maxWidth = paper.Name == "VoyageSetupPaper" ? 420 : PapyrusModal.Width;
+        if (paper.Name == "VoyageSetupPaper")
+        {
+            float right = size.X - paper.Position.X - paper.Size.X;
+            Check(Math.Abs(paper.Position.Y - right) < 1 && Math.Abs(size.Y - paper.Position.Y - paper.Size.Y - right) < 1,
+                context + " keeps equal top, bottom and right margins");
+        }
+        else Check(paper.Size.Y <= size.Y * .6f + 2, context + " is limited to 60% of the screen height");
+        float maxWidth = paper.Name == "VoyageSetupPaper" || paper.Name == "VictoryPaper"
+            || paper.Name == "RewardPapyrus" ? 420 : PapyrusModal.Width;
         Check(paper.Size.X <= Math.Min(maxWidth, size.X - 24) + 2,
             context + $" has a bounded readable width without horizontal clipping: paper={paper.Size}, viewport={size}; "
             + string.Join("; ", Nodes(paper).OfType<Control>().Where(node => node.GetCombinedMinimumSize().X > 250)
                 .Select(node => $"{node.GetPath()} min={node.GetCombinedMinimumSize()} size={node.Size}")));
         var scroll = Nodes(paper).OfType<ScrollContainer>().Single();
         Check(scroll.HorizontalScrollMode == ScrollContainer.ScrollMode.Disabled
-            && scroll.VerticalScrollMode == (paper.Name == "VoyageSetupPaper" ? ScrollContainer.ScrollMode.ShowNever : ScrollContainer.ScrollMode.Auto),
+            && scroll.VerticalScrollMode == (paper.Name == "VoyageSetupPaper" || paper.Name == "GameMenuPaper"
+                || paper.Name == "VictoryPaper" || paper.Name == "RewardPapyrus"
+                ? ScrollContainer.ScrollMode.ShowNever : ScrollContainer.ScrollMode.Auto),
             context + " keeps native vertical scrolling available for its full contents");
     }
     private async Task CheckModalFamilies()
@@ -104,8 +113,9 @@ public partial class Ui0204Checks : Node
             }
             Game.LoadScenario(Fixture());
             Game.Hud.SetMenuVisible(true); await Frames();
-            CheckPaper(Nodes(Game.Hud).OfType<ScrollContainer>().Single(node => node.Name == "GameMenuScroll")
-                .GetParent<PanelContainer>(), "game settings parchment");
+            await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
+            CheckPaper(Nodes(Game.Hud).OfType<PanelContainer>().Single(node => node.Name == "GameMenuPaper"),
+                "game settings parchment");
             Game.Hud.SetMenuVisible(false);
             var reward = Nodes(Game).OfType<RewardPapyrusHud>().Single();
             reward.ShowNation("layout-only", "Captain Harukaze", new Color("72549b"));
@@ -179,6 +189,7 @@ public partial class Ui0204Checks : Node
             "town counsel explains paid progression rather than automatic growth");
         Game.Hud.CloseMenus();
         Game.Hud.SetMenuVisible(true); await Frames();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         Click(Nodes(Game.Hud).OfType<Button>().Single(node => node.Name == "GameSettings")); await Frames();
         var slider = Nodes(Game.Hud).OfType<HSlider>().Single(node => node.Name == "InterfaceScale");
         Click(slider, new Vector2(slider.Size.X * .78f, slider.Size.Y * .5f)); await Frames();

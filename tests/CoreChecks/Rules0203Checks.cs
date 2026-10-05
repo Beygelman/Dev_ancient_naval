@@ -9,6 +9,10 @@ internal static class Rules0203Checks
 {
     internal static int Run(BattleRules rules)
     {
+        // Keep the released single-slot policy under test; weighted admission is covered by v020.7.
+        var released = JsonNode.Parse(JsonSerializer.Serialize(rules))!.AsObject();
+        released["WeightedFleetCapacity"] = false;
+        rules = BattleRules.FromJson(released.ToJsonString());
         int checks = 0;
         void Check(bool value, string message)
         {
@@ -23,8 +27,10 @@ internal static class Rules0203Checks
 
         Check(rules.StartingCredits == 8 && rules.RepairAmount == (rules.FishingCannonTowers ? 3 : 4) && rules.AutoRepairAmount == 4
             && rules.AncientAutoRepairAmount == 2,"starting treasury and active/passive healing balance");
-        Check(rules.Get(ShipClass.Garrison).Price == 5 && rules.Get(ShipClass.Fishing).Price == 4
-            && rules.Get(ShipClass.Fishing).IncomePerTurn == (rules.FishingCannonTowers ? 0 : 1) && rules.Get(ShipClass.Togus).Price == 16,
+        Check(rules.Get(ShipClass.Garrison).Price == (rules.Ports.ConnectedCityIncome ? 6 : 5)
+            && rules.Get(ShipClass.Fishing).Price == (rules.Ports.ConnectedCityIncome ? 5 : 4)
+            && rules.Get(ShipClass.Fishing).IncomePerTurn == (rules.FishingCannonTowers ? 0 : 1)
+            && rules.Get(ShipClass.Togus).Price == (rules.Ports.ConnectedCityIncome ? 22 : 16),
             "Brig, fishing income and Granado construction balance");
         Check(new[] {ShipClass.Mothership,ShipClass.Invader,ShipClass.Kolonel}.All(c=>rules.Get(c).AttackRange==2)
             && rules.Balloon.AntiAirRange==2,"short base cannon and anti-air ranges");

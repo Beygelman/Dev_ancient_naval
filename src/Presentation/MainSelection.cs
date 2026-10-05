@@ -30,11 +30,7 @@ public partial class Main
 
         if (air is not null)
         {
-            ClearMode();
-            SelectedVillageId = null;
-            SelectedShipId = air.Id;
-            BoardView.Select(air.Position);
-            Refresh();
+            SelectCell(air.Position);
             return;
         }
 
@@ -118,6 +114,8 @@ public partial class Main
                 return;
             }
         }
+
+        if (CycleTileOccupants(cell)) return;
 
         // A friendly model must remain selectable even on a resource school.
         if (Mode == OrderMode.None && hit?.Owner == Side.Player && hit.Id != selected?.Id)

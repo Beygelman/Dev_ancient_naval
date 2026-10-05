@@ -15,25 +15,7 @@ internal static class WreckModels
         void Add(WreckPartKind kind, WreckMesh mesh, Vector3 pivot, Vector3 drift, Vector3 spin, float release, float sink = 22)
             => parts.Add(new(kind, pivot, drift, spin, release, sink, mesh.Faces));
         if (ship.Class == ShipClass.Balloon)
-        {
-            var basket = new WreckMesh(); basket.Box(0, 0, 37, 13, 10, 9, new("90714c"));
-            Add(WreckPartKind.House, basket, new(0, 0, 37), new(3, 7, 0), new(.8f, .5f, .4f), .04f, 58);
-            for (int panel = 0; panel < 6; panel++)
-            {
-                var cloth = new WreckMesh();
-                for (int band = 0; band < 8; band++)
-                {
-                    Vector3 Point(int edge, int tier)
-                    {
-                        float lat = -Mathf.Pi / 2 + tier * Mathf.Pi / 8, lon = (panel + edge) * Mathf.Tau / 6;
-                        return new(MathF.Cos(lon) * MathF.Cos(lat) * 28, MathF.Sin(lon) * MathF.Cos(lat) * 28, 88 + MathF.Sin(lat) * 29);
-                    }
-                    cloth.Cloth(panel % 2 == 0 ? accent : new("e7d8b4"), Point(0, band), Point(1, band), Point(1, band + 1), Point(0, band + 1));
-                }
-                Add(WreckPartKind.Deck, cloth, new(0, 0, 88), new(MathF.Cos(panel) * 14, MathF.Sin(panel) * 14, -8),
-                    new(.3f + panel * .08f, .6f, .2f), panel * .04f, 48);
-            }
-        }
+            return BalloonWreckModels.Build(accent);
         else if (ship.Class == ShipClass.FishingDock)
         {
             for (int i = 0; i < 3; i++)
@@ -185,12 +167,27 @@ internal static class WreckModels
                 }
                 break;
             case FleetColor.Purple: top.Pyramid(0, -2, z, 5, 6, new("c4cbd1")); break;
-            case FleetColor.Yellow: top.Pyramid(0, -2, z, 6, 8, new("d98cac")); top.Pyramid(0, -2, z + 8, 1.8f, 4, new("fff5ef")); break;
+            case FleetColor.Yellow:
+                top.Pyramid(0, -2, z, 6, 5, new("d98cac"));
+                for (int petal = 0; petal < 4; petal++)
+                {
+                    float angle = petal * Mathf.Pi / 2 + Mathf.Pi / 4;
+                    float x = MathF.Cos(angle), y = MathF.Sin(angle);
+                    top.Cloth(new("ecadc7"), new(x * 2.2f - y * 1.8f, -2 + y * 2.2f + x * 1.8f, z + 3),
+                        new(x * 6.5f, -2 + y * 6.5f, z + 7),
+                        new(x * 2.2f + y * 1.8f, -2 + y * 2.2f - x * 1.8f, z + 3));
+                }
+                top.Pyramid(0, -2, z + 5, 2.1f, 7, new("fff5ef"));
+                break;
             case FleetColor.White:
-                top.Box(-2, -2, z, 1.6f, 1.5f, 11, new("aa3047"));
+                top.Box(-2, -2, z, 2.2f, 1.7f, 11, new("aa3047"));
                 top.Box(0, -2, z + 9, 5, 1.5f, 2, new("aa3047")); top.Box(0, -2, z + 5, 5, 1.5f, 1.7f, new("aa3047"));
                 top.Box(2, -2, z + 6, 1.5f, 1.5f, 4, new("aa3047"));
-                top.Cylinder(new(-.3f, -2, z + 5), new(3, -2, z), .9f, new("aa3047")); break;
+                top.Cylinder(new(-.3f, -2, z + 5), new(3, -2, z), 1.1f, new("aa3047"));
+                top.Box(-2, -2, z, 4, 2, 1.1f, new("aa3047"));
+                top.Box(-2, -2, z + 10, 4, 2, 1.1f, new("aa3047"));
+                top.Box(3, -2, z, 4, 2, 1.1f, new("aa3047"));
+                break;
             case FleetColor.Green:
                 z = baseZ + 6; top.Box(0, -2, z, 2, 2, 10, new("584b36"));
                 for (int tier = 0; tier < 3; tier++) top.Pyramid(0, -2, z + 4 + tier * 4, 8 - tier * 1.6f, 8, new("235740")); break;

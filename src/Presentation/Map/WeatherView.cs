@@ -1,30 +1,41 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace DevAncientNaval.Presentation.Map;
 public partial class WorldAmbience
 {
-    private static readonly Vector2[] CloudFacet =
+    private static readonly Vector2[][] CloudFacets =
     {
-        new(-3, -1),
-        new(-1, -1),
-        new(-1, -2),
-        new(1, -2),
-        new(1, -1),
-        new(3, -1),
-        new(3, 1),
-        new(2, 1),
-        new(2, 2),
-        new(0, 2),
-        new(0, 1),
-        new(-2, 1),
-        new(-2, 0),
-        new(-3, 0)
+        RoundCloud(new Vector2[] { new(-3,-1),new(-1,-1),new(-1,-2),new(1,-2),new(1,-1),new(3,-1),
+            new(3,1),new(2,1),new(2,2),new(0,2),new(0,1),new(-2,1),new(-2,0),new(-3,0) }),
+        RoundCloud(new Vector2[] { new(-3,-1),new(-2,-1),new(-2,-2),new(0,-2),new(0,-1),new(2,-1),
+            new(2,0),new(3,0),new(3,2),new(1,2),new(1,1),new(-1,1),new(-1,2),new(-3,2) }),
+        RoundCloud(new Vector2[] { new(-4,-1),new(-2,-1),new(-2,-2),new(1,-2),new(1,-1),new(3,-1),
+            new(3,1),new(1,1),new(1,2),new(-1,2),new(-1,1),new(-4,1) })
     };
-    private readonly Vector2[] _cloudTop = new Vector2[CloudFacet.Length];
+    private readonly Vector2[][] _cloudTops = CloudFacets.Select(shape => new Vector2[shape.Length]).ToArray();
     private readonly Vector2[] _cloudSide = new Vector2[4];
     internal const float CloudThickness = 16;
     internal const float CloudAltitude = 132;
+    internal static IReadOnlyList<Vector2[]> CloudSilhouettes => CloudFacets;
+    private static Vector2[] RoundCloud(Vector2[] corners)
+    {
+        var result = new List<Vector2>();
+        for (int i = 0; i < corners.Length; i++)
+        {
+            var corner = corners[i];
+            var a = corner.MoveToward(corners[(i + corners.Length - 1) % corners.Length], .16f);
+            var b = corner.MoveToward(corners[(i + 1) % corners.Length], .16f);
+            for (int step = 0; step <= 3; step++)
+            {
+                float t = step / 3f;
+                result.Add(a * ((1 - t) * (1 - t)) + corner * (2 * t * (1 - t)) + b * (t * t));
+            }
+        }
+        return result.ToArray();
+    }
     private BoardTerrainLayer? _sky;
     public override void _Ready()
     {
@@ -58,39 +69,44 @@ public partial class WorldAmbience
         var bounds = _seaBounds;
         for (int cloud = 0; cloud < 5; cloud++)
         {
+            int variant = Math.Abs((_battle.Board.Seed + cloud) % CloudFacets.Length);
+            var facet = CloudFacets[variant];
+            var top = _cloudTops[variant];
+            var footprint = new Vector2(28 + cloud % 3 * 4, 14 + cloud % 2 * 3);
+            float thickness = CloudThickness * (.85f + cloud % 3 * .16f);
             float x = Mathf.PosMod(cloud * bounds.Size.X * .27f + _time * 4 + _battle.Board.Seed % 701, bounds.Size.X);
             var center = new Vector2(bounds.Position.X + x, bounds.Position.Y + bounds.Size.Y * (.13f + cloud * .17f));
             if (!_drawBounds.Grow(160).HasPoint(center) || !VisibleSurface(center))
                 continue;
             if (shadows)
             {
-                canvas.DrawSetTransform(center, 0, new Vector2(31, 16));
-                canvas.DrawColoredPolygon(CloudFacet, new Color(.02f, .08f, .1f, .085f));
+                canvas.DrawSetTransform(center, 0, footprint);
+                canvas.DrawColoredPolygon(facet, new Color(.02f, .08f, .1f, .085f));
             }
             else
             {
                 // A single connected square footprint has shaded extruded walls.
                 // Faces share their boundaries, avoiding dark overlapping cloud discs.
                 canvas.DrawSetTransform(center + new Vector2(-36, -CloudAltitude));
-                for (int vertex = 0; vertex < CloudFacet.Length; vertex++)
-                    _cloudTop[vertex] = CloudFacet[vertex] * new Vector2(31, 16) + new Vector2(-5, -CloudThickness);
-                for (int edge = 0; edge < CloudFacet.Length; edge++)
+                for (int vertex = 0; vertex < facet.Length; vertex++)
+                    top[vertex] = facet[vertex] * footprint + new Vector2(-5, -thickness);
+                for (int edge = 0; edge < facet.Length; edge++)
                 {
-                    int next = (edge + 1) % CloudFacet.Length;
-                    var a = CloudFacet[edge] * new Vector2(31, 16);
-                    var b = CloudFacet[next] * new Vector2(31, 16);
-                    if ((b - a).Cross(_cloudTop[next] - a) <= .025f)
+                    int next = (edge + 1) % facet.Length;
+                    var a = facet[edge] * footprint;
+                    var b = facet[next] * footprint;
+                    if ((b - a).Cross(top[next] - a) <= .025f)
                         continue;
                     _cloudSide[0] = a;
                     _cloudSide[1] = b;
-                    _cloudSide[2] = _cloudTop[next];
-                    _cloudSide[3] = _cloudTop[edge];
+                    _cloudSide[2] = top[next];
+                    _cloudSide[3] = top[edge];
                     canvas.DrawColoredPolygon(_cloudSide, MathF.Abs(b.X - a.X) > 1
                         ? new Color(.72f, .83f, .82f, .22f)
                         : new Color(.62f, .75f, .76f, .19f));
                 }
-                canvas.DrawColoredPolygon(_cloudTop, new Color(.95f, .97f, .91f, .24f));
-                canvas.DrawLine(_cloudTop[2], _cloudTop[3], new Color(1, 1, .94f, .18f), 1, true);
+                canvas.DrawColoredPolygon(top, new Color(.95f, .97f, .91f, .24f));
+                canvas.DrawLine(top[4], top[7], new Color(1, 1, .94f, .18f), 1, true);
             }
             canvas.DrawSetTransform(Vector2.Zero);
         }

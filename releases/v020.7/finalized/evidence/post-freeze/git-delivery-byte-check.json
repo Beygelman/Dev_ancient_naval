@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "delivery_commit": "c2900f63a6300e1c579ef28ee739ad38b0e1e76e",
+  "git_blob_and_canonical_files_verified": 19,
+  "hash_manifest_entries_verified": 18,
+  "original_primary_source_files_verified": 1987,
+  "intentional_primary_doc_changes": [
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "historical_artifacts_unchanged": 164,
+  "primary_head_unchanged": "299d99c434475b0b83ef17c30fd1450e978a6788",
+  "primary_index_unchanged": true,
+  "failures": []
+}

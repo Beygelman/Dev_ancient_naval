@@ -8,6 +8,11 @@ internal static class Rules0206Checks
 {
     internal static int Run(BattleRules rules)
     {
+        // v020.6 assertions describe its released one-slot balance and map-size pirates.
+        var released = JsonNode.Parse(System.Text.Json.JsonSerializer.Serialize(rules))!.AsObject();
+        released["WeightedFleetCapacity"] = false;
+        released["PirateDifficultyScaling"] = false;
+        rules = BattleRules.FromJson(released.ToJsonString());
         int checks = 0;
         void Check(bool condition, string message)
         {
@@ -30,7 +35,7 @@ internal static class Rules0206Checks
             saved.Ships.Single(s => s.Kind == ShipClass.Mothership && s.Owner == Side.Player).Level = level;
             return saved;
         }
-        Check(rules.Get(ShipClass.Togus).Movement == 3 && rules.Get(ShipClass.FishingDock).VisualRange == 2,
+        Check(rules.Get(ShipClass.Togus).Movement == (rules.CannonTowersIgnoreWalls ? 4 : 3) && rules.Get(ShipClass.FishingDock).VisualRange == 2,
             "Granado moves farther and fishing docks see one tile farther");
         var mortar = Restore(Rich(Fixture(), 5));
         var mortarSave = mortar.CaptureSnapshot();
@@ -145,7 +150,7 @@ internal static class Rules0206Checks
         Check(ready.ReadyActions(Side.Player).Single().Id == 1
             && ready.ReadyActions(Side.Player).Single().Actions == ReadyActionKind.Collect,
             "an affordable active fish spot qualifies the flagship once");
-        scarce.Credits[0] = 4; scarce.Fish = Array.Empty<GridPosition>();
+        scarce.Credits[0] = rules.Get(ShipClass.Fishing).Price; scarce.Fish = Array.Empty<GridPosition>();
         scarce.Ships.Single(s => s.Id == 1).HasProduced = false;
         ready = Restore(scarce);
         Check(ready.BuildBlockReason(Side.Player, 1, ShipClass.Fishing) is null

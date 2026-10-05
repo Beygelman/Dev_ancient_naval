@@ -28,9 +28,20 @@ public partial class BattleChecks : Node
     {
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        // Real input must wait for the scroll's deliberately disabled hit areas.
-        if (Descendants(Game.Hud).OfType<RadialPapyrus>().Any(s => s.IsVisibleInTree() && s.IsProcessing()))
-            await ToSignal(GetTree().CreateTimer(.30), SceneTreeTimer.SignalName.Timeout);
+        // Real input uses the final native hit areas, after both world command
+        // papers and modal reveal windows have finished their animation.
+        await WaitForUi(() => !Descendants(Game.Hud).Any(node =>
+            node is RadialPapyrus radial && radial.IsVisibleInTree() && radial.IsProcessing()
+            || node is RollingModalPaper paper && paper.IsVisibleInTree() && paper.IsAnimating),
+            "Visible command and modal papers finish opening");
+    }
+
+    private async Task WaitForUi(Func<bool> ready, string name)
+    {
+        ulong started = Time.GetTicksMsec();
+        while (!ready() && Time.GetTicksMsec() - started < 4000)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        Check(ready(), name);
     }
 
     private static System.Collections.Generic.IEnumerable<Node> Descendants(Node root)
@@ -42,7 +53,7 @@ public partial class BattleChecks : Node
     }
 
     private Button Button(string name) => Descendants(Game.Hud).OfType<Button>().Single(b => b.Name == name);
-    private Vector2 ClickAt(Button b) => b is SectorButton s ? s.GetGlobalTransform() * s.IconCenter : b.GetGlobalRect().GetCenter();
+    private Vector2 ClickAt(Button b) => b is SectorButton s ? s.GetGlobalTransformWithCanvas() * s.IconCenter : b.GetGlobalRect().GetCenter();
     private void Click(Button b)
     {
         var p = ClickAt(b);
@@ -131,10 +142,15 @@ public partial class BattleChecks : Node
         Tap(new Vector2(40, 180));
         Check(Game.SelectedShipId == beforeSelection && Game.Hud.MenuVisible, "Menu blocks map input");
         Click(Button("Creative"));
+        await Frame();
         Check(Game.Battle.Creative && Game.Battle.BuildPrice(Side.Player, ShipClass.Kolonel) == 0, "Creative toggle");
         await Capture("-menu");
         Click(Button("Creative"));
+        await Frame();
         Click(Button("CloseMenu"));
+        // Return to voyage stamps for .28 s, then folds the sheet for .42 s.
+        await WaitForUi(() => !Game.Hud.MenuVisible, "Return-to-voyage stamp and fold complete");
+        await Frame();
         Check(!Game.Hud.MenuVisible && !Game.Battle.Creative, "Menu closes and creative off");
         Check(Game.Battle.Ships.Count == 8 && Game.Battle.Credits(Side.Player) == 5 && Game.Battle.Income(Side.Player) == 4, "Starting fleet and economy");
         Check(!Descendants(Game.Hud).OfType<Button>().Any(b => new[] { "ActionMove", "ActionAttack", "ActionClose", "ActionCollect", "ActionDock" }.Contains(b.Name.ToString())), "No obsolete ship actions");
@@ -161,7 +177,7 @@ public partial class BattleChecks : Node
         await ToSignal(GetTree().CreateTimer(.3), SceneTreeTimer.SignalName.Timeout);
         await Frame();
         var sectors = Descendants(Game.Hud).OfType<SectorButton>().Where(s => s.IsVisibleInTree()).ToArray();
-        Check(sectors.Length == 5 && sectors.All(s => Mathf.IsEqualApprox(s.Sweep, SectorButton.SectorStep) && s._HasPoint(s.IconCenter) && !s._HasPoint(SectorButton.Center)), "Five readable papyrus sectors, including information, leave the map center transparent");
+        Check(sectors.Length == 4 && sectors.All(s => s.Sweep > 0 && s._HasPoint(s.IconCenter) && !s._HasPoint(s.RingCenter)), "Four readable current papyrus commands leave the hull center transparent");
         int money = Game.Battle.Credits(Side.Player);
         Click(Button("ActionRadar"));
         await Game.CurrentOrder;
@@ -218,10 +234,19 @@ public partial class BattleChecks : Node
         Check(mother.Level == 4 && Game.Hud.UpgradeVisible, "Level four");
         Click(Button("UpgradeBalloon"));
         await Game.CurrentOrder;
+        await Frame();
         Check(mother.MaxHealth == 40 && Game.Battle.BuildBlockReason(Side.Player, 1, ShipClass.Kolonel)is null && Game.Battle.MortarBlockReason(Side.Player, 1)is not null, "Level four heavy unlock; mortar locked");
         var balloon = Game.Battle.OwnShips(Side.Player).Single(s => s.IsAirborne);
-        Game.SelectAtScreen(GetViewport().GetCanvasTransform() * (Game.BoardView.Projection.GridToWorld(balloon.Position) + new Vector2(0, -62)));
-        Check(Game.SelectedShipId == balloon.Id, "Balloon selected above ship");
+        var balloonPoint = GetViewport().GetCanvasTransform() * (Game.BoardView.Projection.GridToWorld(balloon.Position) + new Vector2(0, -62));
+        var beforeCycle = Game.Battle.SaveJson();
+        // A shared tile cycles its observed surface occupant before its Balloon,
+        // including when the pointer hits the elevated Balloon artwork.
+        Tap(balloonPoint);
+        await Frame();
+        Check(Game.SelectedShipId == mother.Id, "Shared tile first selects the surface ship");
+        Tap(balloonPoint);
+        await Frame();
+        Check(Game.SelectedShipId == balloon.Id && Game.Battle.SaveJson() == beforeCycle, "Balloon selected above ship through the free observed-occupant cycle");
         Game.SelectCell(new(7, 7));
         await Game.CurrentOrder;
         Check(balloon.Position == new GridPosition(7, 7) && balloon.MovementRemainingUnits == 20, "Balloon crosses land with one-point diagonals");
@@ -302,8 +327,27 @@ public partial class BattleChecks : Node
         await VillagesAndBalloon(rules);
         await Release014Battle(rules);
         int seed = Game.Battle.Board.Seed;
+        bool creative = Game.Battle.Creative;
         Game.Restart();
-        Check(Game.Battle.Board.Seed != seed && Game.Battle.Board.Boundary.Count == 6 && Game.Battle.Ships.Count == 8, "Restart randomizes hexagon and resets game");
+        var restarted = Game.Battle;
+        Check(restarted.Board.Seed != seed && restarted.Board.Boundary.Count == 6,
+            "Restart randomizes the hexagon");
+        Check(!Game.Busy && restarted.ActiveSide == Side.Player && restarted.Round == 1
+            && restarted.Creative == creative && restarted.PendingPresentation is null
+            && restarted.Statistics == VoyageStatistics.Empty && restarted.DirectShipKills(Side.Player) == 0,
+            "Restart resets the turn and voyage totals while preserving creative preference");
+        Check(restarted.OpponentCount == 1 && restarted.Ships.Count(s => s.IsMothership) == 2
+            && restarted.OwnShips(Side.Player).Select(s => s.Definition.Class).Order()
+                .SequenceEqual(new[] { ShipClass.Mothership, ShipClass.Garrison, ShipClass.Fishing }.Order()),
+            "Restart restores the requested rival and all three starting player hulls");
+        Check(restarted.Credits(Side.Player) == restarted.Rules.StartingCredits
+            && restarted.Income(Side.Player) == restarted.Rules.IncomePerMothership
+                + restarted.Rules.Get(ShipClass.Fishing).IncomePerTurn,
+            "Restart restores the current new-voyage reserve and starting income");
+        int patrolsPerTerritory = !restarted.PiratesEnabled ? 0 : restarted.Rules.PirateDifficultyScaling
+            ? PiratePopulation.PatrolsPerTerritory(restarted.Board, restarted.Difficulty) : 1;
+        Check(restarted.OwnShips(Side.Pirates).Count() == patrolsPerTerritory * restarted.Factions.Count,
+            "Restart patrol count follows its saved pirate population policy");
     }
 
     private async Task WaitForProjectile(Task order)

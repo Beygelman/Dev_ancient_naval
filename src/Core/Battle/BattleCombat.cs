@@ -64,6 +64,7 @@ public sealed partial class BattleState
         var target = Find(targetId)!;
         if (doubleSalvo && !CanDoubleSalvo(id, target.Position))
             return CommandResult.Rejected("A double salvo needs two cannon shots remaining.");
+        ClearBalloonCrashes();
         // A gunshot is not optical reconnaissance. Radar never reveals a ship's identity.
         ship!.AttacksUsed += doubleSalvo ? 2 : 1;
         if (ship.Definition.ActionProfile == ActionProfile.Standard && ship.HasMoved)
@@ -76,16 +77,19 @@ public sealed partial class BattleState
         var splash = shots[0].IsMortar ? MortarSplash(ship, target.Position, target.Id) : Array.Empty<CombatShot>();
         var area = shots[0].IsMortar ? MortarVillageSplash(ship, target.Position) : Array.Empty<AreaHit>();
         RecordImpact("attack");
+        ResolveBalloonCrashes();
         if (doubleSalvo && !IsOver && target.Health > 0)
         {
             shots.Add(Fire(ship, target, false, Rules.EqualDoubleSalvoDamage ? salvoDamage : null));
             RecordImpact("attack2");
+            ResolveBalloonCrashes();
         }
         // One reply to each incoming attack; replies never recursively trigger replies.
         if (!IsOver && CanCounterattack(target, ship))
         {
             shots.Add(Fire(target, ship, true));
             RecordImpact("counter");
+            ResolveBalloonCrashes();
         }
 
         UpdateVision();
@@ -100,7 +104,7 @@ public sealed partial class BattleState
         if (shots.Any(s => s.TargetSunk && s.TargetVisibleToPlayer))
             message += " · ship sunk";
         return new(true, message, CommandKind.Attack, id, targetId, shots[0].Damage, Shots: shots, Splash: splash, AreaHits: area)
-            { SalvoCharges = doubleSalvo ? 2 : 1 };
+            { SalvoCharges = doubleSalvo ? 2 : 1, BalloonCrashes = _balloonCrashes.ToArray() };
     }
 
     private CombatShot Fire(Ship attacker, Ship target, bool counter, double? fixedDamage = null)
@@ -112,6 +116,7 @@ public sealed partial class BattleState
         bool sunk = target.Health <= 0, promoted = false;
         if (sunk)
         {
+            QueueBalloonCrash(target, attacker.Owner);
             RewardPirateDefeat(attacker, target);
             RecordEnemyLoss(attacker.Owner, target);
             RemoveDestroyedShip(target);

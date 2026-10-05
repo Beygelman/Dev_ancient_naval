@@ -13,6 +13,8 @@ public partial class BoardView
     private const float SceneryBakeScale = 2;
     private Node? _sceneryAtlasRoot;
     private readonly List<SubViewport> _sceneryPages = new();
+    private readonly List<SceneryLodSprite> _sceneryLodSprites = new();
+    internal int FarSceneryPageCount { get; private set; }
     // Transparent viewport textures already contain premultiplied edge colors.
     // Multiplying alpha again would give canopies and peaks a dark fringe.
     private readonly CanvasItemMaterial _sceneryMaterial = new()
@@ -26,6 +28,15 @@ public partial class BoardView
         page.RenderTargetUpdateMode == SubViewport.UpdateMode.Disabled);
 
     private sealed record SceneryStamp(Scenery Item, Vector2 Anchor);
+    private sealed class SceneryLodSprite(Scenery item, Sprite2D sprite, Texture2D detail, Vector2 detailOffset)
+    {
+        internal readonly Scenery Item = item;
+        internal readonly Sprite2D Sprite = sprite;
+        internal readonly Texture2D Detail = detail;
+        internal readonly Vector2 DetailOffset = detailOffset;
+        internal Texture2D? Far;
+        internal Vector2 FarOffset;
+    }
     private sealed class SceneryShelf(int y, int height)
     {
         internal readonly int Y = y, Height = height;
@@ -40,6 +51,8 @@ public partial class BoardView
             _sceneryAtlasRoot.QueueFree();
         }
         _sceneryPages.Clear();
+        _sceneryLodSprites.Clear();
+        FarSceneryPageCount = 0;
         _treasuryRuinSprites.Clear();
         SceneryAtlasRegionCount = 0;
         SceneryAtlasBuildCount++;
@@ -65,7 +78,7 @@ public partial class BoardView
                 ? new Vector2(Math.Max(s * 1.3f + 4, 9 + s * .6f), 5 + s * .24f)
                 : item.Kind == 4 ? new Vector2(38, 22)
                 : item.Kind == 3 ? new Vector2(s * 1.55f + 4, s * .7f + 4)
-                : new Vector2(s * 1.15f + 3, s * .44f + 3);
+                : new Vector2(s * 1.15f + 3, s * .60f + 3);
             var pixelMin = new Vector2I(Mathf.FloorToInt(min.X * SceneryBakeScale), Mathf.FloorToInt(min.Y * SceneryBakeScale));
             var pixelMax = new Vector2I(Mathf.CeilToInt(max.X * SceneryBakeScale), Mathf.CeilToInt(max.Y * SceneryBakeScale));
             var size = pixelMax - pixelMin;
@@ -124,10 +137,67 @@ public partial class BoardView
                 Texture = new AtlasTexture { Atlas = page.GetTexture(), Region = new Rect2(region.Position, region.Size), FilterClip = true }
             };
             _depthGroup!.AddChild(sprite);
+            _sceneryLodSprites.Add(new(item, sprite, sprite.Texture, pixelMin));
             if (item.Kind == 4) _treasuryRuinSprites[item.Cell] = sprite;
             _depthObjects.Add((item.Cell, sprite));
             SceneryAtlasRegionCount++;
             shelf.X += size.X;
+        }
+        BuildFarSceneryAtlas();
+        SetSceneryLod(_farScenery);
+    }
+
+    private const float FarSceneryBakeScale = .5f;
+    private const int FarSceneryPageSize = 1024;
+    private void BuildFarSceneryAtlas()
+    {
+        // Far objects keep their individual ground-Y anchor and original owning
+        // cell. A shared quarter-resolution page removes texture-page switches
+        // without flattening a foreground tree behind the fleet or leaking fog.
+        SceneryAtlasPage? page = null;
+        List<SceneryStamp>? stamps = null;
+        int x = 0, y = 0, row = 0;
+        foreach (var entry in _sceneryLodSprites)
+        {
+            var original = (AtlasTexture)entry.Detail;
+            var minimum = (entry.DetailOffset / SceneryBakeScale) * FarSceneryBakeScale;
+            var pixelMin = new Vector2I(Mathf.FloorToInt(minimum.X) - 2, Mathf.FloorToInt(minimum.Y) - 2);
+            var size = new Vector2I(Mathf.CeilToInt(original.Region.Size.X * FarSceneryBakeScale / SceneryBakeScale) + 4,
+                Mathf.CeilToInt(original.Region.Size.Y * FarSceneryBakeScale / SceneryBakeScale) + 4);
+            if (x + size.X > FarSceneryPageSize) { y += row; x = 0; row = 0; }
+            if (page is null || y + size.Y > FarSceneryPageSize)
+            {
+                x = y = row = 0;
+                page = new SceneryAtlasPage
+                {
+                    Name = "FarScenery" + FarSceneryPageCount++, Size = Vector2I.One * FarSceneryPageSize,
+                    Disable3D = true, TransparentBg = true, World2D = new World2D(),
+                    RenderTargetClearMode = SubViewport.ClearMode.Always,
+                    RenderTargetUpdateMode = SubViewport.UpdateMode.Once
+                };
+                _sceneryAtlasRoot!.AddChild(page); _sceneryPages.Add(page);
+                stamps = new();
+                var pageStamps = stamps;
+                page.SetPainter(FarSceneryBakeScale, canvas =>
+                {
+                    foreach (var stamp in pageStamps)
+                        DrawSceneryObject(canvas, stamp.Item, stamp.Anchor / FarSceneryBakeScale);
+                });
+            }
+            stamps!.Add(new(entry.Item, new Vector2(x - pixelMin.X, y - pixelMin.Y)));
+            entry.Far = new AtlasTexture { Atlas = page.GetTexture(), Region = new Rect2(new Vector2(x, y), size), FilterClip = true };
+            entry.FarOffset = pixelMin;
+            x += size.X; row = Math.Max(row, size.Y);
+        }
+    }
+
+    private void SetSceneryLod(bool far)
+    {
+        foreach (var entry in _sceneryLodSprites)
+        {
+            entry.Sprite.Texture = far ? entry.Far : entry.Detail;
+            entry.Sprite.Offset = far ? entry.FarOffset : entry.DetailOffset;
+            entry.Sprite.Scale = Vector2.One / (far ? FarSceneryBakeScale : SceneryBakeScale);
         }
     }
 }

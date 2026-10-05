@@ -56,7 +56,9 @@ public sealed partial class BattleState
 
     private void AddVillage(GridPosition cell)
     {
-        if (!Board.Contains(cell) || Board.GetTile(cell).Terrain != TerrainType.Land || !Board.GetNeighbors(cell).Any(p => Board.GetTile(p).Terrain != TerrainType.Land))
+        if (!Board.Contains(cell) || Board.GetTile(cell).Terrain != TerrainType.Land
+            || !(Rules.DiagonalVillageBerths ? Board.GetSurrounding(cell) : Board.GetNeighbors(cell))
+                .Any(p => Board.GetTile(p).Terrain != TerrainType.Land))
             throw new ArgumentException("A village must occupy a coastal land tile.");
         _villages.Add(new Village(_nextId++, cell));
     }
@@ -132,10 +134,16 @@ public sealed partial class BattleState
     {
         RemoveIncomeSource($"village:{village.Id}");
         if (village.Owner is { } owner && village.Health > 0)
-            SetIncomeSource(new IncomeSource($"village:{village.Id}", owner, VillageIncome(village) + (village.HasPort ? Rules.Ports.Income : 0)));
+            // Connected income is derived from cached live topology at credit
+            // time, so every city's source need not be rewritten when a relay
+            // is built/lost. Historical sources retain their exact fixed value.
+            SetIncomeSource(new IncomeSource($"village:{village.Id}", owner,
+                VillageIncome(village) + (village.HasPort && !Rules.Ports.ConnectedCityIncome ? Rules.Ports.Income : 0)));
     }
 
-    public IReadOnlyList<GridPosition> VillageSpawnCells(int villageId) => _villages.FirstOrDefault(v => v.Id == villageId)is { } village ? Board.GetNeighbors(village.Position).Where(p => IsFreeWater(p) && (!Rules.EmptyOuterRim || !Board.IsOuterCell(p))).ToArray() : Array.Empty<GridPosition>();
+    public IReadOnlyList<GridPosition> VillageSpawnCells(int villageId) => _villages.FirstOrDefault(v => v.Id == villageId)is { } village
+        ? VillageBerths(village).Where(p => IsFreeWater(p) && (!Rules.EmptyOuterRim || !Board.IsOuterCell(p))).ToArray()
+        : Array.Empty<GridPosition>();
     private string? ValidateVillage(Side side, int villageId, out Village? village)
     {
         village = _villages.FirstOrDefault(v => v.Id == villageId);
@@ -170,7 +178,7 @@ public sealed partial class BattleState
             return $"Available at village level {VillageRequiredLevel(kind)}.";
         if (village.HasProduced)
             return "This village has already built a ship this turn.";
-        if (UsesFleetSlot(kind) && FleetUsed(requester) >= FleetCapacity(requester))
+        if (!CanFitFleet(requester, kind))
             return $"Fleet limit: {FleetCapacity(requester)}.";
         if (Credits(requester) < VillageBuildPrice(villageId, kind))
             return "Not enough Thors.";
@@ -185,15 +193,17 @@ public sealed partial class BattleState
         if (!VillageSpawnCells(villageId).Contains(spawn))
             return CommandResult.Rejected("Choose a free water tile beside the village.");
         var village = _villages.First(v => v.Id == villageId);
+        int price = VillageBuildPrice(villageId, kind);
         var ship = new Ship(_nextId++, requester, Rules.Get(kind), spawn)
         {
-            IsExhausted = true
+            IsExhausted = true,
+            ConstructionPrice = price
         };
         _ships.Add(ship);
         RecordShipConstruction(ship);
         RegisterShipIncome(ship);
         ClearRuinsForConstruction(kind, spawn);
-        _credits[(int)requester] -= VillageBuildPrice(villageId, kind);
+        _credits[(int)requester] -= price;
         _everProduced[(int)requester] = true;
         village.HasProduced = true;
         UpdateVision();
@@ -228,6 +238,15 @@ public sealed partial class BattleState
         return !IsOver && ship is not null && village is not null && ship.Owner == ActiveSide && village.Health > 0 && village.Owner != ship.Owner && ship.AttacksRemaining > 0 && Vision.IsVisible(ship.Owner, village.Position) && WeaponCovers(ship, village.Position);
     }
 
+    public double VillageShotDamage(Ship ship, Village village)
+    {
+        double raw = (UsesMortar(ship, village.Position)
+            ? ship.CurrentMortarDamage + Rules.Mortar.VillageDamageBonus : ship.CurrentDamage) + ship.ShotDamageBonus;
+        bool ignoresWall = Rules.CannonTowersIgnoreWalls && ship.Definition.Class == ShipClass.CannonTower;
+        double damage = raw * (village.IsFortified && !ignoresWall ? .75 : 1);
+        return Rules.EqualDoubleSalvoDamage ? Ship.Whole(damage) : damage;
+    }
+
     public CommandResult AttackVillage(Side requester, int shipId, int villageId, bool doubleSalvo = false)
     {
         var error = ValidateActor(requester, shipId, out var ship);
@@ -243,9 +262,7 @@ public sealed partial class BattleState
         bool townVisible = Vision.IsVisible(Side.Player, village.Position);
         bool mortar = UsesMortar(ship, village.Position);
         double counterDamage = 0;
-        double raw = (mortar ? ship.CurrentMortarDamage + Rules.Mortar.VillageDamageBonus : ship.CurrentDamage) + ship.ShotDamageBonus;
-        double oneShot = raw * (village.IsFortified ? .75 : 1);
-        if (Rules.EqualDoubleSalvoDamage) oneShot = Ship.Whole(oneShot);
+        double oneShot = VillageShotDamage(ship, village);
         double damage = Math.Min(village.Health, oneShot * (doubleSalvo ? 2 : 1));
         village.Health = Math.Max(0, village.Health - damage);
         ship.AttacksUsed += doubleSalvo ? 2 : 1;

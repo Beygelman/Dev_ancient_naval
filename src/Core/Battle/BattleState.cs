@@ -33,12 +33,16 @@ public sealed partial class BattleState
         IncomeSources = _incomeSources.AsReadOnly();
     }
 
-    public BattleState(GameBoard board, BattleRules rules, IEnumerable<(Side Owner, ShipClass Class, GridPosition Position)> setup, IEnumerable<GridPosition>? fishSpots = null, int resourceSeed = 1729, IEnumerable<GridPosition>? villageSpots = null, bool seaEvents = false, bool generatedSettlements = false) : this(board, rules)
+    public BattleState(GameBoard board, BattleRules rules, IEnumerable<(Side Owner, ShipClass Class, GridPosition Position)> setup, IEnumerable<GridPosition>? fishSpots = null, int resourceSeed = 1729, IEnumerable<GridPosition>? villageSpots = null, bool seaEvents = false, bool generatedSettlements = false, AiDifficulty difficulty = AiDifficulty.Captain, bool piratesEnabled = true) : this(board, rules)
     {
+        SetDifficulty(difficulty);
+        PiratesEnabled = piratesEnabled;
         foreach (var side in PlayableSides)
             _credits[(int)side] = rules.StartingCredits;
         foreach (var item in setup)
         {
+            if (!PiratesEnabled && item.Owner == Side.Pirates)
+                throw new ArgumentException("Pirates are disabled for this voyage.");
             if (!Enum.IsDefined(item.Owner) || (item.Class == ShipClass.Balloon ? !Board.Contains(item.Position) : !IsFreeWater(item.Position)) || (item.Class == ShipClass.Mothership && board.IsNarrowPassage(item.Position)))
                 throw new ArgumentException("Invalid fleet deployment.");
             var ship = new Ship(_nextId++, item.Owner, rules.Get(item.Class), item.Position);

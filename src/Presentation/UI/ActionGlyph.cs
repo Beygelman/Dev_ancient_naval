@@ -29,18 +29,25 @@ public enum ActionSymbol
     City,
     Balloon,
     Upgrade,
-    Support
+    Support,
+    Mothership,
+    Health,
+    Sight,
+    Income,
+    Progress
 }
 
 /// <summary>Small vector icons drawn at screen resolution; no external art required.</summary>
 public partial class ActionGlyph : Control
 {
     public ActionSymbol Symbol { get; set; }
+    public float InkScale { get; set; } = 1;
 
     public override void _Draw()
     {
         var ink = PapyrusStyle.Ink;
-        var center = Size / 2;
+        DrawSetTransform(Size / 2, 0, Vector2.One * InkScale);
+        var center = Vector2.Zero;
         if (NavalGlyphArt.IsNaval(Symbol))
         {
             NavalGlyphArt.Draw(this, center, Symbol, ink, 2.25f);
@@ -67,14 +74,7 @@ public partial class ActionGlyph : Control
                 Line(0, -12, 6, -6);
                 break;
             case ActionSymbol.Scuttle:
-                DrawPolyline(new[] { P(-13, 2), P(-7, 11), P(7, 11), P(13, 2) }, ink, 2, true);
-                Line(-10, 3, 10, 3);
-                Line(0, -13, 0, 0);
-                Line(-5, -5, 0, 0);
-                Line(5, -5, 0, 0);
-                Line(-12, 15, -5, 13);
-                Line(-5, 13, 3, 16);
-                Line(3, 16, 11, 13);
+                NavalGlyphArt.DrawScuttle(this, center);
                 break;
             case ActionSymbol.Information:
                 Line(-9, -12, 9, -12);
@@ -155,10 +155,40 @@ public partial class ActionGlyph : Control
                 Line(-10, 7, 10, 7);
                 break;
             case ActionSymbol.Move:
-                Line(-10, 9, 10, -11);
-                Line(-1, -11, 10, -11);
-                Line(10, -11, 10, 0);
-                DrawCircle(P(-10, 9), 2.5f, ink);
+                // A little treasure-chart route, shared by command hints and facts.
+                for (int i = 0; i < 6; i++)
+                {
+                    float t = i / 6f, end = Mathf.Min(1, t + .10f);
+                    Vector2 Route(float u) => P(-13 + 22 * u, 12 - 20 * u + 4 * Mathf.Sin(u * Mathf.Tau));
+                    DrawLine(Route(t), Route(end), ink, 2, true);
+                }
+                Line(5, -13, 13, -5);
+                Line(13, -13, 5, -5);
+                DrawCircle(P(-13, 12), 1.8f, ink);
+                break;
+            case ActionSymbol.Health:
+                DrawPolyline(new[] { P(-5, -12), P(5, -12), P(4, -6), P(10, 0), P(7, 11), P(-7, 11), P(-10, 0), P(-4, -6), P(-5, -12) }, ink, 2, true);
+                Line(-4, 2, 4, 2);
+                Line(0, -2, 0, 6);
+                break;
+            case ActionSymbol.Sight:
+                DrawPolyline(new[] { P(-14, 0), P(-7, -7), P(0, -9), P(7, -7), P(14, 0), P(7, 7), P(0, 9), P(-7, 7), P(-14, 0) }, ink, 2, true);
+                DrawCircle(center, 4.5f, ink);
+                DrawCircle(P(-1, -1), 1.5f, PapyrusStyle.Paper);
+                break;
+            case ActionSymbol.Income:
+                DrawArc(center, 11, 0, Mathf.Tau, 32, ink, 2, true);
+                Line(-5, -6, 5, -6);
+                Line(0, -6, 0, 8);
+                Line(-4, 8, 4, 8);
+                break;
+            case ActionSymbol.Progress:
+                for (int i = 0; i < 3; i++)
+                {
+                    var cell = new Rect2(P(-13 + 9 * i, -6), new(7, 12));
+                    if (i == 0) DrawRect(cell, ink);
+                    else DrawRect(cell, ink, false, 1.6f);
+                }
                 break;
             case ActionSymbol.Attack:
                 DrawArc(center, 9, 0, Mathf.Tau, 32, ink, 2, true);

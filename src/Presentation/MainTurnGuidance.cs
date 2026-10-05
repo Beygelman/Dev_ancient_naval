@@ -39,6 +39,7 @@ public partial class Main
     private async Task ReturnToReadyObject(ReadyActionObject item)
     {
         if (!CanCommand) return;
+        MapInput.CancelGesture();
         ClearMode();
         SelectedShipId = item.ShipClass is null ? null : item.Id;
         SelectedVillageId = item.ShipClass is null ? item.Id : null;

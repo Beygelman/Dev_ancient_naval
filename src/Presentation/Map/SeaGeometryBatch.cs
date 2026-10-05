@@ -7,9 +7,15 @@ namespace DevAncientNaval.Presentation.Map;
 /// coral branch or shore segment. Buffers retain their capacity between frames.</summary>
 internal sealed class SeaGeometryBatch
 {
-    private readonly List<Vector2> _vertices = new(8192), _lines = new(8192);
-    private readonly List<Color> _colors = new(8192), _lineColors = new(8192);
-    private readonly List<int> _indices = new(16384);
+    private readonly List<Vector2> _vertices, _lines;
+    private readonly List<Color> _colors, _lineColors;
+    private readonly List<int> _indices;
+    internal SeaGeometryBatch(int initialCapacity = 8192)
+    {
+        _vertices = new(initialCapacity); _lines = new(initialCapacity);
+        _colors = new(initialCapacity); _lineColors = new(initialCapacity);
+        _indices = new(initialCapacity * 2);
+    }
     private Vector2[] _nativeVertices = Array.Empty<Vector2>();
     private Color[] _nativeColors = Array.Empty<Color>();
     private int[] _nativeIndices = Array.Empty<int>();

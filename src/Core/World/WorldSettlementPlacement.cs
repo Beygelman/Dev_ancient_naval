@@ -1,3 +1,4 @@
+using DevAncientNaval.Core.Battle;
 using DevAncientNaval.Core.Grid;
 
 namespace DevAncientNaval.Core.World;
@@ -84,7 +85,8 @@ public static class WorldSettlementPlacement
     }
 
     public static IReadOnlyDictionary<GridPosition, SettlementStart> Describe(GameBoard board,
-        IEnumerable<GridPosition> positions, bool variedPirates = false, bool mapSizePirates = false)
+        IEnumerable<GridPosition> positions, bool variedPirates = false, bool mapSizePirates = false,
+        bool piratesEnabled = true, AiDifficulty? difficulty = null)
     {
         var cells = positions.Distinct().OrderBy(p => p.Y).ThenBy(p => p.X).ToArray();
         var result = cells.ToDictionary(p => p, _ => new SettlementStart(1, false));
@@ -94,9 +96,20 @@ public static class WorldSettlementPlacement
             double roll = random.NextDouble();
             if (roll < .06) result[cell] = new(3, false);
             else if (roll < .18) result[cell] = new(2, false);
-            else if (variedPirates && !mapSizePirates && roll < .28) result[cell] = new(random.Next(1, 5), true);
+            else if (piratesEnabled && difficulty is null && variedPirates && !mapSizePirates && roll < .28)
+                result[cell] = new(random.Next(1, 5), true);
         }
+        if (!piratesEnabled) return result;
         var center = board.Center(board.CentralCell);
+        if (difficulty is { } selectedDifficulty)
+        {
+            int desired = PiratePopulation.SettlementCount(board, selectedDifficulty, cells.Length);
+            var bays = cells.OrderBy(p => System.Numerics.Vector2.DistanceSquared(board.Center(p), center))
+                .ThenBy(p => p.Y).ThenBy(p => p.X).Take(desired).ToArray();
+            for (int index = 0; index < bays.Length; index++)
+                result[bays[index]] = new(index < 2 ? 3 : random.Next(1, 5), true);
+            return result;
+        }
         var available = cells.OrderBy(p => System.Numerics.Vector2.DistanceSquared(board.Center(p), center)).ToList();
         // The two fortified bays are guaranteed in generated worlds, including tiny-island maps.
         if (available.Count > 0)

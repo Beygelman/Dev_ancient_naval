@@ -6,6 +6,8 @@ public sealed class Ship
     public int Id { get; }
     public Side Owner { get; }
     public ShipDefinition Definition { get; }
+    /// <summary>Actual paid construction price. Null is reserved for older saves without a receipt.</summary>
+    public int? ConstructionPrice { get; internal set; } = 0;
     public GridPosition Position { get; internal set; }
     public double Health { get; internal set; }
     public int Kills { get; internal set; }

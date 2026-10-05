@@ -69,6 +69,7 @@ public partial class BoardView
                 var life = new BoardTerrainLayer
                 {
                     Name = "TownLife" + id,
+                    Visible = !_farScenery,
                     Position = VillagePlacement(town).Offset,
                     Scale = Vector2.One * Math.Max(.001f, VillagePlacement(town).Scale),
                     DrawWorld = node => { if (Battle.VillageAt(town.Position) is { } current) DrawTownLife?.Invoke(node, current, Vector2.Zero); }
@@ -88,7 +89,9 @@ public partial class BoardView
                 var townUi = new BoardTerrainLayer
                 {
                     Name = "TownInterface" + id,
-                    ZIndex = 6,
+                    // World labels remain readable above hull badges and combat feedback.
+                    // Visibility is still controlled by the same observed/explored cache.
+                    ZIndex = 12,
                     Position = canvas.Position,
                     DrawWorld = node => { if (Battle.VillageAt(town.Position) is { } current) DrawVillageInterface(node, current); }
                 };
@@ -126,7 +129,7 @@ public partial class BoardView
         foreach (var(cell, canvas)in _townCanvases)
         {
             // An explored town keeps its last observed appearance while hidden.
-            if (Battle.Vision.IsVisible(Side.Player, cell))
+            if (!_farScenery && Battle.Vision.IsVisible(Side.Player, cell))
                 canvas.QueueRedraw();
         }
     }

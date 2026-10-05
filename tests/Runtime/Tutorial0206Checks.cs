@@ -40,7 +40,8 @@ public partial class Tutorial0206Checks : Node
         GetViewport().PushInput(new InputEventMouseMotion { Position = point, GlobalPosition = point }, true);
         foreach (bool pressed in new[] { true, false })
             GetViewport().PushInput(new InputEventMouseButton { Position = point, GlobalPosition = point,
-                ButtonIndex = MouseButton.Left, Pressed = pressed }, true);
+                ButtonIndex = MouseButton.Left, Pressed = pressed,
+                ButtonMask = pressed ? MouseButtonMask.Left : (MouseButtonMask)0 }, true);
     }
     private async Task Capture(string suffix)
     {
@@ -49,6 +50,7 @@ public partial class Tutorial0206Checks : Node
         await Frames();
         await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
         Check(GetViewport().GetTexture().GetImage().SavePng(file.Replace(".png", "-" + suffix + ".png")) == Error.Ok, "capture " + suffix);
+        await Frames(1);
     }
     private async Task Topic(string topic, bool first = false)
     {
@@ -58,13 +60,27 @@ public partial class Tutorial0206Checks : Node
         _history.Begin(battle, newGame: first);
         string untouched = battle.SaveJson();
         _history.Observe(battle, allowed: true);
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         await Frames();
+        // Acquiring a port town also qualifies for the new village-growth
+        // advice. Acknowledge that actual earlier event before the trade tip;
+        // do not weaken the trade/history assertions or alter game behavior.
+        if (topic == "trade" && _advice.Topic == "village")
+        {
+            Check(_advice.IsOpen, "the first owned village explains its own level progression before trade");
+            Click(Nodes(_advice).OfType<Button>().Single(n => n.Name == "CloseTutorialAdvice"));
+            await ToSignal(GetTree().CreateTimer(.8), SceneTreeTimer.SignalName.Timeout);
+            _history.Observe(battle, true);
+            await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
+            await Frames();
+        }
         Check(_advice.IsOpen && _advice.Topic == topic, "own public event opens " + topic + " once");
         Check(battle.SaveJson() == untouched, "tutorial changes no money, random state or battle rules");
         var texture = Nodes(_advice).OfType<TextureRect>().Single(n => n.Name == "TutorialAdviceScreenshot");
         Check(texture.Texture is not null && texture.Texture.GetSize() == new Vector2(512, 256), "native close-up asset is present for " + topic);
         await Capture(topic);
         Click(Nodes(_advice).OfType<Button>().Single(n => n.Name == "CloseTutorialAdvice"));
+        await ToSignal(GetTree().CreateTimer(.8), SceneTreeTimer.SignalName.Timeout);
         await Frames();
         Check(!_advice.IsOpen, "real close button dismisses advice");
         for (int i = 0; i < 12; i++) _history.Observe(battle, true);
@@ -144,16 +160,24 @@ public partial class Tutorial0206Checks : Node
         Game.Home.Hide();
         Game.BeginTutorialVoyage(true);
         Game.Refresh();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         await Frames();
         Check(Game.Tutorial.IsOpen && Game.Tutorial.Topic == "resources", "actual voyage service presents its starting resource tutorial");
         Game.SelectCell(new(7, 7));
         Check(Game.SelectedShipId == Game.Battle.Mothership(Side.Player)!.Id,
             "advice does not block map object selection");
         Click(Nodes(Game.Tutorial).OfType<Button>().Single(n => n.Name == "CloseTutorialAdvice"));
+        await ToSignal(GetTree().CreateTimer(.8), SceneTreeTimer.SignalName.Timeout);
         await Frames();
         Check(!Game.Tutorial.IsOpen, "actual tutorial also supports real close input");
         Game.Refresh();
-        Check(!Game.Tutorial.IsOpen, "actual refresh does not spam the dismissed voyage tip");
+        Check(Game.Tutorial.Topic == "commands" && Game.TutorialHistory.Shown.Contains("resources"),
+            "selecting owned commands presents the new controls advice rather than repeating resources");
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
+        Click(Nodes(Game.Tutorial).OfType<Button>().Single(n => n.Name == "CloseTutorialAdvice"));
+        await ToSignal(GetTree().CreateTimer(.8), SceneTreeTimer.SignalName.Timeout);
+        Game.Refresh();
+        Check(!Game.Tutorial.IsOpen, "actual refresh does not repeat either acknowledged voyage tip");
     }
     public override async void _Ready()
     {

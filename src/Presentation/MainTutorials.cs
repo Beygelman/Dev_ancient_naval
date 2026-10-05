@@ -33,7 +33,9 @@ public partial class Main
             && _voyageWelcome?.IsOpen != true && _rewards?.IsOpen != true && _victory?.IsOpen != true
             && !Hud.MenuVisible && !Hud.TurnConfirmationVisible && !Hud.UpgradeVisible
             && !Battle.IsOver && !Battle.PlayerDefeated;
-        TutorialHistory.Observe(Battle, allowed);
+        TutorialHistory.Observe(Battle, allowed,
+            ownCommandsVisible: CanCommand && (Selected?.Owner == DevAncientNaval.Core.Units.Side.Player
+                || SelectedVillage?.Owner == DevAncientNaval.Core.Units.Side.Player));
     }
     private void SuspendTutorials() => TutorialHistory?.Suspend();
 }

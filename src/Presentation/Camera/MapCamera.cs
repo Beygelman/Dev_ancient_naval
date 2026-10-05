@@ -8,7 +8,7 @@ public partial class MapCamera : Camera2D
 {
     public const float MinZoom = 0.16f;
     public const float MaxZoom = 2.5f;
-    public const float KeyboardPanPixelsPerSecond = 500;
+    public const float KeyboardPanPixelsPerSecond = 850;
     public Rect2 MapBounds { get; set; }
     private TaskCompletionSource? _flightCompletion;
     private Vector2 _flightFrom, _flightTo;

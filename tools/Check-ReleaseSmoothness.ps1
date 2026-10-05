@@ -36,6 +36,7 @@ foreach ($taskCase in $taskCases) {
             throw "$taskName timed out. Do not package this build."
         }
     }
+    $taskProcess.Refresh()
     $taskErrors = Get-Content -LiteralPath $taskError -Raw
     if ($taskProcess.ExitCode -ne 0 -or $taskErrors -match 'ERROR|Exception|error:' -or
         -not (Test-Path -LiteralPath $taskReport) -or

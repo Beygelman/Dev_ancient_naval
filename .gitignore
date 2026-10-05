@@ -19,8 +19,13 @@ export_credentials.cfg
 # Full local launch copies; Git carries the corresponding Windows ZIP.
 # The raw Godot executable exceeds GitHub's regular-file size limit.
 /releases/*/playable/
+/releases/v020.7/corrected-2026-10-05/player/
+/releases/v020.7/corrected-2026-10-05/Ancient_Naval_v020.7_Windows_PLAYER_CANDIDATE/
 
 # Local validation / environment files
 .local/
 NuGet.local.config
 NuGet.Config
+
+# Editor sidecars for documentation-only screenshots (game assets keep theirs).
+/docs/diagnostics/**/*.import

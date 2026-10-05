@@ -1,0 +1,3 @@
+# Preserve hash-bound archive/evidence bytes, including native CRLF logs.
+* -text whitespace=cr-at-eol
+*.log -diff

@@ -121,6 +121,10 @@ public partial class Main
     {
         if (!CanCommand)
             return;
+        _endingStamp = true;
+        try { await Hud.AnimateEndTurnFold(FastChecks); }
+        finally { _endingStamp = false; }
+        if (!CanCommand) return;
         var turnPresentation = Battle.Prepare(b => b.EndTurn(Side.Player));
         var ended = turnPresentation.Result;
         if (!ended.Success)

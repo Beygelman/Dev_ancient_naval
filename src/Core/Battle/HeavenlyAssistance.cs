@@ -32,7 +32,9 @@ public sealed partial class BattleState
 
     private void InitializeSettlementLevels()
     {
-        var starts = WorldSettlementPlacement.Describe(Board, _villages.Select(v => v.Position), Rules.FrozenUnownedVillages, Rules.MapSizePirateSettlements);
+        var starts = WorldSettlementPlacement.Describe(Board, _villages.Select(v => v.Position),
+            Rules.FrozenUnownedVillages, Rules.MapSizePirateSettlements,
+            PiratesEnabled, Rules.PirateDifficultyScaling ? Difficulty : null);
         foreach (var village in _villages)
         {
             var start = starts[village.Position];

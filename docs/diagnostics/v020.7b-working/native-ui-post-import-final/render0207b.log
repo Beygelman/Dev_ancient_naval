@@ -1,0 +1,4 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 581.29 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PASS: 21 native 020.7b renderer checks; chart cells=1759; same-camera fullDrawCalls=6032,5, farDrawCalls=806,8, reduction=86,6%.

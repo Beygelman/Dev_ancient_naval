@@ -19,15 +19,18 @@ public partial class DebugHud : CanvasLayer
     private PanelContainer _metricsPaper = null !;
     private PanelContainer _nationPaper = null!;
     private Label _nationLabel = null!;
-    private SectorButton _resourceInformation = null !;
     private readonly List<SectorButton> _actionSectors = new(12);
     private readonly List<SectorButton> _visibleSectors = new(12);
     private readonly List<SectorButton> _radialSlots = new(13);
-    private SectorButton _villageUpgrade = null!, _upgradeGap = null!;
+    private readonly List<SectorButton> _shortcutSectors = new(9);
+    private bool _commandsCanAct;
+    private SectorButton _villageUpgrade = null!;
     public event Action? VillageUpgradeRequested;
     private readonly List<Vector2> _worldTargetHitPoints = new(16);
     private int _lastSectorCount;
     private bool _unfoldActions;
+    private BattleState? _upgradeReceiptBattle;
+    private int _upgradeReceiptShip, _upgradeReceiptLevel;
     private HBoxContainer _metrics = null !;
     private PanelContainer _shipCard = null !, _notice = null !, _upgradePanel = null !;
     private Label _coins = null !, _coinCaption = null !, _turn = null !, _ship = null !, _details = null !, _message = null !, _banner = null !, _upgradeTitle = null !;
@@ -126,9 +129,15 @@ public partial class DebugHud : CanvasLayer
         _root.AddChild(_banner);
         _banner.Hide();
         _shipCard = Panel(_root);
+        var cardRow = new HBoxContainer();
+        cardRow.AddThemeConstantOverride("separation", 12);
+        _shipCard.AddChild(cardRow);
+        _objectIcon = new ActionGlyph { Name = "SelectedObjectGlyph", CustomMinimumSize = new(64, 70),
+            MouseFilter = Control.MouseFilterEnum.Ignore };
+        cardRow.AddChild(_objectIcon);
         var stats = new VBoxContainer();
         stats.AddThemeConstantOverride("separation", 4);
-        _shipCard.AddChild(stats);
+        cardRow.AddChild(stats);
         _ship = Label("", 18);
         stats.AddChild(_ship);
         _health = Label("", 15);
@@ -198,12 +207,9 @@ public partial class DebugHud : CanvasLayer
             Size = new(248, 248)
         };
         _root.AddChild(_resourceRoot);
+        _resourceRoot.SetWrapping(64, Mathf.Pi);
         _resource = IconButton("TileResource", ActionSymbol.Fishing, "", () => ResourceRequested?.Invoke(), _resourceRoot);
-        _resourceInformation = IconButton("ResourceInformation", ActionSymbol.Information, "Read the chart", OpenInformation, _resourceRoot);
-        _resource.SetSector(1, 2);
-        _resourceInformation.SetSector(0, 2);
-        Availability(_resourceInformation, true, "Info");
-        _resourceRoot.Configure(new[] { _resourceInformation, _resource }, false);
+        _resourceRoot.Configure(new[] { _resource }, false);
         _resourceRoot.Hide();
         _upgradeOverlay = new Control
         {
@@ -218,9 +224,8 @@ public partial class DebugHud : CanvasLayer
         };
         _upgradeOverlay.AddChild(shade);
         shade.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        _upgradePanel = Panel(_upgradeOverlay);
-        _upgradePanel.Name = "UpgradePapyrus";
-        _upgradePanel.CustomMinimumSize = new(PapyrusModal.Width, 0);
+        _upgradePanel = new RollingModalPaper { Name = "UpgradePapyrus", CustomMinimumSize = new(PapyrusModal.Width, 0) };
+        _upgradeOverlay.AddChild(_upgradePanel);
         var column = new VBoxContainer();
         _upgradeBody = column;
         column.AddThemeConstantOverride("separation", 18);
@@ -249,7 +254,7 @@ public partial class DebugHud : CanvasLayer
             var button = new MysticUpgradeButton { Text = MysticUpgradeButton.Title(choice),
                 AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new(0, 48), SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
             PapyrusStyle.Button(button, 16);
-            button.Pressed += () => UpgradeRequested?.Invoke(choice);
+            button.Pressed += () => ChooseUpgradeFromPaper(choice);
             button.TooltipText = UpgradeDescriptions.Description(choice);
             button.Name = "Upgrade" + choice;
             var group = new VBoxContainer();
@@ -261,8 +266,6 @@ public partial class DebugHud : CanvasLayer
 
         BuildGameMenu();
         _villageUpgrade = IconButton("ActionVillageUpgrade", ActionSymbol.Upgrade, "Upgrade town", () => VillageUpgradeRequested?.Invoke());
-        _upgradeGap = new SectorButton { Name = "TownArcGap", Visible = false, MouseFilter = Control.MouseFilterEnum.Ignore };
-        _radial.AddChild(_upgradeGap);
         BuildActionStories();
         BuildSalvoChoice();
         BuildHeavenlyAssistance();
@@ -309,7 +312,17 @@ public partial class DebugHud : CanvasLayer
         }
 
         var pending = battle.PendingUpgrade(Side.Player);
-        _upgradeOverlay.Visible = pending is not null && !busy && !finished;
+        bool showUpgrade = pending is not null && !busy && !finished;
+        bool unfoldUpgrade = showUpgrade && (!_upgradeOverlay.Visible || !ReferenceEquals(_upgradeReceiptBattle, battle)
+            || _upgradeReceiptShip != pending!.Id || _upgradeReceiptLevel != pending.Level);
+        _upgradeOverlay.Visible = showUpgrade;
+        if (showUpgrade)
+        {
+            if (unfoldUpgrade) { _upgradeCeremony++; _upgradeFolding = false; }
+            _upgradeReceiptBattle = battle;
+            _upgradeReceiptShip = pending!.Id;
+            _upgradeReceiptLevel = pending.Level;
+        }
         if (pending is not null)
         {
             _upgradeTitle.Text = $"Mothership · level {pending.Level}";
@@ -319,17 +332,20 @@ public partial class DebugHud : CanvasLayer
                 button.TooltipText = UpgradeDescriptions.Description(choice, battle.Rules);
                 button.Visible = battle.UpgradeOptions(pending.Id).Contains(choice);
                 ((Control)button.GetParent()).Visible = button.Visible;
-                button.Disabled = busy;
+                button.Disabled = busy || _upgradeFolding;
             }
 
             _upgradePanel.ResetSize();
         }
 
         bool canAct = !busy && !finished && battle.ActiveSide == Side.Player && pending is null && !MenuVisible;
+        _commandsCanAct = canAct;
         _end.Disabled = !canAct;
         UpdateReadyActions(battle, canAct);
         _restart.Disabled = busy;
         _shipCard.Visible = selected is not null || village is not null;
+        _objectIcon.Symbol = NavalGlyphArt.Symbol(selected?.Definition.Class);
+        _objectIcon.QueueRedraw();
         if (selected is not null)
         {
             _health.AddThemeColorOverride("font_color", selected.Owner == Side.Player ? PapyrusStyle.Health : PapyrusStyle.EnemyHealth);
@@ -356,6 +372,7 @@ public partial class DebugHud : CanvasLayer
         _repair.SetMeta("applicable", (selected is { Owner: Side.Player, IsAirborne: false } && selected.Definition.Class != ShipClass.AncientGun) || village?.Owner == Side.Player);
         _scuttle.SetMeta("applicable", selected is { Owner: Side.Player, IsMothership: false });
         Availability(_scuttle, ownShip && selected is not null && CanScuttleShip?.Invoke(selected) == true, "");
+        _scuttle.TooltipText = selected is null ? "Dismantle ship" : $"Dismantle ship · return {battle.ScuttleRefund(Side.Player, selected.Id)} Thors";
         Availability(_yard, (ownShip && (selected!.IsMothership || fishingBuilder) && !selected.HasProduced) || (ownVillage && !village!.HasProduced), "");
         Availability(_radar, ownShip && battle.RadarBlockReason(Side.Player, selected!.Id)is null, selected?.HasRadar == true ? "✓" : selected?.Definition.RadarPrice.ToString() ?? "");
         Availability(_mortar, ownShip && battle.MortarBlockReason(Side.Player, selected!.Id)is null, selected?.HasMortar == true ? "✓" : battle.Rules.Mortar.PurchasePrice.ToString());
@@ -394,6 +411,7 @@ public partial class DebugHud : CanvasLayer
         UpdateActionStories(battle, selected, village, canAct);
         ApplyMenuVisibility();
         Layout();
+        if (unfoldUpgrade) _ = ((RollingModalPaper)_upgradePanel).OpenAsync(InstantPaperAnimations);
     }
 
     public void CloseMenus()
@@ -419,7 +437,8 @@ public partial class DebugHud : CanvasLayer
         _resource.TooltipText = (dock ? $"Fishing Dock · +{_informationBattle?.Rules.DockResourceReward} resources, +{_informationBattle?.Rules.Get(ShipClass.FishingDock).IncomePerTurn} income" : "Collect resource shoal · +1 resource") + $" · {price} Thors" + (affordable ? "" : " · not enough Thors");
         _resource.Cost = price;
         Availability(_resource, affordable, price.ToString());
-        _resourceRoot.Configure(new[] { _resourceInformation, _resource }, true);
+        _resource.ShortcutNumber = 1;
+        _resourceRoot.Configure(new[] { _resource }, true);
         _resourceRoot.Show();
     }
 
@@ -432,14 +451,13 @@ public partial class DebugHud : CanvasLayer
         }
 
         _resourceRoot.Show();
-        _resourceRoot.Position = ClampWorldUi(UiScale.ScreenToUi(point) - SectorButton.Center + new Vector2(0, 20), _resourceRoot.Size);
+        _resourceRoot.Position = UiScale.ScreenToUi(point) - _resourceRoot.RingCenter + new Vector2(0, 20);
     }
 
     private void ApplyMenuVisibility()
     {
         foreach (var button in new[]
         {
-            _information,
             _repair,
             _scuttle,
             _yard,
@@ -457,32 +475,79 @@ public partial class DebugHud : CanvasLayer
             button.Visible = _hasRadial && !_productionOpen && _mode == OrderMode.None && button.GetMeta("applicable", false).AsBool();
         foreach (var button in _build.Values)
             button.Visible = _hasRadial && _productionOpen && button.GetMeta("applicable", true).AsBool();
-        _information.Visible = _hasRadial && _mode == OrderMode.None && _loreText.Length > 0;
         _visibleSectors.Clear();
         foreach (var button in _actionSectors)
             if (button.Visible)
                 _visibleSectors.Add(button);
         _radialSlots.Clear();
-        _radialSlots.AddRange(_visibleSectors);
+        _radialSlots.AddRange(_visibleSectors.OrderBy(CommandOrder));
         if (_villageUpgrade.Visible && _radialSlots.Remove(_villageUpgrade))
         {
-            // An even number of actual actions gets one empty end slot. The town
-            // upgrade always occupies the middle wedge directly below its town.
-            if (_visibleSectors.Count % 2 == 0) _radialSlots.Add(_upgradeGap);
+            // The center command has its own wedge; both wings contain real actions only.
             _radialSlots.Insert(_radialSlots.Count / 2, _villageUpgrade);
         }
-        for (int i = 0; i < _radialSlots.Count; i++)
-        {
-            _radialSlots[i].SetSector(i, _radialSlots.Count);
-        }
-
-        _radial.Configure(_radialSlots, _unfoldActions || _lastSectorCount != _visibleSectors.Count);
+        _radial.Configure(_radialSlots, _unfoldActions || _lastSectorCount != _visibleSectors.Count,
+            _villageUpgrade.Visible ? _villageUpgrade : null);
         _lastSectorCount = _visibleSectors.Count;
         _unfoldActions = false;
         _radial.Visible = _visibleSectors.Count > 0;
+        RefreshCommandShortcuts();
     }
 
-    public void PositionActions(Vector2? shipScreen, float progressOffset = 39)
+    private static int CommandOrder(SectorButton button) => button.Name.ToString() switch
+    {
+        "ActionBuild" => 0, "ActionRadar" => 1, "ActionMortar" => 2, "ActionRepair" => 3,
+        "BuildLighthouse" => 0, "BuildCannonTower" => 1, "BuildTogus" => 2,
+        "BuildKolonel" => 3, "BuildInvader" => 4, "BuildGarrison" => 5, "BuildFishing" => 6,
+        _ => 10
+    };
+
+    private void RefreshCommandShortcuts()
+    {
+        _shortcutSectors.Clear();
+        foreach (var command in _visibleSectors)
+            _shortcutSectors.Add(command);
+        _shortcutSectors.Sort((a, b) =>
+        {
+            // Number the completed layout, not the coincident glyphs at reveal=0.
+            // An opening animation must not temporarily swap keyboard commands.
+            int x = a.UnfoldedIconCenter.X.CompareTo(b.UnfoldedIconCenter.X);
+            return x != 0 ? x : a.UnfoldedIconCenter.Y.CompareTo(b.UnfoldedIconCenter.Y);
+        });
+        foreach (var command in _actionSectors)
+        {
+            int index = _shortcutSectors.IndexOf(command);
+            int number = index is >= 0 and < 9 ? index + 1 : 0;
+            if (command.ShortcutNumber == number) continue;
+            command.ShortcutNumber = number;
+            command.QueueRedraw();
+        }
+    }
+
+    public bool TryActivateCommandShortcut(InputEventKey key)
+    {
+        if (!key.Pressed || key.Echo || key.CtrlPressed || key.AltPressed || key.MetaPressed
+            || !_commandsCanAct || MenuVisible || UpgradeVisible || TurnConfirmationVisible || ReadyActionsMenuVisible)
+            return false;
+        var keycode = key.PhysicalKeycode != Key.None ? key.PhysicalKeycode : key.Keycode;
+        int number = keycode switch
+        {
+            Key.Key1 or Key.Kp1 => 1, Key.Key2 or Key.Kp2 => 2, Key.Key3 or Key.Kp3 => 3,
+            Key.Key4 or Key.Kp4 => 4, Key.Key5 or Key.Kp5 => 5, Key.Key6 or Key.Kp6 => 6,
+            Key.Key7 or Key.Kp7 => 7, Key.Key8 or Key.Kp8 => 8, Key.Key9 or Key.Kp9 => 9,
+            _ => 0
+        };
+        if (number == 0) return false;
+        SectorButton? command = _resourceRoot.IsVisibleInTree() && number == 1 ? _resource
+            : _radial.IsVisibleInTree() ? _shortcutSectors.FirstOrDefault(c => c.ShortcutNumber == number) : null;
+        if (command is null || command.Disabled || !command.IsVisibleInTree()) return false;
+        var paper = (RadialPapyrus)command.GetParent();
+        if (paper.IsProcessing() || paper.Reveal < 1) return false;
+        command.EmitSignal(BaseButton.SignalName.Pressed);
+        return true;
+    }
+
+    public void PositionActions(Vector2? shipScreen, float progressOffset = 39, float mapZoom = 1)
     {
         if (!_hasRadial || shipScreen is not { } point || _mode != OrderMode.None)
         {
@@ -495,14 +560,14 @@ public partial class DebugHud : CanvasLayer
         // enough space inside the parchment for their hull and progress cells.
         point = UiScale.ScreenToUi(point);
         progressOffset /= UiScale.Value;
-        float scale = Mathf.Clamp((progressOffset + 10) / SectorButton.Inner, 1, 1.9f);
-        _radial.Scale = Vector2.One * scale;
-        var origin = point;
-        var viewport = UiScale.LogicalViewport(this);
-        float margin = SectorButton.Outer * scale + 9;
-        origin.X = Mathf.Clamp(origin.X, margin, Math.Max(margin, viewport.X - margin));
-        origin.Y = Mathf.Clamp(origin.Y, margin, Math.Max(margin, viewport.Y - margin));
-        _radial.Position = origin - SectorButton.Center * scale;
+        float inner = Mathf.Clamp(progressOffset + 18, 64, 142);
+        float far = 1 - Mathf.Clamp((mapZoom - .2f) / .7f, 0, 1);
+        _radial.SetWrapping(inner, Mathf.Lerp(Mathf.Pi, Mathf.Pi * 1.72f, far));
+        _radial.Scale = Vector2.One;
+        // A world command paper follows its real projected anchor, including when
+        // the selected hull leaves the viewport. Never pin it to an unrelated coast.
+        _radial.Position = point - _radial.RingCenter;
+        RefreshCommandShortcuts();
     }
 
     internal void SetActionTargetHitExclusions(IReadOnlyList<Vector2> screenPoints)
@@ -514,6 +579,7 @@ public partial class DebugHud : CanvasLayer
         float localRadius = 15 / Math.Max(.1f, _radial.Scale.X * UiScale.Value);
         foreach (var command in _actionSectors)
             command.SetWorldTargetHitExclusions(_worldTargetHitPoints, localRadius);
+        _radial.RefreshInkBounds();
     }
 
     public void ShowOpponentTurn(Side side = Side.Enemy)

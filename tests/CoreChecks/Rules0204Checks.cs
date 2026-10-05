@@ -10,6 +10,10 @@ internal static class Rules0204Checks
 {
     internal static int Run(BattleRules rules)
     {
+        // These repair/admission fixtures retain their released one-slot hull policy.
+        var released = JsonNode.Parse(JsonSerializer.Serialize(rules))!.AsObject();
+        released["WeightedFleetCapacity"] = false;
+        rules = BattleRules.FromJson(released.ToJsonString());
         int checks = 0;
         void Check(bool condition, string message)
         {

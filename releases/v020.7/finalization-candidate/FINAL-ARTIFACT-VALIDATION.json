@@ -1,0 +1,264 @@
+{
+  "version": "v020.7",
+  "status": "candidate_not_finalized",
+  "baseline_commit": "b03c5bdc85498f5f5d76f03f4d070adcaa13aa34",
+  "snapshot_commit": "d786aaa87986d1da6068356d380a9dfca6b609a5",
+  "branch": "codex/v0207-finalization",
+  "git": {
+    "snapshot_worktree_clean": true,
+    "pushed": false,
+    "final_tag_created": false,
+    "pr6": "open draft, unchanged",
+    "remote_main": "known conflicted; not modified"
+  },
+  "toolchain": {
+    "godot": "4.7.2 .NET",
+    "sdk": "8.0.425",
+    "renderer": "OpenGL Compatibility",
+    "gpu": "RTX 4060 Laptop",
+    "packaging_powershell": "7.6.5",
+    "packaging_dotnet": ".NET 10.0.11"
+  },
+  "simulation_and_save_contract_changes": [],
+  "production_text_corrections": [
+    "project version footer",
+    "Ukrainian/Dutch View-the-map message"
+  ],
+  "debug_build": {
+    "passed": true,
+    "warnings": 0,
+    "errors": 0
+  },
+  "core_checks": {
+    "passed": true,
+    "assertions": 1204161,
+    "suites": 18,
+    "complete_ai_matches": 8,
+    "historical_fixtures": 2,
+    "exact_delivered_source_rebuilt": true
+  },
+  "native_suites": [
+    {
+      "test": "smoke",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 9.0127441
+    },
+    {
+      "test": "battle",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 38.3862186
+    },
+    {
+      "test": "effects",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 36.0016094
+    },
+    {
+      "test": "sea",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 37.4257421
+    },
+    {
+      "test": "optimization",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 13.5339645
+    },
+    {
+      "test": "menu",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 15.853796
+    },
+    {
+      "test": "ui0207",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 12.2636052
+    },
+    {
+      "test": "voyage0207",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 8.0367271
+    },
+    {
+      "test": "animation0207",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 26.6617804
+    },
+    {
+      "test": "ui0205",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 21.4465751
+    },
+    {
+      "test": "tutorial0206",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 12.9458072
+    },
+    {
+      "test": "hints0206",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 10.1674927
+    },
+    {
+      "test": "victory",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 23.9882815
+    },
+    {
+      "test": "construction0205",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 7.7512233
+    },
+    {
+      "test": "trade-glyph0204",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 6.4939579
+    },
+    {
+      "test": "language0202",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 17.4675352
+    },
+    {
+      "test": "ui0204",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 19.279642
+    }
+  ],
+  "process_restart_continue": {
+    "historical": 139,
+    "current": 139,
+    "language_preference": 5
+  },
+  "player_startup": [
+    {
+      "test": "en",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "uk",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "nl",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "map",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    }
+  ],
+  "player_zip_matches_startup_tested_archive": true,
+  "exact_source_export": {
+    "passed": true,
+    "pck_resources": 168,
+    "resource_inventory_matches_clean_checkout": true,
+    "evidence_leak_guard": true,
+    "source_archive_evidence_gdignore": true
+  },
+  "archive_repeat_results": [
+    {
+      "file": "Ancient_Naval_v020.7_Source_CANDIDATE.zip",
+      "bytes": 18430324,
+      "sha256": "4d2e74a92b15922981a9aaa455c437cbfecda9689731348c50b6c65b645e0905",
+      "repeat_identical": true
+    },
+    {
+      "file": "Ancient_Naval_v020.7_Windows_PLAYER_CANDIDATE.zip",
+      "bytes": 86731159,
+      "sha256": "d17f1fea425b471152816eabb13e9c636d5c609dc3c5bc4ff06569f3ad92754c",
+      "repeat_identical": true
+    }
+  ],
+  "required_assets_retained": {
+    "count": 24,
+    "all_hashes_match": true
+  },
+  "original_player_development_files_excluded": 51,
+  "preservation": {
+    "original_source_files": 1987,
+    "unchanged_source_files": 1984,
+    "intentional_docs_changed": [
+      "AGENTS.md",
+      "CHANGELOG.md",
+      "README.md"
+    ],
+    "prior_docs_preserved_exactly": true,
+    "historical_artifacts_unchanged": 164,
+    "primary_head_unchanged": "299d99c434475b0b83ef17c30fd1450e978a6788",
+    "primary_index_unchanged": true
+  },
+  "personal_save_slot_used_by_automated_tests": false,
+  "performance": {
+    "status": "not_approved",
+    "prior_debug_gate": "FAIL, before final text corrections",
+    "pan_p95_ms": 59.123,
+    "pan_max_ms": 99.113,
+    "interaction_p95_ms": 29.224,
+    "pan_p95_limit_ms": 25,
+    "thresholds_changed": false,
+    "live_fog_case": "not run after first failure",
+    "final_debug_serial_repeat": "pending quiet host",
+    "active_background_games": [
+      "WorldOfTanks",
+      "Ancient Naval v020.4"
+    ],
+    "idle_gpu_percent_last_observed": 72,
+    "unrelated_apps_terminated": false
+  },
+  "remaining": [
+    "quiet-host final Debug build and serial Pangaea/live-fog gates; investigate actual failure if repeat fails",
+    "finalized naming/tag/promotion only after all required gates"
+  ],
+  "next_version_scope_proposal": "After verified v020.7: reconcile preserved v020.8; review optional saved policies, UI clipping/interruption regressions and safe marker-free main promotion. No implementation begun.",
+  "exact_source_reexport_native_startup": [
+    {
+      "test": "en",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "uk",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "nl",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "map",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    }
+  ]
+}

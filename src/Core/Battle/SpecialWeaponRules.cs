@@ -18,6 +18,7 @@ public sealed record MortarRules
 
 public sealed record BalloonRules
 {
+    public int CrashDamage { get; init; }
     public bool KolonelAntiAir { get; init; }
     public int BombDamage { get; init; } = 6;
     public int SplashDamage { get; init; } = 2;
@@ -26,7 +27,7 @@ public sealed record BalloonRules
 
     internal void Validate()
     {
-        if (BombDamage <= 0 || SplashDamage < 0 || CooldownTurns < 1 || AntiAirRange < 1)
+        if (CrashDamage < 0 || BombDamage <= 0 || SplashDamage < 0 || CooldownTurns < 1 || AntiAirRange < 1)
             throw new ArgumentException("Balloon bombs need positive damage and cooldown, and nonnegative splash damage.");
     }
 }

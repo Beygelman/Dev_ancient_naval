@@ -1,5 +1,80 @@
 # Ancient Naval architecture
 
+For v020.7b terrain caches, logical fog invalidation is immediate but native
+source visibility/tint/redraw changes wait for each scheduled GPU flight. Hide
+unsafe old images at invalidation, then publish only the prepared generation
+matching the newest request and source paint. Changing all queued native sources
+at once previously caused >100 ms movement frames outside managed CPU scopes.
+
+## v020.7b working checkpoint
+
+The checked-in working identity is v020.7b, dated 06.10.2026. Both menu signatures
+read project.godot; no runtime clock or obsolete hardcoded version is used.
+Historical shipped artifacts retain their own identities. This update requests
+source only, with no new player export.
+
+`TerrainDetailCache` adds high-resolution close-view chunks over the existing
+coarse retained terrain. It retains at most 64 padded 520×520 chunks (17,305,600
+RGBA pixels), a quantized sample scale, LRU reuse and one GPU flight. The existing
+coarse raster remains bounded to 4096-axis/8,388,608 pixels and 512-pixel regions.
+Fog downgrade immediately hides stale coarse/detail images; completion publishes
+only the latest requested generation. Repeated queued revisions must re-arm a
+region, never restore an obsolete texture. Panning/hover alone changes no terrain
+identity. `WorldLabelArt` samples black town glyphs at 3× with inverse drawing
+scale, leaving anchors, logical dimensions and retained UI lifetime unchanged.
+
+One far tier uses hysteresis (<0.44 enter, >=0.52 leave), shared scenery atlases
+and class-specific compact hull art. Full detail stays available near; visibility,
+ground Y-depth and badge anchors remain independent of detail. A same-camera
+draw-call comparison proves reduced submission work, not an FPS guarantee.
+
+Current selected-object counsel is larger and grouped by stat glyphs. Info
+sectors/popups are removed. Command papers retain their exact world anchor and
+wrap further at distant zoom, keeping glyph/price scale readable. Visible sector
+positions reserve 1–9 in native left-to-right order, including disabled positions;
+only enabled current-page commands execute. Hidden positions have no number.
+The nation monument cycles the existing useful-action query; only hints-on
+end-turn confirmation contains the object/action grid.
+
+Stage 3 keeps selected-object command, claim, treasury and salvo papers at their
+projected world anchors, including offscreen positions; none is viewport-clamped.
+`MainOffscreenNavigation` supplies only eligible claim/treasury coordinates and
+recent owned-town/Mothership damage to `OffscreenNavigationHud`. Native viewport
+coordinates decide whether a target is offscreen. The circle radius is 30% of the
+physical viewport's shorter side after UI conversion; UI scale cannot change
+that fraction. Blue/gold/red markers retain independent hit regions, and close
+bearings spread around the circle. Clicking only flies the camera; the
+bottom-center compass focuses Mother. Narrow counsel layouts leave compass space.
+
+Damage alerts compare committed owned HP only when `Battle.PendingPresentation`
+is null, so a prepared salvo cannot report a future hit. Click dismisses the
+alert; it survives at most through the following round. World replacement clears
+health baselines, alerts and the turn-pulse round. Enemy HP/identity is never
+queried for this guidance.
+
+`SanctuaryTurnPulse` adds one 1.1-second, 30-Hz cosmetic flare to owned town and
+Mothership shrine canvases per stable human round. Repeated refresh/camera events
+cannot replay it. Hidden/offscreen flares stop frame processing while a finite
+expiry timer releases them. The effect redraws only its own overlay, without
+invalidating static artwork, mutating Core/save state or consuming simulation RNG.
+
+`MainScuttle` presents `ScuttleConfirmationHud` in every hint mode, freezes map
+input and revalidates battle/ship before invoking the existing staged scuttle.
+Acceptance does not itself own damage, receipts or balloon-crash effects.
+Cancellation and world replacement resolve safely. Tutorial v1 acknowledgement
+history is preserved; new advice uses saved rules and actual native fixture
+images, including a double-salvo choice before firing. Fixed footer buttons stay
+outside the narrative scroll. A nonmodal clipped paper consumes wheel events in
+the body, at endpoints and over blank/footer areas; explicitly disable native
+force-pass scrolling on the containing controls and reveal content surface.
+
+Only new voyages receive Granado movement 4 and built Cannon Tower damage 5.
+`CannonTowersIgnoreWalls` defaults false when absent; current balance enables it.
+`VillageShotDamage` is shared by actual impact, ready actions, Admiral forecast
+and the observed-town lethal highlight. Ancient guns keep existing wall behavior.
+Embedded catalogs, optional historical defaults and serialized class identities
+are unchanged on Continue.
+
 ## v020.5 voyage and construction contracts
 
 `MapSize` is optional saved board metadata. Explicit Lake/Bay/Sea/Ocean areas scale the mesh independently of rival count. Generation validates the existing separated-coastal-settlement quota and retries a bounded deterministic terrain salt on the same mesh; a missing size follows the historical generation path exactly. `FishingCannonTowers` defaults false, `PortRules.MaximumRouteLength` defaults zero (unlimited), and nullable `VillageAutoRepairAmount` falls back to historical active repair for older snapshots. Serialized `ShipClass.Fishing` remains unchanged; its current display/model is Support Brig.
@@ -203,9 +278,11 @@ across legal routes; it is deliberately local, not an omniscient future planner.
 
 `TradeNetwork` builds deterministic shortest maritime links between live same-owner ports, with diagonal land-corner and whirlpool exclusions. Its command-independent cache is invalidated by ownership/zero HP/hazards and aggregate restore. Naval occupancy remains query-specific. `TradeNavigation` uses (cell, lane run) search states and cumulative integer rounding, so the minimum two-tile/20% gain survives both previews and split orders. Off-lane steps reset the run; extra terrain/threat costs remain. `MovementPreview` captures a fixed origin/path reconstruction, never a mutable ship position.
 
+Optional `Ports.ConnectedCityIncome` defaults false for historical fixed-income saves. New voyages explicitly enable it and set fixed `Income` to zero. Immutable network components count other live friendly port cities; beacon relays and duplicate paths add no separate income. `BattleState.PortIncome` and turn crediting derive the same cached contribution without rewriting saved sources. Ownership, defeat, construction, forbidden water and staged restore invalidate the graph; income cache lifetime is the graph instance. Foreign city counsel never queries or displays its unobserved network total.
+
 `GodEye` and `AiDifficulty` are optional v1 save fields; missing difficulty defaults to Captain. Port rules and saved town/ship lane state also have legacy-compatible defaults. `BattleVision` keeps genuine memory and the human full-map override separate. Allied radar supplies coordinates to weapons irrespective of an individual unit's radar; observations still require optical sight. Human victory activates full visibility.
 
-Town art is retained apart from mill/flag animation and a Z=6 interface canvas. Gameplay invalidation refreshes town UI even when Vision.Revision did not change. Sea strokes/triangles are submitted in batches with retained buffers; there is one color per multiline segment. Range/resource/trade commands use native viewport clipping and are not reissued on pans. Hulls are not toggled hidden/visible each frame: native position/rotation carries bobbing; state, heading, barrel, sinking and slower city life trigger art redraw.
+Town art is retained apart from mill/flag animation and a Z=12 interface canvas above world feedback. Gameplay invalidation refreshes town UI even when Vision.Revision did not change. Sea strokes/triangles are submitted in batches with retained buffers; there is one color per multiline segment. Range/resource/trade commands use native viewport clipping and are not reissued on pans. Hulls are not toggled hidden/visible each frame: native position/rotation carries bobbing; state, heading, barrel, sinking and slower city life trigger art redraw. Amphora grain geometry is cached and drawn in two tint batches without changing its deterministic stroke positions.
 
 Admiral is bounded one-turn planning, not an omniscient tree search. It ranks finishing blows, counterfire and an upper-bound next-turn enemy reach forecast; coordinates supporting hulls and avoids costly healthy flagships until firepower is sufficient. Only observed ships feed that forecast. Cheap scouts use anonymous radar positions. Boatswain/Captain/Admiral share rules, prices, income, RNG and visibility.
 
@@ -269,7 +346,7 @@ the result. Fireworks are finite (7 bursts, at most 224 sparks) and processing s
 
 Pangaea generation retains the existing organic mesh. Seeded lake envelopes are linked by sampled meanders and shared-edge paths, plus tributaries, external mouths and paired basin bypasses. ConnectWater guarantees one edge-connected water network. PangaeaWaters classifies the inner world-space envelope, used to prioritize two interior settlements per territory and interior fish while retaining fair settlement counts and starter resources. Snapshots store the resulting terrain/resources; Continue does not call the generator.
 
-ActionStoriesHud tracks all eligible `(action kind, target ID)` pairs independently of selection. Ready scenes follow their projected target on camera changes; offscreen scenes stop their levitation. The UI sends target IDs to MainActionStories, which selects that object, blocks input while consuming its scroll, revalidates battle identity and eligibility, and commits once after the cosmetic ceremony. No invisible capture-marker hitbox remains. Artwork follows a top-anchored half-circle via explicit convex textured quads, avoiding triangulation of an almost-zero-width closing annulus. Ship/resource RadialPapyrus uses the opposite upward half-circle and clamps only at viewport edges. Purchase costs are active-rule values; repair/cooldown annotations are not mistaken for prices.
+ActionStoriesHud tracks all eligible `(action kind, target ID)` pairs independently of selection. Ready scenes follow their projected target on camera changes; offscreen scenes stop their levitation. The UI sends target IDs to MainActionStories, which selects that object, blocks input while consuming its scroll, revalidates battle identity and eligibility, and commits once after the cosmetic ceremony. No invisible capture-marker hitbox remains. Artwork follows a top-anchored half-circle via explicit convex textured quads, avoiding triangulation of an almost-zero-width closing annulus. Ship/resource RadialPapyrus uses the opposite upward half-circle; v020.7b keeps its world anchor unclamped. Purchase costs are active-rule values; repair/cooldown annotations are not mistaken for prices.
 
 FactionSanctuaryArt shares projected floor XY and upright Z between ships, towns and setup emblem previews. Neutral towns omit this monument; owned towns scale it with level. Static house randomness depends only on map seed/town ID, never simulation RNG. Existing native ground-Y anchors and observed-town redraw rules remain; hidden towns keep the last painted ownership/level. Trade routes are retained world commands, with cubic interpolation, checked water bends and white dashes. Only their visual endpoints extend to the port's land/sea midpoint; the Core trade network still begins at the unoccupied sea berth.
 
@@ -328,3 +405,22 @@ ReadyActions is a pure command-derived Core query, one record per eligible owned
 WreckModels constructs bounded independent solid components with floor x/y and height z. WreckRenderer retains their faces, applies individual release/drift/rotation/gravity and clips against physical sea height before isometric projection; exposed faces remain opaque. No raster slices or per-frame mesh construction are used. Wreck canvases are released on completion or world replacement. Gull alarms consume cosmetic state only and observable gunshots; shrine animation never redraws static town rasters. Treasury sprites hide after observed demolition without rebuilding the scenery atlas.
 
 TutorialAdvice observes public owned-object events only and stores once-per-voyage topic IDs in a separate bounded presentation sidecar. Its nonmodal upper-left paper uses actual native-rendered controlled-fixture screenshots, suspends during commands/menus/modal rewards and shares UiHints. LoadScenario alone cannot start tutorials, so renderer diagnostics never write tutorial preferences to a real save slot.
+
+
+## v020.7: faith, weighted crews and shared occupants
+
+`WeightedFleetCapacity`, `DiagonalVillageBerths`, `ScuttleRefundFraction` and `Balloon.CrashDamage` are optional saved rules: absent fields preserve previous slot, coast, refund and no-crash behavior. New balance enables them. `FleetSlotCost` is common to production, ready actions and the ledger. New paid hulls/structures save `ConstructionPrice`; starting and granted hulls save zero, while old missing receipts use the active catalog price. `ScuttleRefund` uses whole-number rounding and the command pays once.
+
+`PortCell` persists the sea berth selected by `PreviewPortBerth`; this pure query searches legal water steps using the same corner/cost policy as `TradeNetwork`. Later network changes cannot relocate existing ports. Diagonal production still uses occupancy, outer-rim and saved-rule checks. Board art extends to the actual coast between the village and its saved water endpoint.
+
+`BalloonCrash` is a separate impact boundary after the killing/scuttling boundary. Core applies all nine-cell ship damage before collapsing a killed flagship, and keeps village hits in the same result. Native presentation reconstructs curved solid cloth gores, struts, burner and basket; it commits the crash at sea impact, then presents destroyed victims. Hidden origins/victims are never rendered. `DirectShipKills` counts each captain's direct hull losses; `VoyageStatistics.StructuresBuilt` and `SeaStrongholdsBuilt` distinguish all paid sea structures from cannon towers/lighthouses. All evidence survives staged copies and saves; missing old evidence starts at zero.
+
+`VoyageJudgement` reads final public evidence without commands. Combat distinction requires at least eight direct kills and twice the strongest rival; conquest needs six constructed towers/beacons plus 70% of towns; swift limit is `6 + 4*rivals + 3*mapSizeIndex`; mature economy uses rivals, size, construction and owned-town counts. Difficulty chooses the acclaim tone. `NationIdentity` proper names and `NationOrnament` vector crests share faction faith, including Rose Crown and the thick serif crimson R.
+
+`RollingModalPaper` resolves interrupted animations safely. `BrushPaperButton` retains native input/focus and paints transient ink/hand effects. Advice remains unchanged across selection. Welcome/outcome put action buttons in a fixed footer, scrolling only narrative/statistics with no visible bars; most modal paper is bounded to 60% height. The explicitly revised setup instead has equal top/bottom/right margins. `MapInput.PointerEnabled`/`ZoomEnabled` isolate open overlays from background gestures. `MainTileSelection` cycles only currently observed occupants; attack/build orders keep priority and hidden objects cannot enter the cycle.
+
+Trade traffic revalidates its recorded lane cells after Core cache replacement, retaining legal voyages instead of resetting them. Shrine/lighthouse/battery idle effects use cosmetic clocks and visible-object bounds; they never consume battle RNG. Shader wave and terrain retention contracts remain unchanged. Final native frame gates must run alone after the final Debug assembly is built.
+
+## v020.8 physical papyrus and optional pirate worlds
+
+Rolling papers reveal a fixed-size content tree through a native clipped host. Roll progress is independent of Control.Scale; proportional roll radius increases while folding. Ceremonial rods/ornaments are presentation-only and stop when hidden. Open/fold interruptions resolve their awaiters without re-enabling commands or repeating staged claims. New setup pirate/difficulty arguments reach generation before pirate placement; changing difficulty later does not reroll a saved world. Optional saved policies default to historical behavior when absent.

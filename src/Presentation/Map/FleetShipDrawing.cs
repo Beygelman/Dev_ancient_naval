@@ -11,8 +11,16 @@ public partial class FleetView
 {
     private readonly CityShipArt _cityShip = new();
     private readonly VesselArt _vesselArt = new();
+    private readonly Dictionary<int, SeaGeometryBatch> _farHullBatches = new();
     private void DrawShip(ShipSnapshot ship, Vector2 center, bool silhouette = false, bool wreckSource = false)
     {
+        if (!silhouette && !wreckSource && Landscape?.FarSceneryActive == true)
+        {
+            if (!_farHullBatches.TryGetValue(ship.Id, out var batch)) _farHullBatches.Add(ship.Id, batch = new(256));
+            FarFleetArt.Draw(Ink, batch, ship, center, BaseHeading(ship.Class, ship.Owner) + DeckAngle(ship.Id), FleetPalette.For(Battle, ship.Owner));
+            if (ship.Id == SelectedId) Ink.DrawArc(center, 34 * ShipVisualProfile.For(ship.Class).Size, 0, Mathf.Tau, 24, new Color("ffe298"), 2, true);
+            return;
+        }
         if (ship.Class == ShipClass.Balloon)
         {
             var balloon = center + new Vector2(0, -62);
@@ -46,7 +54,7 @@ public partial class FleetView
 
         if (ship.Class == ShipClass.Lighthouse)
         {
-            DrawLighthouse(center, FleetPalette.For(Battle, ship.Owner));
+            DrawLighthouse(center, FleetPalette.For(Battle, ship.Owner), ship.Id, !silhouette && !wreckSource);
             if (ship.Id == SelectedId)
                 Ink.DrawArc(center + LighthouseOffset, 20, 0, Mathf.Tau, 32, new Color("ffe298"), 1.7f, true);
             return;
@@ -86,7 +94,8 @@ public partial class FleetView
         }
         else if (ship.Class == ShipClass.Mothership)
         {
-            _cityShip.Draw(Ink, P, accent, _clock, sinking, Battle.ColorFor(ship.Owner), ship.Level);
+            _cityShip.Draw(Ink, P, accent, _clock, sinking, Battle.ColorFor(ship.Owner), ship.Level,
+                effects: !silhouette && !wreckSource);
         }
         else
         {

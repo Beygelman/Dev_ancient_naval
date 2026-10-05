@@ -1,0 +1,157 @@
+PAN frames=119, p50_ms=16.698, p95_ms=16.968, max_ms=29.554
+INTERACTION world=Pangaea, wide_view=True, tiles=1759, opponents=4, live_fog=False, hover_calls=64, hover_p50_ms=0.029, hover_p95_ms=0.059, hover_max_ms=0.429, frame_p95_ms=17.315, frame_max_ms=53.370, process_p95_ms=45.723, draw_calls_p95=1425, movement_elapsed_ms=1601.493
+SLOW_FRAMES
+
+{
+  "Terrain.Detail.View": {
+    "Calls": 120,
+    "TotalMs": 0.0272,
+    "MaxMs": 0.0008,
+    "Bytes": 0
+  },
+  "Ambience.Fish": {
+    "Calls": 148,
+    "TotalMs": 103.60409999999999,
+    "MaxMs": 1.1477,
+    "Bytes": 0
+  },
+  "Ambience.Draw": {
+    "Calls": 148,
+    "TotalMs": 118.7649,
+    "MaxMs": 1.3303,
+    "Bytes": 3600
+  },
+  "Fleet.Water.Draw": {
+    "Calls": 396,
+    "TotalMs": 6.528199999999997,
+    "MaxMs": 0.1485,
+    "Bytes": 90624
+  },
+  "Fleet.Hulls.Refresh": {
+    "Calls": 396,
+    "TotalMs": 56.34779999999998,
+    "MaxMs": 0.5464,
+    "Bytes": 10326568
+  },
+  "Fleet.Draw": {
+    "Calls": 396,
+    "TotalMs": 63.10580000000001,
+    "MaxMs": 0.549,
+    "Bytes": 10417288
+  },
+  "Terrain.Coarse.FinishFrame": {
+    "Calls": 299,
+    "TotalMs": 1.1334999999999995,
+    "MaxMs": 0.015,
+    "Bytes": 11960
+  },
+  "Terrain.Detail.FinishFrame": {
+    "Calls": 299,
+    "TotalMs": 0.16670000000000032,
+    "MaxMs": 0.0084,
+    "Bytes": 0
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 1.8337999999999999,
+    "MaxMs": 0.1842,
+    "Bytes": 93848
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 24.974199999999993,
+    "MaxMs": 1.2151,
+    "Bytes": 586552
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 3.7377,
+    "MaxMs": 3.7377,
+    "Bytes": 210880
+  },
+  "Terrain.Coarse.Invalidate": {
+    "Calls": 1,
+    "TotalMs": 0.0274,
+    "MaxMs": 0.0274,
+    "Bytes": 168
+  },
+  "Terrain.Detail.Invalidate": {
+    "Calls": 1,
+    "TotalMs": 0.0003,
+    "MaxMs": 0.0003,
+    "Bytes": 0
+  },
+  "Ambience.Waves.Build": {
+    "Calls": 1,
+    "TotalMs": 6.5572,
+    "MaxMs": 6.5572,
+    "Bytes": 3627312
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 7.9012,
+    "MaxMs": 7.9012,
+    "Bytes": 3784240
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 6.419,
+    "MaxMs": 5.5139,
+    "Bytes": 366272
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 14.9764,
+    "MaxMs": 13.6713,
+    "Bytes": 4217592
+  },
+  "Animation.TravelRoute": {
+    "Calls": 1,
+    "TotalMs": 0.3816,
+    "MaxMs": 0.3816,
+    "Bytes": 2440
+  },
+  "Animation.Start": {
+    "Calls": 1,
+    "TotalMs": 6.2932,
+    "MaxMs": 6.2932,
+    "Bytes": 9040
+  },
+  "Selection.Dispatch": {
+    "Calls": 1,
+    "TotalMs": 24.9304,
+    "MaxMs": 24.9304,
+    "Bytes": 4383344
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0047,
+    "MaxMs": 0.0047,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 0.07980000000000001,
+    "MaxMs": 0.0558,
+    "Bytes": 3576
+  },
+  "Hull.Draw": {
+    "Calls": 95,
+    "TotalMs": 3.6469999999999994,
+    "MaxMs": 0.0666,
+    "Bytes": 50712
+  },
+  "Save.Capture": {
+    "Calls": 1,
+    "TotalMs": 0.5018,
+    "MaxMs": 0.5018,
+    "Bytes": 367272
+  },
+  "Save.Write": {
+    "Calls": 1,
+    "TotalMs": 17.5334,
+    "MaxMs": 17.5334,
+    "Bytes": 1457264
+  }
+}
+RENDER_MEMORY video_peak_mib=476.17, texture_peak_mib=377.62, buffer_peak_mib=98.55

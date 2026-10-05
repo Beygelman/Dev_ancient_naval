@@ -36,10 +36,7 @@ public partial class DebugHud
         target = UiScale.ScreenToUi(target);
         progressOffset /= UiScale.Value;
         _radial.Hide();
-        var origin = target + new Vector2(0, progressOffset + 12 - _salvoChoice.TopInset);
-        var viewport = UiScale.LogicalViewport(this);
-        origin.X = Mathf.Clamp(origin.X, 112, Math.Max(112, viewport.X - 112));
-        origin.Y = Mathf.Clamp(origin.Y, 100, Math.Max(100, viewport.Y - 175));
-        _salvoChoice.Position = origin - SectorButton.Center;
+        _salvoChoice.SetWrapping(Mathf.Clamp(progressOffset + 18, 64, 142), Mathf.Pi);
+        _salvoChoice.Position = target - _salvoChoice.RingCenter;
     }
 }

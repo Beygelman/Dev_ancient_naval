@@ -1,14 +1,117 @@
-# Ancient Naval — v020.6 — The Watchful Voyage
+# Ancient Naval — v020.7b
 
-A turn-based naval tactics game built with **Godot 4.7.2 .NET**, C# and .NET 8. Open `project.godot`, stop the previous run with **F8**, then press **F5**. The title screen offers **New game**, **Continue**, **Settings** and **Exit game**. New game opens a six-color fleet and emblem selector and a choice of 1–4 rival fleets and Boatswain, Captain or Admiral difficulty, plus **Sea World**, **Oceans**, **Continents** or **Pangaea**.
+**Working source update · 6 October 2026.** Godot 4.7.2 .NET, C# and .NET 8.
+This update has no new Windows release package. The ZIPs below are historical
+builds; run the current source to see v020.7b.
 
-Defeat the rival Motherships while exploring, collecting resources and capturing coastal villages. The interface supports English, Ukrainian and Dutch; language buttons and interface scale are available in Settings on the title screen and in the game menu. Core gameplay remains independent of Godot; rendering and input live in Presentation.
+An ancient floating city carries the last hope of its people. Explore an organic
+six-sided sea, protect your Mothership, claim coastal settlements and defeat
+1–4 rival fleets. Choose Sea World, Oceans, Continents or Pangaea; three AI
+difficulties; six nations; optional pirates, hints and God's eye. English,
+Ukrainian and Dutch are supported.
+
+## What changed in v020.7b
+
+- Close coastlines and grid geometry use bounded high-resolution retained
+  chunks; town names use sharper glyphs. One distant object LOD reduces draw
+  submissions at full-chart zoom while preserving fog and depth ordering.
+- Fog changes prepare their native graphics per scheduled chunk, avoiding the
+  previous movement spike. Two consecutive serial native frame gates passed.
+- World-anchored command paper wraps farther around its object as the chart
+  zooms out. Icons and prices keep their size; WASD movement is faster.
+- Selected-object, claim, treasury and salvo papers keep their world anchors
+  beyond the screen. Offscreen directions appear on a circle whose radius is
+  30% of the viewport's shorter side: blue for claims, gold for treasuries and
+  red for recent damage to owned towns or the Mothership. Click to fly the
+  camera there; the bottom-center compass returns to the Mothership.
+- Select an object for a larger nation-styled counsel card with grouped stats
+  and clear glyphs. Narrow layouts leave room for the compass. The redundant
+  Info button and separate popup are removed.
+- Visible command positions reserve **1–9**, left to right. Grey commands cannot
+  execute. Shipyard pages assign their own numbers; Right-click clears selection.
+- A glowing nation monument replaces the large ready-action jug. It remains
+  visible without hints. Click repeatedly to visit useful actions in order.
+  The hints-on end-turn confirmation alone shows object/action pictograms.
+- New voyages: Granado movement **4**; built Cannon Tower damage **5**, with
+  full damage through town walls. Ancient guns keep their existing behavior.
+- Scuttling has a sinking-ship brush icon and **always asks for confirmation**,
+  with the actual refund shown, whether hints are enabled or disabled.
+- Screenshot advice explains flagship resources, village growth, double salvos,
+  veterancy and command keys using the rules stored in the voyage.
+- Merchant art, varied mountain chains, rounded clouds and purple silver
+  pyramid engravings retain the game's ancient visual style.
+- Owned shrines give one finite 1.1-second, 30-Hz light pulse per human round. The
+  effect stops processing when hidden and changes no gameplay or random state.
+
+Historical voyages preserve their embedded balance, world geometry, RNG and
+progress. A missing new tower wall-bypass field defaults to the old rule.
+No historical player/source archive is replaced.
+
+## Play from source
+
+Open `project.godot` in **Godot 4.7.2 .NET**, stop a previous run with **F8**,
+then press **F5**. The title screen offers New game, Continue, Settings and Exit.
+Both title and in-voyage menus read the checked-in version/date signature.
+
+- Select a ship and choose a legal tile or known target.
+- **WASD / arrows:** move the chart. **Wheel:** zoom. **R:** repair.
+- **1–9:** current parchment commands. **Right-click:** cancel/clear selection.
+- The nation monument cycles objects with useful actions remaining.
+- Offscreen arrows and the Mothership compass move the camera without claiming,
+  looting or attacking. Red alerts start only after committed damage finishes
+  presenting; clicking dismisses them, and they expire after the following round.
+- Panels consume their own scrolling; modal choices isolate the sea behind them.
+
+## Economy and compatibility
+
+Each port earns **1 Thor per other connected friendly port city**, including
+lighthouse relays. Isolated ports earn 0; four linked cities earn 3 each.
+Port price is **6**, shipyard discount **20%**, and lane movement grants at least
+**+2 tiles or +20%**, whichever is greater. Support Brig costs **5**, Brig **6**,
+Galleon **9**, Kolonel **16**, Granado **22**, radar **4**, and flagship mortar
+**14**. Older saves retain their historical prices and port-income policy.
+
+Core owns all damage, economy and turns. Projectile counts and animation timing
+cannot change combat results. God’s eye affects human display only; radar never
+reveals hidden identity, health or destruction details.
+
+## Development and verification
+
+Canonical working folder: `C:/__Beygelman/! -11/dev-ancient-naval`.
+Read [AGENTS.md](AGENTS.md) and [architecture](docs/ARCHITECTURE.md) before changes.
+Update this README and document each reviewed GitHub `main` commit.
+
+```powershell
+dotnet build Dev_ancient_naval.csproj
+dotnet run --project tests/CoreChecks/CoreChecks.csproj --configuration Release
+```
+
+Native graphical checks use explicit disposable `--save-file=` and
+`--ui-settings-file=` paths. Run frame gates serially after the final Debug build;
+headless results do not certify smoothness. See
+[the v020.7b checkpoint](docs/MILESTONE-v020.7b.md) for actual evidence and limits,
+and [CHANGELOG](CHANGELOG.md) for earlier development.
+
+The local checkpoint `9ccfa57` includes a 109,413,888-byte raw executable that
+exceeds GitHub's regular-file limit. Preserve that commit under a local backup
+ref and keep its files. Publish reviewed source commits based on remote `299d99c`,
+excluding only the newly extracted
+`releases/v020.7/corrected-2026-10-05/Ancient_Naval_v020.7_Windows_PLAYER_CANDIDATE/`
+folder. Historical ZIPs and their recorded hashes remain unchanged.
 
 ## Download and local release copies
 
 The working project, sources, assets, balance, tests and this README are edited
 directly in this Git repository. Delivered files are also copied to `releases/`
 inside the same project; the external `outputs` folder is an additional mirror.
+
+- [Windows v020.8 ZIP](releases/v020.8/Ancient_Naval_v020.8_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
+- [Source v020.8 ZIP](releases/v020.8/Ancient_Naval_v020.8_Source.zip), [Russian notes](releases/v020.8/Ancient_Naval_v020.8_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.8.txt).
+- Local launch copy: `releases/v020.8/playable/Ancient Naval.exe`.
+
+- [Windows v020.7 ZIP](releases/v020.7/Ancient_Naval_v020.7_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
+- [Source v020.7 ZIP](releases/v020.7/Ancient_Naval_v020.7_Source.zip), [Russian notes](releases/v020.7/Ancient_Naval_v020.7_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.7.txt).
+- Local launch copy: `releases/v020.7/playable/Ancient Naval.exe`.
 
 - [Windows v020.6 ZIP](releases/v020.6/Ancient_Naval_v020.6_Windows.zip): extract the complete folder and launch `Ancient Naval.exe`.
 - [Source v020.6 ZIP](releases/v020.6/Ancient_Naval_v020.6_Source.zip), [Russian notes](releases/v020.6/Ancient_Naval_v020.6_Notes_RU.md), [SHA256 checksums](releases/SHA256-v020.6.txt).
@@ -334,3 +437,40 @@ Every suite must print **PASS**. Tests cover seeded maps, geometry/picking, upgr
 Autosave records each completed player action and AI action, and saves again when returning to the title or exiting. Continue restores the exact mesh, ships, upgrades, economy, fog, village/treasury waits, random-event state and camera. A complete previous checkpoint of the **same voyage** is retained as `.bak`. On Windows the default slot is `%APPDATA%/Godot/app_userdata/Ancient Naval/last_battle.json`. Debug checks and map previews never overwrite it. Starting a new game atomically replaces the slot and removes the old voyage backup. No older voyage can be continued.
 
 Android export/device testing remain future work. See the [beta roadmap](docs/ROADMAP-TO-BETA.md) and [current milestone](docs/MILESTONE-0.17.md). Earlier milestones describe historical rules.
+
+## Isolated v020.7 finalization candidate — 4 October 2026
+
+The newer v020.8 source above is preserved. A separate audited v020.7 snapshot
+is on `codex/v0207-finalization`, based on `b03c5bd`; no main reset/merge occurred.
+**Final native performance approval is pending. These are candidates.**
+
+- [Clean player candidate](releases/v020.7/finalization-candidate/Ancient_Naval_v020.7_Windows_PLAYER_CANDIDATE.zip).
+- [Source candidate](releases/v020.7/finalization-candidate/Ancient_Naval_v020.7_Source_CANDIDATE.zip).
+- [SHA256 manifest](releases/v020.7/finalization-candidate/SHA256-v020.7-candidate.txt).
+- [Audit/test report](docs/V0207_FINALIZATION_REPORT.md) and [exact artifact validation](releases/v020.7/finalization-candidate/FINAL-ARTIFACT-VALIDATION.json).
+
+Original releases and their manifests remain byte-for-byte unchanged. Gameplay,
+Core and save contracts were not altered by this audit. The guide was upgraded
+to the supplied revision 4.0; prior primary documentation copies remain in
+`docs/history/v0207-finalization-primary/`. No v020.8 feature was backported.
+
+## Final verified v020.7 checkpoint — 5 October 2026
+
+The isolated v020.7 checkpoint now passes the final Debug build, Core/historical
+save checks and both serial native frame gates with unchanged thresholds.
+Pangaea/wide-view pan p95 is 19.776 ms; Oceans/live-fog pan p95 is 17.247 ms.
+Earlier candidate results remain historical evidence; this section supersedes
+their pending status for the final delivery only. Primary v020.8 sources remain
+preserved and the remote main/PR #6 have not been changed.
+
+- [Clean Windows player](releases/v020.7/finalized/Ancient_Naval_v020.7_Windows_PLAYER_CLEAN.zip).
+- [Finalized source](releases/v020.7/finalized/Ancient_Naval_v020.7_Source_FINALIZED.zip).
+- [Archive SHA256](releases/v020.7/finalized/SHA256-v020.7-finalized.txt).
+- [Actual artifact checks](releases/v020.7/finalized/FINAL-ARTIFACT-VALIDATION.json)
+  and [technical report](docs/V0207_FINALIZATION_REPORT.md).
+
+The source snapshot is ce6d1e50d82c57b4971d3c28da119607b148e1d1 on
+codex/v0207-finalization, based on b03c5bd. Local tag v020.7-finalized records the
+later artifact-delivery checkpoint. All historical archives/latest metadata and
+the primary HEAD/index remain unchanged. The full Windows runtime is retained;
+51 internal diagnostics/preview/PDB items from the original player are excluded.

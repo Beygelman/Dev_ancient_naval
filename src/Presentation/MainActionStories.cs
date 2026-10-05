@@ -38,6 +38,7 @@ public partial class Main
     private async Task CommitAfterStory(Func<bool> stillReady, Func<BattleState, CommandResult> command, bool capture, int id)
     {
         var battle = Battle;
+        bool canceled = false;
         Busy = true;
         try
         {
@@ -47,7 +48,18 @@ public partial class Main
             Refresh();
             await animation;
         }
+        catch (OperationCanceledException)
+        {
+            // A removed/replaced paper acknowledges no command. Cancellation must
+            // release the input lock without committing a claim or reward.
+            canceled = true;
+        }
         finally { Busy = false; }
+        if (canceled)
+        {
+            if (Godot.GodotObject.IsInstanceValid(Hud) && Hud.IsInsideTree()) Refresh();
+            return;
+        }
         if (ReferenceEquals(battle, Battle) && stillReady())
             await Perform(command, deferImpacts: !capture);
         else Refresh();

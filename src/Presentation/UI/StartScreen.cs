@@ -17,11 +17,12 @@ public partial class StartScreen : CanvasLayer
     private MenuHarborView _harbor = null!;
     private TextureRect _title = null!;
     private VBoxContainer _actions = null!, _colors = null!, _settings = null!;
-    private PanelContainer _settingsPaper = null!;
+    private RollingModalPaper _settingsPaper = null!;
     private ScrollContainer _settingsScroll = null!;
     private RollingVoyagePaper _setupPaper = null!;
     private Label _footer = null!, _notice = null!;
     private Button _continue = null!;
+    private CheckBox _pirates = null!;
     private PaintedVoyageChoice _start = null!;
     private ColorRect _fade = null!;
     private readonly Dictionary<FleetColor, PaintedVoyageChoice> _swatches = new();
@@ -29,7 +30,7 @@ public partial class StartScreen : CanvasLayer
     private readonly Dictionary<AiDifficulty, PaintedVoyageChoice> _difficultyButtons = new();
     private readonly Dictionary<MapSize, PaintedVoyageChoice> _sizes = new();
     private readonly Dictionary<MapKind, PaintedVoyageChoice> _worlds = new();
-    private bool _layingOut;
+    private bool _layingOut, _settingsClosing;
     public bool IsOpen => Visible;
     public bool Transitioning { get; private set; }
     public FleetColor SelectedColor { get; private set; } = FleetColor.Blue;
@@ -37,6 +38,7 @@ public partial class StartScreen : CanvasLayer
     public int OpponentCount { get; private set; } = 1;
     public MapKind WorldKind { get; private set; } = MapKind.Oceans;
     public MapSize MapSize { get; private set; } = MapSize.Sea;
+    public bool IncludePirates => _pirates.ButtonPressed;
     internal int LayoutPasses { get; private set; }
     public void SetNotice(string text) => _notice.Text = text;
     internal void CompleteVoyage() => Transitioning = false;
@@ -64,7 +66,8 @@ public partial class StartScreen : CanvasLayer
         _notice = Heading("", 15);
         _notice.AddThemeColorOverride("font_color", new("edc69d"));
         _root.AddChild(_notice);
-        _footer = Heading("GitHub: Beygelman  @Ancient_Naval_v0.13 30.09.2026", 14);
+        _footer = Heading(GameIdentity.Signature, 14);
+        _footer.Name = "HomeVersionSignature";
         _footer.Modulate = new Color(1, 1, 1, .42f);
         _footer.AddThemeColorOverride("font_color", new("e5edde"));
         _root.AddChild(_footer);
@@ -141,7 +144,7 @@ public partial class StartScreen : CanvasLayer
             crest.OffsetBottom = 38;
             var label = Heading(color.ToString(), 13); swatch.AddChild(label);
             label.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomWide); label.OffsetTop = -26;
-            swatch.TooltipText = color.ToString();
+            swatch.TooltipText = NationIdentity.Name(color);
             _swatches.Add(color, swatch); nationRow.AddChild(swatch);
         }
         _colors.AddChild(Heading("Waters to explore"));
@@ -158,7 +161,7 @@ public partial class StartScreen : CanvasLayer
             int selected = count;
             var button = Choice("OpponentCount" + count, "", VoyageMotif.Rival, 0, () => ChooseOpponents(selected));
             button.CustomMinimumSize = new(68, 65);
-            button.TooltipText = count + " rival fleets";
+            button.TooltipText = count == 1 ? "1 rival fleet" : count + " rival fleets";
             _opponents.Add(count, button); rivals.AddChild(button);
         }
         _colors.AddChild(Heading("Rival seamanship"));
@@ -172,6 +175,22 @@ public partial class StartScreen : CanvasLayer
                 _ => "An admiral: coordinated guns, cautious scouts and economic recovery" };
             _difficultyButtons.Add(difficulty, button); difficulties.AddChild(button);
         }
+        var pirateRow = Row();
+        _pirates = new CheckBox
+        {
+            Name = "IncludePirates",
+            Text = "Include pirates",
+            ButtonPressed = true,
+            TooltipText = "Pirate bays and patrols appear at the start. Higher difficulty brings more pirates; disabling them keeps neutral towns and resources.",
+            CustomMinimumSize = new(0, 38),
+            FocusMode = Control.FocusModeEnum.All
+        };
+        _pirates.AddThemeFontSizeOverride("font_size", 16);
+        foreach (string state in new[] { "normal", "hover", "pressed", "disabled", "focus" })
+            _pirates.AddThemeStyleboxOverride(state, new StyleBoxEmpty());
+        foreach (string state in new[] { "font_color", "font_hover_color", "font_pressed_color", "font_focus_color" })
+            _pirates.AddThemeColorOverride(state, PaintedVoyageChoice.Burgundy);
+        pirateRow.AddChild(_pirates);
         _colors.AddChild(Heading("Shape of the world"));
         var worlds = Row();
         foreach (var (kind, caption, variant) in new[] { (MapKind.SeaWorld, "Oceanic world", 0), (MapKind.Oceans, "Island chains", 1),
@@ -191,22 +210,34 @@ public partial class StartScreen : CanvasLayer
     }
     private void BuildSettings()
     {
-        _settingsPaper = new PanelContainer { Name = "HomeSettingsPaper" };
-        _settingsPaper.AddThemeStyleboxOverride("panel", PapyrusStyle.Panel()); PapyrusGrain.Apply(_settingsPaper);
+        _settingsPaper = new RollingModalPaper { Name = "HomeSettingsPaper" };
         _root.AddChild(_settingsPaper);
         _settings = new VBoxContainer(); _settings.AddThemeConstantOverride("separation", 12);
         _settingsScroll = PapyrusModal.Wrap(_settingsPaper, _settings, "HomeSettingsScroll");
+        _settingsScroll.VerticalScrollMode = ScrollContainer.ScrollMode.ShowNever;
         _settings.AddChild(Heading("Settings", 23));
         _settings.AddChild(new LanguageButtons());
         _settings.AddChild(new UiScaleSlider());
         _settings.AddChild(new UiHintsToggle());
-        _settings.AddChild(HomeButton("CloseHomeSettings", "Back", () => ShowHome(!_continue.Disabled)));
+        _settings.AddChild(HomeButton("CloseHomeSettings", "Back", () => _ = CloseSettingsAsync()));
         _settingsPaper.Hide();
     }
     private void ShowSettings()
     {
         if (Transitioning) return;
         _actions.Hide(); _setupPaper.Hide(); _settingsPaper.Show(); Layout();
+        _ = _settingsPaper.OpenAsync();
+    }
+    private async Task CloseSettingsAsync()
+    {
+        if (_settingsClosing) return;
+        _settingsClosing = true;
+        try
+        {
+            await _settingsPaper.FoldAsync();
+            ShowHome(!_continue.Disabled);
+        }
+        finally { _settingsClosing = false; }
     }
     private void Choose(FleetColor color)
     {
@@ -217,7 +248,7 @@ public partial class StartScreen : CanvasLayer
     }
     private void UpdateCaptions()
     {
-        _start.Text = Language.Translate("Embark with the {0} nation").Replace("{0}", Language.Translate(SelectedColor.ToString()));
+        _start.Text = Language.Translate("Embark with the {0} nation").Replace("{0}", NationIdentity.Name(SelectedColor));
         Layout();
     }
     private void ChooseDifficulty(AiDifficulty difficulty)
@@ -246,8 +277,8 @@ public partial class StartScreen : CanvasLayer
     }
     public void ShowHome(bool canContinue, string notice = "")
     {
-        Transitioning = false; _fade.Hide(); _setupPaper.Scale = Vector2.One;
-        _start.Disabled = false; _start.Mark(false);
+        Transitioning = false; _fade.Hide();
+        _start.Disabled = false; _start.Mark(false); _pirates.Disabled = false;
         Show(); _root.Show(); _continue.Disabled = !canContinue; _continue.Visible = canContinue;
         _actions.Show(); _colors.Show(); _setupPaper.Hide(); _settingsPaper.Hide(); _notice.Text = notice; Layout();
     }
@@ -257,18 +288,21 @@ public partial class StartScreen : CanvasLayer
         Show(); _actions.Hide(); _settingsPaper.Hide(); _setupPaper.Show(); _notice.Text = "";
         _setupPaper.Scroll.ScrollVertical = 0;
         Layout();
+        _ = _setupPaper.OpenAsync();
     }
     internal async Task CloseForVoyage(bool fast)
     {
         Transitioning = true;
-        _start.Disabled = true;
+        _start.Disabled = true; _pirates.Disabled = true;
         _start.Mark(true); _start.BeginHandprint();
-        if (fast) { _fade.Show(); return; }
+        if (fast)
+        {
+            await _setupPaper.FoldAsync(instant: true);
+            _fade.Show();
+            return;
+        }
         await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
-        _setupPaper.PivotOffset = _setupPaper.Size * .5f;
-        var roll = CreateTween();
-        roll.TweenProperty(_setupPaper, "scale:y", .015f, .42).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
-        await ToSignal(roll, Tween.SignalName.Finished);
+        await _setupPaper.FoldAsync();
         _fade.Modulate = new Color(1, 1, 1, 0); _fade.Show();
         var fade = CreateTween(); fade.TweenProperty(_fade, "modulate:a", 1f, .3);
         await ToSignal(fade, Tween.SignalName.Finished);
@@ -284,12 +318,13 @@ public partial class StartScreen : CanvasLayer
         _title.Position = new(x - 50, size.Y * .09f);
         _title.Size = new(Math.Min(width + 100, size.X - _title.Position.X - 16), size.Y * .23f);
         _actions.Position = new(x, size.Y * .39f); _actions.Size = new(width, 0);
-        float paperWidth = Math.Min(420, Math.Max(300, size.X - 32));
-        float height = size.Y * .6f;
+        float margin = Mathf.Clamp(size.Y * .045f, 14, 32);
+        float paperWidth = Math.Min(420, Math.Max(200, size.X - margin * 2));
+        float height = Math.Max(100, size.Y - margin * 2);
         _setupPaper.CustomMinimumSize = new(paperWidth, 0);
         _setupPaper.Scroll.CustomMinimumSize = new(0, Math.Max(1, height - 24));
         _setupPaper.Size = new(paperWidth, height);
-        _setupPaper.Position = new(Math.Max(16, size.X - paperWidth - 24), (size.Y - height) * .5f);
+        _setupPaper.Position = new(size.X - paperWidth - margin, margin);
         PapyrusModal.Layout(_settingsPaper, _settingsScroll, _settings, size);
         _notice.Position = new(x, size.Y * .82f); _notice.Size = new(width, 65);
         _footer.Position = new(22, size.Y - 32); _footer.Size = new(size.X - 44, 24);

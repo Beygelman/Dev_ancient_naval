@@ -21,10 +21,13 @@ public partial class BoardView
     internal Vector2[] VillageMills(Village town) => VillagePlacement(town).Compact ? Array.Empty<Vector2>() : TownMills(town);
     internal void DrawSanctuaryOverlay(Node2D canvas, Village town, Vector2 center, float time)
     {
-        if (town.Owner is null or Side.Pirates) return;
+        if (town.Owner is null) return;
         Vector2 Monument(float x, float y, float z) => center + new Vector2((x - y + 4) * .85f,
             (x + y - 4) * .42f - z * SanctuaryHeightScale(town.Level) - 1);
-        FactionSanctuaryArt.DrawEffects(canvas, Monument, Battle.ColorFor(town.Owner.Value), time, town.Id);
+        if (town.Owner == Side.Pirates)
+            FactionSanctuaryArt.DrawPirateEffects(canvas, Monument, time, town.Id);
+        else
+            FactionSanctuaryArt.DrawEffects(canvas, Monument, Battle.ColorFor(town.Owner.Value), time, town.Id);
     }
     private static Vector2[] TownMills(int level) => level < 2 ? Array.Empty<Vector2>() : level < 4 ? new[]
     {
@@ -236,16 +239,17 @@ public partial class BoardView
     {
         TownInterfaceDrawCount++;
         var accent = FleetPalette.For(Battle, town.Owner);
-        float width = ThemeDB.FallbackFont.GetStringSize(town.Name, fontSize: 13).X;
         var placement = VillagePlacement(town);
         float below = placement.Offset.Y + (placement.Compact ? 19 : 26);
-        canvas.DrawString(ThemeDB.FallbackFont, new Vector2(placement.Offset.X - width * .5f, below), town.Name, fontSize: 13, modulate: Colors.Black);
+        WorldLabelArt.DrawCentered(canvas, new Vector2(placement.Offset.X, below), town.Name);
         for (int i = 0; i < 5; i++)
             canvas.DrawRect(new Rect2(new Vector2(placement.Offset.X -18 + i * 8, below + 4), new Vector2(5, 4)), i < town.Level ? accent : new Color("475857"));
         if (!_townHealth.TryGetValue(town.Id, out var animation))
             _townHealth[town.Id] = animation = new AmphoraHealthAnimation();
         float time = TownAnimationTime;
         animation.Observe(town.Health, town.MaxHealth, time);
-        AmphoraBadgeArt.Draw(canvas, placement.Offset + new Vector2(38, -35), town.Health, town.MaxHealth, accent, null, animation.Motion(time));
+        if (_farScenery)
+            FarFleetArt.Health(canvas, placement.Offset + new Vector2(38, -35), town.Health, town.MaxHealth, null, accent, animation.Motion(time));
+        else AmphoraBadgeArt.Draw(canvas, placement.Offset + new Vector2(38, -35), town.Health, town.MaxHealth, accent, null, animation.Motion(time));
     }
 }

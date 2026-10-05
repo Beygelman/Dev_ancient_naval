@@ -75,7 +75,7 @@ public partial class InteractionPerformanceChecks : Node
             var sizeArgument = args.FirstOrDefault(a => a.StartsWith("--map-size="));
             MapSize? size = sizeArgument is null ? null : Enum.Parse<MapSize>(sizeArgument[11..]);
             var board = ArchipelagoGenerator.Create(731, args.Contains("--scaled-map") ? opponents : 3, kind, size);
-            var battle = SkirmishSetup.Create(board, Game.Battle.Rules, opponents);
+            var battle = SkirmishSetup.Create(board, Game.Battle.Rules, opponents, DevAncientNaval.Core.Battle.AiDifficulty.Admiral);
             Game.LoadScenario(battle);
             // The timing harness calls the production selection/preview paths
             // directly. Desktop clicks must not end a turn or replace this fixture

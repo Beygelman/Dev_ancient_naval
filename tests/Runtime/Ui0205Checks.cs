@@ -39,7 +39,7 @@ public partial class Ui0205Checks : Node
         GetViewport().PushInput(new InputEventMouseMotion { Position = point, GlobalPosition = point }, true);
         foreach (bool pressed in new[] { true, false })
             GetViewport().PushInput(new InputEventMouseButton { Position = point, GlobalPosition = point,
-                ButtonIndex = MouseButton.Left, Pressed = pressed }, true);
+                ButtonIndex = MouseButton.Left, Pressed = pressed, ButtonMask = pressed ? MouseButtonMask.Left : (MouseButtonMask)0 }, true);
     }
     private async Task Reveal(Button button)
     {
@@ -67,14 +67,17 @@ public partial class Ui0205Checks : Node
     {
         Check(Game.Home.IsOpen && !Game.BoardView.Visible, "title owns input before a voyage");
         Click(HomeButton("HomeSettings")); await Frames();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         var slider = Nodes(Game.Home).OfType<HSlider>().Single();
         Check(slider.IsVisibleInTree(), "home settings contains interface scale");
         Click(slider, new(slider.Size.X * .72f, slider.Size.Y * .5f)); await Frames();
         Check(UiScale.Value > 1 && UiScale.Value <= UiScale.Maximum, "native scaled settings slider changes the preference");
         Click(HomeButton("CloseHomeSettings")); await Frames();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         Check(!slider.IsVisibleInTree(), "scale and language are tucked inside settings");
         UiScale.Set(1, persist: false);
         Click(HomeButton("HomeNewGame")); await Frames();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         Check(Game.Home.OpponentCount == 1, "one burgundy rival is selected by default");
         var paper = Nodes(Game.Home).OfType<PanelContainer>().Single(node => node.Name == "VoyageSetupPaper");
         var scroll = Nodes(Game.Home).OfType<ScrollContainer>().Single(node => node.Name == "VoyageSetupScroll");
@@ -84,13 +87,16 @@ public partial class Ui0205Checks : Node
         foreach (float scale in new[] { .8f, 1.25f })
         {
             UiScale.Set(scale, persist: false); await Frames();
-            Check(paper.Size.Y <= UiScale.LogicalViewport(this).Y * .6f + 1, "scaled parchment never exceeds sixty percent of screen height");
+            var viewport = UiScale.LogicalViewport(this);
+            float rightMargin = viewport.X - paper.Position.X - paper.Size.X;
+            Check(Math.Abs(paper.Position.Y - rightMargin) < 1 && Math.Abs(viewport.Y - paper.Position.Y - paper.Size.Y - rightMargin) < 1,
+                "scaled setup follows equal top, bottom and right margins");
             foreach (string locale in new[] { "en", "uk", "nl" })
             {
                 Language.Set(locale, persist: false); await Frames();
                 await Reveal(HomeButton("FleetColorRed")); Click(HomeButton("FleetColorRed")); await Frames();
                 Check(Game.Home.SelectedColor == FleetColor.Red, "actual transformed red nation click " + locale);
-                Check(HomeButton("StartBattle").Text == Language.Translate("Embark with the {0} nation").Replace("{0}", Language.Translate("Red")),
+                Check(HomeButton("StartBattle").Text == Language.Translate("Embark with the {0} nation").Replace("{0}", NationIdentity.Name(FleetColor.Red)),
                     "the voyage inscription names the selected nation in the active language");
             }
         }
@@ -137,10 +143,10 @@ public partial class Ui0205Checks : Node
         var clickPoint = start.GetGlobalTransformWithCanvas() * (start.Size * .5f);
         GetViewport().PushInput(new InputEventMouseMotion { Position = clickPoint, GlobalPosition = clickPoint }, true);
         GetViewport().PushInput(new InputEventMouseButton { Position = clickPoint, GlobalPosition = clickPoint,
-            ButtonIndex = MouseButton.Left, Pressed = true }, true);
+            ButtonIndex = MouseButton.Left, Pressed = true, ButtonMask = MouseButtonMask.Left }, true);
         await Frames(2);
         GetViewport().PushInput(new InputEventMouseButton { Position = clickPoint, GlobalPosition = clickPoint,
-            ButtonIndex = MouseButton.Left, Pressed = false }, true);
+            ButtonIndex = MouseButton.Left, Pressed = false, ButtonMask = (MouseButtonMask)0 }, true);
         await Frames(1);
         Check(submitted, "a real mouse release reaches the embark inscription: disabled=" + start.Disabled
             + ", control=" + start.GetGlobalTransformWithCanvas().Origin + ", size=" + start.Size
@@ -168,12 +174,14 @@ public partial class Ui0205Checks : Node
         Game.SelectCell(mother.Position); await Frames();
         Check(Game.SelectedShipId == mother.Id, "selection becomes available after the introduction");
         Game.Hud.SetMenuVisible(true); await Frames();
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         var settings = Nodes(Game.Hud).OfType<Button>().Single(node => node.Name == "GameSettings");
         Click(settings); await Frames();
         Check(Nodes(Game.Hud).OfType<HSlider>().Single().IsVisibleInTree(), "in-game Settings houses the scale preference");
         Click(Nodes(Game.Hud).OfType<Button>().Single(node => node.Name == "CloseGameSettings")); await Frames();
         Check(!Nodes(Game.Hud).OfType<HSlider>().Single().IsVisibleInTree(), "returning to menu hides settings controls");
         Game.Hud.SetMenuVisible(false);
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         string state = Game.Battle.SaveJson();
         Game.ShowHome(); await Frames(); Click(HomeButton("HomeContinue")); await Game.CurrentOrder; await Frames();
         Check(Game.Battle.SaveJson() == state && !Game.VoyageWelcome.IsOpen, "Continue preserves the exact voyage and never repeats the opening ceremony");

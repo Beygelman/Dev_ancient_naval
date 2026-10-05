@@ -45,7 +45,7 @@ internal static class AdmiralOpponent
             var shooter = guns.FirstOrDefault(s => !town.IsFortified || s.Health > battle.VillageCounterDamage(town) || s.HasMortar);
             if (shooter is not null)
                 return battle.AttackVillage(side, shooter.Id, town.Id,
-                    battle.CanDoubleSalvo(shooter.Id, town.Position) && town.Health > shooter.CurrentDamage * (town.IsFortified ? .75 : 1));
+                    battle.CanDoubleSalvo(shooter.Id, town.Position) && town.Health > battle.VillageShotDamage(shooter, town));
         }
 
         foreach (var ship in allies.Where(s => s.CanRepair && s.HealthRatio < .6))

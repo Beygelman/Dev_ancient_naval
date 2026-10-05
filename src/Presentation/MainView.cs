@@ -56,10 +56,12 @@ public partial class Main
         BoardView.Collection = CanCommand && Mode == OrderMode.None ? Battle.CollectionCells(Side.Player) : Array.Empty<GridPosition>();
         BoardView.DockSites = CanCommand && Mode == OrderMode.None ? Battle.DockCells(Side.Player) : Array.Empty<GridPosition>();
         BoardView.Building = Mode == OrderMode.Build;
+        Hud.InstantPaperAnimations = FastChecks;
         Hud.UpdateBattle(Battle, selected, Busy, Mode, village);
         if (CanCommand && _salvoCell is { } target && SelectedShipId == _salvoActorId)
             Hud.ShowSalvoChoice(Battle.CanDoubleSalvo(_salvoActorId, target));
         else Hud.HideSalvoChoice();
+        RefreshOffscreenNavigation();
         PositionActions();
         BoardView.RefreshOverlays();
         Fleet.QueueRedraw();
@@ -70,10 +72,12 @@ public partial class Main
 
     private void PositionActions()
     {
+        PositionNavigationMarkers();
         Vector2 Screen(GridPosition p) => GetViewport().GetCanvasTransform() * BoardView.ToGlobal(BoardView.Projection.GridToWorld(p));
         Vector2 TownScreen(Village town) => GetViewport().GetCanvasTransform() * BoardView.ToGlobal(BoardView.VillageWorldAnchor(town));
         Hud.PositionActions(_resourceCell is null ? (Selected is { } ship ? Screen(ship.Position) : SelectedVillage is { } village ? TownScreen(village) : BoardView.Selected is { } inspected ? Screen(inspected) : null) : null,
-            (Selected is { } selected ? ShipVisualProfile.ProgressY(selected.Definition.Class) : SelectedVillage is not null ? 34 : 0) * MapCamera.Zoom.Y);
+            (Selected is { } selected ? ShipVisualProfile.ProgressY(selected.Definition.Class) : SelectedVillage is not null ? 34 : 0) * MapCamera.Zoom.Y,
+            MapCamera.Zoom.Y);
         _actionTargetScreens.Clear();
         foreach (var attackCell in BoardView.Targets)
             _actionTargetScreens.Add(Screen(attackCell));

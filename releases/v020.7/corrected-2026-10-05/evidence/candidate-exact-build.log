@@ -1,0 +1,11 @@
+  Determining projects to restore...
+  Restored C:\Users\User\Documents\Codex\2026-09-29\x20\outputs\v0207-corrections\candidate-exact-source\dev-ancient-naval\src\Core\DevAncientNaval.Core.csproj (in 77 ms).
+  Restored C:\Users\User\Documents\Codex\2026-09-29\x20\outputs\v0207-corrections\candidate-exact-source\dev-ancient-naval\Dev_ancient_naval.csproj (in 181 ms).
+  DevAncientNaval.Core -> C:\Users\User\Documents\Codex\2026-09-29\x20\outputs\v0207-corrections\candidate-exact-source\dev-ancient-naval\src\Core\bin\Debug\net8.0\DevAncientNaval.Core.dll
+  Dev_ancient_naval -> C:\Users\User\Documents\Codex\2026-09-29\x20\outputs\v0207-corrections\candidate-exact-source\dev-ancient-naval\.godot\mono\temp\bin\Debug\Dev_ancient_naval.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:05.13

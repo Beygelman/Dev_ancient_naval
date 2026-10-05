@@ -24,7 +24,7 @@
       "coastMovementCost": 1.5,
       "narrowMovementCost": 2,
       "incomePerTurn": 0,
-      "radarPrice": 2,
+      "radarPrice": 4,
       "collectionRange": 1,
       "healthPerLevel": 5,
       "resourceRequirementIncrease": 1
@@ -39,7 +39,7 @@
       "visualRange": 2,
       "radarRange": 0,
       "attackRange": 2,
-      "price": 5,
+      "price": 6,
       "actionProfile": "Scout",
       "coastMovementCost": 1,
       "narrowMovementCost": 1,
@@ -57,7 +57,7 @@
       "visualRange": 2,
       "radarRange": 0,
       "attackRange": 2,
-      "price": 7,
+      "price": 9,
       "actionProfile": "Standard",
       "coastMovementCost": 1.25,
       "narrowMovementCost": 2,
@@ -76,12 +76,12 @@
       "visualRange": 2,
       "radarRange": 5,
       "attackRange": 2,
-      "price": 12,
+      "price": 16,
       "actionProfile": "Heavy",
       "coastMovementCost": 1.5,
       "narrowMovementCost": 2,
       "incomePerTurn": 0,
-      "radarPrice": 2,
+      "radarPrice": 4,
       "collectionRange": 0,
       "veteranRangeBonus": 1
     },
@@ -95,7 +95,7 @@
       "visualRange": 2,
       "radarRange": 0,
       "attackRange": 0,
-      "price": 4,
+      "price": 5,
       "actionProfile": "Standard",
       "coastMovementCost": 1,
       "narrowMovementCost": 1,
@@ -127,11 +127,11 @@
       "maxHealth": 5,
       "armor": 0,
       "damage": 8,
-      "movement": 3,
+      "movement": 4,
       "visualRange": 1,
       "radarRange": 6,
       "attackRange": 5,
-      "price": 16,
+      "price": 22,
       "actionProfile": "Standard",
       "coastMovementCost": 1,
       "narrowMovementCost": 1,
@@ -188,14 +188,14 @@
       "name": "Cannon Tower",
       "maxHealth": 10,
       "armor": 0,
-      "damage": 3,
+      "damage": 5,
       "movement": 0,
       "visualRange": 1,
       "radarRange": 4,
       "attackRange": 4,
       "price": 6,
       "actionProfile": "Scout",
-      "radarPrice": 2
+      "radarPrice": 4
     },
     {
       "class": "Lighthouse",
@@ -212,7 +212,7 @@
       "coastMovementCost": 1,
       "narrowMovementCost": 1,
       "incomePerTurn": 0,
-      "radarPrice": 2,
+      "radarPrice": 4,
       "collectionRange": 0
     }
   ],
@@ -252,7 +252,7 @@
   "pirateCurrencyReward": 2,
   "pirateResourceReward": 1,
   "mortar": {
-    "purchasePrice": 10,
+    "purchasePrice": 14,
     "splashDamage": 2,
     "villageDamageBonus": 2,
     "deadZone": 2,
@@ -260,6 +260,7 @@
     "granadoDeadZone": 1
   },
   "balloon": {
+    "crashDamage": 2,
     "kolonelAntiAir": true,
     "bombDamage": 6,
     "splashDamage": 2,
@@ -317,6 +318,8 @@
   ],
   "fishingCannonTowers": true,
   "ports": {
+    "connectedCityIncome": true,
+    "income": 0,
     "maximumRouteLength": 6
   },
   "villageAutoRepairAmount": 4,
@@ -324,5 +327,10 @@
   "emptyOuterRim": true,
   "separatedStartingEscorts": true,
   "mapSizePirateSettlements": true,
-  "equalDoubleSalvoDamage": true
+  "pirateDifficultyScaling": true,
+  "equalDoubleSalvoDamage": true,
+  "cannonTowersIgnoreWalls": true,
+  "weightedFleetCapacity": true,
+  "diagonalVillageBerths": true,
+  "scuttleRefundFraction": 0.4
 }

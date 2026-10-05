@@ -1,0 +1,316 @@
+{
+  "version": "v020.7",
+  "status": "finalized_verified",
+  "baseline_commit": "b03c5bdc85498f5f5d76f03f4d070adcaa13aa34",
+  "snapshot_commit": "ce6d1e50d82c57b4971d3c28da119607b148e1d1",
+  "branch": "codex/v0207-finalization",
+  "git": {
+    "snapshot_worktree_clean": true,
+    "pushed": false,
+    "pr6": "open draft, unchanged",
+    "remote_main": "known conflicted; not modified",
+    "local_tag": "v020.7-finalized",
+    "tag_policy": "Create only after artifact delivery commit and stored-blob SHA256 verification; tag target differs from source snapshot.",
+    "tag_resolution": "Artifact-delivery checkpoint, distinct from source snapshot; resolve using git rev-parse v020.7-finalized^{}."
+  },
+  "toolchain": {
+    "godot": "4.7.2 .NET",
+    "sdk": "8.0.425",
+    "renderer": "OpenGL Compatibility",
+    "gpu": "RTX 4060 Laptop",
+    "packaging_powershell": "7.6.5",
+    "packaging_dotnet": ".NET 10.0.11"
+  },
+  "simulation_and_save_contract_changes": [],
+  "production_text_corrections": [
+    "project version footer",
+    "Ukrainian/Dutch View-the-map message"
+  ],
+  "debug_build": {
+    "passed": true,
+    "warnings": 0,
+    "errors": 0
+  },
+  "core_checks": {
+    "passed": true,
+    "assertions": 1204161,
+    "suites": 18,
+    "complete_ai_matches": 8,
+    "historical_fixtures": 2,
+    "exact_delivered_source_rebuilt": true
+  },
+  "native_suites": [
+    {
+      "test": "smoke",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 9.0127441
+    },
+    {
+      "test": "battle",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 38.3862186
+    },
+    {
+      "test": "effects",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 36.0016094
+    },
+    {
+      "test": "sea",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 37.4257421
+    },
+    {
+      "test": "optimization",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 13.5339645
+    },
+    {
+      "test": "menu",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 15.853796
+    },
+    {
+      "test": "ui0207",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 12.2636052
+    },
+    {
+      "test": "voyage0207",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 8.0367271
+    },
+    {
+      "test": "animation0207",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 26.6617804
+    },
+    {
+      "test": "ui0205",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 21.4465751
+    },
+    {
+      "test": "tutorial0206",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 12.9458072
+    },
+    {
+      "test": "hints0206",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 10.1674927
+    },
+    {
+      "test": "victory",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 23.9882815
+    },
+    {
+      "test": "construction0205",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 7.7512233
+    },
+    {
+      "test": "trade-glyph0204",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 6.4939579
+    },
+    {
+      "test": "language0202",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 17.4675352
+    },
+    {
+      "test": "ui0204",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_seconds": 19.279642
+    }
+  ],
+  "process_restart_continue": {
+    "historical": 139,
+    "current": 139,
+    "language_preference": 5
+  },
+  "player_startup": [
+    {
+      "test": "en",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "uk",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "nl",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "map",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    }
+  ],
+  "player_zip_matches_startup_tested_archive": true,
+  "exact_source_export": {
+    "passed": true,
+    "pck_resources": 168,
+    "resource_inventory_matches_clean_checkout": true,
+    "evidence_leak_guard": true,
+    "source_archive_evidence_gdignore": true
+  },
+  "archive_repeat_results": [
+    {
+      "file": "Ancient_Naval_v020.7_Source_FINALIZED.zip",
+      "bytes": 18439471,
+      "sha256": "7f53dce935e7823272269cf3b0a9cb195e9324fed6f4183e117337738f126b7e",
+      "repeat_identical": true
+    },
+    {
+      "file": "Ancient_Naval_v020.7_Windows_PLAYER_CLEAN.zip",
+      "bytes": 86731053,
+      "sha256": "53d27c7e8c1db12b4a915e7b7ed09def17bb03fd830f22e7e25df552d0fc1f60",
+      "repeat_identical": true
+    }
+  ],
+  "required_assets_retained": {
+    "count": 24,
+    "all_hashes_match": true
+  },
+  "original_player_development_files_excluded": 51,
+  "preservation": {
+    "original_source_files": 1987,
+    "unchanged_source_files": 1984,
+    "intentional_docs_changed": [
+      "AGENTS.md",
+      "CHANGELOG.md",
+      "README.md"
+    ],
+    "prior_docs_preserved_exactly": true,
+    "historical_artifacts_unchanged": 164,
+    "earlier_candidate_files_unchanged": 19,
+    "primary_head_unchanged": "299d99c434475b0b83ef17c30fd1450e978a6788",
+    "primary_index_unchanged": true
+  },
+  "personal_save_slot_used_by_automated_tests": false,
+  "performance": {
+    "status": "passed",
+    "date": "2026-10-05",
+    "native_renderer": true,
+    "final_debug_build_preceded_gate": true,
+    "serial": true,
+    "unrelated_apps_terminated_by_agent": false,
+    "user_confirmed_competing_games_closed": true,
+    "thresholds_changed": false,
+    "cases": [
+      {
+        "case": "performance-pangaea",
+        "pan_samples": 119,
+        "cells": 1759,
+        "rivals": 4,
+        "pan_p95_ms": 19.776,
+        "pan_max_ms": 22.763,
+        "hover_calls": 64,
+        "hover_max_ms": 1.704,
+        "interaction_p95_ms": 21.508,
+        "interaction_max_ms": 61.142,
+        "passed": true
+      },
+      {
+        "case": "performance-live-fog",
+        "pan_samples": 119,
+        "cells": 1759,
+        "rivals": 4,
+        "pan_p95_ms": 17.247,
+        "pan_max_ms": 20.543,
+        "hover_calls": 64,
+        "hover_max_ms": 0.475,
+        "interaction_p95_ms": 17.583,
+        "interaction_max_ms": 84.758,
+        "passed": true
+      }
+    ],
+    "limits_ms": {
+      "pan_p95": 25,
+      "pan_max": 80,
+      "hover_max": 16,
+      "interaction_p95": 25,
+      "interaction_max": 100
+    },
+    "prior_failure_retained": "Earlier loaded-host Pangaea FAIL is preserved in source release-evidence/fresh-tests/frames-final; no threshold or harness alteration.",
+    "telemetry_limit": "Godot TimeProcess is a one-second maximum including rendering, not per-frame C# CPU time; gate uses Stopwatch intervals."
+  },
+  "remaining": [],
+  "next_version_scope_proposal": "After verified v020.7: reconcile preserved v020.8; review optional saved policies, UI clipping/interruption regressions and safe marker-free main promotion. No implementation begun.",
+  "exact_source_reexport_native_startup": [
+    {
+      "test": "en",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "uk",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "nl",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    },
+    {
+      "test": "map",
+      "exit_code": 0,
+      "native_frames": 8,
+      "passed": true
+    }
+  ],
+  "verification_date": "2026-10-05",
+  "package_entries": {
+    "player": 190,
+    "source": 1162,
+    "pck": 168
+  },
+  "runtime_preservation": {
+    "passed": true,
+    "all_non_pdb_export_runtime_files_hash_compared": true,
+    "removed_runtime_dlls": []
+  },
+  "not_tested": [
+    "Android/device export",
+    "Linux export/runtime",
+    "Every consumer hardware/aspect ratio",
+    "Remote merge/publishing"
+  ],
+  "known_repository_issue": "Remote main was conflicted; primary local newer v020.8 work and main HEAD/index intentionally preserved. Safe future main reconciliation remains separate.",
+  "final_paths": {
+    "Ancient_Naval_v020.7_Source_FINALIZED.zip": "C:/__Beygelman/! -11/dev-ancient-naval/releases/v020.7/finalized/Ancient_Naval_v020.7_Source_FINALIZED.zip",
+    "Ancient_Naval_v020.7_Windows_PLAYER_CLEAN.zip": "C:/__Beygelman/! -11/dev-ancient-naval/releases/v020.7/finalized/Ancient_Naval_v020.7_Windows_PLAYER_CLEAN.zip"
+  }
+}

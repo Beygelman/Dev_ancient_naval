@@ -18,7 +18,9 @@ public sealed class BattleRules
     public bool EmptyOuterRim { get; init; }
     public bool SeparatedStartingEscorts { get; init; }
     public bool MapSizePirateSettlements { get; init; }
+    public bool PirateDifficultyScaling { get; init; } // Missing in older voyages: retain their original population.
     public bool EqualDoubleSalvoDamage { get; init; }
+    public bool CannonTowersIgnoreWalls { get; init; } // Absent in old rule snapshots: retain fortified damage reduction.
     public bool FreeCoastalNavigation { get; init; } // Missing in old saves: retain their coastal rules.
     public bool DoubleSalvo { get; init; }
     public bool MountainSightShadows { get; init; }
@@ -27,6 +29,9 @@ public sealed class BattleRules
     public bool ThemedWorldNames { get; init; }
     public bool LighthousesEnabled { get; init; } // Missing in old voyages: their construction menu is preserved.
     public bool DynamicFleetCapacity { get; init; }
+    public bool WeightedFleetCapacity { get; init; }
+    public bool DiagonalVillageBerths { get; init; }
+    public double ScuttleRefundFraction { get; init; }
     public bool DeferredRewards { get; init; }
     public bool FishingRadarVisible { get; init; }
     public bool FishingLighthouses { get; init; }
@@ -79,6 +84,8 @@ public sealed class BattleRules
 
     public void Validate()
     {
+        if (!double.IsFinite(ScuttleRefundFraction) || ScuttleRefundFraction is < 0 or > 1)
+            throw new ArgumentException("Invalid ship dismantling refund.");
         if (VillageAutoRepairAmount is < 0 || StartingCredits < 0 || IncomePerMothership < 0 || RepairAmount <= 0 || AutoRepairAmount < 0 || AncientAutoRepairAmount < 0 || FleetLimit < 4 || VillageFortificationPrice < 0 || DockResourceReward < 0 || PirateCurrencyReward < 0 || PirateResourceReward < 0)
             throw new ArgumentException("Invalid economy rules.");
         if (EncounterCurrencyReward < 0 || LevelCurrencyRewards is null || LevelCurrencyRewards.Count != 4 || LevelCurrencyRewards.Any(r => r < 0))

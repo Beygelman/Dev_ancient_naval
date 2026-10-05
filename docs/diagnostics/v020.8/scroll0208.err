@@ -1,0 +1,27 @@
+ERROR: System.InvalidOperationException: Scroll0208: late footer minima shrink the inner native container at unchanged outer size; original=(420, 432), staleInner=(420, 573), paper=(420, 432), inner=(420, 433), innerMin=(238, 433), scroll=(388, 259), scrollMin=(206, 258.00003), bodyMin=(206, 716), footer=(388, 140), footerMin=(142, 140), viewport=(1280, 720)
+   at DevAncientNaval.Tests.Runtime.Scroll0208Checks.Check(Boolean value, String message) in C:\__Beygelman\! -11\dev-ancient-naval\tests\Runtime\Scroll0208Checks.cs:line 20
+   at DevAncientNaval.Tests.Runtime.Scroll0208Checks.FixedFooterRelayout() in C:\__Beygelman\! -11\dev-ancient-naval\tests\Runtime\Scroll0208Checks.cs:line 255
+   at DevAncientNaval.Tests.Runtime.Scroll0208Checks._Ready() in C:\__Beygelman\! -11\dev-ancient-naval\tests\Runtime\Scroll0208Checks.cs:line 360
+   at: void DevAncientNaval.Tests.Runtime.Scroll0208Checks+<_Ready>d__17.MoveNext() (res://tests/Runtime/Scroll0208Checks.cs:360)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushError(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:366)
+       [1] void DevAncientNaval.Tests.Runtime.Scroll0208Checks+<_Ready>d__17.MoveNext() (C:\__Beygelman\! -11\dev-ancient-naval\tests\Runtime\Scroll0208Checks.cs:360)
+       [2] void System.Threading.ExecutionContext.RunInternal(System.Threading.ExecutionContext, System.Threading.ContextCallback, object)
+       [3] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1.MoveNext(System.Threading.Thread)
+       [4] void System.Threading.Tasks.AwaitTaskContinuation.RunCallback(System.Threading.ContextCallback, object, System.Threading.Tasks.Task&)
+       [5] void System.Threading.Tasks.Task.RunContinuations(object)
+       [6] void System.Threading.Tasks.Task.FinishSlow(bool)
+       [7] bool System.Threading.Tasks.Task.TrySetException(object)
+       [8] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.SetException(System.Exception, System.Threading.Tasks.Task`1[TResult]&)
+       [9] void DevAncientNaval.Tests.Runtime.Scroll0208Checks+<FixedFooterRelayout>d__15.MoveNext() (C:\__Beygelman\! -11\dev-ancient-naval\tests\Runtime\Scroll0208Checks.cs:255)
+       [10] void System.Threading.ExecutionContext.RunInternal(System.Threading.ExecutionContext, System.Threading.ContextCallback, object)
+       [11] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1.MoveNext(System.Threading.Thread)
+       [12] void System.Threading.Tasks.AwaitTaskContinuation.RunCallback(System.Threading.ContextCallback, object, System.Threading.Tasks.Task&)
+       [13] void System.Threading.Tasks.Task.RunContinuations(object)
+       [14] bool System.Threading.Tasks.Task`1.TrySetResult(TResult)
+       [15] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.SetExistingTaskResult(System.Threading.Tasks.Task`1[TResult], TResult)
+       [16] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()
+       [17] void DevAncientNaval.Tests.Runtime.Scroll0208Checks+<Frames>d__7.MoveNext() (C:\__Beygelman\! -11\dev-ancient-naval\tests\Runtime\Scroll0208Checks.cs:34)
+       [18] void System.Threading.ExecutionContext.RunInternal(System.Threading.ExecutionContext, System.Threading.ContextCallback, object)
+       [19] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1.MoveNext(System.Threading.Thread)
+       [20] void Godot.SignalAwaiter.SignalCallback(nint, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_bool*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/SignalAwaiter.cs:65)

@@ -1,5 +1,78 @@
 # Ancient Naval change history
 
+## v020.7b — 6 October 2026 — Working source update
+
+- Bounded close-view terrain detail, sharp town glyphs, safe queued fog refresh
+  and one distant object LOD; retained caches remain independent of simulation.
+- Defer native fog-source updates to their scheduled raster flight, stamp prepared
+  generations and hide unsafe old images immediately. Two serial native gates
+  passed after reproducing and repairing >100 ms live-fog movement frames.
+- Anchored wrapping action paper, readable outer prices, current-page 1–9
+  shortcuts and a larger ornamented counsel card with grouped stat glyphs.
+- Stage 3: selected-object, claim, treasury and salvo papers remain unclamped
+  at their world anchors. Offscreen arrows use a 30%-shorter-side viewport
+  circle: blue claims, gold treasuries and red owned-town/Mothership damage.
+  Arrow clicks only focus the camera; the bottom-center compass finds Mother,
+  with narrow counsel layouts reserving its space.
+- Red alerts observe committed HP only after pending presentation finishes;
+  clicks dismiss them, they expire after the following round, and world
+  replacement clears them. No prepared damage or hidden enemy state is used.
+- Owned shrines pulse once per human round for 1.1 seconds at 30 Hz. Hidden
+  effects stop processing; the ceremony changes neither Core nor RNG.
+- Replace the large action jug with an animated nation monument: click cycles
+  ready objects; hints-off retains it; end-turn confirmation shows action glyphs.
+- Checked-in version/date signatures on both menus; faster WASD; richer merchant,
+  mountain-chain, cloud and purple pyramid detail.
+- New voyages only: Granado movement 4, built Cannon Tower damage 5 and wall
+  bypass. Historical rule/catalog snapshots retain their embedded values.
+- Always-confirm scuttling with a clear sinking-ship brush icon, actual-price
+  refund, modal input isolation and stale-voyage cancellation.
+- Native screenshot advice for flagship/village progression, double charges,
+  veteran bonuses and numbered commands; stable v1 tutorial acknowledgements.
+- Preserve later valid source and historical archives. No new player export.
+- Preserve oversized local checkpoint `9ccfa57` and its files under a backup
+  ref. Publish clean source based on remote `299d99c`, omitting only the new
+  extracted player-candidate folder; historical ZIPs remain immutable.
+
+
+
+## Requested same-version corrections — 5 October 2026
+
+- Deliver a corrected v020.7 package separately while preserving this checkout's
+  newer v020.8 features and metadata; no historical release is overwritten.
+- Restore a real right-edge Info sector alongside the compact counsel card;
+  center action captions, fold before burn, validate delayed claims once, and
+  retain black foreground town labels and rounded amphora reference art.
+- Translate remaining menu text and keep city-to-city cosmetic merchants active
+  through any number of beacon relays, construction and route refreshes.
+- New voyages: replace fixed port income with 1 Thor per other connected
+  friendly port city; a lone port earns 0. Old save snapshots retain old rules.
+- New prices: Support Brig 5, Brig 6, Galleon 9, Kolonel 16, Granado 22; radar 4,
+  Mothership mortar 14. Existing discounts/infrastructure/navigation are retained.
+- Batch amphora grain strokes without changing pixels; see the correction
+  milestone for native regression and performance evidence.
+
+## v020.8 — 4 October 2026 — The Living Scrolls
+
+- Shared fibrous papyrus and proportional moving rolls reveal fixed-scale contents. Ceremonial papers add faction-colored polished handles and hanging animated beads; ordinary menus keep simpler edges.
+- Center brush accents behind text; consistent dark outcome actions. Large victory salutes and burning defeat foreground.
+- Narrow ready-object list centered on the right; larger textured tilted amphora behind end turn. Symmetric command sectors contain real actions only.
+- New-game pirate checkbox; initial pirate settlement/patrol counts depend on area and difficulty. Save/Continue retains the choice; missing historical fields preserve earlier defaults.
+- Integrated compact lower-left object counsel: wax seal, faction margin ornament, level, description and two-column scrollable details; no redundant health or information sectors.
+- Complete English/Ukrainian/Dutch labels; native pointer, scrolling, clipped animation and pirate-generation checks, plus the final renderer smoothness gate. See `docs/MILESTONE-v020.8.md`.
+
+## v020.7 — 2026-10-04 — The Sacred Voyage
+
+- Diagonal town shipyards and persisted ports chosen by navigable proximity to existing friendly harbors/beacons.
+- Weighted fleet slots, actual-price 40% demolition refunds and staged two-damage balloon crashes over nine cells.
+- Clickable patterned action amphora, vertical ready-object list, exact hover orders and shared-cell occupant cycling.
+- Static event advice with bottom hand acknowledgement; rolling menu/outcome/welcome paper, invisible brush buttons, icon mode row and modal wheel isolation.
+- Right-folding end-turn parchment after commitment, equal-margin voyage setup, larger object glyph and always-reachable welcome/outcome footer actions.
+- Restored persistent three-skin merchant traffic, rotating lighthouse light, idle battery turns and stronger faction ritual effects/pirate smoke.
+- Rose Crown and serif crimson R, six faith-based nation identities/ornaments, slower camera descent and personal difficulty-aware expedition judgements.
+- Saved rival kill, construction and stronghold evidence; full English/Ukrainian/Dutch text and historical save defaults.
+
+
 ## v020.6 — 2026-10-04
 
 - Add persisted hints, accurate ready-object guidance, five-column turn confirmation and a hand-stamped end-turn parchment.
@@ -252,3 +325,19 @@ terrain details and naval motion/effects. Full notes: `docs/MILESTONE-0.14.md`.
 
 Earlier playable checkpoints are documented in `docs/MILESTONE-0.11.md`,
 `docs/MILESTONE-0.12.md` and `docs/MILESTONE-0.13.md`.
+
+## Isolated v020.7 audit candidate — 2026-10-04
+
+- Preserve primary v020.8 sources; audit/freeze v020.7 separately from b03c5bd.
+- Additive player/source candidates, SHA256/inventories and reproducible release tooling; preserve all historical archives/manifests.
+- Isolated snapshot fixes stale version text, one missing outcome translation and outdated runtime-test synchronization. Core/gameplay/save contracts stay unchanged.
+- Upgrade AGENTS guide with source/evidence/export invariants, preserving previous primary documents.
+- Core and native functional/localization/Continue checks pass; native frame gate remains unapproved under background game load. See docs/V0207_FINALIZATION_REPORT.md.
+
+## Final verified v020.7 checkpoint — 2026-10-05
+
+- Final Debug build and both unchanged serial native frame gates pass on a quiet host.
+- Reproduce and verify final Windows/source ZIPs, including actual native player startup and independent extracted-source build/Core/export.
+- Add final archive SHA256, per-file inventories and raw Git evidence preservation; keep earlier candidate archives and original releases unchanged.
+- Preserve all primary v020.8 gameplay sources, primary Git HEAD/index and historical saves; no new mechanics or balance changes.
+- Record complete results in docs/V0207_FINALIZATION_REPORT.md and the finalized release validation sidecar. Remote main/PR #6 remain unchanged.

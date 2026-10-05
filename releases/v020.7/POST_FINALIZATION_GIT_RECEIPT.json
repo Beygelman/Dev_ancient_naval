@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-05",
+  "baseline_commit": "b03c5bdc85498f5f5d76f03f4d070adcaa13aa34",
+  "source_snapshot_commit": "ce6d1e50d82c57b4971d3c28da119607b148e1d1",
+  "artifact_delivery_commit": "376c8b3537ef602f386427021d53efe548cab15b",
+  "branch": "codex/v0207-finalization",
+  "local_tag": "v020.7-finalized",
+  "tag_target_verified": "376c8b3537ef602f386427021d53efe548cab15b",
+  "finalization_worktree_clean": true,
+  "pushed": false,
+  "remote_merged": false,
+  "pr6_checked_via_read_only_github_api": {
+    "url": "https://github.com/Beygelman/Dev_ancient_naval/pull/6",
+    "state": "open",
+    "draft": true,
+    "head": "b03c5bdc85498f5f5d76f03f4d070adcaa13aa34",
+    "base_commit": "faf3ae14a4988b190459c0f1d02c1d790d82c404",
+    "mergeable": true,
+    "updated_by_this_task": false
+  },
+  "git_http_cli_remote_check": "Connection to github.com:443 timed out; read-only GitHub connector confirmed PR/base metadata. No push attempted.",
+  "stored_git_bytes_canonical_copies_and_manifest_check": {
+    "passed": true,
+    "delivery_commit": "376c8b3537ef602f386427021d53efe548cab15b",
+    "git_blob_and_canonical_files_verified": 31,
+    "hash_manifest_entries_verified": 30,
+    "original_primary_source_files_verified": 1987,
+    "intentional_primary_doc_changes": [
+      "AGENTS.md",
+      "CHANGELOG.md",
+      "README.md"
+    ],
+    "historical_artifacts_unchanged": 164,
+    "primary_head_unchanged": "299d99c434475b0b83ef17c30fd1450e978a6788",
+    "primary_index_unchanged": true,
+    "failures": []
+  },
+  "delivery_folder": "C:/__Beygelman/! -11/dev-ancient-naval/releases/v020.7/finalized",
+  "receipt_policy": "Post-commit receipt outside the immutable final delivery folder; finalized ZIP and sidecar hashes are unchanged."
+}

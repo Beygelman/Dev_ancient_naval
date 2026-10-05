@@ -58,17 +58,13 @@ public partial class ActionStoryChecks : Node
     {
         Check(papyrus.Size == SectorButton.PaperFootprint,
             "Claim and treasury banners share the object command parchment size");
-        var heading = Nodes(Game.Hud).OfType<Label>().Single(label => label.IsVisibleInTree()
-            && label.Text == Game.Hud.ShipText);
-        Node? ancestor = heading.GetParent();
-        while (ancestor is not null && ancestor is not PanelContainer)
-            ancestor = ancestor.GetParent();
-        var card = (PanelContainer)ancestor!;
+        var card = Nodes(Game.Hud).OfType<PanelContainer>().Single(panel => panel.IsVisibleInTree()
+            && panel.Name == "InformationScroll");
         var fan = Nodes(Game.Hud).OfType<RadialPapyrus>().Single(node => node.Name == "ActionPapyrus");
         Check(fan.Position.DistanceTo(card.Position) > 100,
             "actions return to the world object rather than the ledger");
-        Check(papyrus.Position.Y < fan.Position.Y,
-            "the straight pictorial banner hangs above the lower command fan");
+        Check(papyrus.Position.Y + papyrus.Size.Y < fan.Position.Y + fan.RingCenter.Y,
+            "the straight pictorial banner ends above the lower command fan's world center");
         Check(papyrus.GetGlobalRect().Position.X >= 0
             && papyrus.GetGlobalRect().End.X <= GetViewport().GetVisibleRect().Size.X,
             "wide pictorial action stays inside the viewport");

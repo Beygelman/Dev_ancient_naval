@@ -30,6 +30,18 @@ public partial class BoardView : Node2D
     private Vector2[][] _movementGlow = System.Array.Empty<Vector2[]>();
     private readonly Color[] _movementGlowColors = new Color[4];
     private TerrainRasterCache? _terrainCache;
+    private TerrainDetailCache? _terrainDetail;
+    private Transform2D _detailViewTransform;
+    private Vector2 _detailViewSize;
+    private bool _detailViewInitialized;
+    private bool _farScenery;
+    internal bool FarSceneryActive => _farScenery;
+    internal int TerrainDetailChunkCount => _terrainDetail?.ChunkCount ?? 0;
+    internal int TerrainDetailBuildCount => _terrainDetail?.BuildCount ?? 0;
+    internal bool TerrainDetailIdle => _terrainDetail?.Idle == true;
+    internal float TerrainDetailSampleScale => _terrainDetail?.SampleScale ?? 0;
+    internal long TerrainDetailPixels => _terrainDetail?.AllocatedPixels ?? 0;
+    internal bool TerrainDetailVisibilityCurrent => _terrainDetail?.VisibilityCurrent == true;
     private BoardTerrainLayer? _observations;
     private readonly HashSet<GridPosition> _resourceCells = new();
     internal int ObservationDrawCount { get; private set; }
@@ -44,6 +56,9 @@ public partial class BoardView : Node2D
     internal int TerrainTextureUpdateRequests { get; private set; }
     internal Vector2I TerrainTextureSize => _terrainCache?.Size ?? Vector2I.Zero;
     internal bool TerrainTextureIdle => _terrainCache?.Idle == true;
+    internal int TerrainSuppressedRegionCount => _terrainCache?.SuppressedRegionCount ?? 0;
+    internal bool TerrainSuppressedImagesHidden => _terrainCache?.SuppressedImagesHidden == true;
+    internal bool TerrainCoarseVisibilityCurrent => _terrainCache?.VisibilityCurrent == true;
     internal int TerrainRegionCount => _terrainCache?.RegionCount ?? 0;
     internal int TerrainSurfaceSourceCount => _terrainCache?.SurfaceSourceCount ?? 0;
     internal int TerrainSourceCopies(GridPosition cell) => _terrainCache?.SourceCopies(cell) ?? 0;
@@ -58,6 +73,8 @@ public partial class BoardView : Node2D
             ShowBehindParent = true
         };
         AddChild(_terrainCache);
+        _terrainDetail = new TerrainDetailCache { Name = "LandscapeDetail", ShowBehindParent = true };
+        AddChild(_terrainDetail);
         _observations = new BoardTerrainLayer
         {
             Name = "KnownObjects",
@@ -66,9 +83,44 @@ public partial class BoardView : Node2D
         };
         AddChild(_observations);
         _terrainCache.Ensure(Projection, Board, DrawUnexploredWorld, DrawStaticWorld, DrawStaticShore, DrawIslandScenery);
+        _terrainDetail.Ensure(Projection, Board, DrawUnexploredWorld, TerrainVisibility, DrawStaticWorld, DrawStaticShore, DrawIslandScenery);
         _terrainProjection = Projection;
         _terrainBattle = Battle;
         InvalidateWorld();
+    }
+
+    private byte TerrainVisibility(GridPosition cell) => Battle.Vision.IsVisible(Side.Player, cell)
+        ? (byte)2 : Battle.Vision.IsExplored(Side.Player, cell) ? (byte)1 : (byte)0;
+
+    public override void _Process(double delta)
+    {
+        if (!IsVisibleInTree()) return;
+        var transform = GetGlobalTransformWithCanvas();
+        var size = GetViewportRect().Size;
+        if (_detailViewInitialized && transform == _detailViewTransform && size == _detailViewSize) return;
+        _detailViewInitialized = true; _detailViewTransform = transform; _detailViewSize = size;
+        var inverse = transform.AffineInverse();
+        var bounds = new Rect2(inverse * Vector2.Zero, Vector2.Zero).Expand(inverse * new Vector2(size.X, 0))
+            .Expand(inverse * size).Expand(inverse * new Vector2(0, size.Y));
+        float zoom = transform.X.Length();
+        _terrainDetail?.View(bounds, size, zoom);
+        // One distant tier, with a small hysteresis gap: scroll-wheel jitter
+        // cannot alternate models or rebuild textures at a single threshold.
+        bool far = _farScenery ? zoom < .52f : zoom < .44f;
+        if (far == _farScenery) return;
+        SetDistantDetail(far);
+    }
+
+    internal void SetDistantDetail(bool far)
+    {
+        _farScenery = far;
+        SetSceneryLod(far);
+        foreach (var (_, canvas) in _townCanvases) canvas.Visible = !far;
+        // An explored, hidden town keeps its last painted interface. Redrawing
+        // it merely for LOD would consult today's hidden owner/HP/level.
+        foreach (var (cell, canvas) in _townInterfaces)
+            if (Battle.Vision.IsVisible(Side.Player, cell)) canvas.QueueRedraw();
+        if (_depthGroup?.GetParent() is FleetView fleet) fleet.InvalidateLod();
     }
 
     /// <summary>World/fog changes invalidate retained terrain draw commands.
@@ -95,12 +147,15 @@ public partial class BoardView : Node2D
         }
 
         _terrainCache?.Ensure(Projection, Board, DrawUnexploredWorld, DrawStaticWorld, DrawStaticShore, DrawIslandScenery);
+        _terrainDetail?.Ensure(Projection, Board, DrawUnexploredWorld, TerrainVisibility, DrawStaticWorld, DrawStaticShore, DrawIslandScenery);
         if (!ReferenceEquals(_terrainProjection, Projection) || !ReferenceEquals(_terrainBattle, Battle))
             _radarKey = null;
         _terrainProjection = Projection;
         _terrainBattle = Battle;
         if (_terrainCache?.Invalidate(changed, force || newWorld, cell => Battle.Vision.IsVisible(Side.Player, cell) ? (byte)2 : Battle.Vision.IsExplored(Side.Player, cell) ? (byte)1 : (byte)0) == true)
             TerrainTextureUpdateRequests++;
+        _terrainDetail?.Invalidate(changed, force || newWorld);
+        if (newWorld) _detailViewInitialized = false;
         RefreshOverlays();
     }
 

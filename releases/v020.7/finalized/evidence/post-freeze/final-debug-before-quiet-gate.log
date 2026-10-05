@@ -1,0 +1,11 @@
+  Determining projects to restore...
+  Restored C:\Users\User\Documents\Codex\2026-09-29\x20\work\v0207-finalization\src\Core\DevAncientNaval.Core.csproj (in 96 ms).
+  Restored C:\Users\User\Documents\Codex\2026-09-29\x20\work\v0207-finalization\Dev_ancient_naval.csproj (in 587 ms).
+  DevAncientNaval.Core -> C:\Users\User\Documents\Codex\2026-09-29\x20\work\v0207-finalization\src\Core\bin\Debug\net8.0\DevAncientNaval.Core.dll
+  Dev_ancient_naval -> C:\Users\User\Documents\Codex\2026-09-29\x20\work\v0207-finalization\.godot\mono\temp\bin\Debug\Dev_ancient_naval.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:06.28

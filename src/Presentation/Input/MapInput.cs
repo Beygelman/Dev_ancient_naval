@@ -26,7 +26,10 @@ public partial class MapInput : Node
     public event Action<Vector2>? Hovered;
     public event Action? Canceled;
     public Func<bool>? KeyboardEnabled { get; set; }
+    public Func<bool>? PointerEnabled { get; set; }
+    public Func<bool>? ZoomEnabled { get; set; }
     public Func<bool>? GameplayShortcutsEnabled { get; set; }
+    public Func<InputEventKey, bool>? CommandShortcut { get; set; }
     public event Action? EndTurnRequested;
     public event Action? RepairRequested;
 
@@ -103,6 +106,7 @@ public partial class MapInput : Node
             return true;
         }
         if ((GameplayShortcutsEnabled ?? KeyboardEnabled)?.Invoke() != true) return false;
+        if (CommandShortcut?.Invoke(input) == true) return true;
         if (key == Key.Space)
         {
             EndTurnRequested?.Invoke();
@@ -118,6 +122,11 @@ public partial class MapInput : Node
 
     private void Handle(InputEvent input)
     {
+        if (PointerEnabled?.Invoke() == false)
+        {
+            CancelGesture();
+            return;
+        }
         switch (input)
         {
             case InputEventScreenTouch touch:
@@ -144,7 +153,10 @@ public partial class MapInput : Node
                     }
                 }
                 else if (mouse.Pressed && mouse.ButtonIndex is MouseButton.WheelUp or MouseButton.WheelDown)
+                {
+                    if (ZoomEnabled?.Invoke() == false) return;
                     Camera.ZoomAt(mouse.Position, mouse.ButtonIndex == MouseButton.WheelUp ? 1.15f : 1 / 1.15f);
+                }
                 else return;
                 break;
             case InputEventMouseMotion motion when _mouseDown && motion.Device != -1:

@@ -72,12 +72,22 @@ public sealed partial class BattleState
             _shoals.Remove(cell);
         }
 
-        // One patrol per starting territory gives each fleet equal pirate pressure.
+        if (!PiratesEnabled) return;
+        int patrols = Rules.PirateDifficultyScaling
+            ? PiratePopulation.PatrolsPerTerritory(Board, Difficulty) : 1;
+        // Draw equal pressure from each starting territory. Each tier uses the
+        // same ordered pool: changing difficulty cannot reroll treasury rewards.
+        // Bound every territory to the least available pool instead of spawning
+        // extra patrols beside just one fleet on a crowded coastline.
+        var homes = Enumerable.Range(0, _factions.Count).Select(side => candidates
+            .Where(p => Board.StartingTerritory(p, _factions.Count) == side
+                && TreasuryAt(p) is null && IsFreeWater(p)).Take(patrols).ToArray()).ToArray();
+        int patrolsToPlace = Rules.PirateDifficultyScaling ? homes.Min(pool => pool.Length) : 1;
+        for (int patrol = 0; patrol < patrolsToPlace; patrol++)
         for (int side = 0; side < _factions.Count; side++)
         {
-            var home = candidates.Where(p => Board.StartingTerritory(p, _factions.Count) == side && TreasuryAt(p)is null && IsFreeWater(p)).Select(p => (GridPosition? )p).FirstOrDefault();
-            if (home is not { } position)
-                continue;
+            if (homes[side].Length <= patrol) continue;
+            var position = homes[side][patrol];
             var pirate = new Ship(_nextId++, Side.Pirates, Rules.Get(ShipClass.PirateSchooner), position);
             _ships.Add(pirate);
             _pirateHomes[pirate.Id] = position;

@@ -69,6 +69,8 @@ public partial class FleetView
                 _retiredHulls.Add(pair.Key);
         foreach (int id in _retiredHulls)
         {
+            _farHullBatches.Remove(id);
+            _idleBatteries.Remove(id);
             ReleaseTargetMask(_hulls[id].Mask);
             _hulls[id].Canvas.QueueFree();
             _hulls[id].Badge.QueueFree();
@@ -105,19 +107,26 @@ public partial class FleetView
             {
                 Name = "HealthAmphorae" + ship.Id,
                 ZIndex = 7,
-                DrawWorld = canvas => AmphoraBadgeArt.Draw(canvas, Vector2.Zero, hull.Ship.Health, hull.Ship.MaxHealth,
-                    FleetPalette.For(Battle, hull.Ship.Owner), hull.Ship.Class, hull.Health.Motion(_clock), hull.Ship.IsVeteran)
+                DrawWorld = canvas =>
+                {
+                    if (Landscape?.FarSceneryActive == true)
+                        FarFleetArt.Health(canvas, Vector2.Zero, hull.Ship, FleetPalette.For(Battle, hull.Ship.Owner), hull.Health.Motion(_clock));
+                    else AmphoraBadgeArt.Draw(canvas, Vector2.Zero, hull.Ship.Health, hull.Ship.MaxHealth,
+                        FleetPalette.For(Battle, hull.Ship.Owner), hull.Ship.Class, hull.Health.Motion(_clock), hull.Ship.IsVeteran);
+                }
             };
             AddChild(hull.Badge);
             _hulls.Add(ship.Id, hull);
         }
 
         _shownHulls.Add(ship.Id);
+        UpdateIdleBattery(ship);
         float heading = DeckAngle(ship.Id);
         float barrel = _barrelAngles.GetValueOrDefault(ship.Id);
         bool selected = ship.Id == SelectedId;
         bool redraw = hull.Ship != ship || hull.Heading != heading || hull.Barrel != barrel || hull.Selected != selected ||
-            _sinking.ContainsKey(ship.Id) || ship.Class == Core.Units.ShipClass.Mothership && _clock - hull.LastDraw >= .10f;
+            _sinking.ContainsKey(ship.Id) || Landscape?.FarSceneryActive != true && (ship.Class is Core.Units.ShipClass.Mothership or Core.Units.ShipClass.Lighthouse)
+                && _clock - hull.LastDraw >= .10f;
         bool healthChanged = hull.Ship != ship;
         hull.Health.Observe(ship.Health, ship.MaxHealth, _clock);
         hull.Ship = ship;
@@ -138,5 +147,15 @@ public partial class FleetView
             hull.Badge.QueueRedraw();
         hull.HealthAnimating = healthAnimating;
         if (redraw) { hull.LastDraw = _clock; hull.Canvas.QueueRedraw(); }
+    }
+
+    internal void InvalidateLod()
+    {
+        foreach (var hull in _hulls.Values)
+        {
+            hull.Canvas.QueueRedraw();
+            hull.Badge.QueueRedraw();
+        }
+        QueueRedraw();
     }
 }

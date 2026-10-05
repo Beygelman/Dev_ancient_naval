@@ -6,8 +6,52 @@ namespace DevAncientNaval.Presentation.UI;
 /// <summary>The same painted clay-seal motifs identify vessels in badges and shipyards.</summary>
 internal static class NavalGlyphArt
 {
+    /// <summary>A listing hull disappears through the water, stamped in pale ink on a dry-brush warning tile.</summary>
+    internal static void DrawScuttle(CanvasItem canvas, Vector2 center)
+    {
+        Vector2 P(float x, float y) => center + new Vector2(x, y);
+        var burgundy = PaintedVoyageChoice.Burgundy;
+        var pale = PapyrusStyle.Paper;
+        // Unequal bristle ends make a painted tile, not a modern square button.
+        // Fixed grain belongs only to this glyph; no gameplay or cosmetic RNG is consumed.
+        for (int bristle = 0; bristle < 21; bristle++)
+        {
+            float y = -15 + bristle * 1.5f;
+            float left = -17 + bristle * 7 % 5 * .45f;
+            float right = 17 - bristle * 11 % 7 * .35f;
+            canvas.DrawLine(P(left, y), P(right, y + Mathf.Sin(bristle * 1.7f) * .35f),
+                new Color(burgundy, bristle % 7 == 0 ? .70f : .91f), 1.8f, true);
+        }
+        for (int fleck = 0; fleck < 12; fleck++)
+        {
+            float x = -16 + fleck * 13 % 31;
+            float y = fleck % 2 == 0 ? -14 + fleck % 4 : 12 + fleck % 3;
+            canvas.DrawLine(P(x, y), P(x + 1.7f, y - .2f), new Color(pale, .20f), .55f, true);
+        }
+
+        // The stern and mast still stand above water; the low bow at the right
+        // has already gone under. The uninterrupted water surface cuts the hull.
+        canvas.DrawColoredPolygon(new[] { P(-13, -2), P(11, 6.2f), P(4, 7), P(-7, 4.2f) }, pale);
+        canvas.DrawLine(P(-12, -2), P(9, 5.2f), pale, 1.8f, true);
+        canvas.DrawLine(P(-6, 1), P(-10, -12), pale, 1.7f, true);
+        canvas.DrawColoredPolygon(new[] { P(-8.5f, -11), P(-5.5f, -.9f), P(1.2f, 1.3f) }, pale);
+        canvas.DrawLine(P(-10, -12), P(-4.8f, -10.3f), pale, 1.3f, true);
+        canvas.DrawLine(P(-10, -12), P(-11.2f, -8.7f), pale, 1.15f, true);
+        canvas.DrawLine(P(-9.5f, 1), P(4.8f, 5.3f), new Color(burgundy, .85f), .8f, true);
+
+        // A solid waterline masks the submerged keel; pale wave strokes continue
+        // across and below it, keeping the sinking meaning clear at 32px.
+        canvas.DrawLine(P(-1, 7), P(15, 7), burgundy, 3.2f, true);
+        canvas.DrawPolyline(new[] { P(-14, 6.8f), P(-10, 5.9f), P(-6, 7), P(-2, 6.2f), P(2, 7.2f), P(6, 6.5f), P(10, 7.3f), P(14, 6.5f) }, pale, 1.55f, true);
+        canvas.DrawPolyline(new[] { P(-13, 11), P(-8, 10), P(-4, 11.1f), P(0, 10.3f) }, pale, 1.3f, true);
+        canvas.DrawPolyline(new[] { P(3, 10.8f), P(7, 10), P(11, 11), P(14, 10.4f) }, pale, 1.3f, true);
+        canvas.DrawArc(P(11, 1.5f), 1.2f, 0, Mathf.Tau, 10, pale, .85f, true);
+        canvas.DrawCircle(P(13, -3), .7f, pale);
+    }
+
     internal static ActionSymbol Symbol(ShipClass? kind) => kind switch
     {
+        ShipClass.Mothership => ActionSymbol.Mothership,
         ShipClass.Fishing => ActionSymbol.Support,
         ShipClass.Garrison or ShipClass.PirateSchooner => ActionSymbol.Scout,
         ShipClass.Invader => ActionSymbol.Standard,
@@ -22,7 +66,7 @@ internal static class NavalGlyphArt
 
     internal static bool IsNaval(ActionSymbol symbol) => symbol is ActionSymbol.Fishing or
         ActionSymbol.Scout or ActionSymbol.Standard or ActionSymbol.Heavy or ActionSymbol.Mortar or
-        ActionSymbol.Tower or ActionSymbol.Dock or ActionSymbol.Lighthouse or ActionSymbol.City or ActionSymbol.Balloon or ActionSymbol.Support;
+        ActionSymbol.Tower or ActionSymbol.Dock or ActionSymbol.Lighthouse or ActionSymbol.City or ActionSymbol.Balloon or ActionSymbol.Support or ActionSymbol.Mothership;
 
     internal static void Draw(CanvasItem canvas, Vector2 center, ActionSymbol symbol, Color ink, float scale = 1)
     {
@@ -37,6 +81,40 @@ internal static class NavalGlyphArt
         }
         switch (symbol)
         {
+            case ActionSymbol.Mothership:
+                // Twin hulls carry a stepped floating city. Broken secondary
+                // strokes preserve a painted motif at both seal and HUD sizes.
+                void Brush(float x, float y, float a, float b, float width = 1)
+                {
+                    Line(x, y, a, b, width);
+                    var from = P(x, y) + new Vector2(.22f, -.18f) * scale;
+                    var to = P(a, b) + new Vector2(.22f, -.18f) * scale;
+                    canvas.DrawLine(from.Lerp(to, .16f), from.Lerp(to, .71f),
+                        new Color(ink, ink.A * .37f), .34f * scale, true);
+                }
+                Poly(new[] { new Vector2(-8, 2), new(-5, 5), new(6, 5), new(9, 2) });
+                Poly(new[] { new Vector2(-10, 5), new(-7, 8), new(4, 8), new(7, 5) });
+                Brush(-8, 2, 8, 2, .8f);
+                Brush(-10, 5, 7, 5, .9f);
+                Brush(-7, 1, -8, 4, .65f);
+                Brush(5, 1, 6, 4, .65f);
+                Brush(-7, 1, 5, 1, .9f);
+                foreach (var home in new[] { new Rect2(-6.5f, -3.4f, 3, 4.4f),
+                    new Rect2(-2.7f, -5.2f, 3.4f, 6.2f), new Rect2(1.6f, -2.1f, 3.1f, 3.1f) })
+                {
+                    Brush(home.Position.X, home.End.Y, home.Position.X, home.Position.Y, .8f);
+                    Brush(home.Position.X, home.Position.Y, home.End.X, home.Position.Y, .9f);
+                    Brush(home.End.X, home.Position.Y, home.End.X, home.End.Y, .8f);
+                    Brush(home.GetCenter().X, home.End.Y - 2, home.GetCenter().X, home.End.Y - .6f, .65f);
+                }
+                canvas.DrawArc(P(-1, -5.2f), 1.65f * scale, Mathf.Pi, Mathf.Tau, 10, ink, .85f * scale, true);
+                Brush(-5.5f, -3.4f, -5.5f, -5.2f, .75f);
+                Brush(4.5f, -2.1f, 4.5f, -3.3f, .65f);
+                Brush(5.8f, 1, 5.8f, -6, .75f);
+                Poly(new[] { new Vector2(5.8f, -6), new(9, -5), new(5.8f, -3.9f) }, true);
+                Brush(-8, 9.5f, -3, 9, .6f);
+                Brush(0, 9.2f, 6, 8.7f, .6f);
+                break;
             case ActionSymbol.Support:
                 Poly(new[] { new Vector2(-7,2), new(-4,5), new(4,5), new(7,2), new(-7,2) });
                 for (int home = 0; home < 2; home++)

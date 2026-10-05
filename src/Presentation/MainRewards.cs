@@ -29,6 +29,8 @@ public partial class Main
         if (_rewards is null || _rewards.IsOpen || Busy || _sessionLoading || _home?.IsOpen == true || Hud.MenuVisible || Battle.IsOver || Battle.ActiveSide != Side.Player) return;
         var award = Battle.PendingAwards.FirstOrDefault(a => a.Owner == Side.Player);
         if (award is null) return;
+        _rewards.Nation = Battle.ColorFor(Side.Player);
+        _rewards.InstantAnimations = FastChecks;
         MapInput.CancelGesture();
         ClearMode();
         if (award.Kind == AwardKind.Heavenly)

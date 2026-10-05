@@ -112,6 +112,7 @@ public partial class VictoryChecks : Node
                 "the finite celebration stops processing after its final spark");
 
             Input.ParseInputEvent(new InputEventKey { Pressed = true, Keycode = Key.Escape });
+            await ToSignal(GetTree().CreateTimer(.55), SceneTreeTimer.SignalName.Timeout);
             await Frame();
             Check(!victory.IsOpen && Game.MapInput.IsProcessingInput() && Game.Hud.Visible && !Game.Hud.MenuVisible,
                 "Escape dismisses the result and restores map inspection without opening another menu");
@@ -122,6 +123,7 @@ public partial class VictoryChecks : Node
             Check(Game.MapCamera.Position != camera, "the finished map can be panned");
             Game.Saves.Write(battle, Game.MapCamera.Position, Game.MapCamera.Zoom.X);
             Nodes(victory).OfType<Button>().Single(button => button.Name == "VictoryHome").EmitSignal(Button.SignalName.Pressed);
+            await ToSignal(GetTree().CreateTimer(.55), SceneTreeTimer.SignalName.Timeout);
             await Frame();
             Check(Game.Home.IsOpen && !victory.IsOpen && !victory.IsProcessing(),
                 "Return to menu closes the result and all hidden celebration processing");
@@ -133,7 +135,7 @@ public partial class VictoryChecks : Node
                 new[] { (Side.Player, ShipClass.Mothership, new GridPosition(3, 3)),
                     (Side.Enemy, ShipClass.Mothership, new GridPosition(4, 3)) },
                 Array.Empty<GridPosition>(), villageSpots: Array.Empty<GridPosition>());
-            // Advance first: an idle flagship now heals 4 HP at its turn end.
+            // Advance first so the idle flagship has already taken its turn-end repair.
             defeat.EndTurn(Side.Player);
             var doomed = defeat.CaptureSnapshot();
             doomed.Ships.Single(ship => ship.Owner == Side.Player).Health = 1;
@@ -146,6 +148,7 @@ public partial class VictoryChecks : Node
             Check(victory.IsOpen && Nodes(victory).OfType<Label>().Single(label => label.Name == "VictoryHeading").Text == "DEFEAT",
                 "a defeated player receives the same dismissible result");
             Nodes(victory).OfType<Button>().Single(button => button.Name == "InspectMap").EmitSignal(Button.SignalName.Pressed);
+            await ToSignal(GetTree().CreateTimer(.55), SceneTreeTimer.SignalName.Timeout);
             await Frame();
             Check(!victory.IsOpen && Game.Hud.Visible, "defeat can also be dismissed for inspection");
             Game.Saves.Write(defeat, Game.MapCamera.Position, Game.MapCamera.Zoom.X);

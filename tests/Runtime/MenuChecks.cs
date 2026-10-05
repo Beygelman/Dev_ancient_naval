@@ -116,16 +116,16 @@ public partial class MenuChecks : Node
             await ToSignal(GetTree().CreateTimer(.35), SceneTreeTimer.SignalName.Timeout);
             await Frame();
             await Capture("papyrus");
-            var information = Descendants(Game.Hud).OfType<DevAncientNaval.Presentation.UI.SectorButton>().Single(b => b.Name == "ActionInformation");
+            Check(!Descendants(Game.Hud).OfType<DevAncientNaval.Presentation.UI.SectorButton>().Any(b => b.Name == "ActionInformation"), "Information is integrated into the selected object card.");
             void MouseClick(Vector2 point, MouseButton button)
             {
                 GetViewport().PushInput(new InputEventMouseButton { Position = point, GlobalPosition = point, ButtonIndex = button, Pressed = true }, true);
                 GetViewport().PushInput(new InputEventMouseButton { Position = point, GlobalPosition = point, ButtonIndex = button, Pressed = false }, true);
             }
 
-            MouseClick(information.GetGlobalTransform() * information.IconCenter, MouseButton.Left);
+
             await Frame();
-            Check(Game.Hud.InformationVisible, "Actual papyrus information click opens the ship's counsel.");
+            Check(Game.Hud.InformationVisible, "Selecting the ship opens the integrated counsel.");
             var sections = Descendants(Game.Hud).OfType<Label>().Where(n => n.Name == "InformationSectionHeading").ToArray();
             Check(sections.Select(s => s.Text).Contains("AT A GLANCE") && sections.Select(s => s.Text).Contains("WEAPONS"), "Information has visibly separate fact groups");
             Check(Descendants(Game.Hud).OfType<Label>().Count(n => n.Name == "InformationFieldLabel") >= 8, "Facts have individual label/value rows");
@@ -140,13 +140,12 @@ public partial class MenuChecks : Node
             await Frame();
             var resourceAction = Descendants(Game.Hud).OfType<Button>().Single(b => b.Name == "TileResource");
             Check(resourceAction.IsVisibleInTree(), "Resource scroll is open before right-click cancellation.");
-            var resourceInformation = Descendants(Game.Hud).OfType<DevAncientNaval.Presentation.UI.SectorButton>().Single(b => b.Name == "ResourceInformation");
-            MouseClick(resourceInformation.GetGlobalTransform() * resourceInformation.IconCenter, MouseButton.Left);
+            Check(!Descendants(Game.Hud).OfType<DevAncientNaval.Presentation.UI.SectorButton>().Any(b => b.Name == "ResourceInformation"), "Resource facts need no separate information sector.");
             await Frame();
             Check(Game.Hud.InformationVisible && Game.Hud.InformationText.Contains("1 Mothership resource"), "Resource information describes the selected shoal.");
             await Frame();
             var shortContent = Descendants(infoPanel).OfType<ScrollContainer>().Single();
-            Check(shortContent.GetVScrollBar().MaxValue <= shortContent.GetVScrollBar().Page + 1, "A short resource card fits all its facts without scrolling");
+            Check(shortContent.Size.Y <= infoPanel.Size.Y && infoPanel.Size.Y <= 239, "Resource facts use the compact bounded reading viewport");
             await Capture("resource-lore");
             MouseClick(infoPanel.GetGlobalRect().GetCenter(), MouseButton.Right);
             await Frame();
@@ -177,7 +176,8 @@ public partial class MenuChecks : Node
         await Frame();
         var panel = Descendants(Game.Hud).OfType<PanelContainer>().Single(n => n.Name == "InformationScroll");
         var content = Descendants(panel).OfType<ScrollContainer>().Single();
-        Check(panel.GetGlobalRect().End.Y <= GetViewport().GetVisibleRect().Size.Y - 70, "Long information stays above the bottom controls");
+        Check(panel.GetGlobalRect().End.Y <= GetViewport().GetVisibleRect().Size.Y - 13,
+            "Long information retains the compact lower-left screen margin");
         Check(content.GetVScrollBar().MaxValue > content.GetVScrollBar().Page, "Long installed-equipment card scrolls instead of overflowing");
         await Capture("upgraded-lore");
         content.ScrollVertical = 10000;

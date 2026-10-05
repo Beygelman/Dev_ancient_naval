@@ -35,7 +35,7 @@ public partial class BoardView
     }
 
     private sealed record Scenery(GridPosition Cell, Vector2 Point, float Size, int Kind, float Shade, bool Minor = false,
-        float HeightRatio = 1.7f, bool Snow = false);
+        float HeightRatio = 1.7f, bool Snow = false, float GroundAspect = .38f, float SnowDepth = .25f);
     private void DrawIslandScenery(Node2D canvas, ISet<GridPosition> cells)
     {
         if (!ReferenceEquals(_sceneryProjection, Projection))
@@ -114,9 +114,9 @@ public partial class BoardView
             canvas.DrawLine(peak, shoulder[2], C("536f67"), .7f, true);
             if (item.Snow)
             {
-                var a = peak.Lerp(shoulder[4], .25f);
-                var b = peak + new Vector2(s * .05f, s * .32f);
-                var c = peak.Lerp(shoulder[1], .22f);
+                var a = peak.Lerp(shoulder[4], item.SnowDepth);
+                var b = peak + new Vector2(s * .05f, s * item.SnowDepth * 1.3f);
+                var c = peak.Lerp(shoulder[1], item.SnowDepth * .88f);
                 SceneryTriangle(canvas, peak, a, b, C("d7dccb"));
                 SceneryTriangle(canvas, peak, b, c, C("d7dccb"));
             }
@@ -165,7 +165,9 @@ public partial class BoardView
         Scenery? Peak(GridPosition cell, Vector2 p, float size, bool minor = false)
         {
             var peak = new Scenery(cell, p, size, 2, (float)random.NextDouble() - .5f,
-                Minor: minor, HeightRatio: 1.35f + (float)random.NextDouble() * .9f);
+                Minor: minor, HeightRatio: 1.35f + (float)random.NextDouble() * .9f,
+                GroundAspect: .29f + (float)random.NextDouble() * .2f,
+                SnowDepth: .17f + (float)random.NextDouble() * .19f);
             bool Fits(Scenery candidate)
             {
                 var skirt = MountainFootprint(candidate, p);
@@ -201,9 +203,20 @@ public partial class BoardView
             foreach (var next in Board.GetNeighbors(cell).Where(features.MountainCells.Contains)
                 .Where(n => n.Y > cell.Y || n.Y == cell.Y && n.X > cell.X).OrderBy(n => n.Y).ThenBy(n => n.X))
             {
-                var middle = p.Lerp(Projection.GridToWorld(next), .5f);
-                if (!LandPoint(middle, out _)) continue;
-                if (Peak(cell, middle, 21 + (float)random.NextDouble() * 13, true) is { } connector) _scenery.Add(connector);
+                var finish = Projection.GridToWorld(next);
+                var across = (finish - p).Normalized().Orthogonal();
+                float bend = MathF.Sin((p.X + p.Y) * .012f + Board.Seed * .071f) * 11;
+                // A pair of offset foothills traces a curving ridge rather than
+                // one identical spike snapped to every cell midpoint. Their
+                // ownership remains one of the actual Core mountain cells.
+                for (int foothill = 1; foothill <= 2; foothill++)
+                {
+                    float t = foothill / 3f;
+                    var middle = p.Lerp(finish, t) + across * bend * MathF.Sin(t * Mathf.Pi);
+                    if (!LandPoint(middle, out var ground)) continue;
+                    var owner = features.MountainCells.Contains(ground) ? ground : cell;
+                    if (Peak(owner, middle, 16 + (float)random.NextDouble() * 18, true) is { } connector) _scenery.Add(connector);
+                }
             }
         }
         var summits = _scenery.Where(p => p.Kind == 2 && !p.Minor).Select(p => p.Size * p.HeightRatio).Order().ToArray();
@@ -240,7 +253,7 @@ public partial class BoardView
     {
         float angle = i * Mathf.Tau / 12;
         float uneven = 1 + .12f * MathF.Sin(i * 2.7f + item.Shade * 5);
-        return p + new Vector2(MathF.Cos(angle), MathF.Sin(angle) * .38f) * item.Size * uneven;
+        return p + new Vector2(MathF.Cos(angle), MathF.Sin(angle) * item.GroundAspect) * item.Size * uneven;
     }).ToArray();
 
     private static Vector2[] MountainSilhouette(Scenery item) => Geometry2D.ConvexHull(

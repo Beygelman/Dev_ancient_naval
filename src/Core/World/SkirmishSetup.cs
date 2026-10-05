@@ -5,7 +5,8 @@ using DevAncientNaval.Core.Units;
 namespace DevAncientNaval.Core.World;
 public static class SkirmishSetup
 {
-    public static BattleState Create(GameBoard board, BattleRules rules, int opponentCount = 1)
+    public static BattleState Create(GameBoard board, BattleRules rules, int opponentCount = 1,
+        AiDifficulty difficulty = AiDifficulty.Captain, bool piratesEnabled = true)
     {
         if (opponentCount is < 1 or > 4)
             throw new ArgumentOutOfRangeException(nameof(opponentCount), "Choose one to four rival fleets.");
@@ -41,6 +42,7 @@ public static class SkirmishSetup
         var settlements = WorldSettlementPlacement.Create(board, factionCount,
             requireLandNeighbor: rules.MapSizePirateSettlements && board.MapSize is not null);
         return new(board, rules, deployment, resourceSeed: board.Seed, villageSpots: settlements,
-            seaEvents: board.Mesh is not null, generatedSettlements: true);
+            seaEvents: board.Mesh is not null, generatedSettlements: true,
+            difficulty: difficulty, piratesEnabled: piratesEnabled);
     }
 }

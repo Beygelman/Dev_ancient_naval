@@ -79,8 +79,7 @@ public partial class PortCityChecks : Node
             for (int i = 0; i < 25; i++)
                 await Frame();
             var sectors = Nodes(Game.Hud).OfType<SectorButton>().Where(s => s.Visible && s.GetParent().Name == "ActionPapyrus").ToArray();
-            var info = sectors.Single(s => s.Name == "ActionInformation");
-            Check(sectors.All(s => s.IconCenter.X <= info.IconCenter.X + .01), "Info occupies the far-right sector on a town scroll");
+            Check(!sectors.Any(s => s.Name == "ActionInformation"), "Town counsel is integrated into its card");
             Check(Game.Hud.InformationText.Contains("Port:"), "City chart describes the installed port");
             Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(spots[3]);
             Game.MapCamera.Zoom = Vector2.One * 2.1f;

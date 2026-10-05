@@ -5,7 +5,7 @@ using Godot;
 namespace DevAncientNaval.Presentation.Map;
 
 // Debris is solid floor/height geometry, never a cropped image of the vessel.
-internal enum WreckPartKind { Keel, Deck, House, Sanctuary, Mast, Gun, Rubble }
+internal enum WreckPartKind { Keel, Deck, House, Sanctuary, Mast, Gun, Rubble, Cloth, Basket, Strut }
 internal sealed record WreckFace(Vector3[] Vertices, Color Color, bool TwoSided = false);
 internal sealed record WreckPart(WreckPartKind Kind, Vector3 Pivot, Vector3 Drift,
     Vector3 Spin, float Release, float Sink, WreckFace[] Faces);

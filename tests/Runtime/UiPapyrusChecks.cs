@@ -95,7 +95,8 @@ internal static class UiPapyrusChecks
             : supportRows.Any(row => row.Label == "Income" && row.Value.Contains($"+{fisher.Definition.IncomePerTurn} Thors")),
             "Support income counsel matches active rules, including no passive income.");
         game.Hud.ShowInformation(game.Battle, mother.Position);
-        Check(game.Hud.InformationVisible && game.Hud.InformationText.Contains(mother.Name == "Mothership" ? "city may sail" : "Health"), "Information button opens a readable chart.");
+        Check(game.Hud.InformationVisible && game.Hud.InformationText.Contains("city may sail"),
+            "Selected flagship counsel opens a readable chart without a separate information command.");
         game.Hud.CloseMenus();
         Check(!game.Hud.InformationVisible, "Cancel closes the information scroll.");
         // The human's defeat ends their UI even while two AI factions survive.

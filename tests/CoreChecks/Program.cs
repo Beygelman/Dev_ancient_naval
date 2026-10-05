@@ -3,6 +3,30 @@ using DevAncientNaval.Core.World;
 
 try
 {
+    if (args.Contains("--v0207b-only"))
+    {
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        Console.WriteLine($"PASS: {Rules0207bChecks.Run(rules)} v020.7b tower, Granado, staged combat and historical policy checks.");
+        return;
+    }
+    if (args.Contains("--port-economy-only"))
+    {
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        Console.WriteLine($"PASS: {PortEconomyCorrectionsChecks.Run(rules)} connected port economy, receipts and historical save checks.");
+        return;
+    }
+    if (args.Contains("--v0208-only"))
+    {
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        Console.WriteLine($"PASS: {Rules0208PiratesChecks.Run(rules)} v020.8 pirate generation and saved option checks.");
+        return;
+    }
+    if (args.Contains("--v0207-only"))
+    {
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        Console.WriteLine($"PASS: {Rules0207Checks.Run(rules)} v020.7 fleet, diagonal ports, refunds and balloon-crash checks.");
+        return;
+    }
     if (args.Contains("--v0206-only"))
     {
         var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
@@ -75,6 +99,8 @@ try
     Check(typeof(GameBoard).Assembly.GetReferencedAssemblies().All(a => !a.Name!.StartsWith("Godot")),
         "Core must not reference Godot");
     Console.WriteLine($"PASS: {checks} core checks");
+    var currentRules0207b = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+    Console.WriteLine($"PASS: {Rules0207bChecks.Run(currentRules0207b)} v020.7b tower, Granado, staged combat and historical policy checks.");
     BattleScenarios.Run();
     var persistenceRules = DevAncientNaval.Core.Battle.BattleRules.FromJson(
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0202.json")));
@@ -98,6 +124,9 @@ try
     Console.WriteLine($"PASS: {Rules0204Checks.Run(currentRules)} v020.4 paid town, level rewards and repair locks.");
     Console.WriteLine($"PASS: {Rules0205Checks.Run(currentRules)} v020.5 support brig, trade, map size and repair checks.");
 
+    Console.WriteLine($"PASS: {PortEconomyCorrectionsChecks.Run(currentRules)} connected port economy, receipts and historical save checks.");
+    Console.WriteLine($"PASS: {Rules0208PiratesChecks.Run(currentRules)} v020.8 pirate generation and saved option checks.");
+    Console.WriteLine($"PASS: {Rules0207Checks.Run(currentRules)} v020.7 fleet, diagonal ports, refunds and balloon-crash checks.");
     Console.WriteLine($"PASS: {Rules0206Checks.Run(currentRules)} v020.6 guidance, economy, annulus and generation checks.");
 }
 catch (Exception error)

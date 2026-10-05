@@ -7,13 +7,14 @@ namespace DevAncientNaval.Presentation.UI;
 internal partial class TutorialHud : CanvasLayer
 {
     private Control _root = null!;
-    private PanelContainer _paper = null!;
+    private RollingModalPaper _paper = null!;
     private VBoxContainer _body = null!;
     private ScrollContainer _scroll = null!;
     private Label _heading = null!, _description = null!;
     private TextureRect _picture = null!;
-    private Button _close = null!;
-    private bool _layingOut;
+    private BrushPaperButton _close = null!;
+    private bool _layingOut, _dismissing;
+    private int _presentation;
     internal string? Topic { get; private set; }
     internal bool IsOpen => Visible && Topic is not null;
     internal event Action? Dismissed;
@@ -23,28 +24,17 @@ internal partial class TutorialHud : CanvasLayer
         Name = "TutorialAdvice";
         _root = new Control { Name = "TutorialAdviceRoot", Theme = PapyrusStyle.ChartTheme(), MouseFilter = Control.MouseFilterEnum.Ignore };
         AddChild(_root);
-        _paper = new PanelContainer { Name = "TutorialAdvicePaper", MouseFilter = Control.MouseFilterEnum.Stop };
-        _paper.AddThemeStyleboxOverride("panel", PapyrusStyle.Panel(.96f));
-        PapyrusGrain.Apply(_paper);
+        _paper = new RollingModalPaper { Name = "TutorialAdvicePaper", MouseFilter = Control.MouseFilterEnum.Stop,
+            MouseForcePassScrollEvents = false };
         _root.AddChild(_paper);
         _body = new VBoxContainer();
         _body.AddThemeConstantOverride("separation", 8);
-        _scroll = PapyrusModal.Wrap(_paper, _body, "TutorialAdviceScroll");
         var top = new HBoxContainer();
         _body.AddChild(top);
         _heading = Text("", 17);
         _heading.Name = "TutorialAdviceTitle";
         _heading.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         top.AddChild(_heading);
-        _close = new Button { Name = "CloseTutorialAdvice", Text = "×", TooltipText = "Close advice",
-            CustomMinimumSize = new(30, 30), FocusMode = Control.FocusModeEnum.None };
-        PapyrusStyle.Button(_close, 19);
-        top.AddChild(_close);
-        _close.Pressed += () =>
-        {
-            Clear();
-            Dismissed?.Invoke();
-        };
         _picture = new TextureRect { Name = "TutorialAdviceScreenshot", ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, MouseFilter = Control.MouseFilterEnum.Ignore,
             CustomMinimumSize = new(0, 138) };
@@ -52,6 +42,30 @@ internal partial class TutorialHud : CanvasLayer
         _description = Text("", 13);
         _description.Name = "TutorialAdviceDescription";
         _body.AddChild(_description);
+        _close = new BrushPaperButton { Name = "CloseTutorialAdvice", Text = "Taken to heart",
+            TooltipText = "Acknowledge this advice", CustomMinimumSize = new(0, 40), Underline = true };
+        // Advice can grow after translation. Keep acknowledgement outside the
+        // clipped reading area so a long tip never hides the only close action.
+        _scroll = PapyrusModal.WrapWithFooter(_paper, _body, _close, "TutorialAdviceScroll");
+        // A nonmodal sheet must consume wheel input even when it has reached an
+        // edge or all its text fits. The rolling paper's Node2D reveal layer is
+        // outside the ordinary Control bubbling chain, so guard its content too.
+        _scroll.MouseForcePassScrollEvents = false;
+        _paper.ContentSurface.MouseFilter = Control.MouseFilterEnum.Stop;
+        _paper.ContentSurface.MouseForcePassScrollEvents = false;
+        _close.Pressed += async () =>
+        {
+            if (_dismissing) return;
+            _dismissing = true;
+            int presentation = _presentation;
+            await _close.StampAsync();
+            if (presentation != _presentation) return;
+            await _paper.FoldAsync();
+            if (presentation != _presentation) return;
+            Clear();
+            _dismissing = false;
+            Dismissed?.Invoke();
+        };
         _body.MinimumSizeChanged += Layout;
         Language.Changed += Layout;
         TreeExiting += () => Language.Changed -= Layout;
@@ -68,18 +82,28 @@ internal partial class TutorialHud : CanvasLayer
     }
     internal void Present(string topic, string title, string description, string screenshot)
     {
+        _presentation++;
+        _dismissing = false;
         Topic = topic;
+        _close.ResetStamp();
+        _scroll.ScrollVertical = 0;
         _heading.Text = title;
         _description.Text = description;
         _picture.Texture = GD.Load<Texture2D>(screenshot);
         _picture.Visible = _picture.Texture is not null;
         Show();
         Layout();
+        _ = _paper.OpenAsync();
     }
     internal void SetAllowed(bool allowed) => Visible = allowed && Topic is not null && UiHints.Enabled;
     internal void Clear()
     {
+        _presentation++;
+        _dismissing = false;
         Topic = null;
+        _close.ResetStamp();
+        _ = _paper.FoldAsync(true);
+        _paper.Hide();
         Hide();
     }
     private void Layout()
@@ -88,7 +112,7 @@ internal partial class TutorialHud : CanvasLayer
         _layingOut = true;
         var viewport = UiScale.LogicalViewport(this);
         _picture.CustomMinimumSize = new(0, Math.Min(138, viewport.Y * .24f));
-        PapyrusModal.Layout(_paper, _scroll, _body, viewport);
+        PapyrusModal.LayoutWithFooter(_paper, _scroll, _body, _close, viewport);
         _paper.Position = new(18, 18);
         _layingOut = false;
     }

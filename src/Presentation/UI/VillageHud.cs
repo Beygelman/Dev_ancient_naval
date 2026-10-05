@@ -23,7 +23,10 @@ public partial class DebugHud
         _port.SetMeta("applicable", owned);
         string? portReason = village is null ? "Select a city" : battle.PortBlockReason(Side.Player, village.Id);
         Availability(_port, canAct && portReason is null, "");
-        _port.TooltipText = $"Port · {battle.PortPrice(Side.Player)} Thors · Level 3 · +{battle.Rules.Ports.Income} income · {battle.Rules.Ports.Discount:P0} shipyard discount · linked sea lanes" + (portReason is null ? "" : $" · {portReason}");
+        _port.TooltipText = (battle.Rules.Ports.ConnectedCityIncome
+            ? $"Port · {battle.PortPrice(Side.Player)} Thors · Level 3 · +1 income per other connected city · {battle.Rules.Ports.Discount:P0} shipyard discount · linked sea lanes"
+            : $"Port · {battle.PortPrice(Side.Player)} Thors · Level 3 · +{battle.Rules.Ports.Income} income · {battle.Rules.Ports.Discount:P0} shipyard discount · linked sea lanes")
+            + (portReason is null ? "" : $" · {portReason}");
         _fortify.SetMeta("applicable", owned);
         string? fortifyReason = village is null ? "Select a village" : battle.FortifyBlockReason(Side.Player, village.Id);
         Availability(_fortify, canAct && fortifyReason is null, village?.IsFortified == true ? "✓" : battle.FortificationPrice(Side.Player).ToString());
@@ -38,9 +41,12 @@ public partial class DebugHud
         _health.Text = $"Health {village.Health:0.##}/{village.MaxHealth:0.##}";
         string progression = village.Level == 5 ? "Maximum level"
             : battle.Rules.PaidVillageUpgrades ? $"Next level · {upgradePrice} Thors" : $"Grows in {2 - village.TurnsOwned % 2} turn(s)";
-        _details.Text = village.Health <= 0 ? "Defenses defeated · Town remains on the map\nKeep a combat ship alongside for one turn, then click the hovering scroll." : owned ? $"Income +{(battle.VillageIncome(village) + (village.HasPort ? battle.Rules.Ports.Income : 0))} · {progression}\nShipyard level {village.Level}" + (village.IsFortified ? " · Fortified" : "") : canCapture ? "Your crew is ready. Click the hovering scroll to claim this village." : "Reduce this town to 0 HP before capturing it.\nFishing Schooners and Balloons cannot capture towns.";
+        bool privateTrade = !owned && village.Owner is not null && battle.Rules.Ports.ConnectedCityIncome && village.HasPort;
+        int visibleIncome = battle.VillageIncome(village) + (privateTrade ? 0 : battle.PortIncome(village));
+        _details.Text = village.Health <= 0 ? "Defenses defeated · Town remains on the map\nKeep a combat ship alongside for one turn, then click the hovering scroll." : owned ? $"Income +{(battle.VillageIncome(village) + battle.PortIncome(village))} · {progression}\nShipyard level {village.Level}" + (village.IsFortified ? " · Fortified" : "") : canCapture ? "Your crew is ready. Click the hovering scroll to claim this village." : "Reduce this town to 0 HP before capturing it.\nFishing Schooners and Balloons cannot capture towns.";
         _shipCard.TooltipText = battle.Rules.PaidVillageUpgrades
             ? "Towns grow through paid upgrades. Each upgrade uses this turn's town construction."
-            : $"Villages grow by one level every two owned turns, up to level 5. Income at this level: {(battle.VillageIncome(village) + (village.HasPort ? battle.Rules.Ports.Income : 0))} Thors.";
+            : $"Villages grow by one level every two owned turns, up to level 5. Income at this level: {visibleIncome} Thors."
+                + (privateTrade ? "\nTrade income is not observed" : "");
     }
 }

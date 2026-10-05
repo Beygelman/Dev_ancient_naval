@@ -1,0 +1,37 @@
+[
+  {
+    "passed": true,
+    "name": "sea",
+    "warnings": false,
+    "exit": 0,
+    "seconds": 29.1467488
+  },
+  {
+    "passed": true,
+    "name": "optimization",
+    "warnings": false,
+    "exit": 0,
+    "seconds": 7.2995491
+  },
+  {
+    "passed": true,
+    "name": "merchant-corrections",
+    "warnings": false,
+    "exit": 0,
+    "seconds": 5.9222743
+  },
+  {
+    "passed": true,
+    "name": "port-economy-ui",
+    "warnings": false,
+    "exit": 0,
+    "seconds": 9.3376427
+  },
+  {
+    "passed": true,
+    "name": "tutorial-capture0207b",
+    "warnings": false,
+    "exit": 0,
+    "seconds": 9.7607972
+  }
+]

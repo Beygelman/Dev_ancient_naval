@@ -5,6 +5,9 @@ public sealed class PortRules
     /// <summary>Maximum shortest navigable route in tile transitions; zero preserves unlimited old routes.</summary>
     public int MaximumRouteLength { get; init; }
     public int Income { get; init; } = 1;
+    /// <summary>Replace the historical fixed income with one Thor per other
+    /// connected friendly port city. Missing in old rules: retain fixed Income.</summary>
+    public bool ConnectedCityIncome { get; init; }
     public double Discount { get; init; } = .20;
     public int MinimumBonus { get; init; } = 2;
     public double MovementBonus { get; init; } = .20;

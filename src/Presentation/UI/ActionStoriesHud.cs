@@ -29,8 +29,16 @@ public partial class DebugHud
         _root.AddChild(scroll);
         var guidance = new GuidanceLabel { Name = "ActionGuidance",
             Text = capture ? "Click to capture the town." : "Click to collect relics.",
-            Position = new(0, SectorButton.PaperFootprint.Y + 4), Size = new(SectorButton.PaperFootprint.X, 32) };
+            HorizontalAlignment = HorizontalAlignment.Center };
         scroll.AddChild(guidance);
+        void LayoutGuidance()
+        {
+            guidance.Position = new(0, scroll.Size.Y + 4);
+            guidance.Size = new(scroll.Size.X, Math.Max(32, guidance.GetCombinedMinimumSize().Y));
+        }
+        scroll.Resized += LayoutGuidance;
+        guidance.MinimumSizeChanged += LayoutGuidance;
+        LayoutGuidance();
         scroll.Pressed += () =>
         {
             var entry = _stories.FirstOrDefault(pair => ReferenceEquals(pair.Value, scroll));
@@ -51,7 +59,7 @@ public partial class DebugHud
         {
             foreach (var scroll in _stories.Values)
             {
-                scroll.SetReady(false);
+                scroll.Reset();
                 if (scroll != _claimPapyrus && scroll != _treasuryPapyrus) scroll.QueueFree();
             }
             _stories.Clear();
@@ -64,9 +72,10 @@ public partial class DebugHud
         var ready = new Dictionary<(bool Capture, int Id), GridPosition>();
         if (canAct)
         {
-            foreach (var town in battle.Villages.Where(v => battle.CanCaptureVillage(Side.Player, v.Id)))
+            foreach (var town in battle.ObservedVillages(Side.Player).Where(v => battle.CanCaptureVillage(Side.Player, v.Id)))
                 ready[(true, town.Id)] = town.Position;
-            foreach (var vessel in battle.OwnShips(Side.Player).Where(s => battle.CanLootTreasury(Side.Player, s.Id)))
+            foreach (var vessel in battle.OwnShips(Side.Player).Where(s => battle.Vision.IsVisible(Side.Player, s.Position)
+                && battle.CanLootTreasury(Side.Player, s.Id)))
                 ready[(false, vessel.Id)] = vessel.Position;
         }
         foreach (var key in _stories.Keys.ToArray())
@@ -99,13 +108,9 @@ public partial class DebugHud
             var scroll = _stories[key];
             var point = screen(cell);
             scroll.SetOnScreen(GetViewport().GetVisibleRect().Grow(30).HasPoint(point));
-            scroll.Position = ClampWorldUi(UiScale.ScreenToUi(point) - new Vector2(scroll.Size.X / 2, 195 / UiScale.Value), scroll.Size);
+            // This is a world banner, not a screen-edge notification. Its caption
+            // remains a child of the same paper, so neither can leave the target.
+            scroll.Position = UiScale.ScreenToUi(point) - new Vector2(scroll.Size.X / 2, 195 / UiScale.Value);
         }
-    }
-    private Vector2 ClampWorldUi(Vector2 position, Vector2 size)
-    {
-        var viewport = UiScale.LogicalViewport(this);
-        return new(Mathf.Clamp(position.X, 8, Math.Max(8, viewport.X - size.X - 8)),
-            Mathf.Clamp(position.Y, 90, Math.Max(90, viewport.Y - size.Y - 70)));
     }
 }
