@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory = $true)][string]$GodotPath,
     [Parameter(Mandatory = $true)][string]$OutputPath,
     [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$Preset = 'Windows Desktop'
+    [string]$Preset = 'Windows Desktop',
+    [ValidateSet('v020.7', 'v020.7b')][string]$Version = 'v020.7'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -15,7 +16,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $taskRoot 'project.godot') -PathType
 if ($taskOutput.StartsWith($taskRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -or $taskOutput -eq $taskRoot) { throw 'Export outside the project tree to prevent recursive export pollution.' }
 if (Test-Path -LiteralPath $taskOutput) { throw "Output already exists; choose a fresh export directory: $taskOutput" }
 $taskProject = Get-Content -LiteralPath (Join-Path $taskRoot 'project.godot') -Raw
-if ($taskProject -notmatch '(?m)^config/version="v020\.7"\s*$') { throw 'Only the frozen v020.7 project can use this release tool.' }
+if ($taskProject -notmatch ('(?m)^config/version="' + [regex]::Escape($Version) + '"\s*$')) { throw "Project identity does not match the explicitly selected $Version release." }
 $taskPresets = Get-Content -LiteralPath (Join-Path $taskRoot 'export_presets.cfg') -Raw
 $taskPresetIndex = $null
 foreach ($taskSection in [regex]::Matches($taskPresets, '(?ms)^\[preset\.(\d+)\]\s*\r?\n(.*?)(?=^\[|\z)')) {

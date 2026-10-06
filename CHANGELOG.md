@@ -1,6 +1,17 @@
 # Ancient Naval change history
 
-## v020.7b — 6 October 2026 — Working source update
+## v020.7b — 6 October 2026
+
+- Package the subsequently requested portable Windows candidate, matching source
+  archive and SHA256 manifest without changing the version or gameplay.
+- Make export/package/verification version-aware with explicit `-Version v020.7b`;
+  frozen v020.7 defaults and historical archive names remain unchanged.
+- Clean the active Windows preset: no PDBs/console wrapper or development PCK
+  resources; retain the complete exporter .NET runtime.
+- Restore the two documented historical test fixtures byte-for-byte from the
+  verified finalized source package; user saves are never test inputs.
+- Record the current Pangaea frame-gate failure separately from prior passing
+  source checks; candidate status preserves the unchanged release thresholds.
 
 - Bounded close-view terrain detail, sharp town glyphs, safe queued fog refresh
   and one distant object LOD; retained caches remain independent of simulation.
@@ -29,7 +40,8 @@
   refund, modal input isolation and stale-voyage cancellation.
 - Native screenshot advice for flagship/village progression, double charges,
   veteran bonuses and numbered commands; stable v1 tutorial acknowledgements.
-- Preserve later valid source and historical archives. No new player export.
+- Preserve later valid source and historical archives. The original working
+  checkpoint preceded this user's subsequent portable-player request.
 - Preserve oversized local checkpoint `9ccfa57` and its files under a backup
   ref. Publish clean source based on remote `299d99c`, omitting only the new
   extracted player-candidate folder; historical ZIPs remain immutable.

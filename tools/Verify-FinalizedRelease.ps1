@@ -6,7 +6,8 @@ param(
     [string]$ManifestPath,
     [string]$PckPath,
     [string]$PckInventoryPath,
-    [string]$RuntimeReferencePath
+    [string]$RuntimeReferencePath,
+    [ValidateSet('v020.7', 'v020.7b')][string]$Version = 'v020.7'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -126,7 +127,7 @@ if ($PckPath) {
 if ($PlayerZip) {
     $taskArchive = [IO.Compression.ZipFile]::OpenRead((Resolve-Path -LiteralPath $PlayerZip).Path)
     try {
-        $taskPrefix = 'Ancient Naval v020.7/'
+        $taskPrefix = "Ancient Naval $Version/"
         $taskNames = @($taskArchive.Entries | ForEach-Object {
             if (-not $_.FullName.StartsWith($taskPrefix, [StringComparison]::Ordinal)) { throw "Unexpected player ZIP root: $($_.FullName)" }
             $_.FullName.Substring($taskPrefix.Length)

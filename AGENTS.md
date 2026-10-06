@@ -20,7 +20,8 @@ It authorizes render detail/one distant LOD, world-anchored wrapping command pap
 numbered current-menu shortcuts, faction monument ready counter, current counsel
 with stat glyphs, Granado movement 4 and built Cannon Tower damage 5 with optional
 wall bypass. Preserve the primary's intentional later source and all historical
-packages. **Do not export/package this working update.**
+packages. The subsequent explicit request on 6 October authorizes a portable
+Windows player and matching source/SHA256 archives for this same v020.7b identity.
 
 Both menu signatures read `application/config/version` and
 `application/config/release_date` from project.godot; never use runtime today's
@@ -94,7 +95,16 @@ The user explicitly authorizes future reviewed commits and pushes to GitHub
 Fetch and compare first; never force-push, reset newer local work or include
 unrelated user edits blindly. Preserve existing local commits and inspect the
 staged source inventory. This authorization supersedes older read-only Git
-finalization notes below. Working v020.7b still has no requested player export.
+finalization notes below. The v020.7b player is now explicitly requested.
+
+Export/package/verify scripts accept `-Version v020.7b`; their default remains
+the frozen `v020.7` to preserve historical naming. Use a reviewed external source
+snapshot when a local editor has imported a nested project under docs: default
+MSBuild globs otherwise compile that unrelated clone too. Do not delete the clone
+or overwrite user edits. Player checks must run the actual exported executable;
+runtime regression hooks require the debug feature and do not run in a Release
+player merely because `--menu-test` is passed. Keep all automated player saves,
+preferences and movie captures under an explicit disposable outside-project path.
 
 The preserved local checkpoint `9ccfa57` contains a 109,413,888-byte raw executable
 over GitHub's regular-file limit. Keep that commit under a local backup ref and

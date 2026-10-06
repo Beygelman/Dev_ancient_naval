@@ -1,0 +1,44 @@
+{
+  "version": "v020.7b",
+  "date": "06.10.2026",
+  "state": "playable_verification_candidate",
+  "baseline": "8fd3273c5e394694a61e78d764cfd6ab0c30941e",
+  "gameplay_changed": false,
+  "debug_build": "pass_zero_warnings_errors",
+  "full_core": "pass",
+  "historical_save_checks": 23,
+  "historical_fixtures": 2,
+  "source_archive_build": "pass_zero_warnings_errors",
+  "standalone_export": "pass",
+  "delivered_player_startup": [
+    "en",
+    "uk",
+    "nl",
+    "map-preview"
+  ],
+  "player_files": 190,
+  "pck_resources": 197,
+  "source_entries": 1154,
+  "runtime_preserved": true,
+  "sha256": "pass",
+  "smoothness": {
+    "state": "failed_pangaea_not_final",
+    "pan_p95_ms": 25.469,
+    "pan_max_ms": 32.916,
+    "interaction_p95_ms": 23.128,
+    "interaction_max_ms": 62.303,
+    "hover_max_ms": 0.492,
+    "thresholds_changed": false,
+    "live_fog_this_turn": "not_completed_after_pangaea_failure",
+    "earlier_source_passes": "docs/MILESTONE-v020.7b.md",
+    "cause": "undetermined_native_submission_or_host_scheduling",
+    "gpu_telemetry": "P5 mostly 435-735MHz at roughly 9-10W; AC online"
+  },
+  "limitations": [
+    "no full manual campaign",
+    "no actual Release-player Continue interaction check",
+    "no Android/touch or other GPU certification"
+  ],
+  "historical_archives": "untouched",
+  "user_changes": "project.godot setting order, audit whitespace edit and docs/dev-ancient-naval clone preserved"
+}

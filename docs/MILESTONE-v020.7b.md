@@ -1,6 +1,8 @@
 # v020.7b — working source checkpoint, 6 October 2026
 
-This is the user's requested source update, not a new Windows player release.
+This records the user's source update and its original verification. A subsequent
+request authorizes a portable player of the same version; see RELEASE-v020.7b.md
+for the additive package delivery rather than changing the original test record.
 The canonical source remains `C:/__Beygelman/! -11/dev-ancient-naval`.
 
 ## Source selection and preservation
@@ -131,6 +133,6 @@ Untouched archive hashes (SHA256):
 | Corrected 2026-10-05 Windows candidate | `97dd1ec07f9c9ddc80ceabf2a77ba29b5f05123302b50f13c0a6f181548d2b9d` |
 | Corrected 2026-10-05 source candidate | `538d4f5a94d44b4900d5d91ac88df7e6085e648d240bed94c4946665bfb34d5d` |
 
-No v020.7b Windows export, source ZIP or installer was requested or generated.
-Historical ZIPs do not display these latest source changes. Use the current
-Godot source project for this checkpoint.
+At this source checkpoint, no v020.7b Windows export/source ZIP was requested.
+The subsequent same-day portable delivery is documented in RELEASE-v020.7b.md.
+Historical ZIPs do not display these latest source changes.

@@ -1,0 +1,26 @@
+[
+  {
+    "case": "en",
+    "exit_code": 0,
+    "captured_frames": 8,
+    "passed": true
+  },
+  {
+    "case": "uk",
+    "exit_code": 0,
+    "captured_frames": 8,
+    "passed": true
+  },
+  {
+    "case": "nl",
+    "exit_code": 0,
+    "captured_frames": 8,
+    "passed": true
+  },
+  {
+    "case": "map-preview",
+    "exit_code": 0,
+    "captured_frames": 8,
+    "passed": true
+  }
+]

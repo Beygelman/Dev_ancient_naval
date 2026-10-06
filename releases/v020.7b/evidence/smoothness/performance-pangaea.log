@@ -1,0 +1,165 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 581.29 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 4060 Laptop GPU
+
+PAN frames=119, p50_ms=16.662, p95_ms=25.897, max_ms=34.107
+INTERACTION world=Pangaea, wide_view=True, tiles=1759, opponents=4, live_fog=False, hover_calls=64, hover_p50_ms=0.039, hover_p95_ms=0.095, hover_max_ms=0.607, frame_p95_ms=42.943, frame_max_ms=121.357, process_p95_ms=76.456, draw_calls_p95=1425, movement_elapsed_ms=1692.391
+SLOW_FRAMES
+phase=move/encounter/save, frame_ms=65,096, GC_delta=0/0/0, process_ms=27,676, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=64,646, GC_delta=0/0/0, process_ms=37,120, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=121,357, GC_delta=0/0/0, process_ms=37,120, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=79,369, GC_delta=0/0/0, process_ms=37,120, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+phase=move/encounter/save, frame_ms=85,098, GC_delta=0/0/0, process_ms=37,120, focused=True, canvas_compile_delta=0, draw_compile_delta=0
+{
+  "Terrain.Detail.View": {
+    "Calls": 120,
+    "TotalMs": 0.046900000000000004,
+    "MaxMs": 0.0012,
+    "Bytes": 0
+  },
+  "Fleet.Water.Draw": {
+    "Calls": 373,
+    "TotalMs": 23.685699999999983,
+    "MaxMs": 6.4994,
+    "Bytes": 112872
+  },
+  "Fleet.Hulls.Refresh": {
+    "Calls": 373,
+    "TotalMs": 68.37530000000002,
+    "MaxMs": 1.1825,
+    "Bytes": 9727944
+  },
+  "Fleet.Draw": {
+    "Calls": 373,
+    "TotalMs": 92.4082,
+    "MaxMs": 6.6585,
+    "Bytes": 9840912
+  },
+  "Terrain.Coarse.FinishFrame": {
+    "Calls": 287,
+    "TotalMs": 1.9901999999999993,
+    "MaxMs": 0.0261,
+    "Bytes": 11480
+  },
+  "Terrain.Detail.FinishFrame": {
+    "Calls": 287,
+    "TotalMs": 0.3046000000000002,
+    "MaxMs": 0.011,
+    "Bytes": 0
+  },
+  "Ambience.Fish": {
+    "Calls": 139,
+    "TotalMs": 541.2180999999999,
+    "MaxMs": 46.1194,
+    "Bytes": 0
+  },
+  "Ambience.Draw": {
+    "Calls": 139,
+    "TotalMs": 569.7874000000002,
+    "MaxMs": 46.449,
+    "Bytes": 3384
+  },
+  "Hover.Handler": {
+    "Calls": 64,
+    "TotalMs": 2.6540999999999992,
+    "MaxMs": 0.2261,
+    "Bytes": 93848
+  },
+  "Board.Overlay.Draw": {
+    "Calls": 66,
+    "TotalMs": 69.3867,
+    "MaxMs": 11.1087,
+    "Bytes": 586552
+  },
+  "Command.Model": {
+    "Calls": 1,
+    "TotalMs": 3.9596,
+    "MaxMs": 3.9596,
+    "Bytes": 210880
+  },
+  "Terrain.Coarse.Invalidate": {
+    "Calls": 1,
+    "TotalMs": 0.0641,
+    "MaxMs": 0.0641,
+    "Bytes": 168
+  },
+  "Terrain.Detail.Invalidate": {
+    "Calls": 1,
+    "TotalMs": 0.0007,
+    "MaxMs": 0.0007,
+    "Bytes": 0
+  },
+  "Ambience.Waves.Build": {
+    "Calls": 1,
+    "TotalMs": 14.3926,
+    "MaxMs": 14.3926,
+    "Bytes": 3627312
+  },
+  "Ambience.Refresh": {
+    "Calls": 1,
+    "TotalMs": 15.8945,
+    "MaxMs": 15.8945,
+    "Bytes": 3784240
+  },
+  "Hud.UpdateBattle": {
+    "Calls": 2,
+    "TotalMs": 7.8686,
+    "MaxMs": 6.1261,
+    "Bytes": 366544
+  },
+  "Main.Refresh": {
+    "Calls": 2,
+    "TotalMs": 25.071,
+    "MaxMs": 22.3946,
+    "Bytes": 4217864
+  },
+  "Animation.TravelRoute": {
+    "Calls": 1,
+    "TotalMs": 0.4057,
+    "MaxMs": 0.4057,
+    "Bytes": 2440
+  },
+  "Animation.Start": {
+    "Calls": 1,
+    "TotalMs": 9.0629,
+    "MaxMs": 9.0629,
+    "Bytes": 9040
+  },
+  "Selection.Dispatch": {
+    "Calls": 1,
+    "TotalMs": 36.7804,
+    "MaxMs": 36.7804,
+    "Bytes": 4383344
+  },
+  "Board.Movement.Contours": {
+    "Calls": 1,
+    "TotalMs": 0.0065,
+    "MaxMs": 0.0065,
+    "Bytes": 360
+  },
+  "Board.Observation.Draw": {
+    "Calls": 2,
+    "TotalMs": 0.1946,
+    "MaxMs": 0.1484,
+    "Bytes": 3576
+  },
+  "Hull.Draw": {
+    "Calls": 84,
+    "TotalMs": 9.0935,
+    "MaxMs": 5.2982,
+    "Bytes": 46664
+  },
+  "Save.Capture": {
+    "Calls": 1,
+    "TotalMs": 1.0504,
+    "MaxMs": 1.0504,
+    "Bytes": 367520
+  },
+  "Save.Write": {
+    "Calls": 1,
+    "TotalMs": 24.2929,
+    "MaxMs": 24.2929,
+    "Bytes": 1457224
+  }
+}
+RENDER_MEMORY video_peak_mib=543.19, texture_peak_mib=377.62, buffer_peak_mib=165.57
+

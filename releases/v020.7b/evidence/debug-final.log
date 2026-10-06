@@ -1,0 +1,11 @@
+  Determining projects to restore...
+  Restored C:\Users\User\Documents\Codex\2026-09-29\x20\outputs\v0207b-player-20261006\source\Dev_ancient_naval.csproj (in 132 ms).
+  1 of 2 projects are up-to-date for restore.
+  DevAncientNaval.Core -> C:\Users\User\Documents\Codex\2026-09-29\x20\outputs\v0207b-player-20261006\source\src\Core\bin\Debug\net8.0\DevAncientNaval.Core.dll
+  Dev_ancient_naval -> C:\Users\User\Documents\Codex\2026-09-29\x20\outputs\v0207b-player-20261006\source\.godot\mono\temp\bin\Debug\Dev_ancient_naval.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:00.99

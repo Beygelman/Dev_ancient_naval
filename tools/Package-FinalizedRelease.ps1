@@ -9,7 +9,8 @@ param(
     [string]$EvidenceRoot,
     [string]$PlayerReadmePath,
     [switch]$Candidate,
-    [switch]$Corrected
+    [switch]$Corrected,
+    [ValidateSet('v020.7', 'v020.7b')][string]$Version = 'v020.7'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -21,7 +22,7 @@ $taskExport = (Resolve-Path -LiteralPath $PlayerExportPath).Path.TrimEnd('\', '/
 $taskOutput = [IO.Path]::GetFullPath($OutputPath).TrimEnd('\', '/')
 if (Test-Path -LiteralPath $taskOutput) { throw "Output already exists; do not overwrite historical archives: $taskOutput" }
 if ($taskOutput -eq $taskRoot -or $taskOutput.StartsWith($taskRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Package outside the source tree; copy verified finished artifacts into a fresh release subfolder afterwards.' }
-if ((Get-Content -LiteralPath (Join-Path $taskRoot 'project.godot') -Raw) -notmatch '(?m)^config/version="v020\.7"\s*$') { throw 'Only the frozen v020.7 project can use this release tool.' }
+if ((Get-Content -LiteralPath (Join-Path $taskRoot 'project.godot') -Raw) -notmatch ('(?m)^config/version="' + [regex]::Escape($Version) + '"\s*$')) { throw "Project identity does not match the explicitly selected $Version release." }
 if ($SourceCommit -notmatch '^[a-fA-F0-9]{40}$') { throw 'SourceCommit must be a full Git commit ID.' }
 
 function Read-GitLines([string[]]$Arguments) {
@@ -115,7 +116,7 @@ foreach ($taskFile in Get-ChildItem -LiteralPath $taskExport -Recurse -File -For
     $taskDestination = Join-Path $taskPlayer $taskRelative
     New-Item -ItemType Directory -Path (Split-Path -Parent $taskDestination) -Force | Out-Null
     Copy-Item -LiteralPath $taskFile.FullName -Destination $taskDestination
-    $taskPlayerFiles.Add("Ancient Naval v020.7/$taskRelative", $taskDestination)
+    $taskPlayerFiles.Add("Ancient Naval $Version/$taskRelative", $taskDestination)
 }
 $taskReadme = Join-Path $taskPlayer 'READ_ME_RU.md'
 if ($PlayerReadmePath) { Copy-Item -LiteralPath (Resolve-Path -LiteralPath $PlayerReadmePath).Path -Destination $taskReadme }
@@ -138,17 +139,18 @@ required. Choose the language in Settings. Continue resumes your saved voyage.
 
 Repository: https://github.com/Beygelman/Dev_ancient_naval
 '@
+    if ($Version -ne 'v020.7') { $taskReadmeText = $taskReadmeText.Replace('v020.7 — The Sacred Voyage', $Version) }
     if ($Candidate) {
         $taskReadmeText = "Verification candidate: final native frame-pacing approval is pending. / Кандидат: окончательная проверка плавности ещё не завершена.`n`n" + $taskReadmeText
     }
     [IO.File]::WriteAllText($taskReadme, $taskReadmeText.Replace("`r`n", "`n") + "`n", [Text.UTF8Encoding]::new($false))
 }
-$taskPlayerFiles.Add('Ancient Naval v020.7/READ_ME_RU.md', $taskReadme)
+$taskPlayerFiles.Add("Ancient Naval $Version/READ_ME_RU.md", $taskReadme)
 & (Join-Path $PSScriptRoot 'Verify-FinalizedRelease.ps1') -PlayerDirectory $taskPlayer -RuntimeReferencePath $taskExport -PckInventoryPath (Join-Path $taskEvidence 'pck-resources.txt') | Out-Null
 $taskRemoved.Sort([StringComparer]::Ordinal)
 [IO.File]::WriteAllLines((Join-Path $taskEvidence 'player-excluded-files.txt'), $taskRemoved.ToArray(), [Text.UTF8Encoding]::new($false))
 $taskSnapshot = [ordered]@{
-    version = 'v020.7'
+    version = $Version
     snapshot_type = $(if ($Candidate) { 'candidate' } elseif ($Corrected) { 'correction' } else { 'finalization' })
     baseline_commit = $SourceCommit
     snapshot_head = $taskHead
@@ -183,8 +185,8 @@ foreach ($taskFile in $EvidenceFiles) {
         $taskSourceFiles.Add("dev-ancient-naval/release-evidence/$taskName", $taskEvidenceSource)
     }
 }
-$taskPlayerName = if ($Candidate) { 'Ancient_Naval_v020.7_Windows_PLAYER_CANDIDATE.zip' } elseif ($Corrected) { 'Ancient_Naval_v020.7_Windows_PLAYER_CORRECTED.zip' } else { 'Ancient_Naval_v020.7_Windows_PLAYER_CLEAN.zip' }
-$taskSourceName = if ($Candidate) { 'Ancient_Naval_v020.7_Source_CANDIDATE.zip' } elseif ($Corrected) { 'Ancient_Naval_v020.7_Source_CORRECTED.zip' } else { 'Ancient_Naval_v020.7_Source_FINALIZED.zip' }
+$taskPlayerName = if ($Candidate) { "Ancient_Naval_${Version}_Windows_PLAYER_CANDIDATE.zip" } elseif ($Corrected) { "Ancient_Naval_${Version}_Windows_PLAYER_CORRECTED.zip" } elseif ($Version -eq 'v020.7') { 'Ancient_Naval_v020.7_Windows_PLAYER_CLEAN.zip' } else { "Ancient_Naval_${Version}_Windows.zip" }
+$taskSourceName = if ($Candidate) { "Ancient_Naval_${Version}_Source_CANDIDATE.zip" } elseif ($Corrected) { "Ancient_Naval_${Version}_Source_CORRECTED.zip" } elseif ($Version -eq 'v020.7') { 'Ancient_Naval_v020.7_Source_FINALIZED.zip' } else { "Ancient_Naval_${Version}_Source.zip" }
 $taskPlayerZip = Join-Path $taskOutput $taskPlayerName
 $taskSourceZip = Join-Path $taskOutput $taskSourceName
 New-StableZip $taskPlayerZip $taskPlayerFiles
@@ -192,8 +194,8 @@ New-StableZip $taskSourceZip $taskSourceFiles
 foreach ($taskZipPath in @($taskPlayerZip, $taskSourceZip)) {
     if ((Get-Item -LiteralPath $taskZipPath).Length -gt 100MB) { throw "Archive exceeds the ordinary GitHub 100 MiB file limit; inspect source/evidence policy before delivery: $taskZipPath" }
 }
-$taskManifest = Join-Path $taskOutput $(if ($Candidate) { 'SHA256-v020.7-candidate.txt' } elseif ($Corrected) { 'SHA256-v020.7-corrected.txt' } else { 'SHA256-v020.7-finalized.txt' })
+$taskManifest = Join-Path $taskOutput $(if ($Candidate) { "SHA256-${Version}-candidate.txt" } elseif ($Corrected) { "SHA256-${Version}-corrected.txt" } elseif ($Version -eq 'v020.7') { 'SHA256-v020.7-finalized.txt' } else { "SHA256-${Version}.txt" })
 $taskHashLines = @($taskPlayerZip, $taskSourceZip) | ForEach-Object { "{0}  {1}" -f (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant(), [IO.Path]::GetFileName($_) }
 [IO.File]::WriteAllLines($taskManifest, $taskHashLines, [Text.UTF8Encoding]::new($false))
-& (Join-Path $PSScriptRoot 'Verify-FinalizedRelease.ps1') -PlayerZip $taskPlayerZip -SourceZip $taskSourceZip -ManifestPath $taskManifest
-[pscustomobject]@{ Version = 'v020.7'; Windows = $taskPlayerZip; Source = $taskSourceZip; SHA256 = $taskManifest; Player = $taskPlayer; SourceFiles = $taskSourceFiles.Count; PlayerFiles = $taskPlayerFiles.Count; ExcludedPlayerFiles = $taskRemoved.ToArray() }
+& (Join-Path $PSScriptRoot 'Verify-FinalizedRelease.ps1') -PlayerZip $taskPlayerZip -SourceZip $taskSourceZip -ManifestPath $taskManifest -Version $Version
+[pscustomobject]@{ Version = $Version; Windows = $taskPlayerZip; Source = $taskSourceZip; SHA256 = $taskManifest; Player = $taskPlayer; SourceFiles = $taskSourceFiles.Count; PlayerFiles = $taskPlayerFiles.Count; ExcludedPlayerFiles = $taskRemoved.ToArray() }
