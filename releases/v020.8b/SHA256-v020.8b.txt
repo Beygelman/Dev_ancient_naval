@@ -1,0 +1,2 @@
+e0e6bdcd205570bed528656785c20ac0ebaadef674ab0bf87af1cd79b48e2268  Ancient_Naval_v020.8b_Windows.zip
+30fe01804a4fba99733db71c305ee749bcd769063547a94632167dcfa4f77c55  Ancient_Naval_v020.8b_Source.zip

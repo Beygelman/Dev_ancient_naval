@@ -22,6 +22,9 @@
   screen threats using legal observed information and normal movement rules.
 - Exclude unrelated nested docs/release C# from compilation; preserve all
   historical archives and the user's imported clone.
+- Deliver portable Windows/source ZIPs and SHA256 manifest from verified source
+  `bc28085`; raw and extracted player startup passes EN/UK/NL and map preview.
+  Serial Pangaea/live-fog frame p95: 17.380/17.987 ms against unchanged 25 ms gates.
 
 ## v020.7b — 6 October 2026
 

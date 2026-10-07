@@ -6,7 +6,19 @@ addition to the external `outputs` directory. Sources are edited directly in
 the repository's `src`, `assets`, `data`, `scenes` and `tests` folders; the root
 `README.md` describes the current version.
 
-## Current version: v020.5 — The Painted Voyage
+## Current version: v020.8b — 7 October 2026
+
+- [Windows ZIP](v020.8b/Ancient_Naval_v020.8b_Windows.zip)
+- [Source ZIP](v020.8b/Ancient_Naval_v020.8b_Source.zip)
+- [Delivery notes](../docs/RELEASE-v020.8b.md), [checksums](v020.8b/SHA256-v020.8b.txt)
+- Local launch: `v020.8b/playable/Ancient Naval v020.8b/Ancient Naval.exe`.
+
+Chart-edge waterfalls and black void, revised nation relic commands, compact
+dark-ink counsel/advice, localized nations and ship outlines, shrine rituals,
+stronger fleet infrastructure and flagship protection. Native frame-pacing
+gates passed without relaxed thresholds. Historical archives below are preserved.
+
+## Previous checkpoint: v020.5 — The Painted Voyage
 
 - [Windows ZIP](v020.5/Ancient_Naval_v020.5_Windows.zip)
 - [Source ZIP](v020.5/Ancient_Naval_v020.5_Source.zip)

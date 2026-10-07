@@ -2,7 +2,8 @@
 
 **v020.8b · 7 October 2026.** Godot 4.7.2 .NET, C# and .NET 8.
 The canonical source contains the new world, interface and opponent changes.
-Older ZIPs below remain historical builds and do not contain the latest changes.
+The portable v020.8b player below contains these changes. Older ZIPs remain
+historical builds.
 
 An ancient floating city carries the last hope of its people. Explore an organic
 six-sided sea, protect your Mothership, claim coastal settlements and defeat
@@ -69,6 +70,21 @@ Historical world/RNG/rules snapshots and serialized ship identities are preserve
 Historical voyages preserve their embedded balance, world geometry, RNG and
 progress. A missing new tower wall-bypass field defaults to the old rule.
 No historical player/source archive is replaced.
+
+## Play v020.8b on Windows
+
+Download [the Windows ZIP](releases/v020.8b/Ancient_Naval_v020.8b_Windows.zip),
+extract **the entire folder**, then start **Ancient Naval.exe** inside
+`Ancient Naval v020.8b`. Keep the PCK and complete runtime folder beside it.
+Godot and a separate .NET installation are not needed.
+
+Canonical local launch:
+`releases/v020.8b/playable/Ancient Naval v020.8b/Ancient Naval.exe`.
+The [source ZIP](releases/v020.8b/Ancient_Naval_v020.8b_Source.zip),
+[SHA256 manifest](releases/v020.8b/SHA256-v020.8b.txt) and
+[delivery notes](docs/RELEASE-v020.8b.md) accompany it. Both unchanged native
+frame-pacing gates passed; raw and ZIP-extracted players were checked in all
+three languages and in map preview.
 
 ## Previous portable Windows checkpoint
 

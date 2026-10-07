@@ -94,3 +94,23 @@ These measurements describe this Windows/GPU setup, not every device. No Android
 or touch-device frame measurement was performed. One incorrectly hyphenated
 test invocation launched the normal title screen and timed out; the correctly
 named guidance/navigation tests were rerun and passed 47/229 checks.
+
+## Delivery
+
+Game source commit: `bc28085f986c2e8022ae02c3af9fd6f307473718`, pushed to `main`.
+The source archive contains that tracked snapshot plus three reviewed Godot
+script UID sidecars produced during import. Those same stable UIDs are copied
+back into the canonical tree. The later delivery commit adds archives/links;
+it changes no gameplay or compiled presentation.
+
+`releases/v020.8b` contains the Windows/source ZIPs and SHA256 manifest, mirrored
+in the external `outputs` directory. The player has 190 files: executable, PCK,
+minimal player README and the complete required runtime. No PDBs, developer
+commands, diagnostic documentation, test saves or imported nested project ship.
+The raw export already excluded those items, so the post-export removal list is
+empty. Player PCK inventory: 198 resources. Source archive: 1,171 entries.
+
+The actual raw export and independently ZIP-extracted player passed English,
+Ukrainian, Dutch and map-preview startup (eight rendered frames each, exit 0).
+Startup captures do not substitute for the serial source frame measurements.
+No real user save or valid backup was used in any verification.
