@@ -29,6 +29,9 @@ internal partial class PaintedVoyageChoice : Button
         AddThemeColorOverride("font_color", Burgundy);
         AddThemeColorOverride("font_hover_color", Burgundy.Lightened(.12f));
         AddThemeColorOverride("font_pressed_color", Burgundy);
+        AddThemeColorOverride("font_focus_color", Burgundy);
+        AddThemeColorOverride("font_hover_pressed_color", Burgundy);
+        AddThemeColorOverride("font_disabled_color", Burgundy.Darkened(.16f));
         AddThemeFontSizeOverride("font_size", 14);
         Alignment = HorizontalAlignment.Center;
         if (Motif != VoyageMotif.None && Motif != VoyageMotif.Hand && Motif != VoyageMotif.Rival)

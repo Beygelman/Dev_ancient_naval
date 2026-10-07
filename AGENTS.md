@@ -1,6 +1,6 @@
 # Ancient Naval — AI development guide
 
-**Guide revision:** 4.1 · working notes 6 October 2026<br>
+**Guide revision:** 4.2 · working notes 7 October 2026<br>
 **Frozen delivery baseline:** `v020.7 — The Sacred Voyage`<br>
 **Engine:** Godot 4.7.2 .NET<br>
 **Code:** C# / .NET 8<br>
@@ -13,7 +13,36 @@ This file is the operational contract for an AI agent continuing Ancient Naval. 
 
 The user's newest explicit request always determines scope. Historical notes are evidence and design context, not permission to implement every old idea.
 
-## Current working scope — v020.7b, 6 October 2026
+## Current working scope — v020.8b, 7 October 2026
+
+The latest request explicitly advances the working identity to **v020.8b**.
+It supersedes the earlier navigation/shrine/end-turn presentation below: the
+guide circle is now 23% of the shorter physical viewport side and eligible
+targets appear whenever outside that circle, including onscreen targets.
+Owned shrines flare once per committed opponent turn serial, not human round.
+The enlarged bottom-edge nation relic ends the turn; its inset numeral cycles
+Core-ready owned objects. Only hints-on confirmation shows their action list.
+New voyages have Granado movement 3 and `PirateCautiousRounds=4`; missing pirate
+policy defaults to 0, preserving historical patrol behavior and embedded catalogs.
+Captain/Admiral infrastructure, relay and escort policies use observed danger,
+remembered terrain and the normal Core command facade; Boatswain remains simple.
+
+`WorldEdgeFalls` retains one fog-scoped perimeter mesh behind the world. Shader
+time alone animates flow; pan/hover and interior exploration must not reupload
+the perimeter. Black clear color belongs to project settings, not simulation.
+All paper button states, including focused/hover-pressed, inherit dark ink.
+`MapInput.PointerOverInterface` is a final native-hover guard for wheel events
+that bubble at scroll endpoints; consuming reveal surfaces remain required.
+Advice cannot reveal a topic with empty heading/body; it starts hidden and uses
+a smaller bounded sheet. Mothership second-attack upgrades trigger the existing
+double-salvo topic without requiring a Kolonel. Nation names are localized
+display strings; faction enum and saved identity values never change.
+
+MSBuild excludes docs/release C# sources to isolate the user's nested imported
+project under docs without deleting or changing it. Review source inventory
+before export; do not package that unrelated clone. Keep v020.7b archives intact.
+
+## Previous working scope — v020.7b, 6 October 2026
 
 The latest explicit request changes the primary working identity to **v020.7b**.
 It authorizes render detail/one distant LOD, world-anchored wrapping command paper,

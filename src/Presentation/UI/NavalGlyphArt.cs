@@ -3,7 +3,7 @@ using Godot;
 
 namespace DevAncientNaval.Presentation.UI;
 
-/// <summary>The same painted clay-seal motifs identify vessels in badges and shipyards.</summary>
+/// <summary>Open nautical outlines remain legible on both clay seals and shipyard paper.</summary>
 internal static class NavalGlyphArt
 {
     /// <summary>A listing hull disappears through the water, stamped in pale ink on a dry-brush warning tile.</summary>
@@ -79,51 +79,41 @@ internal static class NavalGlyphArt
             if (filled) canvas.DrawColoredPolygon(points, ink);
             else canvas.DrawPolyline(points, ink, scale, true);
         }
+        // The open hull and triangular sails share the reference's silhouette.
+        // Avoid a deck stroke through the sail: tiny clay seals must read as ships,
+        // rather than dark overlapping rectangles. Geometry is independent of RNG.
+        void Hull(float y = 3, float width = 8)
+        {
+            Poly(new[] { new Vector2(-width - 1, y - 2), new(-width + 1, y - 2),
+                new(-width * .62f, y + 3), new(width * .62f, y + 3),
+                new(width - 1, y - 2), new(width + 1, y - 2) });
+        }
+        void Sail(float x, float top, float foot, float reach)
+        {
+            Line(x, foot + 3, x, top, 1.1f);
+            Poly(new[] { new Vector2(x, top), new(x + reach, foot),
+                new(x, foot), new(x, top) });
+        }
         switch (symbol)
         {
             case ActionSymbol.Mothership:
-                // Twin hulls carry a stepped floating city. Broken secondary
-                // strokes preserve a painted motif at both seal and HUD sizes.
-                void Brush(float x, float y, float a, float b, float width = 1)
-                {
-                    Line(x, y, a, b, width);
-                    var from = P(x, y) + new Vector2(.22f, -.18f) * scale;
-                    var to = P(a, b) + new Vector2(.22f, -.18f) * scale;
-                    canvas.DrawLine(from.Lerp(to, .16f), from.Lerp(to, .71f),
-                        new Color(ink, ink.A * .37f), .34f * scale, true);
-                }
-                Poly(new[] { new Vector2(-8, 2), new(-5, 5), new(6, 5), new(9, 2) });
-                Poly(new[] { new Vector2(-10, 5), new(-7, 8), new(4, 8), new(7, 5) });
-                Brush(-8, 2, 8, 2, .8f);
-                Brush(-10, 5, 7, 5, .9f);
-                Brush(-7, 1, -8, 4, .65f);
-                Brush(5, 1, 6, 4, .65f);
-                Brush(-7, 1, 5, 1, .9f);
-                foreach (var home in new[] { new Rect2(-6.5f, -3.4f, 3, 4.4f),
-                    new Rect2(-2.7f, -5.2f, 3.4f, 6.2f), new Rect2(1.6f, -2.1f, 3.1f, 3.1f) })
-                {
-                    Brush(home.Position.X, home.End.Y, home.Position.X, home.Position.Y, .8f);
-                    Brush(home.Position.X, home.Position.Y, home.End.X, home.Position.Y, .9f);
-                    Brush(home.End.X, home.Position.Y, home.End.X, home.End.Y, .8f);
-                    Brush(home.GetCenter().X, home.End.Y - 2, home.GetCenter().X, home.End.Y - .6f, .65f);
-                }
-                canvas.DrawArc(P(-1, -5.2f), 1.65f * scale, Mathf.Pi, Mathf.Tau, 10, ink, .85f * scale, true);
-                Brush(-5.5f, -3.4f, -5.5f, -5.2f, .75f);
-                Brush(4.5f, -2.1f, 4.5f, -3.3f, .65f);
-                Brush(5.8f, 1, 5.8f, -6, .75f);
-                Poly(new[] { new Vector2(5.8f, -6), new(9, -5), new(5.8f, -3.9f) }, true);
-                Brush(-8, 9.5f, -3, 9, .6f);
-                Brush(0, 9.2f, 6, 8.7f, .6f);
+                // A broad twin keel with a skyline, no sails: a city afloat.
+                Hull(2, 8.5f);
+                Poly(new[] { new Vector2(-7.3f, 6.5f), new(-4.8f, 8), new(4.8f, 8), new(7.3f, 6.5f) });
+                Line(-6, 1, -6, -3.5f); Line(-6, -3.5f, -3, -3.5f); Line(-3, -3.5f, -3, 1);
+                Line(3, 1, 3, -2.5f); Line(3, -2.5f, 6, -2.5f); Line(6, -2.5f, 6, 1);
+                Poly(new[] { new Vector2(-2, 1), new(-2, -5), new(2, -5), new(2, 1) });
+                canvas.DrawArc(P(0, -5), 2 * scale, Mathf.Pi, Mathf.Tau, 14, ink, scale, true);
+                Line(0, -7, 0, -8.5f, .8f);
+                Line(0, -2, 0, .4f, .75f);
+                Line(-4.5f, -.7f, -4.5f, .6f, .65f); Line(4.5f, -.6f, 4.5f, .6f, .65f);
                 break;
             case ActionSymbol.Support:
-                Poly(new[] { new Vector2(-7,2), new(-4,5), new(4,5), new(7,2), new(-7,2) });
-                for (int home = 0; home < 2; home++)
-                {
-                    float x = -4 + home * 4;
-                    Poly(new[] { new Vector2(x,2), new(x,-2), new(x+1.5f,-4), new(x+3,-2), new(x+3,2) });
-                    Line(x+1.5f,0,x+1.5f,1,.7f);
-                }
-                Line(0,-3,0,-7); Line(0,-7,4,-5); Line(4,-5,4,-2);
+                Hull();
+                Sail(-3, -8, -1, 4);
+                // Cargo/workshop beneath the boom distinguishes the support hull.
+                Poly(new[] { new Vector2(2, 2), new(2, -1), new(6, -1), new(6, 2) });
+                Line(2, -1, 6, 2, .65f);
                 break;
             case ActionSymbol.Fishing:
                 Poly(new[] { new Vector2(-3,0), new(0,-3), new(4,-2.5f), new(6,0), new(4,2.5f), new(0,3), new(-3,0) });
@@ -132,12 +122,14 @@ internal static class NavalGlyphArt
                 Line(0,-1,1,1,.65f);
                 break;
             case ActionSymbol.Mortar:
-                // A steep, open mortar cup and its low carriage, rather than a cannon silhouette.
-                Poly(new[] { new Vector2(-3,3), new(1,4), new(5,-3), new(2,-5), new(-3,3) }, true);
-                canvas.DrawLine(P(1,-5),P(5,-3),new Color(ink.Lightened(.48f),ink.A),1.3f*scale,true);
-                Line(-5,5,5,5,1.4f);
-                Line(-3,3,-4,5);
-                canvas.DrawArc(P(0,-5),5*scale,-2.2f,-.6f,8,new Color(ink,.6f),.6f*scale,true);
+                Hull();
+                // An open elevated mortar cup on a broad sea carriage.
+                Poly(new[] { new Vector2(-3, 2), new(0, 3), new(4, -4),
+                    new(1, -6), new(-3, 2) });
+                Line(1, -6, 4, -4, 1.4f);
+                Line(-5, 2, 5, 2, .7f);
+                canvas.DrawArc(P(0, -5), 5 * scale, -2.2f, -.6f, 12,
+                    new Color(ink, ink.A * .55f), .6f * scale, true);
                 break;
             case ActionSymbol.Tower:
                 Poly(new[] { new Vector2(-4,5), new(-4,-5), new(-2,-5), new(-2,-3), new(0,-3), new(0,-5), new(2,-5), new(2,-3), new(4,-3), new(4,5), new(-4,5) });
@@ -167,19 +159,22 @@ internal static class NavalGlyphArt
                 Line(-4,-4,-7,-5,.7f); Line(4,-4,7,-5,.7f);
                 break;
             case ActionSymbol.Balloon:
-                canvas.DrawArc(P(0,-3),4*scale,0,Mathf.Tau,20,ink,1.1f*scale,true);
-                Line(-2,1,-1,4); Line(2,1,1,4); Line(-1,4,1,4);
+                canvas.DrawArc(P(0, -3), 5 * scale, 0, Mathf.Tau, 32, ink, 1.1f * scale, true);
+                canvas.DrawArc(P(0, -3), 2.4f * scale, -Mathf.Pi / 2, Mathf.Pi / 2, 16, ink, .65f * scale, true);
+                Line(-3, 1, -2, 5); Line(3, 1, 2, 5);
+                Poly(new[] { new Vector2(-2, 5), new(2, 5), new(1.5f, 7.5f), new(-1.5f, 7.5f), new(-2, 5) });
                 break;
             default:
-                Poly(new[] { new Vector2(-6,1), new(-3,5), new(4,5), new(7,1) });
-                Line(-5,1,6,1,.75f);
+                Hull();
                 int count = symbol == ActionSymbol.Heavy ? 3 : symbol == ActionSymbol.Standard ? 2 : 1;
                 for (int mast = 0; mast < count; mast++)
                 {
-                    float x=count==1?-1:-3+mast*3;
-                    Line(x,1,x,-6,.85f);
-                    Poly(new[] { new Vector2(x+.7f,-5), new(x+.7f,-.5f), new(x+2.5f,-1.5f), new(x+.7f,-5) },true);
+                    float x = count == 1 ? -2 : -5 + mast * 4;
+                    Sail(x, count == 1 ? -8 : -7 - (mast == 1 ? 1 : 0),
+                        count == 1 ? -1 : 0, count == 1 ? 5.5f : 3.2f);
                 }
+                if (symbol == ActionSymbol.Heavy)
+                    for (int gun = 0; gun < 3; gun++) canvas.DrawCircle(P(-3 + gun * 3, 4.3f), .65f * scale, ink);
                 break;
         }
     }

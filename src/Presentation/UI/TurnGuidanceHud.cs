@@ -24,6 +24,7 @@ public partial class DebugHud
     private int _readyCycleTurn = -1, _nextReadyIndex;
     private (int Id, bool Town)? _lastReadyObject;
     private bool _turnClosing;
+    private bool _relicEnding;
     public bool TurnConfirmationVisible => _turnConfirmation?.Visible == true;
     // Compatibility with the existing map-input/menu guards. There is no side list:
     // ready objects exist only inside the hints-on end-turn confirmation.
@@ -35,11 +36,14 @@ public partial class DebugHud
     private void BuildTurnGuidance()
     {
         UiHints.Initialize();
-        _readyJug = new ReadyActionJug { Name = "ReadyActionsAmphora", Size = new(132, 148),
-            MouseFilter = Control.MouseFilterEnum.Stop, TooltipText = "Objects with useful actions remaining" };
-        _root.AddChild(_readyJug);
-        _root.MoveChild(_readyJug, _end.GetIndex());
-        _readyJug.Pressed += FocusNextReadyObject;
+        _readyJug = (ReadyActionJug)_end;
+        _readyJug.MouseForcePassScrollEvents = false;
+        _readyJug.CounterRequested += FocusNextReadyObject;
+        _readyJug.Pressed += () =>
+        {
+            if (_readyJug.GetLocalMousePosition().Y < _readyJug.PrintedCountCenter.Y - 20)
+                EndTurnRequested?.Invoke();
+        };
         _turnConfirmation = new Control { Name = "EndTurnConfirmation", MouseFilter = Control.MouseFilterEnum.Stop };
         _root.AddChild(_turnConfirmation);
         _turnConfirmation.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
@@ -99,6 +103,7 @@ public partial class DebugHud
             _nextReadyIndex = 0;
             _lastReadyObject = null;
             _readyObjects = Array.Empty<ReadyActionObject>();
+            if (humanTurn) _relicEnding = false;
         }
         // Keep the previous count during a staged visual order. The current Core
         // query becomes authoritative again at its completion. Menus/hints do not
@@ -113,9 +118,7 @@ public partial class DebugHud
         {
             var color = FleetPalette.For(battle, Side.Player);
             _readyJug.Update(_readyObjects.Count, color, battle.PlayerColor);
-            _readyJug.SetHumanTurn(humanTurn, InstantPaperAnimations);
-            ((EndTurnPaper)_end).NationInk = color.Darkened(.25f);
-            ((EndTurnPaper)_end).SetHumanTurn(humanTurn, InstantPaperAnimations);
+            _readyJug.SetHumanTurn(humanTurn && !_relicEnding, InstantPaperAnimations);
         }
         if (TurnConfirmationVisible && (!canAct || !UiHints.Enabled)) CloseTurnConfirmation();
         LayoutTurnGuidance();
@@ -158,8 +161,19 @@ public partial class DebugHud
         _turnClosing = false;
         TurnConfirmationClosed?.Invoke();
     }
-    public Task AnimateEndTurnStamp(bool instant) => ((EndTurnPaper)_end).StampAsync(instant);
-    public Task AnimateEndTurnFold(bool instant) => ((EndTurnPaper)_end).FoldAsync(instant);
+    public Task AnimateEndTurnStamp(bool instant) => Task.CompletedTask;
+    public async Task AnimateEndTurnFold(bool instant)
+    {
+        _relicEnding = true;
+        _readyJug.SetHumanTurn(false, instant);
+        if (!instant) await ToSignal(GetTree().CreateTimer(.48), SceneTreeTimer.SignalName.Timeout);
+    }
+    public void CancelEndTurnTransition()
+    {
+        _relicEnding = false;
+        _readyJug.SetHumanTurn(_namedBattle is { ActiveSide: Side.Player, IsOver: false, PlayerDefeated: false },
+            InstantPaperAnimations);
+    }
     public void CloseReadyActionsMenu() { }
 
     private BrushPaperButton ReadyButton(ReadyActionObject item)
@@ -214,7 +228,6 @@ public partial class DebugHud
     private void LayoutTurnGuidance()
     {
         if (_readyJug is null || _end is null) return;
-        _readyJug.Position = _end.Position + new Vector2((_end.Size.X - _readyJug.Size.X) / 2, -_readyJug.Size.Y + 12);
         if (_turnPaper is null) return;
         var viewport = UiScale.LogicalViewport(this);
         float width = Math.Min(PapyrusModal.Width, Math.Max(220, viewport.X - 24));

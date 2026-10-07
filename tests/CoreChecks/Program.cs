@@ -3,6 +3,12 @@ using DevAncientNaval.Core.World;
 
 try
 {
+    if (args.Contains("--v0208b-only"))
+    {
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        Console.WriteLine($"PASS: {Rules0208bChecks.Run(rules)} v020.8b investment, flagship safety, pirate restraint and compatibility checks.");
+        return;
+    }
     if (args.Contains("--v0207b-only"))
     {
         var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
@@ -100,6 +106,7 @@ try
         "Core must not reference Godot");
     Console.WriteLine($"PASS: {checks} core checks");
     var currentRules0207b = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+    Console.WriteLine($"PASS: {Rules0208bChecks.Run(currentRules0207b)} v020.8b investment, flagship safety, pirate restraint and compatibility checks.");
     Console.WriteLine($"PASS: {Rules0207bChecks.Run(currentRules0207b)} v020.7b tower, Granado, staged combat and historical policy checks.");
     BattleScenarios.Run();
     var persistenceRules = DevAncientNaval.Core.Battle.BattleRules.FromJson(

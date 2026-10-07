@@ -124,11 +124,11 @@ public partial class Main
         _endingStamp = true;
         try { await Hud.AnimateEndTurnFold(FastChecks); }
         finally { _endingStamp = false; }
-        if (!CanCommand) return;
+        if (!CanCommand) { Hud.CancelEndTurnTransition(); return; }
         var turnPresentation = Battle.Prepare(b => b.EndTurn(Side.Player));
         var ended = turnPresentation.Result;
         if (!ended.Success)
-            return;
+        { Hud.CancelEndTurnTransition(); return; }
         InvalidateGameplayPresentation();
         ClearMode();
         SelectedShipId = null;

@@ -19,6 +19,7 @@ public sealed class BattleRules
     public bool SeparatedStartingEscorts { get; init; }
     public bool MapSizePirateSettlements { get; init; }
     public bool PirateDifficultyScaling { get; init; } // Missing in older voyages: retain their original population.
+    public int PirateCautiousRounds { get; init; } // Missing in old rules: retain immediate pursuit.
     public bool EqualDoubleSalvoDamage { get; init; }
     public bool CannonTowersIgnoreWalls { get; init; } // Absent in old rule snapshots: retain fortified damage reduction.
     public bool FreeCoastalNavigation { get; init; } // Missing in old saves: retain their coastal rules.
@@ -84,6 +85,8 @@ public sealed class BattleRules
 
     public void Validate()
     {
+        if (PirateCautiousRounds is < 0 or > 20)
+            throw new ArgumentException("Pirate opening caution must last between zero and twenty rounds.");
         if (!double.IsFinite(ScuttleRefundFraction) || ScuttleRefundFraction is < 0 or > 1)
             throw new ArgumentException("Invalid ship dismantling refund.");
         if (VillageAutoRepairAmount is < 0 || StartingCredits < 0 || IncomePerMothership < 0 || RepairAmount <= 0 || AutoRepairAmount < 0 || AncientAutoRepairAmount < 0 || FleetLimit < 4 || VillageFortificationPrice < 0 || DockResourceReward < 0 || PirateCurrencyReward < 0 || PirateResourceReward < 0)

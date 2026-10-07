@@ -7,7 +7,7 @@
     <AssemblyName>Dev_ancient_naval</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="src/Core/**/*.cs;tests/CoreChecks/**/*.cs" />
+    <Compile Remove="src/Core/**/*.cs;tests/CoreChecks/**/*.cs;docs/**/*.cs;releases/**/*.cs" />
     <ProjectReference Include="src/Core/DevAncientNaval.Core.csproj" />
   </ItemGroup>
 </Project>

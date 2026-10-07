@@ -30,6 +30,9 @@ public partial class BoardView : Node2D
     private Vector2[][] _movementGlow = System.Array.Empty<Vector2[]>();
     private readonly Color[] _movementGlowColors = new Color[4];
     private TerrainRasterCache? _terrainCache;
+    private WorldEdgeFalls? _edgeFalls;
+    internal int EdgeFallsBuildCount => _edgeFalls?.BuildCount ?? 0;
+    internal int EdgeFallsExposedEdgeCount => _edgeFalls?.ExposedEdgeCount ?? 0;
     private TerrainDetailCache? _terrainDetail;
     private Transform2D _detailViewTransform;
     private Vector2 _detailViewSize;
@@ -67,6 +70,8 @@ public partial class BoardView : Node2D
 
     public override void _Ready()
     {
+        _edgeFalls = new WorldEdgeFalls { Name = "WorldEdgeFalls", ShowBehindParent = true, ZIndex = -2 };
+        AddChild(_edgeFalls);
         _terrainCache = new TerrainRasterCache
         {
             Name = "LandscapeCache",
@@ -155,6 +160,7 @@ public partial class BoardView : Node2D
         if (_terrainCache?.Invalidate(changed, force || newWorld, cell => Battle.Vision.IsVisible(Side.Player, cell) ? (byte)2 : Battle.Vision.IsExplored(Side.Player, cell) ? (byte)1 : (byte)0) == true)
             TerrainTextureUpdateRequests++;
         _terrainDetail?.Invalidate(changed, force || newWorld);
+        if (newWorld || changed.Count > 0) _edgeFalls?.Rebuild(this);
         if (newWorld) _detailViewInitialized = false;
         RefreshOverlays();
     }

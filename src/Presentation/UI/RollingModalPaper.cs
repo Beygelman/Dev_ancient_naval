@@ -103,12 +103,14 @@ internal partial class RollingModalPaper : PanelContainer
         {
             Name = "PapyrusRevealViewport",
             ClipContents = true,
-            MouseFilter = MouseFilterEnum.Pass
+            MouseFilter = MouseFilterEnum.Stop,
+            MouseForcePassScrollEvents = false
         };
         layer.AddChild(_window);
         _surface = new PaperSurface { Name = "PapyrusFullSizeTexture", MouseFilter = MouseFilterEnum.Ignore };
         _window.AddChild(_surface);
-        _content = new PanelContainer { Name = "PapyrusFullSizeContent", MouseFilter = MouseFilterEnum.Pass };
+        _content = new PanelContainer { Name = "PapyrusFullSizeContent", MouseFilter = MouseFilterEnum.Stop,
+            MouseForcePassScrollEvents = false };
         _content.AddThemeStyleboxOverride("panel", new StyleBoxEmpty
         {
             ContentMarginLeft = style.ContentMarginLeft,

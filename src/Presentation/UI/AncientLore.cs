@@ -30,11 +30,8 @@ internal static class AncientLore
         var sections = new List<LoreSection>();
         var stats = new List<LoreRow>
         {
-            new("Health", $"{ship.Health:0.##}/{ship.MaxHealth:0.##} HP"),
-            new("Sight", $"{ship.VisualRange} tiles")
+            new("Health", $"{ship.Health:0.##}/{ship.MaxHealth:0.##} HP")
         };
-        if (ship.HasRadar)
-            stats.Add(new("Radar", $"{ship.RadarRange} tiles"));
         if (!ship.IsStructure)
             stats.Add(new("Movement", $"{ship.MovementRemaining:0.#}/{ship.MovementAllowance} tiles left"));
         if (ship.IsMothership)
@@ -42,14 +39,10 @@ internal static class AncientLore
             stats.Add(new("Level", $"{ship.Level}/5"));
             if (ship.Level < 5)
                 stats.Add(new("Resources", $"{ship.Resources}/{ship.ResourcesRequired}"));
-            stats.Add(new("Progress cells", ship.Level < 5
-                ? "Each resource fills one cell; complete the row to reach the next level."
-                : "Maximum level; no further resource progress."));
         }
         if (ship.CanEarnVeterancy && !ship.IsVeteran)
         {
             stats.Add(new("Veterancy", $"{ship.Kills}/3 ships sunk"));
-            stats.Add(new("Progress cells", "Each enemy ship sunk fills one cell."));
         }
         sections.Add(new("At a glance", stats));
         AddWeapons(sections, battle, ship);
@@ -109,6 +102,13 @@ internal static class AncientLore
                 ActionProfile.Scout => "Fire and keep sailing",
                 _ => "No further sailing after moving and firing"
             }));
+        rows.Add(new("Sight", $"{ship.VisualRange} tiles"));
+        if (ship.HasRadar) rows.Add(new("Radar", $"{ship.RadarRange} tiles"));
+        if (ship.IsMothership) rows.Add(new("Progress cells", ship.Level < 5
+            ? "Each resource fills one cell; complete the row to reach the next level."
+            : "Maximum level; no further resource progress."));
+        else if (ship.CanEarnVeterancy && !ship.IsVeteran)
+            rows.Add(new("Progress cells", "Each enemy ship sunk fills one cell."));
         int income = ship.IsMothership ? battle.Rules.IncomePerMothership
             + battle.Rules.Economy.MothershipIncomePerLevel * (ship.Level - 1)
             + (ship.IncomeUpgrade ? 1 : 0) : ship.Definition.IncomePerTurn;
@@ -186,11 +186,11 @@ internal static class AncientLore
             {
                 new("Level", $"{village.Level}/5"),
                 new("Health", $"{village.Health:0.##}/{village.MaxHealth:0.##} HP"),
-                new("Sight", $"{village.VisualRange} tiles")
+                new(privateTrade ? "Settlement income" : "Income", $"+{visibleIncome} Thors per turn")
             }),
             new("Town life", new LoreRow[]
             {
-                new(privateTrade ? "Settlement income" : "Income", $"+{visibleIncome} Thors per turn"),
+                new("Sight", $"{village.VisualRange} tiles"),
                 new("Shipyard", CurrentShipyard(battle, village.Level, true)),
                 new("Progress cells", battle.Rules.PaidVillageUpgrades
                     ? "Town level grows through paid upgrades; each upgrade uses the town's construction for this turn."

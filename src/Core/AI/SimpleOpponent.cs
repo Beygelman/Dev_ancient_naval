@@ -25,6 +25,11 @@ public static class SimpleOpponent
         var side = battle.ActiveSide;
         if (side == Side.Pirates)
             return battle.PirateStep();
+        // A fatal counter/outpost impact can leave the defeated active captain
+        // at the command boundary until EndTurn advances to a living faction.
+        // Do not attempt investment/escort plans that require a living flagship.
+        if (battle.Mothership(side) is null)
+            return battle.EndTurn(side);
         if (battle.PendingUpgrade(side)is { } upgrading)
         {
             var preferred = upgrading.PendingUpgradeLevel switch
@@ -48,6 +53,9 @@ public static class SimpleOpponent
         foreach (var mother in allies.Where(s => s.IsMothership))
             if (FlagshipSafety.Retreat(battle, mother, enemies)is { } retreat)
                 return retreat;
+        var captainThreats = new AdmiralThreats(battle, enemies);
+        if (FlagshipEscort.Step(battle, allies.First(s => s.IsMothership), allies, enemies, captainThreats.At) is { } escort)
+            return escort;
         foreach (var ship in allies)
             if (battle.CanLootTreasury(side, ship.Id))
                 return battle.LootTreasury(side, ship.Id);
@@ -93,8 +101,14 @@ public static class SimpleOpponent
                 return battle.Collect(side, collector.Id, fish.First());
         }
 
+        var investmentThreats = captainThreats;
+        if (FleetInvestment.Step(battle, allies, enemies, investmentThreats.At) is { } investment)
+            return investment;
         if (VillageDevelopment.Step(battle, enemies) is { } development)
             return development;
+        if (FleetInvestment.Research(battle, allies, enemies) is { } research)
+            return research;
+        bool saving = FleetInvestment.HoldHullBudget(battle, allies, enemies);
         foreach (var ship in allies.Where(s => s.Definition.RadarPrice > 0))
             if (battle.Credits(side) >= 8 && battle.RadarBlockReason(side, ship.Id)is null)
                 return battle.BuyRadar(side, ship.Id);
@@ -110,13 +124,13 @@ public static class SimpleOpponent
             }
 
             )
-                if (battle.VillageBuildBlockReason(side, village.Id, kind)is null)
+                if (!saving && battle.VillageBuildBlockReason(side, village.Id, kind)is null)
                     return battle.BuildFromVillage(side, village.Id, kind, battle.VillageSpawnCells(village.Id).OrderBy(p => enemies.Length > 0 ? enemies.Min(e => battle.Board.Distance(p, e.Position)) : 0).First());
         }
 
         foreach (var mother in allies.Where(s => s.Definition.Class == ShipClass.Mothership))
         {
-            if (FlagshipSafety.IsCautious(battle, mother, enemies))
+            if (saving || FlagshipSafety.IsCautious(battle, mother, enemies))
                 continue;
             // Building locks movement. Reserve regular turns for advancing the flagship,
             // otherwise low-cost replacements can keep both fleets anchored indefinitely.
@@ -136,6 +150,8 @@ public static class SimpleOpponent
             }
         }
 
+        if (FleetInvestment.AdvanceRelay(battle, allies, investmentThreats.At) is { } relay)
+            return relay;
         foreach (var ship in allies)
         {
             // One movement order per ship per turn prevents oscillation when a route is blocked.

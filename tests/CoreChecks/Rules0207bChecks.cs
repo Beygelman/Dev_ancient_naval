@@ -8,9 +8,15 @@ internal static class Rules0207bChecks
 {
     internal static int Run(BattleRules rules)
     {
+        // This retained suite exercises the released 0207b catalog. The next
+        // version's requested speed is covered separately by Rules0208bChecks.
+        var released = JsonNode.Parse(System.Text.Json.JsonSerializer.Serialize(rules))!.AsObject();
+        foreach (var definition in released["Ships"]!.AsArray())
+            if (definition!["Class"]!.GetValue<int>() == (int)ShipClass.Togus) definition["Movement"] = 4;
+        rules = BattleRules.FromJson(released.ToJsonString());
         int checks = 0;
         void Check(bool condition, string name) { if (!condition) throw new Exception(name); checks++; }
-        Check(rules.Get(ShipClass.Togus).Movement == 4, "0207b Granado moves one tile farther");
+        Check(rules.Get(ShipClass.Togus).Movement == 4, "released 0207b Granado retains four movement tiles");
         Check(rules.Get(ShipClass.CannonTower).Damage == 5, "0207b built cannon tower damage increases by two");
         Check(rules.Get(ShipClass.AncientGun).Damage == 5, "ancient tower damage unchanged");
         Check(rules.CannonTowersIgnoreWalls, "new voyage tower wall policy enabled");

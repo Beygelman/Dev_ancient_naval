@@ -14,7 +14,7 @@ using Side = DevAncientNaval.Core.Units.Side;
 
 namespace DevAncientNaval.Tests.Runtime;
 
-/// <summary>Native input checks for occupied symmetric arcs, the rear-layer amphora and outcome paint.</summary>
+/// <summary>Native input checks for occupied symmetric arcs, the nation relic counter/end-turn split and outcome paint.</summary>
 public partial class Action0208Checks : Node
 {
     public Main Game { get; set; } = null!;
@@ -128,53 +128,60 @@ public partial class Action0208Checks : Node
         var builds = CheckFilledArc(fan, "flagship shipyard");
         Check(builds.All(n => n.Name.ToString().StartsWith("Build")), "production ring contains only its actual construction choices");
         if (builds.Length >= 3 && builds.Length % 2 == 1)
-            Check(!builds.Any(n => Math.Abs(n.CenterAngle - Mathf.Pi / 2) < .001f),
-                "odd shipyard count pairs its lower choices without a vacant wedge");
+            Check(builds.Count(n => Math.Abs(n.CenterAngle - Mathf.Pi / 2) < .001f) == 1,
+                "odd shipyard has one real central choice and symmetric occupied companions without a vacant wedge");
         await Capture("filled-shipyard");
     }
-    private async Task AmphoraAndSidebar()
+    private async Task RelicCounterAndConfirmation()
     {
         UiHints.Set(true, false);
         Load();
         await Frames();
-        var jug = Nodes(Game.Hud).OfType<ReadyActionJug>().Single();
-        var end = Nodes(Game.Hud).OfType<EndTurnPaper>().Single();
-        Check(jug.Size.X >= 110 && jug.Size.Y >= 120, "amphora has the requested larger clay silhouette");
-        Check(jug.GetParent() == end.GetParent() && jug.GetIndex() < end.GetIndex(),
-            "amphora paints behind the end-turn parchment");
-        Check(jug.Position.Y + jug.Size.Y > end.Position.Y && jug.Position.Y + jug.PrintedCountCenter.Y < end.Position.Y - 10,
-            "lower clay overlaps the paper while its printed count stays exposed");
+        var jug = Nodes(Game.Hud).OfType<ReadyActionJug>().Single(n => n.Name == "EndTurn");
+        Check(jug.Size.X >= 190 && jug.Size.Y >= 220, "nation relic has the requested larger detailed silhouette");
+        Check(!Nodes(Game.Hud).OfType<EndTurnPaper>().Any(), "nation relic replaces the obsolete end-turn scroll");
+        var viewport = UiScale.LogicalViewport(this);
+        Check(jug.Position.Y + jug.Size.Y > viewport.Y && jug.Position.Y + jug.PrintedCountCenter.Y < viewport.Y,
+            "relic base extends below the screen while its counter stays exposed");
         Check(jug.Count == Game.Battle.ReadyActions(Side.Player).Count, "printed count retains the exact useful-object query");
         string before = Game.Battle.SaveJson();
         Click(jug, jug.PrintedCountCenter);
         await Frames();
-        Check(Game.Hud.ReadyActionsMenuVisible, "exposed amphora input opens its real object list");
-        var paper = Nodes(Game.Hud).OfType<RollingModalPaper>().Single(n => n.Name == "ReadyActionsSidePaper");
-        var viewport = UiScale.LogicalViewport(this);
-        Check(paper.Size.X <= 112 && Math.Abs(paper.Position.X + paper.Size.X - (viewport.X - 18)) < 1,
-            "ready list is narrow and aligned against the right edge");
-        Check(Math.Abs(paper.Position.Y + paper.Size.Y / 2 - viewport.Y / 2) < 1,
-            "ready list is vertically centered on the right side of the screen");
-        Check(!paper.CeremonialDecorations, "utility list stays free of ceremonial handles and beads");
-        var entries = Nodes(paper).OfType<BrushPaperButton>().ToArray();
-        Check(entries.Length == jug.Count && entries.All(b => b.Text.Length == 0 && b.TooltipText.Length > 0),
-            "remaining actions are native invisible icon buttons with concrete hover clauses");
-        await Capture("amphora-sidebar");
-        var brig = Game.Battle.OwnShips(Side.Player).Single(s => s.Definition.Class == ShipClass.Garrison);
-        Click(entries.Single(n => n.Name == "SideReadyShip" + brig.Id));
+        var ready = Game.Battle.ReadyActions(Side.Player);
         await Game.CurrentOrder;
         await Frames();
-        Check(!Game.Hud.ReadyActionsMenuVisible && Game.SelectedShipId == brig.Id,
-            "real side-icon mouse input returns to the chosen ship");
-        Check(Game.Battle.SaveJson() == before, "list and amphora navigation consume no Core actions");
-        var caption = Nodes(end).OfType<Label>().Single(n => n.Name == "EndTurnCaption");
-        var folding = end.FoldAsync(false);
+        Check(!Game.Hud.ReadyActionsMenuVisible && !Game.Hud.TurnConfirmationVisible &&
+            (ready[0].ShipClass is null ? Game.SelectedVillageId == ready[0].Id : Game.SelectedShipId == ready[0].Id),
+            "numeral click focuses the first useful object without opening any list or ending a turn");
+        Click(jug, jug.PrintedCountCenter); await Game.CurrentOrder; await Frames();
+        Check(ready[1].ShipClass is null ? Game.SelectedVillageId == ready[1].Id : Game.SelectedShipId == ready[1].Id,
+            "a second numeral click cycles to the next useful object");
+        Check(Game.Battle.SaveJson() == before, "nation-counter navigation consumes no Core actions");
+        Click(jug, new Vector2(jug.Size.X * .5f, jug.Size.Y * .4f));
+        await Game.CurrentOrder; await Frames();
+        Check(Game.Hud.TurnConfirmationVisible && Game.Battle.SaveJson() == before,
+            "upper relic click opens the hints-on end-turn confirmation before any Core mutation");
+        var paper = Nodes(Game.Hud).OfType<RollingModalPaper>().Single(n => n.Name == "EndTurnConfirmationPaper");
+        var entries = Nodes(paper).OfType<BrushPaperButton>().Where(n => n.Name.ToString().StartsWith("ReadyObject")).ToArray();
+        Check(entries.Length == jug.Count && entries.All(b => b.Text.Length == 0 && b.TooltipText.Length > 0 &&
+                Nodes(b).OfType<ReadyActionHints>().Any()),
+            "only end-turn confirmation lists each object with concrete tooltips and its remaining-action glyphs");
+        await Capture("relic-confirmation-actions");
+        var brig = Game.Battle.OwnShips(Side.Player).Single(s => s.Definition.Class == ShipClass.Garrison);
+        Click(entries.Single(n => n.Name == "ReadyObjectShip" + brig.Id)); await Game.CurrentOrder; await Frames();
+        Check(!Game.Hud.TurnConfirmationVisible && Game.SelectedShipId == brig.Id && Game.Battle.SaveJson() == before,
+            "real confirmation-object click returns to that crew without spending actions");
+        Game.Hud.InstantPaperAnimations = false;
+        jug.SetHumanTurn(false, false);
         await Delay(.12f);
-        Check(end.UnrollProgress is > 0 and < 1 && caption.Scale == Vector2.One && caption.Modulate == Colors.White,
-            "end-turn text remains full-sized and opaque while clipping into the right roll");
-        await folding;
-        end.SetHumanTurn(false, true);
-        end.SetHumanTurn(true, true);
+        Check(jug.ActivityProgress is > 0 and < 1 && jug.Scale == Vector2.One,
+            "ending-turn ritual dims the light at fixed monument/count scale");
+        await Delay(.48f);
+        Check(jug.ActivityProgress == 0 && !jug.IsProcessing() && jug.IsVisibleInTree(),
+            "dormant relic stays visible but stops every frame update after the finite fade");
+        jug.SetHumanTurn(true, true); Game.Hud.InstantPaperAnimations = true;
+        Check(jug.HumanTurnActive && jug.ActivityProgress == 1 && jug.IsProcessing() && Game.Battle.SaveJson() == before,
+            "next human turn restores the same nation relic without altering Core state");
     }
     private async Task ResultPaint()
     {
@@ -230,9 +237,9 @@ public partial class Action0208Checks : Node
             await Frames();
             UiScale.Set(1, persist: false);
             await RealCommandArcs();
-            await AmphoraAndSidebar();
+            await RelicCounterAndConfirmation();
             await ResultPaint();
-            GD.Print($"PASS: {_checks} v020.8 native occupied arcs, amphora, side-list, full-scale rolls, dark inscriptions and outcome effects checks.");
+            GD.Print($"PASS: {_checks} native occupied arcs, v020.8b relic counter/confirmation, finite dim, full-scale rolls, dark inscriptions and outcome effects checks.");
             GetTree().Quit();
         }
         catch (Exception error)

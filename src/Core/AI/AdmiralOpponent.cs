@@ -21,6 +21,8 @@ internal static class AdmiralOpponent
         double Danger(Ship ship, GridPosition cell) => threats.At(ship, cell);
         if (FlagshipSafety.Retreat(battle, mother, enemies)is { } escape)
             return escape;
+        if (FlagshipEscort.Step(battle, mother, allies, enemies, Danger) is { } screen)
+            return screen;
         foreach (var ship in allies)
             if (battle.CanLootTreasury(side, ship.Id))
                 return battle.LootTreasury(side, ship.Id);
@@ -63,12 +65,14 @@ internal static class AdmiralOpponent
         }
 
         var owned = towns.Where(v => v.Owner == side && v.Health > 0).ToArray();
+        if (FleetInvestment.Step(battle, allies, enemies, Danger) is { } investment)
+            return investment;
         if (VillageDevelopment.Step(battle, enemies) is { } development)
             return development;
+        if (FleetInvestment.Research(battle, allies, enemies) is { } research)
+            return research;
         foreach (var town in owned)
         {
-            if (battle.PortBlockReason(side, town.Id)is null && (owned.Length >= 2 || battle.Credits(side) >= 12))
-                return battle.BuildPort(side, town.Id);
             if (enemies.Any(e => battle.Board.InRadius(town.Position, e.Position, 3)) && battle.FortifyBlockReason(side, town.Id)is null)
                 return battle.FortifyVillage(side, town.Id);
         }
@@ -83,11 +87,12 @@ internal static class AdmiralOpponent
             economy ? ShipClass.Fishing : ShipClass.Invader,
             ShipClass.Garrison
         }.Distinct().ToArray();
-        foreach (var town in owned.OrderByDescending(v => v.HasPort))
+        bool saving = FleetInvestment.HoldHullBudget(battle, allies, enemies);
+        foreach (var town in owned.Where(_ => !saving).OrderByDescending(v => v.HasPort))
             foreach (var kind in classes)
                 if (battle.VillageBuildBlockReason(side, town.Id, kind)is null)
                     return battle.BuildFromVillage(side, town.Id, kind, battle.VillageSpawnCells(town.Id).OrderBy(p => Danger(mother, p)).First());
-        if (!FlagshipSafety.IsCautious(battle, mother, enemies) && (!mother.CanMove || battle.Round % 3 != 0 || crisis || economy))
+        if (!saving && !FlagshipSafety.IsCautious(battle, mother, enemies) && (!mother.CanMove || battle.Round % 3 != 0 || crisis || economy))
             foreach (var kind in classes)
                 if (battle.BuildBlockReason(side, mother.Id, kind)is null)
                     return battle.Build(side, mother.Id, kind, battle.SpawnCells(mother.Id).OrderBy(p => Danger(mother, p)).First());
@@ -96,6 +101,8 @@ internal static class AdmiralOpponent
                 return battle.BuyRadar(side, ship.Id);
         if (mother.HasRadar && fleet.Length >= 2 && battle.Credits(side) >= battle.Rules.Mortar.PurchasePrice + 5 && battle.MortarBlockReason(side, mother.Id)is null)
             return battle.BuyMortar(side, mother.Id);
+        if (FleetInvestment.AdvanceRelay(battle, allies, Danger) is { } relay)
+            return relay;
         if (AdmiralExploration.Step(battle, allies, enemies, Danger) is { } search)
             return search;
         var contacts = battle.Vision.Contacts(side);

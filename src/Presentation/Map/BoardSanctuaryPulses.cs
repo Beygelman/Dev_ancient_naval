@@ -13,8 +13,8 @@ public partial class BoardView
     internal int ActiveSanctuaryPulseCount => _townTurnPulses.Count;
     internal int ProcessingSanctuaryPulseCount => _townTurnPulses.Values.Count(p => p.IsProcessing());
 
-    /// <summary>Presentation only. Main invokes this once at the real human turn
-    /// boundary after the current world has been shown, never from Refresh.</summary>
+    /// <summary>Presentation only. Main invokes this once at the rival-turn
+    /// boundary for owned shrines, never from Refresh.</summary>
     public int PulseOwnedSanctuaries(Side owner)
     {
         // The API is intentionally human-only: no hidden opponent shrine may

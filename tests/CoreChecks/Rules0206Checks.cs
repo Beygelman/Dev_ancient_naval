@@ -12,6 +12,8 @@ internal static class Rules0206Checks
         var released = JsonNode.Parse(System.Text.Json.JsonSerializer.Serialize(rules))!.AsObject();
         released["WeightedFleetCapacity"] = false;
         released["PirateDifficultyScaling"] = false;
+        foreach (var definition in released["Ships"]!.AsArray())
+            if (definition!["Class"]!.GetValue<int>() == (int)ShipClass.Togus) definition["Movement"] = 3;
         rules = BattleRules.FromJson(released.ToJsonString());
         int checks = 0;
         void Check(bool condition, string message)
@@ -35,8 +37,8 @@ internal static class Rules0206Checks
             saved.Ships.Single(s => s.Kind == ShipClass.Mothership && s.Owner == Side.Player).Level = level;
             return saved;
         }
-        Check(rules.Get(ShipClass.Togus).Movement == (rules.CannonTowersIgnoreWalls ? 4 : 3) && rules.Get(ShipClass.FishingDock).VisualRange == 2,
-            "Granado moves farther and fishing docks see one tile farther");
+        Check(rules.Get(ShipClass.Togus).Movement == 3 && rules.Get(ShipClass.FishingDock).VisualRange == 2,
+            "released v020.6 Granado speed and fishing-dock sight are retained");
         var mortar = Restore(Rich(Fixture(), 5));
         var mortarSave = mortar.CaptureSnapshot();
         mortarSave.Ships.Single(s => s.Kind == ShipClass.Kolonel && s.Owner == Side.Player).Kind = ShipClass.Togus;

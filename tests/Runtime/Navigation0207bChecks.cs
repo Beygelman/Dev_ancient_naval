@@ -125,10 +125,10 @@ public partial class Navigation0207bChecks : Node
         var hud = Game.NavigationHud;
         var physical = GetViewport().GetVisibleRect().Size;
         var center = physical * .5f;
-        float radius = Math.Min(physical.X, physical.Y) * .3f;
+        float radius = Math.Min(physical.X, physical.Y) * .23f;
         Check((hud.CircleCenter * UiScale.Value).DistanceTo(center) < .1f
             && Math.Abs(hud.CircleRadius * UiScale.Value - radius) < .1f,
-            context + " guide circle uses thirty percent of the shorter physical viewport side");
+            context + " guide circle uses twenty-three percent of the shorter physical viewport side");
         var arrows = Nodes(hud).OfType<OffscreenNavigationArrow>().Where(a => a.IsVisibleInTree()).ToArray();
         Check(arrows.Length == hud.VisibleMarkerCount, context + " native visible marker accounting is exact");
         foreach (var arrow in arrows)
@@ -336,11 +336,12 @@ public partial class Navigation0207bChecks : Node
         Check(resume.IsVisibleInTree() && !resume.Disabled, "the real Continue button recognizes the disposable voyage");
         Click(resume); await Game.CurrentOrder; await Frames();
         var restored = Nodes(Game.NavigationHud).OfType<OffscreenNavigationArrow>().ToArray();
-        int expectedOffscreen = restored.Count(a => !GetViewport().GetVisibleRect().HasPoint(Screen(a.Target.Cell)));
+        int expectedOffscreen = restored.Count(a => (UiScale.ScreenToUi(Screen(a.Target.Cell))
+            - Game.NavigationHud.CircleCenter).Length() > Game.NavigationHud.CircleRadius);
         Check(!Game.Home.IsOpen && Game.NavigationHud.Visible && restored.Length == 3
             && Game.NavigationHud.VisibleMarkerCount == expectedOffscreen
             && Game.NavigationHud.CompassButton.IsVisibleInTree(),
-            "native Continue restores all three saved actions and shows guides only for actually offscreen targets");
+            "native Continue restores all three saved actions and shows guides for targets outside the smaller circle");
         Check(Game.MapCamera.Position.DistanceTo(savedCamera) < .25f && Game.Battle.SaveJson() == unchanged,
             "Continue preserves the saved camera, world geometry, waiting crews, policies and RNG");
         Game.Saves.Delete();
@@ -413,11 +414,15 @@ public partial class Navigation0207bChecks : Node
         Load(EligibleFixture());
         LookAt(MotherCell); await Frames(2);
         var battle = Game.Battle;
+        Check(Game.BoardView.ActiveSanctuaryPulseCount == 0 && Game.Fleet.ActiveSanctuaryPulseCount == 0,
+            "human turn alone does not launch the opponent-start flare");
+        Check(battle.EndTurn(Side.Player).Success, "opponent turn begins through Core");
+        Game.Refresh(); await Frames(2);
         string unchanged = battle.SaveJson();
         int starts = Game.TurnSanctuaryPulseCount;
         var flares = Nodes(Game).OfType<SanctuaryTurnPulse>().Where(p => !p.IsQueuedForDeletion()).ToArray();
         Check(flares.Length == 2 && Game.BoardView.ActiveSanctuaryPulseCount == 1 && Game.Fleet.ActiveSanctuaryPulseCount == 1,
-            "a real human-turn start brightens only its one living town shrine and one flagship shrine");
+            "a real opponent-turn start brightens only the human town and flagship shrine");
         Check(Game.BoardView.PulseOwnedSanctuaries(Side.Enemy) == 0 && Game.Fleet.PulseOwnedSanctuaries(Side.Enemy) == 0,
             "the cosmetic ceremony API cannot pulse hidden rival sanctuaries");
         Check(flares.Any(p => p.IsProcessing()) && flares.Any(p => !p.IsProcessing()),
@@ -438,8 +443,8 @@ public partial class Navigation0207bChecks : Node
         Game.Refresh(); await Frames(2);
         Check(Game.TurnSanctuaryPulseCount == starts && battle.SaveJson() == unchanged,
             "expired ceremonies stay finished for this turn and never alter gameplay, save state or RNG");
-        Check(battle.EndTurn(Side.Player).Success && battle.EndTurn(Side.Enemy).Success,
-            "the next real human turn advances through the command facade");
+        Check(battle.EndTurn(Side.Enemy).Success && battle.EndTurn(Side.Player).Success,
+            "the next real opponent turn advances through the command facade");
         foreach (var award in battle.PendingAwards.ToArray()) battle.ClaimAward(Side.Player, award.Id);
         LookAt(OwnTownCell); await Frames(2);
         Check(Game.TurnSanctuaryPulseCount == starts + 1 && Game.BoardView.ActiveSanctuaryPulseCount == 1

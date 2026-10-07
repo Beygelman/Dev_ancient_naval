@@ -76,9 +76,10 @@ internal partial class UiScaleSlider : VBoxContainer
         Name = "InterfaceScaleControl";
         _caption = new Label { Name = "InterfaceScaleCaption", HorizontalAlignment = HorizontalAlignment.Center };
         _caption.AddThemeFontSizeOverride("font_size", 15);
+        _caption.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
         if (OverArtwork)
         {
-            _caption.AddThemeColorOverride("font_color", new Color("f1e2bb"));
+            _caption.AddThemeColorOverride("font_color", PapyrusStyle.Ink);
             _caption.AddThemeColorOverride("font_shadow_color", new Color("183742"));
             _caption.AddThemeConstantOverride("shadow_offset_x", 1);
             _caption.AddThemeConstantOverride("shadow_offset_y", 1);

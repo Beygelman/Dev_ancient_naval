@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory = $true)][string]$OutputPath,
     [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot),
     [string]$Preset = 'Windows Desktop',
-    [ValidateSet('v020.7', 'v020.7b')][string]$Version = 'v020.7'
+    [ValidateSet('v020.7', 'v020.7b', 'v020.8b')][string]$Version = 'v020.7'
 )
 
 $ErrorActionPreference = 'Stop'

@@ -148,7 +148,7 @@ public partial class Main
             LoadScenario(saved.Battle);
             // Continue resumes an existing human turn; the cosmetic turn-start
             // ceremony must wait for the next actual turn boundary.
-            _sanctuaryRound = Battle.ActiveSide == Side.Player ? Battle.Round : -1;
+            _sanctuaryRound = Battle.ActiveSide == Side.Player ? -1 : Battle.TurnSerial;
             BeginTutorialVoyage(newGame: false);
             _sessionStarted = true;
             MapCamera.Position = saved.Camera;
@@ -206,6 +206,7 @@ public partial class Main
         try
         {
             Hud.ShowOpponentTurn(Battle.ActiveSide);
+            RefreshOffscreenNavigation();
             if (!FastChecks)
                 await ToSignal(GetTree().CreateTimer(.8), SceneTreeTimer.SignalName.Timeout);
             for (int commands = 0; commands < 2048 && Battle.ActiveSide != Side.Player && !Battle.IsOver && !Battle.PlayerDefeated; commands++)
@@ -227,6 +228,7 @@ public partial class Main
                 }
 
                 presentation.Finish();
+                RefreshOffscreenNavigation();
                 await PresentHeavenlyAssistance(result);
                 await PresentEncounters();
                 await SaveSessionAsync();

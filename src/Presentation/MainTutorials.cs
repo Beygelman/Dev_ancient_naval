@@ -11,7 +11,7 @@ public partial class Main
     internal TutorialAdvice TutorialHistory { get; private set; } = null!;
     private void InitializeTutorials()
     {
-        Tutorial = new TutorialHud();
+        Tutorial = new TutorialHud { Visible = false };
         AddChild(Tutorial);
         var args = OS.GetCmdlineUserArgs();
         bool tests = args.Any(a => a.EndsWith("-test"));

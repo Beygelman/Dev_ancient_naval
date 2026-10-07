@@ -97,28 +97,35 @@ public partial class Hints0206Checks : Node
     {
         UiHints.Set(true); LoadFixture(); await Frames();
         var expected = Game.Battle.ReadyActions(Side.Player);
-        Check(Game.Hud.ReadyObjectCount == expected.Count && expected.Count >= 3, "amphora counts each genuinely ready object once");
-        var jug = Nodes(Game.Hud).OfType<Control>().Single(n => n.Name == "ReadyActionsAmphora");
-        Check(jug.IsVisibleInTree() && jug.Position.Y + jug.Size.Y * .5f < Button("EndTurn").Position.Y, "amphora count sits above the scroll while lower clay overlaps behind it");
+        Check(Game.Hud.ReadyObjectCount == expected.Count && expected.Count >= 3, "nation relic counts each genuinely ready object once");
+        var jug = Nodes(Game.Hud).OfType<ReadyActionJug>().Single(n => n.Name == "EndTurn");
+        Check(jug.IsVisibleInTree() && jug.Size.X >= 190 && jug.Size.Y >= 220 &&
+            jug.Position.Y + jug.Size.Y > UiScale.LogicalViewport(this).Y &&
+            jug.Position.Y + jug.PrintedCountCenter.Y < UiScale.LogicalViewport(this).Y,
+            "large relic emerges from the lower edge while its numeral remains visible");
+        Check(!Nodes(Game.Hud).OfType<EndTurnPaper>().Any(), "the upper nation relic replaces the old end-turn scroll");
         string untouched = Game.Battle.SaveJson();
         int searches = Game.Hud.ReadyQueryRebuilds;
         for (int i = 0; i < 20; i++) Game.Refresh();
         Check(Game.Hud.ReadyQueryRebuilds == searches, "unchanged selection refreshes retain ready-action navigation results");
         Game.FastChecks = false;
+        Game.Hud.InstantPaperAnimations = false;
         Click(Button("EndTurn")); await Frames(3);
-        var endPaper = (EndTurnPaper)Button("EndTurn");
-        Check(endPaper.StampProgress > 0 && endPaper.StampProgress < 1, "native click starts the four-finger red stamp before confirmation");
+        var endPaper = Nodes(Game.Hud).OfType<RollingModalPaper>().Single(n => n.Name == "EndTurnConfirmationPaper");
+        Check(Game.Hud.TurnConfirmationVisible && endPaper.Scale == Vector2.One && endPaper.IsAnimating,
+            "native upper-relic click immediately reveals a fixed-scale confirmation paper");
         Game.SelectCell(new(7, 5)); KeyPress(Key.R); await Frames(1);
         Check(Game.Battle.SaveJson() == untouched && Game.SelectedShipId == Game.Battle.Mothership(Side.Player)!.Id,
-            "ink stamp locks map orders until its ceremony finishes");
-        await Capture("end-turn-stamp");
+            "opening confirmation locks map orders without mutating the turn");
+        await Capture("relic-confirmation-reveal");
         await Game.CurrentOrder; await Frames();
         await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
-        Check(Game.Hud.TurnConfirmationVisible, "animated stamp proceeds to confirmation");
+        Check(Game.Hud.TurnConfirmationVisible && !endPaper.IsAnimating, "confirmation opening safely completes");
         Click(Button("CancelEndTurn"));
         await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
         await Frames();
         Game.FastChecks = true;
+        Game.Hud.InstantPaperAnimations = true;
         Click(Button("EndTurn")); await Game.CurrentOrder; await Frames();
         Check(Game.Hud.TurnConfirmationVisible && Game.Battle.SaveJson() == untouched, "native end-turn click confirms before mutation");
         var grid = Nodes(Game.Hud).OfType<GridContainer>().Single(n => n.Name == "ReadyActionGrid");

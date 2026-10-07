@@ -16,6 +16,10 @@ internal static class PapyrusStyle
         theme.SetColor("font_color", "TooltipLabel", Ink);
         theme.SetFontSize("font_size", "TooltipLabel", 15);
         theme.SetColor("font_color", "Label", Ink);
+        theme.SetColor("default_color", "RichTextLabel", Ink);
+        foreach (string type in new[] { "Button", "CheckButton", "CheckBox", "OptionButton", "MenuButton" })
+            foreach (string state in new[] { "font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color", "font_disabled_color" })
+                theme.SetColor(state, type, state == "font_disabled_color" ? FaintInk : Ink);
         return theme;
     }
 
@@ -44,6 +48,8 @@ internal static class PapyrusStyle
         button.AddThemeColorOverride("font_color", Ink);
         button.AddThemeColorOverride("font_hover_color", Ink);
         button.AddThemeColorOverride("font_pressed_color", Ink);
+        button.AddThemeColorOverride("font_focus_color", Ink);
+        button.AddThemeColorOverride("font_hover_pressed_color", Ink);
         button.AddThemeColorOverride("font_disabled_color", new Color(FaintInk, .58f));
         foreach (var state in new[]
         {

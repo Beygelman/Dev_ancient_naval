@@ -11,11 +11,11 @@ config_version=5
 [application]
 
 config/name="Ancient Naval"
-config/version="v020.7b"
-config/release_date="06.10.2026"
+config/version="v020.8b"
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.7", "C#", "GL Compatibility")
 config/icon="res://icon.svg"
+config/release_date="07.10.2026"
 
 [display]
 
@@ -39,4 +39,4 @@ project/assembly_name="Dev_ancient_naval"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
-environment/defaults/default_clear_color=Color(0.035, 0.085, 0.12, 1)
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)

@@ -120,8 +120,7 @@ public partial class DebugHud : CanvasLayer
         _restart.Size = new(48, 48);
         _root.AddChild(_restart);
         _restart.AddChild(new ActionGlyph { Symbol = ActionSymbol.Menu, Position = new(10, 10), Size = new(28, 28), MouseFilter = Control.MouseFilterEnum.Ignore });
-        _end = new EndTurnPaper { Text = "End turn" };
-        _end.Pressed += () => EndTurnRequested?.Invoke();
+        _end = new ReadyActionJug { Size = new(196, 230), CustomMinimumSize = new(196, 230) };
         _end.Name = "EndTurn";
         _end.TooltipText = "End turn · Space";
         _root.AddChild(_end);
@@ -706,7 +705,7 @@ public partial class DebugHud : CanvasLayer
         _layoutSizes = sizes;
         _metricsPaper.Position = new((size.X - _metricsPaper.Size.X) / 2, 12);
         _restart.Position = new(size.X - _restart.Size.X - 18, 16);
-        _end.Position = new(size.X - _end.Size.X - 18, size.Y - _end.Size.Y - 18);
+        _end.Position = new(size.X - _end.Size.X - 12, size.Y - _end.Size.Y + 24);
         LayoutTurnGuidance();
         _banner.Position = new((size.X - _banner.Size.X) / 2, (size.Y - _banner.Size.Y) / 2);
         _shipCard.Position = new(18, size.Y - _shipCard.Size.Y - 18);

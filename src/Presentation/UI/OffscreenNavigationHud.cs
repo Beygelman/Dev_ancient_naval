@@ -108,21 +108,22 @@ internal partial class OffscreenNavigationHud : CanvasLayer
         if (_root is null || _ring is null || _compass is null) return;
         var viewport = UiScale.LogicalViewport(this);
         CircleCenter = viewport * .5f;
-        CircleRadius = Math.Min(viewport.X, viewport.Y) * .30f;
+        CircleRadius = Math.Min(viewport.X, viewport.Y) * .23f;
         _ring.Size = viewport;
         _ring.SetCircle(CircleCenter, CircleRadius, _nation);
         _compass.Position = new((viewport.X - _compass.Size.X) / 2, viewport.Y - _compass.Size.Y - 14);
         VisibleMarkerCount = 0;
         _placements.Clear();
-        var screenRect = GetViewport().GetVisibleRect();
         bool disabled = !CanInteract();
         foreach (var arrow in _arrows.Values)
         {
             if (!_sessionVisible || _projectScreen is null) { arrow.Hide(); continue; }
             var projected = _projectScreen(arrow.Target.Cell);
-            bool offscreen = float.IsFinite(projected.X) && float.IsFinite(projected.Y) && !screenRect.HasPoint(projected);
-            if (!offscreen) { arrow.Hide(); continue; }
-            var direction = (UiScale.ScreenToUi(projected) - CircleCenter).Normalized();
+            var offset = UiScale.ScreenToUi(projected) - CircleCenter;
+            bool outside = float.IsFinite(offset.X) && float.IsFinite(offset.Y)
+                && offset.LengthSquared() > CircleRadius * CircleRadius;
+            if (!outside) { arrow.Hide(); continue; }
+            var direction = offset.Normalized();
             arrow.SetDirection(direction);
             _placements.Add(new(arrow, Mathf.PosMod(direction.Angle(), Mathf.Tau)));
             arrow.Disabled = disabled;
@@ -268,8 +269,14 @@ internal partial class NavigationGuideRing : Control
     }
     public override void _Draw()
     {
-        DrawArc(_center, _radius, 0, Mathf.Tau, 120, new Color(PapyrusStyle.Paper, .07f), .8f, true);
-        DrawArc(_center, _radius - 3, 0, Mathf.Tau, 120, new Color(FleetPalette.Color(_nation), .045f), .65f, true);
+        // Retained concentric fringes: light starts at the ring and fades outward.
+        for (int fringe = 0; fringe < 12; fringe++)
+        {
+            float fade = 1 - fringe / 12f;
+            DrawArc(_center, _radius + fringe * 1.7f, 0, Mathf.Tau, 120,
+                new Color(FleetPalette.Color(_nation).Lightened(.25f), .045f * fade * fade), 2.4f, true);
+        }
+        DrawArc(_center, _radius, 0, Mathf.Tau, 120, new Color(PapyrusStyle.Paper, .10f), .8f, true);
     }
 }
 

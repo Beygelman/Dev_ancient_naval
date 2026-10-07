@@ -1,5 +1,28 @@
 # Ancient Naval change history
 
+## v020.8b — 7 October 2026
+
+- Black world void and animated falling water at explored chart edges, retained
+  as one bounded shader mesh with no per-frame terrain rebuild.
+- Smaller 23% navigation circle with outward-fading glow. Eligible targets
+  outside the circle keep pointers even when still onscreen.
+- Enlarged bottom-edge nation relic replaces the End-turn scroll; touch its
+  upper monument to end the turn, its numeral to cycle useful actions.
+- Owned sanctuaries flare on opponent-turn starts; new Green/White/Purple
+  rituals and a taller engraved silver Purple reliquary.
+- Dark paper text in every button state; wheel never zooms beneath an interface
+  window, including reading-area endpoints. Compact advice rejects empty topics;
+  flagship double shots trigger advice before Kolonel construction is available.
+- Primary counsel facts precede secondary lookout/crew detail; clearer shared
+  ship silhouettes and localized nation names in new-voyage selection.
+- New voyages: Granado movement 3; four cautious opening pirate rounds, while
+  attacked pirates can defend. Historical catalogs/patrol policy retain defaults.
+- Captain/Admiral investments prioritize paired ports, relay beacons, batteries,
+  research and reserves; endangered flagships seek friendly refuge and escorts
+  screen threats using legal observed information and normal movement rules.
+- Exclude unrelated nested docs/release C# from compilation; preserve all
+  historical archives and the user's imported clone.
+
 ## v020.7b — 6 October 2026
 
 - Package the subsequently requested portable Windows candidate, matching source

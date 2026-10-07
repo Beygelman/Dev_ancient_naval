@@ -138,12 +138,16 @@ public partial class StartScreen : CanvasLayer
         foreach (var color in Enum.GetValues<FleetColor>())
         {
             var swatch = Choice("FleetColor" + color, "", VoyageMotif.None, 0, () => Choose(color));
-            swatch.CustomMinimumSize = new(82, 72);
+            swatch.CustomMinimumSize = new(82, 96);
             var crest = new FleetCrest { Faction = color, MouseFilter = Control.MouseFilterEnum.Ignore };
             swatch.AddChild(crest); crest.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopWide);
             crest.OffsetBottom = 38;
-            var label = Heading(color.ToString(), 13); swatch.AddChild(label);
-            label.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomWide); label.OffsetTop = -26;
+            var label = Heading(NationIdentity.Name(color), 12);
+            label.Name = "NationCaption";
+            label.AutoTranslateMode = Control.AutoTranslateModeEnum.Disabled;
+            swatch.AddChild(label);
+            label.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomWide);
+            label.OffsetTop = -54; label.OffsetBottom = -5;
             swatch.TooltipText = NationIdentity.Name(color);
             _swatches.Add(color, swatch); nationRow.AddChild(swatch);
         }
@@ -248,6 +252,11 @@ public partial class StartScreen : CanvasLayer
     }
     private void UpdateCaptions()
     {
+        foreach (var (color, swatch) in _swatches)
+        {
+            swatch.GetNode<Label>("NationCaption").Text = NationIdentity.Name(color);
+            swatch.TooltipText = NationIdentity.Name(color) + " · " + Language.Translate(color.ToString());
+        }
         _start.Text = Language.Translate("Embark with the {0} nation").Replace("{0}", NationIdentity.Name(SelectedColor));
         Layout();
     }

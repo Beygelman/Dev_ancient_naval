@@ -4,7 +4,10 @@ namespace DevAncientNaval.Presentation.UI;
 
 internal static class NationIdentity
 {
-    internal static string Name(FleetColor color) => color switch
+    // Display names are translated; persisted FleetColor identities never change.
+    internal static string Name(FleetColor color) => Language.Translate(SourceName(color));
+
+    internal static string SourceName(FleetColor color) => color switch
     {
         FleetColor.Blue => "Helian Covenant",
         FleetColor.Purple => "Argent Veil",

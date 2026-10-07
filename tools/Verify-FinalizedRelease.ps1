@@ -7,7 +7,7 @@ param(
     [string]$PckPath,
     [string]$PckInventoryPath,
     [string]$RuntimeReferencePath,
-    [ValidateSet('v020.7', 'v020.7b')][string]$Version = 'v020.7'
+    [ValidateSet('v020.7', 'v020.7b', 'v020.8b')][string]$Version = 'v020.7'
 )
 
 $ErrorActionPreference = 'Stop'

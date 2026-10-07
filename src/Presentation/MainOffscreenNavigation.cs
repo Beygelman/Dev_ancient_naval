@@ -41,7 +41,7 @@ public partial class Main
             _navigationBattle = Battle;
             _ownProtectedHealth.Clear();
             _ownAttackAlerts.Clear();
-            _sanctuaryRound = -1;
+            _sanctuaryRound = _sessionLoading && Battle.ActiveSide != Side.Player ? Battle.TurnSerial : -1;
         }
 
         // Only committed, owned HP is observed. The future prepared salvo result
@@ -83,11 +83,13 @@ public partial class Main
         _navigationHud.SetTargets(_navigationTargets, Battle.PlayerColor, visible,
             Battle.Mothership(Side.Player) is not null);
 
-        // A visual ceremony, once per stable human turn, with no reward or save
+        // A visual ceremony, once per stable opponent turn, with no reward or save
         // mutation. Repeated refreshes, camera pans and modals cannot restart it.
-        if (visible && Battle.PendingPresentation is null && _sanctuaryRound != Battle.Round)
+        if (Hud.Visible && BoardView.Visible && _home?.IsOpen != true && Battle.ActiveSide != Side.Player
+            && !Battle.IsOver && !Battle.PlayerDefeated && Battle.PendingPresentation is null
+            && _sanctuaryRound != Battle.TurnSerial)
         {
-            _sanctuaryRound = Battle.Round;
+            _sanctuaryRound = Battle.TurnSerial;
             BoardView.RefreshDepthObjects(Fleet);
             BoardView.PulseOwnedSanctuaries(Side.Player);
             Fleet.PulseOwnedSanctuaries(Side.Player);

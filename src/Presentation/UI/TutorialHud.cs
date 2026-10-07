@@ -25,21 +25,21 @@ internal partial class TutorialHud : CanvasLayer
         _root = new Control { Name = "TutorialAdviceRoot", Theme = PapyrusStyle.ChartTheme(), MouseFilter = Control.MouseFilterEnum.Ignore };
         AddChild(_root);
         _paper = new RollingModalPaper { Name = "TutorialAdvicePaper", MouseFilter = Control.MouseFilterEnum.Stop,
-            MouseForcePassScrollEvents = false };
+            MouseForcePassScrollEvents = false, Visible = false };
         _root.AddChild(_paper);
         _body = new VBoxContainer();
         _body.AddThemeConstantOverride("separation", 8);
         var top = new HBoxContainer();
         _body.AddChild(top);
-        _heading = Text("", 17);
+        _heading = Text("", 15);
         _heading.Name = "TutorialAdviceTitle";
         _heading.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         top.AddChild(_heading);
         _picture = new TextureRect { Name = "TutorialAdviceScreenshot", ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, MouseFilter = Control.MouseFilterEnum.Ignore,
-            CustomMinimumSize = new(0, 138) };
+            CustomMinimumSize = new(0, 112) };
         _body.AddChild(_picture);
-        _description = Text("", 13);
+        _description = Text("", 11);
         _description.Name = "TutorialAdviceDescription";
         _body.AddChild(_description);
         _close = new BrushPaperButton { Name = "CloseTutorialAdvice", Text = "Taken to heart",
@@ -82,6 +82,9 @@ internal partial class TutorialHud : CanvasLayer
     }
     internal void Present(string topic, string title, string description, string screenshot)
     {
+        // An uninitialized/replaced topic can never reveal an empty paper.
+        if (string.IsNullOrWhiteSpace(topic) || string.IsNullOrWhiteSpace(title)
+            || string.IsNullOrWhiteSpace(description)) { Clear(); return; }
         _presentation++;
         _dismissing = false;
         Topic = topic;
@@ -92,10 +95,17 @@ internal partial class TutorialHud : CanvasLayer
         _picture.Texture = GD.Load<Texture2D>(screenshot);
         _picture.Visible = _picture.Texture is not null;
         Show();
+        _root.Show();
         Layout();
         _ = _paper.OpenAsync();
     }
-    internal void SetAllowed(bool allowed) => Visible = allowed && Topic is not null && UiHints.Enabled;
+    internal void SetAllowed(bool allowed)
+    {
+        bool show = allowed && Topic is not null && !string.IsNullOrWhiteSpace(_heading.Text)
+            && !string.IsNullOrWhiteSpace(_description.Text) && UiHints.Enabled;
+        _root.Visible = show;
+        Visible = show;
+    }
     internal void Clear()
     {
         _presentation++;
@@ -104,6 +114,7 @@ internal partial class TutorialHud : CanvasLayer
         _close.ResetStamp();
         _ = _paper.FoldAsync(true);
         _paper.Hide();
+        _root.Hide();
         Hide();
     }
     private void Layout()
@@ -111,8 +122,8 @@ internal partial class TutorialHud : CanvasLayer
         if (_paper is null || _layingOut) return;
         _layingOut = true;
         var viewport = UiScale.LogicalViewport(this);
-        _picture.CustomMinimumSize = new(0, Math.Min(138, viewport.Y * .24f));
-        PapyrusModal.LayoutWithFooter(_paper, _scroll, _body, _close, viewport);
+        _picture.CustomMinimumSize = new(0, Math.Min(112, viewport.Y * .19f));
+        PapyrusModal.LayoutWithFooter(_paper, _scroll, _body, _close, viewport, 330, .48f);
         _paper.Position = new(18, 18);
         _layingOut = false;
     }

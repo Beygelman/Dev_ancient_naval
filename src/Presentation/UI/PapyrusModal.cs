@@ -20,7 +20,7 @@ internal static class PapyrusModal
             HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
             VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-            SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill, MouseForcePassScrollEvents = false };
         Attach(paper, scroll);
         body.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         scroll.AddChild(body);
@@ -33,7 +33,7 @@ internal static class PapyrusModal
         Attach(paper, host);
         var scroll = new ScrollContainer { Name = name, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
             VerticalScrollMode = ScrollContainer.ScrollMode.ShowNever, SizeFlagsVertical = Control.SizeFlags.ExpandFill,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, MouseForcePassScrollEvents = false };
         host.AddChild(scroll);
         body.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         scroll.AddChild(body);
@@ -42,14 +42,16 @@ internal static class PapyrusModal
     }
     private static void Attach(PanelContainer paper, Control content)
     {
+        paper.MouseForcePassScrollEvents = false;
+        content.MouseForcePassScrollEvents = false;
         if (paper is RollingModalPaper rolled) rolled.AttachContent(content);
         else paper.AddChild(content);
     }
     internal static void LayoutWithFooter(PanelContainer paper, ScrollContainer scroll, Control body,
-        Control footer, Vector2 viewport)
+        Control footer, Vector2 viewport, float maximumWidth = 420, float heightFraction = HeightFraction)
     {
-        float width = Math.Min(420, Math.Max(220, viewport.X - 24));
-        float ceiling = Math.Max(80, MathF.Floor(viewport.Y * HeightFraction));
+        float width = Math.Min(maximumWidth, Math.Max(220, viewport.X - 24));
+        float ceiling = Math.Max(80, MathF.Floor(viewport.Y * heightFraction));
         var margin = paper.GetThemeStylebox("panel").GetMinimumSize();
         float fixedHeight = MathF.Ceiling(footer.GetCombinedMinimumSize().Y + margin.Y + 10);
         // Native containers ceil their minima to whole pixels. Reserve the footer

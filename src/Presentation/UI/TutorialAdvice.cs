@@ -51,7 +51,8 @@ internal sealed class TutorialAdvice
             return;
         }
         if (_resourceWanted) Enqueue("resources");
-        if (battle.Rules.DoubleSalvo && battle.OwnShips(Side.Player).Any(s => s.Definition.Class == ShipClass.Kolonel)) Enqueue("kolonel");
+        if (battle.Rules.DoubleSalvo && battle.OwnShips(Side.Player).Any(s =>
+            s.Definition.Class == ShipClass.Kolonel || s.IsMothership && s.SecondAttackUpgrade)) Enqueue("kolonel");
         if (battle.Villages.Any(v => v.Owner == Side.Player && v.Health > 0)) Enqueue("village");
         if (battle.OwnShips(Side.Player).Any(s => s.CanEarnVeterancy && (s.Kills > 0 || s.IsVeteran))) Enqueue("veterancy");
         if (ownCommandsVisible) Enqueue("commands");
@@ -111,13 +112,15 @@ internal sealed class TutorialAdvice
     {
         "resources" => ("Grow the floating city", ResourceAdvice(battle)),
         "kolonel" => ("One charge or a broadside",
-            battle.Rules.EqualDoubleSalvoDamage
+            (battle.Rules.EqualDoubleSalvoDamage
                 ? "Choose the charge\nSelect your Kolonel, then a target. The target's parchment offers one shot or a double salvo. Two charges spend both attacks, fly together and deal twice a single shot's damage.\n\nWatch the reply\nA surviving enemy in range answers only once. Choose before firing; the picture shows this choice."
-                : "Choose the charge\nSelect your Kolonel, then a target. The target's parchment offers one shot or a double salvo. Two charges spend both attacks and fly together.\n\nWatch the reply\nA surviving enemy in range answers only once. Choose before firing; the picture shows this choice."),
+                : "Choose the charge\nSelect your Kolonel, then a target. The target's parchment offers one shot or a double salvo. Two charges spend both attacks and fly together.\n\nWatch the reply\nA surviving enemy in range answers only once. Choose before firing; the picture shows this choice.")
+                .Replace("Select your Kolonel", battle.Mothership(Side.Player)?.SecondAttackUpgrade == true
+                    ? "Select your Mothership or Kolonel" : "Select your Kolonel")),
         "village" => ("Raise a village into a city", VillageAdvice(battle)),
         "veterancy" => ("The crew earns its silver", VeteranAdvice(battle)),
         "commands" => ("Read the numbered parchment",
-            "Choose an order\nThe visible commands are numbered 1–9 from left to right. Press a number or touch its symbol. Grey commands keep their number but cannot act.\n\nOpen a new page\nOpening the shipyard assigns fresh numbers to its own commands. Right-click closes the parchment and clears selection.\n\nFind the next crew\nTouch your nation's shining monument to visit the next object with a useful action, cycling through the fleet."),
+            "Choose an order\nThe visible commands are numbered 1–9 from left to right. Press a number or touch its symbol. Grey commands keep their number but cannot act.\n\nOpen a new page\nOpening the shipyard assigns fresh numbers to its own commands. Right-click closes the parchment and clears selection.\n\nFind the next crew\nTouch the number beneath your nation’s relic to visit the next object with a useful action. Touch the relic itself to end your turn."),
         "trade" => ("Carry the sea lanes forward",
             (battle.Rules.Ports.MaximumRouteLength > 0
                 ? $"Your port towns are linked by white dashed sea lanes. Direct links reach up to {battle.Rules.Ports.MaximumRouteLength} tiles. Build forward lighthouses with a Mothership or Support Brig to extend your network and its lookout coverage."

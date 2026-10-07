@@ -75,14 +75,25 @@ internal static partial class FactionSanctuaryArt
         }
         else if (faction == FleetColor.Purple)
         {
-            for (int glint = 0; glint < 5; glint++)
+            var summit = p(0, 0, 29);
+            canvas.DrawCircle(summit, 4.3f, new(.72f, .78f, 1, .10f));
+            for (int orbit = 0; orbit < 2; orbit++)
             {
-                float phase = (clock * .20f + glint * .2f) % 1;
-                float light = MathF.Pow(MathF.Sin(phase * Mathf.Pi), 4);
-                Star(canvas, p(-3 + phase * 6, (glint % 2 - .5f) * 2, 17 + glint % 3 * 1.8f),
-                    1.5f + light * 1.3f, new(.94f, .98f, 1, light * .94f));
+                float phase = (clock * .14f + orbit * .5f) % 1;
+                canvas.DrawArc(p(0, 0, 23 + phase * 5), 3 + phase * 6,
+                    clock * .22f + orbit * Mathf.Pi, clock * .22f + orbit * Mathf.Pi + Mathf.Pi * 1.45f,
+                    18, new(.80f, .89f, 1, MathF.Sin(phase * Mathf.Pi) * .42f), .9f, true);
             }
-            canvas.DrawLine(p(-4, 0, 16), p(0, 0, 22), new(.91f, .95f, 1, .54f), 1.15f, true);
+            for (int glint = 0; glint < 7; glint++)
+            {
+                float phase = (clock * .18f + glint / 7f) % 1;
+                float light = MathF.Pow(MathF.Sin(phase * Mathf.Pi), 4);
+                float angle = glint * 2.3f + phase * 2;
+                Star(canvas, p(MathF.Cos(angle) * (5 - phase * 3), MathF.Sin(angle) * (5 - phase * 3),
+                    19 + phase * 11), 1 + light * 1.4f, new(.88f, .95f, 1, light * .84f));
+            }
+            canvas.DrawLine(p(-5, -5, 18), p(0, 0, 28), new(.91f, .95f, 1, .44f), .9f, true);
+            canvas.DrawLine(p(5, 5, 18), p(0, 0, 28), new(.83f, .89f, 1, .40f), .9f, true);
         }
         else if (faction == FleetColor.Red)
         {
@@ -121,22 +132,36 @@ internal static partial class FactionSanctuaryArt
         }
         else if (faction == FleetColor.Green)
         {
-            float sway = MathF.Sin(clock * .65f) * 1.15f;
+            float sway = MathF.Sin(clock * .65f) * .6f;
+            var crown = p(0, 0, 21);
+            canvas.DrawCircle(crown, 6.4f, new(.60f, .90f, .47f, .12f));
             for (int leaf = 0; leaf < MaximumShrineParticles; leaf++)
             {
-                float phase = (clock * .09f + leaf / (float)MaximumShrineParticles) % 1;
-                var at = p(MathF.Sin(leaf * 2.7f) * 5 + phase * 16 + sway,
-                    MathF.Cos(leaf * 1.8f) * 5, 20 - phase * 18);
-                canvas.DrawLine(at, at + new Vector2(1.9f, MathF.Sin(clock + leaf) * .9f),
-                    new(.53f, .75f, .38f, MathF.Sin(phase * Mathf.Pi) * .9f), 1.45f, true);
+                float phase = (clock * .10f + leaf / (float)MaximumShrineParticles) % 1;
+                float angle = leaf * 2.7f + phase * 3.5f;
+                float radius = 3 + phase * 7;
+                var at = p(MathF.Sin(angle) * radius + sway, MathF.Cos(angle) * radius, 9 + phase * 15);
+                float alpha = MathF.Sin(phase * Mathf.Pi) * .74f;
+                canvas.DrawLine(at - new Vector2(1, .3f), at + new Vector2(1.4f, -.6f),
+                    new(.66f, .93f, .49f, alpha), 1.4f, true);
+                if (leaf % 3 == 0) Star(canvas, at, .95f, new(.88f, 1, .68f, alpha * .6f));
             }
             for (int tier = 0; tier < 3; tier++)
                 canvas.DrawArc(p(sway, 0, 12 + tier * 4), 4.2f - tier * .7f, Mathf.Pi, Mathf.Tau, 8,
-                    new(.42f, .68f, .34f, .62f), 1.3f, true);
+                    new(.73f, .95f, .48f, .34f + .12f * MathF.Sin(clock + tier)), 1.1f, true);
         }
         else if (faction == FleetColor.White)
         {
             var letter = Letter(p);
+            var summit = p(0, 0, 27);
+            canvas.DrawCircle(summit, 5.4f, new(1, .74f, .69f, .12f));
+            for (int ring = 0; ring < 2; ring++)
+            {
+                float phase = (clock * .13f + ring * .5f) % 1;
+                canvas.DrawArc(p(0, 0, 23), 5 + phase * 10, -.6f + phase * .8f,
+                    Mathf.Pi * 1.35f + phase * .8f, 24,
+                    new(1, .84f, .79f, MathF.Sin(phase * Mathf.Pi) * .34f), 1, true);
+            }
             float top = p(0, 0, 27).Y, height = Math.Max(1, p(0, 0, 16).Y - top);
             float wave = (clock * .22f % 1) * height + top;
             for (int edge = 1; edge < letter.Length; edge++)
@@ -147,7 +172,13 @@ internal static partial class FactionSanctuaryArt
                     float light = Math.Max(0, 1 - MathF.Abs((from.Y + to.Y) * .5f - wave) / 3.5f);
                     if (light > 0) canvas.DrawLine(from, to, new(1, .7f, .72f, light * .94f), 4.1f, true);
                 }
-            Star(canvas, letter[2], 1.6f, new(1, .83f, .79f, .45f + .4f * MathF.Sin(clock * .8f)));
+            Star(canvas, letter[2], 1.6f, new(1, .91f, .83f, .45f + .3f * MathF.Sin(clock * .8f)));
+            for (int ember = 0; ember < 6; ember++)
+            {
+                float phase = (clock * .12f + ember / 6f) % 1;
+                var at = p(MathF.Cos(ember * 2.1f) * 5, MathF.Sin(ember * 2.1f) * 4, 18 + phase * 15);
+                canvas.DrawCircle(at, .7f, new(1, .83f, .77f, MathF.Sin(phase * Mathf.Pi) * .68f));
+            }
         }
     }
 }

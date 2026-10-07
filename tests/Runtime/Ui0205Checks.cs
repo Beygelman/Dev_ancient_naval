@@ -94,6 +94,15 @@ public partial class Ui0205Checks : Node
             foreach (string locale in new[] { "en", "uk", "nl" })
             {
                 Language.Set(locale, persist: false); await Frames();
+                foreach (FleetColor nation in Enum.GetValues<FleetColor>())
+                {
+                    var swatch = HomeButton("FleetColor" + nation);
+                    var caption = swatch.GetNode<Label>("NationCaption");
+                    Check(caption.Text == NationIdentity.Name(nation), "nation picker shows its localized name " + locale + " " + nation);
+                    Check(locale == "en" || caption.Text != NationIdentity.SourceName(nation), "nation name has a real translation " + locale + " " + nation);
+                    foreach (string state in new[] { "font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_disabled_color", "font_hover_pressed_color" })
+                        Check(swatch.GetThemeColor(state).V < .65f, "painted nation uses dark text in " + state);
+                }
                 await Reveal(HomeButton("FleetColorRed")); Click(HomeButton("FleetColorRed")); await Frames();
                 Check(Game.Home.SelectedColor == FleetColor.Red, "actual transformed red nation click " + locale);
                 Check(HomeButton("StartBattle").Text == Language.Translate("Embark with the {0} nation").Replace("{0}", NationIdentity.Name(FleetColor.Red)),

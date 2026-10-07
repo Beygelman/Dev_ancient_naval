@@ -31,6 +31,7 @@ public partial class DebugHud
     {
         _informationPanel = Panel(_root);
         _informationPanel.Name = "InformationScroll";
+        _informationPanel.MouseForcePassScrollEvents = false;
         _informationPanel.CustomMinimumSize = new(352, 0);
         var style = PapyrusStyle.Panel();
         style.ContentMarginLeft = 43;
@@ -64,7 +65,7 @@ public partial class DebugHud
             HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
             VerticalScrollMode = ScrollContainer.ScrollMode.ShowNever,
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, MouseForcePassScrollEvents = false };
         column.AddChild(_informationScroll);
         _informationBody = new VBoxContainer { Name = "InformationSections",
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
@@ -83,7 +84,7 @@ public partial class DebugHud
     {
         _loreTitle = title;
         _lorePage = new(page.Summary, page.Sections.Select(section => new LoreSection(section.Title,
-            section.Rows.Where(row => row.Label != "Level").ToArray()))
+            section.Rows.Where(row => row.Label != "Level").OrderBy(row => FactPriority(row.Label)).ToArray()))
             .Where(section => section.Rows.Count > 0).ToArray());
         _loreText = _lorePage.PlainText;
     }
@@ -214,6 +215,15 @@ public partial class DebugHud
         "Progress cells" or "Veterancy" or "Veteran" or "Veteran reach" or "Recharge" or "Readiness" => ActionSymbol.Progress,
         "Outpost" => ActionSymbol.Fortify,
         _ => ActionSymbol.Flag
+    };
+
+    private static int FactPriority(string label) => label switch
+    {
+        "Health" => 0, "Movement" => 1, "Cannons" or "Mortar" or "Bomb" => 2,
+        "Shots" or "Automatic guns" or "Income" or "Settlement income" => 3,
+        "Resources" => 4, "Sight" => 5, "Radar" => 6,
+        "Progress cells" or "Radar targets" or "Vulnerability" => 30,
+        _ => 15
     };
 
     private static Label WrappedLoreLabel(string text, int fontSize)

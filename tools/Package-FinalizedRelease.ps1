@@ -10,7 +10,7 @@ param(
     [string]$PlayerReadmePath,
     [switch]$Candidate,
     [switch]$Corrected,
-    [ValidateSet('v020.7', 'v020.7b')][string]$Version = 'v020.7'
+    [ValidateSet('v020.7', 'v020.7b', 'v020.8b')][string]$Version = 'v020.7'
 )
 
 $ErrorActionPreference = 'Stop'

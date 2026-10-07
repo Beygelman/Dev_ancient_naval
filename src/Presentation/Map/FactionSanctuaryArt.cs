@@ -22,6 +22,11 @@ internal static partial class FactionSanctuaryArt
 
     internal static void Draw(CanvasItem canvas, Func<float, float, float, Vector2> p, FleetColor faction)
     {
+        if (faction == FleetColor.Purple)
+        {
+            DrawArgentSanctuary(canvas, p);
+            return;
+        }
         if (faction == FleetColor.Green)
         {
             Box(canvas, p, 0, 0, 0, 7, 6, 2, new("b9a37e"));
@@ -46,9 +51,6 @@ internal static partial class FactionSanctuaryArt
         canvas.DrawLine(door, p(0, 3.8f, 6), new("625144"), 1.6f, true);
         switch (faction)
         {
-            case FleetColor.Purple:
-                DrawSilverPyramid(canvas, p);
-                break;
             case FleetColor.Yellow:
                 DrawRoseCrown(canvas, p);
                 break;
@@ -65,11 +67,34 @@ internal static partial class FactionSanctuaryArt
         }
     }
 
+    private static void DrawArgentSanctuary(CanvasItem canvas, Func<float, float, float, Vector2> p)
+    {
+        // Stepped silver reliquary, with a dark inlaid chamber and a high engraved
+        // crown. Every relief lies on projected floor faces, including ship yaw.
+        Box(canvas, p, 0, 0, 0, 11, 10, 1.4f, new("778794"));
+        Box(canvas, p, 0, 0, 1.4f, 9.5f, 8.5f, 1.5f, new("c3ced4"));
+        Box(canvas, p, 0, 0, 2.9f, 7.6f, 6.6f, 10.6f, new("8b96aa"));
+        Box(canvas, p, 0, 0, 13.5f, 9.4f, 8.4f, 1.4f, new("e3e9ed"));
+        Box(canvas, p, 0, 0, 14.9f, 8.6f, 7.6f, 3.1f, new("c8d3dd"));
+        foreach (float x in new[] { -3.7f, 0, 3.7f })
+        {
+            Box(canvas, p, x, 3.5f, 3, .65f, .85f, 10.5f, new("e5eaed"));
+            Box(canvas, p, x, -3.5f, 3, .65f, .85f, 10.5f, new("e5eaed"));
+        }
+        foreach (float y in new[] { -2.6f, 2.6f })
+        {
+            Box(canvas, p, -4, y, 3, .7f, .6f, 10.5f, new("c3d2dc"));
+            Box(canvas, p, 4, y, 3, .7f, .6f, 10.5f, new("c3d2dc"));
+        }
+        DrawSilverPyramid(canvas, p);
+        Crystal(canvas, p, 0, 0, 28, .8f, 2.3f, new("f0f4ff"));
+    }
+
     private static void DrawSilverPyramid(CanvasItem canvas, Func<float, float, float, Vector2> p)
     {
-        Pyramid(canvas, p, 0, 0, 16, 5, 6, new("c4cbd1"));
-        var corners = new[] { p(-5, -5, 16), p(5, -5, 16), p(5, 5, 16), p(-5, 5, 16) };
-        var tip = p(0, 0, 22);
+        Pyramid(canvas, p, 0, 0, 18, 5, 10, new("d5dfe8"));
+        var corners = new[] { p(-5, -5, 18), p(5, -5, 18), p(5, 5, 18), p(-5, 5, 18) };
+        var tip = p(0, 0, 28);
         Span<Vector2> marks = stackalloc Vector2[328];
         Span<Vector2> shadows = stackalloc Vector2[328];
         int count = 0;

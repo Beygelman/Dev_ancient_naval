@@ -1,5 +1,32 @@
 # Ancient Naval architecture
 
+## v020.8b presentation and decision policy
+
+The current working identity is v020.8b, dated 07.10.2026. Nation labels localize
+in Presentation; persistent enum/name contracts remain unchanged. New Granado
+movement is 3. Optional `PirateCautiousRounds` is 4 for new voyages and 0 when
+absent from historical rule snapshots; patrols retain immediate self-defense.
+
+`WorldEdgeFalls` builds the actual shared chart perimeter once per projection,
+compares only boundary exploration, and submits one retained shader mesh behind
+the map. Shader time moves streams without CPU redraws or simulation randomness.
+Unknown lips are absent and visibility downgrade replaces geometry immediately.
+The guide ring is 23% of the shorter physical side; target distance from this
+circle, rather than viewport inclusion, determines pointer visibility.
+
+The ReadyActionJug's internal name remains for source compatibility, but its
+enlarged nation monument is the end-turn control. Its inset count separately
+cycles owned ready objects. End-turn dims effects before Core turn preparation;
+only a new human turn reactivates the relic. Owned shrine flares use committed
+opponent turn serials and finite culled overlays. Window-hover wheel guarding
+backs up native consuming scroll/reveal surfaces, including scroll endpoints.
+
+`FleetInvestment` separates productive infrastructure/reserves from discretionary
+hull purchases. Relay planning uses known sea and bounded candidate searches.
+`FlagshipEscort` screens threatening approaches using actual hostile adjacency
+costs; it invents no damage absorption. Safety prioritizes known safe owned bases.
+Existing bounded volley/assembly planners retain simulation authority.
+
 For v020.7b terrain caches, logical fog invalidation is immediate but native
 source visibility/tint/redraw changes wait for each scheduled GPU flight. Hide
 unsafe old images at invalidation, then publish only the prepared generation

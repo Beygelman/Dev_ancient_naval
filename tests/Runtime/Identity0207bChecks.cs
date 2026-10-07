@@ -24,7 +24,7 @@ public partial class Identity0207bChecks : Node
         try
         {
             await Frames();
-            Check(GameIdentity.Version == "v020.7b" && GameIdentity.IssueDate == "06.10.2026", "source issue identity");
+            Check(GameIdentity.Version == "v020.8b" && GameIdentity.IssueDate == "07.10.2026", "source issue identity");
             var home = Nodes(Game.Home).OfType<Label>().Single(n => n.Name == "HomeVersionSignature");
             var voyage = Nodes(Game.Hud).OfType<Label>().Single(n => n.Name == "VoyageVersionSignature");
             Check(home.Text == GameIdentity.Signature && voyage.Text == home.Text, "both signatures share checked-in identity");

@@ -28,6 +28,16 @@ public partial class MapInput : Node
     public Func<bool>? KeyboardEnabled { get; set; }
     public Func<bool>? PointerEnabled { get; set; }
     public Func<bool>? ZoomEnabled { get; set; }
+    internal bool PointerOverInterface()
+    {
+        // Native scroll events can bubble at endpoints. The hovered control is
+        // still authoritative even if that event reaches _UnhandledInput.
+        for (Node? node = GetViewport().GuiGetHoveredControl(); node is not null; node = node.GetParent())
+            if (node is Control control && control.IsVisibleInTree()
+                && (control is ScrollContainer or PanelContainer || control.MouseFilter == Control.MouseFilterEnum.Stop))
+                return true;
+        return false;
+    }
     public Func<bool>? GameplayShortcutsEnabled { get; set; }
     public Func<InputEventKey, bool>? CommandShortcut { get; set; }
     public event Action? EndTurnRequested;
@@ -154,7 +164,8 @@ public partial class MapInput : Node
                 }
                 else if (mouse.Pressed && mouse.ButtonIndex is MouseButton.WheelUp or MouseButton.WheelDown)
                 {
-                    if (ZoomEnabled?.Invoke() == false) return;
+                    if (ZoomEnabled?.Invoke() == false || PointerOverInterface())
+                    { GetViewport().SetInputAsHandled(); return; }
                     Camera.ZoomAt(mouse.Position, mouse.ButtonIndex == MouseButton.WheelUp ? 1.15f : 1 / 1.15f);
                 }
                 else return;

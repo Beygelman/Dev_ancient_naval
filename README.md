@@ -1,7 +1,7 @@
-# Ancient Naval — v020.7b
+# Ancient Naval — v020.8b
 
-**v020.7b · 6 October 2026.** Godot 4.7.2 .NET, C# and .NET 8.
-The requested portable Windows player is packaged from this source checkpoint.
+**v020.8b · 7 October 2026.** Godot 4.7.2 .NET, C# and .NET 8.
+The canonical source contains the new world, interface and opponent changes.
 Older ZIPs below remain historical builds and do not contain the latest changes.
 
 An ancient floating city carries the last hope of its people. Explore an organic
@@ -10,7 +10,30 @@ six-sided sea, protect your Mothership, claim coastal settlements and defeat
 difficulties; six nations; optional pirates, hints and God's eye. English,
 Ukrainian and Dutch are supported.
 
-## What changed in v020.7b
+## What changed in v020.8b
+
+- Water falls from explored chart edges into a black void. One retained shader
+  mesh animates the waterfall without rebuilding terrain each frame.
+- Smaller navigation ring with light fading outward. Arrows point to ready
+  actions outside the ring even when those objects are still on screen.
+- A larger nation relic rises from the bottom edge: touch its upper monument
+  to end the turn, the inset number to visit the next crew with useful actions.
+- Dark ink in all paper control states; scrolling any window never zooms the
+  sea, even at the top/bottom of a reading area. Advice is smaller and rejects
+  empty topics; Mothership double shots trigger advice before Kolonel unlock.
+- Primary health/movement/resource facts precede additional lookout and crew
+  details. Cleaner ship silhouettes and translated nation names aid selection.
+- Green, White and Purple shrine rituals are richer; Purple has a taller
+  engraved silver reliquary. Owned shrines flare when an opponent turn starts.
+- New voyages: Granado movement **3** and **four cautious pirate opening rounds**.
+  Attacked pirates can defend. Historical voyages retain their saved policies.
+- Captain/Admiral invest in paired ports, relay beacons, gun towers, research
+  and reserves; escorts screen endangered flagships retreating toward safe bases.
+
+See [v020.8b verification](docs/MILESTONE-v020.8b.md) for actual checks and limits.
+Historical world/RNG/rules snapshots and serialized ship identities are preserved.
+
+## Previous checkpoint — v020.7b
 
 - Close coastlines and grid geometry use bounded high-resolution retained
   chunks; town names use sharper glyphs. One distant object LOD reduces draw
@@ -47,7 +70,7 @@ Historical voyages preserve their embedded balance, world geometry, RNG and
 progress. A missing new tower wall-bypass field defaults to the old rule.
 No historical player/source archive is replaced.
 
-## Play on Windows
+## Previous portable Windows checkpoint
 
 Download [the portable Windows checkpoint](releases/v020.7b/Ancient_Naval_v020.7b_Windows_PLAYER_CANDIDATE.zip),
 extract **the entire folder**, then run **Ancient Naval.exe** inside
@@ -70,7 +93,7 @@ Both title and in-voyage menus read the checked-in version/date signature.
 - Select a ship and choose a legal tile or known target.
 - **WASD / arrows:** move the chart. **Wheel:** zoom. **R:** repair.
 - **1–9:** current parchment commands. **Right-click:** cancel/clear selection.
-- The nation monument cycles objects with useful actions remaining.
+- Touch the nation relic to end the turn; its numeral cycles useful actions.
 - Offscreen arrows and the Mothership compass move the camera without claiming,
   looting or attacking. Red alerts start only after committed damage finishes
   presenting; clicking dismisses them, and they expire after the following round.

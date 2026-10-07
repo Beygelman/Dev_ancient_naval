@@ -158,6 +158,10 @@ public partial class Main : Node2D
         Hud.ShowMessage("Select a ship, then a tile or highlighted target. Glowing fish can be collected directly.");
         InitializeSession();
         InitializeTutorials();
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--world-0208b-test"))
+            AddChild(new Tests.Runtime.World0208bChecks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--ui-0208b-test"))
+            AddChild(new Tests.Runtime.Ui0208bChecks { Game = this });
         UiScale.Changed += Refresh;
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--identity0207b-test"))
             AddChild(new Tests.Runtime.Identity0207bChecks { Game = this });

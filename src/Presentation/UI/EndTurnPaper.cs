@@ -154,7 +154,7 @@ internal partial class ReadyActionJug : Button
 {
     private static readonly Vector2[] MonumentShadow = MakeShadow();
     internal int Count { get; private set; }
-    internal Vector2 PrintedCountCenter => new(Size.X * .5f + 4, Size.Y - 29);
+    internal Vector2 PrintedCountCenter => new(Size.X * .5f + 4, Size.Y - 47);
     internal float ActivityProgress => _activity;
     internal bool HumanTurnActive => _humanTurn;
     internal float EffectPhase => _clock;
@@ -163,6 +163,18 @@ internal partial class ReadyActionJug : Button
     private bool _humanTurn;
     private float _activity, _clock, _redrawClock;
     private ReadyNationRadiance _radiance = null!;
+    internal event Action? CounterRequested;
+
+    public override void _GuiInput(InputEvent input)
+    {
+        // The upper monument ends the turn; its inset numeral still cycles crews.
+        if (input is InputEventMouseButton { ButtonIndex: MouseButton.Left } mouse
+            && mouse.Position.Y >= PrintedCountCenter.Y - 20)
+        {
+            if (mouse.Pressed && !Disabled) CounterRequested?.Invoke();
+            AcceptEvent();
+        }
+    }
 
     internal void Update(int count, Color clay, FleetColor nation)
     {
@@ -229,13 +241,12 @@ internal partial class ReadyActionJug : Button
     public override bool _HasPoint(Vector2 point)
     {
         // Keep the paper inscription below it fully clickable.
-        var at = (point - new Vector2(Size.X * .5f, Size.Y * .55f)) / new Vector2(53, 68);
-        return point.Y < Size.Y - 21 && at.LengthSquared() <= 1.1f;
+        return point.X >= 18 && point.X <= Size.X - 18 && point.Y >= 10 && point.Y <= Size.Y - 10;
     }
 
-    internal static Vector2 GroundAnchor(Vector2 size) => new(size.X * .5f, size.Y - 38);
+    internal static Vector2 GroundAnchor(Vector2 size) => new(size.X * .5f, size.Y - 48);
     internal static Vector2 Project(float x, float y, float z) => new((x - y) * .92f, (x + y) * .42f - z);
-    internal const float MonumentScale = 2.65f;
+    internal const float MonumentScale = 3.75f;
 
     private static Vector2[] MakeShadow()
     {

@@ -232,13 +232,22 @@ public sealed partial class BattleState
             return CommandResult.Rejected("It is not the pirates' turn.");
         foreach (var ship in OwnShips(Side.Pirates).ToArray())
         {
-            var enemies = ObservedShips(Side.Pirates).Where(s => s.Owner != Side.Pirates && !s.IsAirborne).ToArray();
+            var observed = ObservedShips(Side.Pirates).Where(s => s.Owner != Side.Pirates && !s.IsAirborne).ToArray();
+            var enemies = observed;
+            bool cautious = Round <= Rules.PirateCautiousRounds;
+            // Opening patrols defend their anchorage, rather than converging on
+            // every newly observed fleet. No additional RNG/state is required:
+            // the saved round, rule and original patrol home define this policy.
+            var home = _pirateHomes.GetValueOrDefault(ship.Id, ship.Position);
+            if (cautious)
+                enemies = enemies.Where(s => s.IsArmed && WeaponCovers(s, ship.Position)
+                    && Board.InRadius(home, s.Position, 2)).ToArray();
             var target = enemies.Where(s => CanAttack(ship.Id, s.Id)).OrderBy(s => s.Health).FirstOrDefault();
             if (target is not null)
                 return Attack(Side.Pirates, ship.Id, target.Id);
             if (!ship.CanMove || ship.HasMoved)
                 continue;
-            var pursuit = enemies.Select(e => PathToAttackPosition(ship.Id, e.Id)).Where(p => p.Count > 1).OrderBy(p => p.Count).FirstOrDefault();
+            var pursuit = cautious ? null : enemies.Select(e => PathToAttackPosition(ship.Id, e.Id)).Where(p => p.Count > 1).OrderBy(p => p.Count).FirstOrDefault();
             if (pursuit is not null)
             {
                 var end = AffordableDestination(ship.Id, pursuit);
@@ -246,7 +255,9 @@ public sealed partial class BattleState
                     return Move(Side.Pirates, ship.Id, end);
             }
 
-            var cells = Reachable(ship.Id).Keys.Where(p => p != ship.Position).ToArray();
+            var cells = Reachable(ship.Id).Keys.Where(p => p != ship.Position
+                && (!cautious || Board.InRadius(home, p, 2)))
+                .Where(p => !cautious || observed.All(s => !WeaponCovers(s, p))).ToArray();
             if (cells.Length > 0)
                 return Move(Side.Pirates, ship.Id, cells[NextEvent(cells.Length)]);
         }

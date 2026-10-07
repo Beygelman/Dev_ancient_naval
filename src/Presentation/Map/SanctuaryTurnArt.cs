@@ -28,6 +28,7 @@ internal static partial class FactionSanctuaryArt
             FleetColor.Blue => 18.5f,
             FleetColor.Green => 21,
             FleetColor.Yellow or FleetColor.White => 27.5f,
+            FleetColor.Purple => 29,
             _ => 22
         };
         var light = p(0, 0, summit);
@@ -36,17 +37,17 @@ internal static partial class FactionSanctuaryArt
         canvas.DrawSetTransform(Vector2.Zero);
         canvas.SelfModulate = new Color(1, 1, 1, strength);
         DrawEffects(canvas, p, nation, t * 4.8f, seed);
-        for (int halo = 0; halo < 2; halo++)
+        for (int halo = 0; halo < 3; halo++)
         {
-            float radius = 7 + t * 22 + halo * 4;
+            float radius = 4 + t * 34 + halo * 2.7f;
             for (int vertex = 0; vertex < TurnHalo.Length; vertex++)
             {
                 float angle = vertex * Mathf.Tau / (TurnHalo.Length - 1);
                 TurnHalo[vertex] = p(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius, 2);
             }
-            canvas.DrawPolyline(TurnHalo, new Color(ink, .32f - halo * .1f), 1.15f, true);
+            canvas.DrawPolyline(TurnHalo, new Color(ink, .40f - halo * .12f), halo == 0 ? 1.7f : 1, true);
         }
-        canvas.DrawCircle(light, scale * (5 + t * 5), new Color(ink, .18f));
+        canvas.DrawCircle(light, scale * (5 + t * 5), new Color(ink, .30f));
         canvas.DrawCircle(light, scale * 2.1f, new Color("fff8df") { A = .65f });
         for (int ray = 0; ray < 8; ray++)
         {
@@ -57,8 +58,8 @@ internal static partial class FactionSanctuaryArt
         }
         if (nation == FleetColor.Purple)
         {
-            var corners = new[] { p(-5, -5, 16), p(5, -5, 16), p(5, 5, 16), p(-5, 5, 16) };
-            var tip = p(0, 0, 22);
+            var corners = new[] { p(-5, -5, 18), p(5, -5, 18), p(5, 5, 18), p(-5, 5, 18) };
+            var tip = p(0, 0, 28);
             for (int face = 0; face < 4; face++)
             {
                 var a = corners[face]; var b = corners[(face + 1) % 4];
