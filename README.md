@@ -30,12 +30,19 @@ personal signing/install through AltStore Classic and AltServer on Windows.
 The separate guide explains both routes; no Apple credentials are stored in CI.
 The optional simulator workflow checks startup separately; a source handoff can
 be reproduced with `tools/Package-iOSSource.py` from reviewed committed Git blobs.
-NativeAOT export and the unsigned Xcode device build have completed successfully;
-artifact packaging and the optional simulator startup check are still pending.
+NativeAOT export, unsigned Xcode device build and artifact packaging passed in
+[cloud run 38016489220](https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38016489220).
+The [iPhone IPA](releases/v020.8b/ios-2026-10-10/Ancient_Naval_v020.8b_iPhone_UNSIGNED.ipa)
+is ready for personal signing through Windows AltStore Classic. The complete
+Xcode ZIP is also retained locally in that release folder (182 MB, over Git's
+regular-file limit); both original native hashes are in `SHA256-iOS.txt`.
+The optional simulator check is being repeated on an Intel runner to match the
+official .NET Godot Simulator engine archive; physical-device launch is not claimed.
 
-**Validation limit:** Core compatibility, generated JSON and synthetic native
-touch checks can run on Windows. iOS export, device signing, GPU performance and
-real-device behavior require macOS/iPhone validation. See
+**Validation limit:** Core compatibility, generated JSON, native synthetic touch,
+iOS compilation, arm64 device/framework structure and PCK cleanliness passed.
+Device signing, GPU performance and real-device behavior still require iPhone
+validation. See
 [iOS preparation report](docs/IOS-PORT-v020.8b.md) for the recorded result.
 
 ### Gameplay checkpoint

@@ -14,7 +14,9 @@ permissions:
 
 jobs:
   simulator:
-    runs-on: macos-15
+    # Official .NET Godot engine Simulator archive is x86_64 even when its
+    # XCFramework metadata lists arm64; the actual device IPA remains arm64.
+    runs-on: macos-15-intel
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
