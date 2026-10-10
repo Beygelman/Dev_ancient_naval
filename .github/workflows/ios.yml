@@ -19,7 +19,6 @@ jobs:
     env:
       GODOT_VERSION: 4.7.2
       IOS_BUNDLE_ID: ${{ inputs.bundle_id }}
-      IOS_OUTPUT: ${{ runner.temp }}/AncientNaval-iOS
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
     steps:
       - uses: actions/checkout@v4
@@ -44,6 +43,8 @@ jobs:
           mkdir -p "$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable.mono"
           cp -R "$RUNNER_TEMP/templates/templates/." "$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable.mono/"
       - name: Export NativeAOT and validate unsigned iPhone build
+        env:
+          IOS_OUTPUT: ${{ runner.temp }}/AncientNaval-iOS
         run: bash tools/Build-iOS.sh
       - name: Upload complete Xcode project (not an installable IPA)
         uses: actions/upload-artifact@v4
