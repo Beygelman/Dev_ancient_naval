@@ -69,6 +69,17 @@ app="${apps[0]}"
 bundle="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist")"
 executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Info.plist")"
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :DTPlatformName' "$app/Info.plist")" == iphonesimulator ]]
+python3 - "$app/Info.plist" "$out/orientations.json" <<'PY'
+import json, plistlib, sys
+with open(sys.argv[1], 'rb') as stream:
+    orientations = plistlib.load(stream).get('UISupportedInterfaceOrientations', [])
+expected = {'UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown',
+            'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight'}
+if set(orientations) != expected:
+    raise SystemExit('Simulator export does not support the current adaptive orientation policy.')
+with open(sys.argv[2], 'w') as stream:
+    json.dump({'supported_orientations': orientations, 'runtime_rotation_tested': False}, stream, indent=2)
+PY
 xcrun lipo "$app/$executable" -verify_arch "$(uname -m)"
 [[ -d "$app/Frameworks/Dev_ancient_naval.framework" ]]
 framework_executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Frameworks/Dev_ancient_naval.framework/Info.plist")"

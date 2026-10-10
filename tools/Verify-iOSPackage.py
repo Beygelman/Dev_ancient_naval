@@ -265,7 +265,7 @@ def executable_name(plist: dict, label: str) -> str:
     return name
 
 
-def audit_ipa(path: pathlib.Path) -> dict:
+def audit_ipa(path: pathlib.Path, orientation: str = "adaptive") -> dict:
     archive = Archive(path)
     try:
         names = list(archive.entries)
@@ -278,9 +278,11 @@ def audit_ipa(path: pathlib.Path) -> dict:
             require(not forbidden_resource(name) and ".dSYM" not in pathlib.PurePosixPath(name).parts,
                     f"Development/private file in IPA: {name}")
         plist = archive.plist(app + "Info.plist")
-        require(set(plist.get('UISupportedInterfaceOrientations', [])) ==
-                {'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight'},
-                'iPhone player must support both landscape sides and exclude portrait')
+        orientations = {'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight'}
+        if orientation == "adaptive":
+            orientations |= {'UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown'}
+        require(set(plist.get('UISupportedInterfaceOrientations', [])) == orientations,
+                f'iPhone player orientations do not match requested {orientation} policy')
         require(plist.get("CFBundlePackageType") == "APPL", "IPA bundle is not an application")
         require(plist.get("DTPlatformName") == "iphoneos", "IPA was not built for physical iPhone")
         require(isinstance(plist.get("UIDeviceFamily"), list) and 1 in plist["UIDeviceFamily"], "IPA does not support iPhone family")
@@ -303,6 +305,7 @@ def audit_ipa(path: pathlib.Path) -> dict:
         return {"archive": path.name, "sha256": digest_file(path), "files": len(names),
                 "bundle_identifier": plist["CFBundleIdentifier"], "short_version": plist.get("CFBundleShortVersionString"),
                 "build": plist.get("CFBundleVersion"), "minimum_os": plist.get("MinimumOSVersion"),
+                "orientation_policy": orientation, "orientations": sorted(orientations),
                 "main_binary": main, "embedded_binaries": frameworks, "pck": report,
                 "installation": "Unsigned input requiring personal signing, such as AltStore Classic; actual device launch not tested"}
     finally:
@@ -375,6 +378,8 @@ def main() -> None:
     parser.add_argument("--manifest")
     parser.add_argument("--pck-only")
     parser.add_argument("--report-file")
+    parser.add_argument("--orientation", choices=("adaptive", "landscape"), default="adaptive",
+                        help="Current portrait/landscape policy; use landscape only for historical exports")
     args = parser.parse_args()
     if args.pck_only:
         require(not (args.ipa or args.xcode or args.manifest), "PCK-only mode does not verify iOS artifacts")
@@ -386,7 +391,7 @@ def main() -> None:
         require(bool(args.ipa and args.xcode and args.manifest), "Supply --ipa, --xcode and --manifest together")
         ipa, xcode, manifest = (pathlib.Path(value).resolve() for value in (args.ipa, args.xcode, args.manifest))
         hashes = audit_manifest(manifest, [ipa, xcode])
-        ipa_report, xcode_report = audit_ipa(ipa), audit_xcode(xcode)
+        ipa_report, xcode_report = audit_ipa(ipa, args.orientation), audit_xcode(xcode)
         require(ipa_report["pck"]["sha256"] == xcode_report["pck"]["sha256"], "IPA and Xcode project contain different game packs")
         report = {"scope": "Native iOS artifact structure and hashes; not actual installation/frame pacing",
                   "verified": True, "sha256_manifest": hashes, "ipa": ipa_report, "xcode": xcode_report,

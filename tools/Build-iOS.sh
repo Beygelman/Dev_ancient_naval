@@ -44,6 +44,16 @@ executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "${apps[0]}
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundlePackageType' "${apps[0]}/Info.plist")" == APPL ]]
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :DTPlatformName' "${apps[0]}/Info.plist")" == iphoneos ]]
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :UIDeviceFamily:0' "${apps[0]}/Info.plist")" == 1 ]]
+python3 - "${apps[0]}/Info.plist" <<'PY'
+import plistlib, sys
+with open(sys.argv[1], 'rb') as stream:
+    orientations = set(plistlib.load(stream).get('UISupportedInterfaceOrientations', []))
+expected = {'UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown',
+            'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight'}
+if orientations != expected:
+    raise SystemExit('The current iPhone export must permit portrait and both landscape sides.')
+print('PASS: exported iPhone supports portrait and landscape sensor orientations.')
+PY
 xcrun lipo "${apps[0]}/$executable" -verify_arch arm64
 if [[ -d "${apps[0]}/Frameworks" ]]; then
   while IFS= read -r -d '' framework; do

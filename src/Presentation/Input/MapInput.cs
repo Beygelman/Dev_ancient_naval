@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DevAncientNaval.Presentation.Camera;
+using DevAncientNaval.Presentation.UI;
 using Godot;
 
 namespace DevAncientNaval.Presentation.Input;
@@ -44,8 +45,19 @@ public partial class MapInput : Node
         if (node is Control control)
         {
             if (!control.IsVisibleInTree()) return false;
-            bool contains = new Rect2(Vector2.Zero, control.Size).HasPoint(
-                control.GetGlobalTransformWithCanvas().AffineInverse() * point);
+            var local = control.GetGlobalTransformWithCanvas().AffineInverse() * point;
+            // Curved native hit regions leave exposed sea inside their rectangle,
+            // especially on a narrow phone. Keep mouse and finger ownership equal.
+            // Direct typed calls also work in the reflection-free NativeAOT player.
+            bool contains = control switch
+            {
+                SectorButton sector => sector._HasPoint(local),
+                ActionPapyrus paper => paper._HasPoint(local),
+                ReadyActionJug relic => relic._HasPoint(local),
+                OffscreenNavigationArrow arrow => arrow._HasPoint(local),
+                MothershipCompassButton compass => compass._HasPoint(local),
+                _ => new Rect2(Vector2.Zero, control.Size).HasPoint(local)
+            };
             // Touch has no hovered Control; hit-test its actual position. Respect
             // clipping so offscreen scroll children do not claim the sea behind it.
             if (!contains && control.ClipContents) return false;

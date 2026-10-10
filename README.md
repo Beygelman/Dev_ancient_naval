@@ -13,6 +13,18 @@ Ukrainian and Dutch are supported.
 
 ## What changed in v020.8b
 
+### iPhone portrait addition — 10 October 2026
+
+Portrait and landscape sensor viewing are now enabled in the same v020.8b source.
+The handheld portrait canvas keeps controls readable; setup choices adapt to
+width, and rotation cancels old gestures while preserving camera and selection.
+The updated export is being checked separately; the landscape-only package below
+remains historical. See [portrait validation](docs/IOS-PORTRAIT-v020.8b.md).
+
+Portrait setup is centered; compact object commands unfold at the bottom, with
+counsel above. The Mothership compass and end-turn relic sit at the top. The
+566-check native portrait suite passed in EN/UK/NL at 80–125% scale.
+
 ### iPhone preparation — 10 October 2026
 
 The same v020.8b source now includes landscape touch controls, iPhone safe-area

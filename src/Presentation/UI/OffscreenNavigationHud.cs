@@ -112,6 +112,7 @@ internal partial class OffscreenNavigationHud : CanvasLayer
         _ring.Size = viewport;
         _ring.SetCircle(CircleCenter, CircleRadius, _nation);
         _compass.Position = new((viewport.X - _compass.Size.X) / 2, viewport.Y - _compass.Size.Y - 14);
+        if (viewport.Y > viewport.X) _compass.Position = new(18, 16);
         VisibleMarkerCount = 0;
         _placements.Clear();
         bool disabled = !CanInteract();

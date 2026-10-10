@@ -1132,8 +1132,24 @@ See `docs/V0207_FINALIZATION_REPORT.md` for the measured reconciliation and `doc
   the exported project fixes arm64 for real phones, otherwise no Intel Simulator
   destination matches. Keep ARM64 for the real-device IPA and inspect actual
   binaries rather than metadata alone.
-  Use handheld orientation 4 (Sensor Landscape); 6 means Sensor in all directions.
-  Audit the exported app plist for both landscape orientations and no portrait.
+  The requested portrait addition uses handheld orientation 6 (Sensor in all
+  directions); the earlier landscape-only artifact used 4. Audit each package
+  against its explicit policy; --orientation=landscape verifies historical builds.
+  MobileViewport chooses a 540x960 portrait canvas and restores the original
+  landscape canvas on rotation; using the 1280-wide desktop minimum in portrait
+  makes touch controls unreadably small. Desktop scale settings remain unchanged.
+  The user's subsequent portrait instruction explicitly supersedes the world
+  anchor for the selected-object command ring in that orientation only: center a
+  compact unfolding dock at the bottom, with centered counsel above it and the
+  Mothership compass / end-turn relic at the top. Landscape restores the original
+  world anchor. Do not apply world-target hit exclusions to this portrait UI dock.
+  Resize cancels captured gestures and refreshes world anchors, never fits the
+  board or changes the active voyage/camera. Initial/new-world fits remain separate.
+  Curved UI controls must use their actual native hit predicates for touch too;
+  a rectangular shortcut makes exposed sea inside the command ring unresponsive.
+  Wrapped native panel minima can shrink without a Resized signal: bounded counsel
+  also observes MinimumSizeChanged. Portrait counsel must leave command glyphs and
+  the selected hull anchor reachable; viewport containment alone is insufficient.
 
 
 The preserved primary working tree contains intentional v020.8 work. This guide

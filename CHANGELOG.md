@@ -1,5 +1,17 @@
 # Ancient Naval change history
 
+## iPhone portrait addition — 10 October 2026 (v020.8b retained)
+
+- Enable portrait alongside landscape sensor viewing; iOS build metadata 2083.
+- Centered portrait home/setup and compact bottom command dock; counsel above,
+  compass and end-turn relic at the top. Landscape keeps world-anchored menus.
+- Use a readable handheld portrait canvas without changing desktop scaling.
+- Adapt setup/language choice rows, menu title/footer, metrics and counsel/relic
+  spacing for narrow screens. Preserve dark ink and world-anchored command paper.
+- Rotation cancels stale fingers and preserves camera/selection/voyage; never
+  refits the board. Historical archives remain unchanged.
+- Add native portrait/rotation regressions and explicit package orientation policy.
+
 ## iOS preparation — 10 October 2026 (v020.8b retained)
 
 - Landscape iPhone preset, opaque app icon, isolated Mac export script and manual

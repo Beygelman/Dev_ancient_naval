@@ -73,6 +73,7 @@ public partial class DebugHud : CanvasLayer
         AddChild(_root);
         _root.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         _metricsPaper = Panel(_root);
+        _metricsPaper.Name = "VoyageMetrics";
         _metrics = new HBoxContainer
         {
             MouseFilter = Control.MouseFilterEnum.Stop
@@ -491,6 +492,7 @@ public partial class DebugHud : CanvasLayer
         _unfoldActions = false;
         _radial.Visible = _visibleSectors.Count > 0;
         RefreshCommandShortcuts();
+        AvoidPortraitCommandOverlap();
     }
 
     private static int CommandOrder(SectorButton button) => button.Name.ToString() switch
@@ -555,6 +557,21 @@ public partial class DebugHud : CanvasLayer
         }
 
         _radial.Visible = _visibleSectors.Count > 0;
+        var viewport = UiScale.LogicalViewport(this);
+        if (viewport.Y > viewport.X)
+        {
+            // Portrait is explicitly a centered bottom command dock. Landscape
+            // retains the world anchor; simulation commands keep the same target.
+            float dockInner = Math.Max(64, _visibleSectors.Count * 16);
+            _radial.SetWrapping(dockInner, Mathf.Pi);
+            float dockScale = Math.Min(.9f, (viewport.X - 32) / (2 * (dockInner + 58)));
+            _radial.Scale = Vector2.One * dockScale;
+            var center = new Vector2(viewport.X / 2, viewport.Y - (dockInner + 58) * dockScale - 32);
+            _radial.Position = center - _radial.RingCenter * dockScale;
+            RefreshCommandShortcuts();
+            AvoidPortraitCommandOverlap();
+            return;
+        }
         // Keep the ring's center attached to the selected object. Larger objects reserve
         // enough space inside the parchment for their hull and progress cells.
         point = UiScale.ScreenToUi(point);
@@ -567,18 +584,22 @@ public partial class DebugHud : CanvasLayer
         // the selected hull leaves the viewport. Never pin it to an unrelated coast.
         _radial.Position = point - _radial.RingCenter;
         RefreshCommandShortcuts();
+        AvoidPortraitCommandOverlap();
     }
 
     internal void SetActionTargetHitExclusions(IReadOnlyList<Vector2> screenPoints)
     {
         _worldTargetHitPoints.Clear();
         var toLocal = _radial.GetGlobalTransformWithCanvas().AffineInverse();
-        foreach (var point in screenPoints)
-            _worldTargetHitPoints.Add(toLocal * point);
+        var viewport = UiScale.LogicalViewport(this);
+        if (viewport.Y <= viewport.X)
+            foreach (var point in screenPoints)
+                _worldTargetHitPoints.Add(toLocal * point);
         float localRadius = 15 / Math.Max(.1f, _radial.Scale.X * UiScale.Value);
         foreach (var command in _actionSectors)
             command.SetWorldTargetHitExclusions(_worldTargetHitPoints, localRadius);
         _radial.RefreshInkBounds();
+        AvoidPortraitCommandOverlap();
     }
 
     public void ShowOpponentTurn(Side side = Side.Enemy)
@@ -703,9 +724,29 @@ public partial class DebugHud : CanvasLayer
         if (_layoutSizes == sizes)
             return;
         _layoutSizes = sizes;
-        _metricsPaper.Position = new((size.X - _metricsPaper.Size.X) / 2, 12);
         _restart.Position = new(size.X - _restart.Size.X - 18, 16);
-        _end.Position = new(size.X - _end.Size.X - 12, size.Y - _end.Size.Y + 24);
+        // A narrow phone puts the ledger below the menu rather than covering its button.
+        bool portrait = size.Y > size.X;
+        float metricsY = _metricsPaper.Size.X + _restart.Size.X * 2 + 50 > size.X
+            ? _restart.Position.Y + _restart.Size.Y + 12 : 12;
+        _metricsPaper.Position = new((size.X - _metricsPaper.Size.X) / 2, metricsY);
+        _nationPaper.Position = new((size.X - _nationPaper.Size.X) / 2,
+            _metricsPaper.Position.Y + _metricsPaper.Size.Y + 3);
+        // Keep the physical relic clear of the bottom-center compass on small safe areas.
+        float relicScale = Math.Min(1, Math.Max(1, size.X / 2 - 32 - 12 - 12) / _end.Size.X);
+        _end.Scale = Vector2.One * relicScale;
+        var relicSize = _end.Size * relicScale;
+        _end.Position = new(size.X - relicSize.X - 12, size.Y - relicSize.Y + 24 * relicScale);
+        if (portrait)
+        {
+            const float topRelicScale = .46f;
+            _end.Scale = Vector2.One * topRelicScale;
+            relicSize = _end.Size * topRelicScale;
+            _end.Position = new((size.X - relicSize.X) / 2, 8);
+            _metricsPaper.Position = new((size.X - _metricsPaper.Size.X) / 2, 20 + relicSize.Y);
+            _nationPaper.Position = new((size.X - _nationPaper.Size.X) / 2,
+                _metricsPaper.Position.Y + _metricsPaper.Size.Y + 3);
+        }
         LayoutTurnGuidance();
         _banner.Position = new((size.X - _banner.Size.X) / 2, (size.Y - _banner.Size.Y) / 2);
         _shipCard.Position = new(18, size.Y - _shipCard.Size.Y - 18);

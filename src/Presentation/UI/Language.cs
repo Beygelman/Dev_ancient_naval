@@ -67,13 +67,14 @@ internal partial class VoyageTranslation : Translation
     }
 }
 
-internal partial class LanguageButtons : HBoxContainer
+internal partial class LanguageButtons : GridContainer
 {
     public override void _Ready()
     {
         Name = "LanguageButtons";
-        Alignment = AlignmentMode.Center;
-        AddThemeConstantOverride("separation", 5);
+        AddThemeConstantOverride("h_separation", 5);
+        AddThemeConstantOverride("v_separation", 5);
+        Columns = 3;
         foreach (var (locale, caption) in new[] { ("en", "English"), ("uk", "Українська"), ("nl", "Nederlands") })
         {
             var button = new Button { Name = "Language_" + locale, Text = caption,
@@ -85,7 +86,19 @@ internal partial class LanguageButtons : HBoxContainer
             AddChild(button);
         }
         Language.Changed += UpdateActive;
+        UiScale.Changed += LayoutButtons;
+        GetViewport().SizeChanged += LayoutButtons;
         UpdateActive();
+        LayoutButtons();
+    }
+
+    private void LayoutButtons()
+    {
+        // Decide from the safe viewport, before a fixed row minimum can widen its paper.
+        float available = Math.Min(PapyrusModal.Width, UiScale.LogicalViewport(this).X - 24) - 32;
+        float width = 80;
+        foreach (Button button in GetChildren()) width = Math.Max(width, button.GetCombinedMinimumSize().X);
+        Columns = Math.Clamp((int)((available + 5) / (width + 5)), 1, 3);
     }
 
     private void UpdateActive()
@@ -98,7 +111,13 @@ internal partial class LanguageButtons : HBoxContainer
                 { "uk" => "Українська", "nl" => "Nederlands", _ => "English" });
             button.Modulate = new Color(1, 1, 1, active ? 1 : .72f);
         }
+        LayoutButtons();
     }
 
-    public override void _ExitTree() => Language.Changed -= UpdateActive;
+    public override void _ExitTree()
+    {
+        Language.Changed -= UpdateActive;
+        UiScale.Changed -= LayoutButtons;
+        GetViewport().SizeChanged -= LayoutButtons;
+    }
 }

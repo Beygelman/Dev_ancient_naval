@@ -17,13 +17,14 @@ public partial class DebugHud
     private PanelContainer _informationPanel = null!;
     private Label _informationTitle = null!, _informationLevel = null!, _informationSummary = null!;
     private ScrollContainer _informationScroll = null!;
-    private VBoxContainer _informationBody = null!;
+    private VBoxContainer _informationBody = null!, _informationColumn = null!, _informationContent = null!;
     private ObjectWaxSeal _objectSeal = null!;
     private ObjectCardOrnament _objectOrnament = null!;
     private GridPosition? _inspectionCell;
     private BattleState? _informationBattle;
     private LorePage _lorePage = LorePage.Empty;
     private string _loreTitle = "", _loreText = "", _renderedLore = "", _informationKey = "";
+    private bool _layingOutInformation;
     public bool InformationVisible => _informationPanel?.Visible == true;
     public string InformationText => _loreText;
 
@@ -39,7 +40,7 @@ public partial class DebugHud
         style.ContentMarginTop = 12;
         style.ContentMarginBottom = 12;
         _informationPanel.AddThemeStyleboxOverride("panel", style);
-        var column = new VBoxContainer();
+        var column = _informationColumn = new VBoxContainer();
         column.AddThemeConstantOverride("separation", 7);
         _informationPanel.AddChild(column);
         var header = new HBoxContainer();
@@ -67,16 +68,23 @@ public partial class DebugHud
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, MouseForcePassScrollEvents = false };
         column.AddChild(_informationScroll);
+        _informationContent = new VBoxContainer { Name = "InformationScrollableContent",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _informationContent.AddThemeConstantOverride("separation", 7);
+        _informationScroll.AddChild(_informationContent);
         _informationBody = new VBoxContainer { Name = "InformationSections",
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         _informationBody.AddThemeConstantOverride("separation", 9);
-        _informationScroll.AddChild(_informationBody);
+        _informationContent.AddChild(_informationBody);
         _objectOrnament = new ObjectCardOrnament { Name = "ObjectNationOrnament",
             MouseFilter = Control.MouseFilterEnum.Ignore, ShowBehindParent = false };
         _informationPanel.AddChild(_objectOrnament);
         // An overlay ornament must never contribute a minimum or absorb wheel input.
         _objectOrnament.SetAsTopLevel(false);
         _informationPanel.Resized += () => { _layoutSizes = null; Layout(); };
+        // Wrapped text can temporarily promote the native panel's minimum before
+        // its width settles. Reapply the bounded height when that minimum shrinks.
+        _informationPanel.MinimumSizeChanged += () => { _layoutSizes = null; Layout(); };
         _informationPanel.Hide();
     }
 
@@ -236,18 +244,63 @@ public partial class DebugHud
 
     private void LayoutInformation(Vector2 viewport)
     {
-        if (_informationPanel is null) return;
-        float width = Math.Min(352, Math.Max(200, viewport.X - 30));
+        if (_informationPanel is null || _layingOutInformation) return;
+        _layingOutInformation = true;
+        // On portrait safe areas the name stays fixed while counsel
+        // and facts share one readable scroll viewport. Rotation restores the
+        // usual fixed summary without rebuilding or changing any text.
+        var summaryParent = viewport.Y > viewport.X
+            ? _informationContent : _informationColumn;
+        if (_informationSummary.GetParent() != summaryParent)
+        {
+            _informationSummary.Reparent(summaryParent);
+            summaryParent.MoveChild(_informationSummary, summaryParent == _informationContent ? 0 : 1);
+        }
+        float width = Math.Min(352, Math.Max(1, viewport.X - 30));
         float height = Math.Min(286, Math.Max(160, viewport.Y * .42f));
-        _informationPanel.CustomMinimumSize = new(width, 0);
-        _informationPanel.Size = new(width, height);
+        if (viewport.Y > viewport.X)
+        {
+            height = Math.Min(180, Math.Max(120, viewport.Y * .20f));
+            float dockTop = _radial.IsVisibleInTree()
+                ? _radial.Position.Y + _radial.RingCenter.Y * _radial.Scale.Y - 18
+                : viewport.Y - 18;
+            var minimumPortrait = new Vector2(width, 0);
+            if (_informationPanel.CustomMinimumSize != minimumPortrait)
+                _informationPanel.CustomMinimumSize = minimumPortrait;
+            if (_informationPanel.Size != new Vector2(width, height)) _informationPanel.Size = new(width, height);
+            var dockPosition = new Vector2((viewport.X - width) / 2, dockTop - _informationPanel.Size.Y);
+            if (_informationPanel.Position != dockPosition)
+            {
+                _informationPanel.Position = dockPosition;
+                _objectOrnament.QueueRedraw();
+            }
+            _layingOutInformation = false;
+            return;
+        }
         // On narrow/touch views reserve the bottom-center compass footprint.
         // Wide views retain the established lower-left baseline.
         float bottom = 14 + (14 + width > viewport.X / 2 - 40 ? 80 : 0);
-        _informationPanel.Position = new(14, viewport.Y - _informationPanel.Size.Y - bottom);
+        // The nation relic is taller than the compass. Reserve its actual footprint
+        // when portrait counsel extends into the right-hand end-turn column.
+        if (14 + width > _end.Position.X - 12)
+            bottom = Math.Max(bottom, viewport.Y - _end.Position.Y + 12);
+        var bounds = new Rect2(14, viewport.Y - height - bottom, width, height);
+        var minimum = new Vector2(width, 0);
+        if (_informationPanel.CustomMinimumSize != minimum) _informationPanel.CustomMinimumSize = minimum;
+        if (_informationPanel.Size != bounds.Size) _informationPanel.Size = bounds.Size;
+        var position = new Vector2(bounds.Position.X, bounds.End.Y - _informationPanel.Size.Y);
+        bool moved = _informationPanel.Position != position;
+        if (moved) _informationPanel.Position = position;
         // PanelContainer sizes children automatically: the decorative child is drawn
         // only in its left inset, so its full host size cannot cover text or controls.
-        _objectOrnament.QueueRedraw();
+        if (moved) _objectOrnament.QueueRedraw();
+        _layingOutInformation = false;
+    }
+
+    private void AvoidPortraitCommandOverlap()
+    {
+        if (_informationPanel?.IsVisibleInTree() == true)
+            LayoutInformation(UiScale.LogicalViewport(this));
     }
 
     public void ShowInformation(BattleState battle, GridPosition cell)

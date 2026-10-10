@@ -30,6 +30,7 @@ public partial class StartScreen : CanvasLayer
     private readonly Dictionary<AiDifficulty, PaintedVoyageChoice> _difficultyButtons = new();
     private readonly Dictionary<MapSize, PaintedVoyageChoice> _sizes = new();
     private readonly Dictionary<MapKind, PaintedVoyageChoice> _worlds = new();
+    private readonly List<(GridContainer Grid, int Columns)> _choiceRows = new();
     private bool _layingOut, _settingsClosing;
     public bool IsOpen => Visible;
     public bool Transitioning { get; private set; }
@@ -114,11 +115,13 @@ public partial class StartScreen : CanvasLayer
         button.Pressed += action;
         return button;
     }
-    private HBoxContainer Row()
+    private GridContainer ChoiceRow(int columns)
     {
-        var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
-        row.AddThemeConstantOverride("separation", 6);
+        var row = new GridContainer { Columns = columns, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        row.AddThemeConstantOverride("h_separation", 6);
+        row.AddThemeConstantOverride("v_separation", 6);
         _colors.AddChild(row);
+        _choiceRows.Add((row, columns));
         return row;
     }
     private void BuildSetup()
@@ -135,6 +138,7 @@ public partial class StartScreen : CanvasLayer
         nationRow.AddThemeConstantOverride("h_separation", 9);
         nationRow.AddThemeConstantOverride("v_separation", 3);
         _colors.AddChild(nationRow);
+        _choiceRows.Add((nationRow, 3));
         foreach (var color in Enum.GetValues<FleetColor>())
         {
             var swatch = Choice("FleetColor" + color, "", VoyageMotif.None, 0, () => Choose(color));
@@ -152,14 +156,14 @@ public partial class StartScreen : CanvasLayer
             _swatches.Add(color, swatch); nationRow.AddChild(swatch);
         }
         _colors.AddChild(Heading("Waters to explore"));
-        var sizes = Row();
+        var sizes = ChoiceRow(Enum.GetValues<MapSize>().Length);
         foreach (var size in Enum.GetValues<MapSize>())
         {
             var button = Choice("MapSize" + size, size.ToString(), VoyageMotif.Size, (int)size, () => ChooseSize(size));
             _sizes.Add(size, button); sizes.AddChild(button);
         }
         _colors.AddChild(Heading("Rival fleets"));
-        var rivals = Row();
+        var rivals = ChoiceRow(4);
         for (int count = 1; count <= 4; count++)
         {
             int selected = count;
@@ -169,7 +173,7 @@ public partial class StartScreen : CanvasLayer
             _opponents.Add(count, button); rivals.AddChild(button);
         }
         _colors.AddChild(Heading("Rival seamanship"));
-        var difficulties = Row();
+        var difficulties = ChoiceRow(Enum.GetValues<AiDifficulty>().Length);
         foreach (var difficulty in Enum.GetValues<AiDifficulty>())
         {
             var button = Choice("Difficulty" + difficulty, difficulty.ToString(), VoyageMotif.Difficulty, (int)difficulty,
@@ -179,7 +183,8 @@ public partial class StartScreen : CanvasLayer
                 _ => "An admiral: coordinated guns, cautious scouts and economic recovery" };
             _difficultyButtons.Add(difficulty, button); difficulties.AddChild(button);
         }
-        var pirateRow = Row();
+        var pirateRow = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        _colors.AddChild(pirateRow);
         _pirates = new CheckBox
         {
             Name = "IncludePirates",
@@ -196,7 +201,7 @@ public partial class StartScreen : CanvasLayer
             _pirates.AddThemeColorOverride(state, PaintedVoyageChoice.Burgundy);
         pirateRow.AddChild(_pirates);
         _colors.AddChild(Heading("Shape of the world"));
-        var worlds = Row();
+        var worlds = ChoiceRow(4);
         foreach (var (kind, caption, variant) in new[] { (MapKind.SeaWorld, "Oceanic world", 0), (MapKind.Oceans, "Island chains", 1),
             (MapKind.Continents, "Continents", 2), (MapKind.Pangaea, "Pangaea", 3) })
         {
@@ -321,22 +326,43 @@ public partial class StartScreen : CanvasLayer
         if (_root is null || _footer is null || _layingOut) return;
         _layingOut = true; LayoutPasses++;
         var size = UiScale.LogicalViewport(this);
-        float width = Math.Min(420, Math.Max(260, size.X * .36f));
+        float width = Math.Min(size.X - 32, Math.Min(420, Math.Max(260, size.X * .36f)));
         float x = Math.Max(16, size.X - width - 32);
         _title.Visible = !_setupPaper.Visible;
-        _title.Position = new(x - 50, size.Y * .09f);
+        _title.Position = new(Math.Max(16, x - 50), size.Y * .09f);
         _title.Size = new(Math.Min(width + 100, size.X - _title.Position.X - 16), size.Y * .23f);
         _actions.Position = new(x, size.Y * .39f); _actions.Size = new(width, 0);
+        bool portrait = size.Y > size.X;
+        if (portrait)
+        {
+            _title.Position = new((size.X - _title.Size.X) / 2, _title.Position.Y);
+            _actions.Position = new((size.X - width) / 2, _actions.Position.Y);
+        }
         float margin = Mathf.Clamp(size.Y * .045f, 14, 32);
-        float paperWidth = Math.Min(420, Math.Max(200, size.X - margin * 2));
+        float paperWidth = Math.Min(420, Math.Max(1, size.X - margin * 2));
+        float contentWidth = paperWidth - _setupPaper.GetThemeStylebox("panel").GetMinimumSize().X;
+        foreach (var (grid, columns) in _choiceRows)
+        {
+            float itemWidth = 1;
+            foreach (Control choice in grid.GetChildren())
+                itemWidth = Math.Max(itemWidth, choice.GetCombinedMinimumSize().X);
+            int separation = grid.GetThemeConstant("h_separation");
+            int fitted = Math.Clamp((int)((contentWidth + separation) / (itemWidth + separation)), 1, columns);
+            // Keep four-choice rows balanced when a phone can fit only three.
+            if (columns == 4 && fitted == 3) fitted = 2;
+            grid.Columns = fitted;
+        }
         float height = Math.Max(100, size.Y - margin * 2);
         _setupPaper.CustomMinimumSize = new(paperWidth, 0);
         _setupPaper.Scroll.CustomMinimumSize = new(0, Math.Max(1, height - 24));
         _setupPaper.Size = new(paperWidth, height);
         _setupPaper.Position = new(size.X - paperWidth - margin, margin);
+        if (portrait) _setupPaper.Position = new((size.X - paperWidth) / 2, margin);
         PapyrusModal.Layout(_settingsPaper, _settingsScroll, _settings, size);
         _notice.Position = new(x, size.Y * .82f); _notice.Size = new(width, 65);
-        _footer.Position = new(22, size.Y - 32); _footer.Size = new(size.X - 44, 24);
+        if (portrait) _notice.Position = new((size.X - width) / 2, _notice.Position.Y);
+        float footerHeight = size.X < 540 ? 42 : 24;
+        _footer.Position = new(22, size.Y - footerHeight - 8); _footer.Size = new(size.X - 44, footerHeight);
         _layingOut = false;
     }
     public override void _ExitTree() => Language.Changed -= UpdateCaptions;

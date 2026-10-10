@@ -46,6 +46,7 @@ public partial class Main : Node2D
     private readonly bool _mapPreview = Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--map-preview");
     public override void _Ready()
     {
+        MobileViewport.Configure(GetWindow());
 #if !ANCIENT_NAVAL_IOS
         // Godot's desktop host owns runtimeconfig; force the production iOS
         // feature switch before any JSON use in this disposable native probe.
@@ -168,6 +169,8 @@ public partial class Main : Node2D
 #if !ANCIENT_NAVAL_IOS
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--mobile-touch-test"))
             AddChild(new Tests.Runtime.MobileTouchChecks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--portrait-layout-test"))
+            AddChild(new Tests.Runtime.PortraitLayoutChecks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--aot-json-test"))
             AddChild(new Tests.Runtime.AotJsonChecks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--world-0208b-test"))
@@ -337,7 +340,11 @@ public partial class Main : Node2D
     private void OnViewportResized()
     {
         MapInput.CancelGesture();
-        MapCamera.FitBoard();
+        MobileViewport.Configure(GetWindow());
+        // A device rotation changes the view, never the voyage or chosen camera.
+        // The initial fit remains in startup / LoadScenario, not window resize.
+        MapCamera.ForceUpdateScroll();
+        PositionActions();
     }
 
     public override void _ExitTree()

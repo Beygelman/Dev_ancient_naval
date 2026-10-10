@@ -30,9 +30,10 @@ public partial class DebugHud
         version.AddThemeFontSizeOverride("font_size", 13);
         version.AddThemeColorOverride("font_color", new Color("e5edde"));
         _menuOverlay.AddChild(version);
-        version.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomLeft);
-        version.OffsetLeft = 14; version.OffsetTop = -31;
-        version.OffsetRight = 540; version.OffsetBottom = -8;
+        version.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        version.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomWide);
+        version.OffsetLeft = 14; version.OffsetTop = -48;
+        version.OffsetRight = -14; version.OffsetBottom = -8;
         _menuPanel = new RollingModalPaper { Name = "GameMenuPaper", CustomMinimumSize = new(340, 0) };
         _menuOverlay.AddChild(_menuPanel);
         _menuBody = new VBoxContainer();
