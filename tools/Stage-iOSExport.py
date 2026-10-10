@@ -19,6 +19,8 @@ def stage(source, destination, team_id="AAAAAAAAAA", bundle_id="com.beygelman.an
         raise ValueError("Bundle identifier must be reverse-DNS letters/digits/hyphens")
     if not (source / "project.godot").is_file():
         raise ValueError("Source must contain project.godot")
+    if not (source / "Dev_ancient_naval.sln").is_file():
+        raise ValueError("Godot .NET export requires the solution alongside its csproj")
     destination.mkdir(parents=True)
     ignored = shutil.ignore_patterns(".godot", ".git", "bin", "obj", "__MACOSX", "*.pdb")
     for name in ("src", "assets", "data", "scenes", "tests"):
