@@ -1107,9 +1107,16 @@ See `docs/V0207_FINALIZATION_REPORT.md` for the measured reconciliation and `doc
   that staged directory. No source/export credentials are overwritten. Export
   preset 9 uses project-only mode and ad-hoc framework identity `-`; Apple account
   signing occurs later in Xcode. Preserve the entire exported Xcode folder.
-- macOS/Xcode and device validation are mandatory before calling the iOS port
+- macOS/Xcode build and device validation are mandatory before calling the iOS port
   playable. Windows build/synthetic touch/Core checks prove neither an iOS build
   nor device frame pacing. Never claim an unsigned Xcode ZIP is installable IPA.
+- The cloud Mac can also package its arm64 physical-device `.app` as an unsigned
+  Payload IPA. AltStore Classic/AltServer can personally sign/install that IPA
+  from Windows; the user need not own a Mac. This is not AltStore PAL/TestFlight,
+  does not require JIT, and remains unverified until installed on a real device.
+  Staging must include the root `.sln`: Godot export requires it even when an
+  ordinary `dotnet build <csproj>` succeeds without it. Job-level workflow env
+  cannot reference `runner.temp`; use step-level env instead.
 
 
 The preserved primary working tree contains intentional v020.8 work. This guide

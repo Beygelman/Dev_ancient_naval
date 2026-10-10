@@ -12,6 +12,9 @@
   iOS compilation and player resources. Add disposable serialization/touch checks.
 - Separate Russian installation/signing guide; no new gameplay or version number,
   no signed IPA or actual iPhone test claimed. Windows archives remain untouched.
+- Package an unsigned arm64 device IPA after successful Xcode compilation for
+  personal Windows installation through AltStore Classic/AltServer; validate main
+  and embedded framework architectures. Keep complete Xcode export separately.
 
 ## v020.8b — 7 October 2026
 
