@@ -20,7 +20,7 @@ layout, stable-order background saves and generated JSON metadata for NativeAOT.
 Historical save defaults, simulation RNG and gameplay remain unchanged.
 
 Use the separate [Russian iPhone installation guide](docs/INSTALL-iPHONE-RU.md).
-`bash tools/Build-iOS.sh` on a Mac with full Xcode, Godot **4.7.2 .NET** and
+`bash tools/Build-iOS.sh` on a Mac with full **Xcode 26+**, Godot **4.7.2 .NET** and
 **.NET SDK 8.0.425** prepares a complete unsigned Xcode project in an isolated
 directory. The manual **iOS — unsigned Xcode project** GitHub Actions workflow
 performs the same export/build. Sign the resulting project with your own Apple

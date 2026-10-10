@@ -44,7 +44,8 @@ user work and are excluded from this delivery.
   imported nested clone. Scripts/preset were reviewed against Godot 4.7.2 source.
 
 - Native Windows v020.8b UI regression: passed 187 checks (advice, wheel isolation,
-  relic and nation/ship icons). Menu/Continue/save recovery regression: passed 141.
+  relic and nation/ship icons). Menu/Continue/save recovery regression: passed 156,
+  including real staged-outpost background suspension and stable camera save.
   The older menu test still expected the pre-v020.8b 239px counsel height; updated
   its bounded-height assertion to the existing 286px layout without changing UI.
 - Nine staging integrity/guard checks passed; canonical presets remain unchanged,
@@ -53,6 +54,9 @@ user work and are excluded from this delivery.
   toolchain); the workflow performs Bash syntax validation before native export.
 
 Cloud results will be recorded only after an actual workflow execution.
+The first native link used the runner's default Xcode 16.4 and failed on
+Godot template Metal/CoreAnimation symbols. The workflow now explicitly selects
+Xcode 26.3; the script rejects iOS SDKs older than 26 before export.
 
 ## Limits / remaining device gate
 

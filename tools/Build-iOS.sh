@@ -14,6 +14,8 @@ team="${IOS_TEAM_ID:-AAAAAAAAAA}" # Export placeholder, NOT a signature/certific
 command -v dotnet >/dev/null || { echo "Install .NET SDK 8.0.425." >&2; exit 2; }
 command -v python3 >/dev/null || { echo "Install Python 3." >&2; exit 2; }
 xcodebuild -version
+sdk_major="$(xcrun --sdk iphoneos --show-sdk-version | cut -d . -f 1)"
+[[ "$sdk_major" -ge 26 ]] || { echo "Godot 4.7.2 templates need Xcode 26 with iOS SDK 26 or newer." >&2; exit 2; }
 xcrun --sdk iphoneos --show-sdk-path
 xcrun --sdk iphonesimulator --show-sdk-path
 "$godot" --version | grep -F '4.7.2.stable.mono' >/dev/null || { echo "Use matching Godot 4.7.2 .NET." >&2; exit 2; }

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DevAncientNaval.Core.Battle;
+using DevAncientNaval.Core.Grid;
 using DevAncientNaval.Core.Units;
+using DevAncientNaval.Core.World;
 using DevAncientNaval.Presentation;
 using Godot;
 using Side = DevAncientNaval.Core.Units.Side;
@@ -87,6 +89,54 @@ public partial class MenuChecks : Node
                 await Game.CurrentOrder;
                 Check(fisher.Position == destination && Game.Saves.Read().Battle.Find(fisher.Id)!.Position == destination, "Move through UI persists without leaving battle");
                 string saved = Game.Battle.SaveJson();
+                Game.MapCamera.Zoom = Vector2.One * .83f;
+                Game.MapCamera.ForceUpdateScroll();
+                Game.Notification((int)Node.NotificationApplicationPaused);
+                var backgroundSave = Game.Saves.Read();
+                Check(Math.Abs(backgroundSave.Zoom - .83f) < .001
+                    && backgroundSave.Battle.SaveJson() == saved,
+                    "Background suspension saves the stable battle and current camera exactly");
+                byte[] stablePrimary = System.IO.File.ReadAllBytes(Game.Saves.Path);
+                var savedCamera = Game.MapCamera.Position;
+                // A plain end-turn has no projectile frames and finishes at
+                // Prepare. Use an actual automatic outpost shot to exercise a
+                // genuinely pending order without changing the saved voyage.
+                var outpostCell = new GridPosition(8, 8);
+                var stagedFixture = new BattleState(new GameBoard(20, 20,
+                    cell => cell == outpostCell ? TerrainType.Land : TerrainType.Water), Game.Battle.Rules,
+                    new[] { (Side.Player, ShipClass.Mothership, new GridPosition(6, 8)),
+                        (Side.Enemy, ShipClass.Garrison, new GridPosition(9, 8)),
+                        (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)) },
+                    Array.Empty<GridPosition>(), villageSpots: new[] { outpostCell });
+                var outpostSave = stagedFixture.CaptureSnapshot();
+                outpostSave.Villages[0] = outpostSave.Villages[0] with
+                    { Owner = Side.Player, Level = 2, Health = 10, Fortified = true };
+                Game.LoadScenario(BattleState.LoadJson(BattleState.SerializeSnapshot(outpostSave)));
+                var prepared = Game.Battle.Prepare(battle => battle.EndTurn(Side.Player));
+                Check(prepared.Result.Success && prepared.Result.OutpostShots?.Count == 1 && !prepared.Complete
+                    && ReferenceEquals(Game.Battle.PendingPresentation, prepared),
+                    "Lifecycle fixture holds a successfully prepared uncommitted turn order");
+                long preparedTurn = Game.Battle.TurnSerial;
+                Side preparedSide = Game.Battle.ActiveSide;
+                var preparedShips = Game.Battle.Ships.Select(ship => (ship.Id, ship.Health, ship.Position,
+                    ship.AttacksUsed, ship.MovementSpentUnits, ship.IsExhausted, ship.HasRepaired,
+                    ship.HasProduced, ship.MovementLocked, ship.BombCooldown)).ToArray();
+                var preparedTowns = Game.Battle.Villages.Select(town => (town.Id, town.Health, town.HasAttacked)).ToArray();
+                Game.Notification((int)Node.NotificationApplicationPaused);
+                Check(System.IO.File.ReadAllBytes(Game.Saves.Path).SequenceEqual(stablePrimary),
+                    "Background suspension leaves the previous complete save bytes intact during a staged order");
+                Check(ReferenceEquals(Game.Battle.PendingPresentation, prepared)
+                    && !prepared.Complete && Game.Battle.TurnSerial == preparedTurn && Game.Battle.ActiveSide == preparedSide
+                    && Game.Battle.Ships.Select(ship => (ship.Id, ship.Health, ship.Position,
+                        ship.AttacksUsed, ship.MovementSpentUnits, ship.IsExhausted, ship.HasRepaired,
+                        ship.HasProduced, ship.MovementLocked, ship.BombCooldown)).SequenceEqual(preparedShips)
+                    && Game.Battle.Villages.Select(town => (town.Id, town.Health, town.HasAttacked)).SequenceEqual(preparedTowns),
+                    "Background suspension neither finishes nor commits a pending command");
+                prepared.Finish();
+                Game.LoadScenario(BattleState.LoadJson(saved));
+                Game.MapCamera.Position = savedCamera;
+                Game.MapCamera.Zoom = Vector2.One * .83f;
+                Game.MapCamera.ForceUpdateScroll();
                 Game.MapCamera.Zoom = Vector2.One * .7f;
                 Game.ShowHome();
                 await Frame();

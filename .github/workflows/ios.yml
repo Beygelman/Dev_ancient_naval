@@ -44,6 +44,8 @@ jobs:
           dotnet-version: 8.0.425
       - name: Check export script syntax
         run: bash -n tools/Build-iOS.sh
+      - name: Select Xcode 26 SDK required by Godot templates
+        run: sudo xcode-select --switch /Applications/Xcode_26.3.app/Contents/Developer
       - name: Install matching .NET Godot and templates
         shell: bash
         run: |
@@ -63,7 +65,7 @@ jobs:
         env:
           IOS_OUTPUT: ${{ runner.temp }}/AncientNaval-iOS
         run: bash tools/Build-iOS.sh
-      - name: Upload complete Xcode project (not an installable IPA)
+      - name: Upload unsigned iPhone IPA and complete Xcode project
         uses: actions/upload-artifact@v4
         with:
           name: Ancient-Naval-iOS-Xcode-UNSIGNED

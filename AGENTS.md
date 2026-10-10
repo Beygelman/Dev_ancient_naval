@@ -1117,6 +1117,8 @@ See `docs/V0207_FINALIZATION_REPORT.md` for the measured reconciliation and `doc
   Staging must include the root `.sln`: Godot export requires it even when an
   ordinary `dotnet build <csproj>` succeeds without it. Job-level workflow env
   cannot reference `runner.temp`; use step-level env instead.
+  Select Xcode 26+ explicitly: macos-15 defaults to 16.4, whose iOS 18.5 SDK
+  cannot link Godot 4.7.2 template Metal/CoreAnimation symbols.
 
 
 The preserved primary working tree contains intentional v020.8 work. This guide
