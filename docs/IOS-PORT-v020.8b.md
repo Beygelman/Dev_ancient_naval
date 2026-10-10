@@ -1,4 +1,4 @@
-# iOS preparation — v020.8b, 10 October 2026
+# iOS port — v020.8b, 10 October 2026
 
 Canonical source: `C:/__Beygelman/! -11/dev-ancient-naval`, based on main
 `eab911185d577b0c5e142b2ad51d478f4769b320`. The game version and gameplay remain
@@ -50,27 +50,53 @@ user work and are excluded from this delivery.
   its bounded-height assertion to the existing 286px layout without changing UI.
 - Nine staging integrity/guard checks passed; canonical presets remain unchanged,
   generated SDK pin/public feed verified, reused/unsafe destinations rejected.
-- Bash syntax/native Mac commands cannot run on this Windows host (no Bash/Mac
-  toolchain); the workflow performs Bash syntax validation before native export.
+- Bash syntax passed on Windows using the bundled Git `sh.exe` (GNU Bash
+  5.2.37), and again in the cloud workflow. Native Mac commands run only in CI.
 
-Cloud results will be recorded only after an actual workflow execution.
+## Actual cloud build / artifact audit
+
+[Run 38016489220](https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38016489220)
+passed NativeAOT export, the unsigned physical-device Xcode build, arm64 app and
+framework validation, IPA/Xcode ZIP packaging and artifact upload. Native source:
+`ac3df4135550188ad4aba1f814e24077b9236633`, Godot 4.7.2 .NET, SDK 8.0.425,
+Xcode 26.3 / iOS SDK 26.2. The app deployment target remains iOS 15.
+
+Downloaded artifact ZIP SHA256 was independently checked against GitHub's
+artifact digest. `tools/Verify-iOSPackage.py` passed on the original downloaded
+IPA/Xcode ZIP and manifest: 21 IPA members, valid arm64 device Mach-O app/framework,
+matching PCK hashes, 202 clean PCK resources including 155 whitespace-only C#
+script placeholders, balance and UK/NL catalogs. No test/dev/signing files or
+C# source content are shipped. NativeAOT's dylib is legitimately mode 0644;
+the app entry point is mode 0755. The verifier preserves both and checks their
+distinct Mach-O roles. A simulator launch is checked separately below.
+
+Earlier failed executions were retained as diagnostics rather than erased:
+the initial stage omitted the required `.sln`; its inclusion was corrected.
 The first native link used the runner's default Xcode 16.4 and failed on
 Godot template Metal/CoreAnimation symbols. The workflow now explicitly selects
 Xcode 26.3; the script rejects iOS SDKs older than 26 before export.
 Run `38015959434` passed NativeAOT export and the unsigned Xcode device build,
 then exposed a packaging validation error: `lipo -verify_arch` must receive the
 binary before the architecture-list option. Corrected without removing the
-architecture gate. A repeat is required to produce the IPA/ZIP artifacts.
+architecture gate. The successful repeat above produced the IPA/ZIP artifacts.
+
+The first optional Simulator run `38044127875` failed at native engine linking
+on an ARM64 host. The exported engine's simulator `libgodot.a` was independently
+inspected: all 2,305 Mach-O objects are x86_64, despite the XCFramework plist
+listing both architectures. The game's NativeAOT framework is universal, but
+the engine is not. The optional smoke workflow now uses `macos-15-intel`;
+the validated physical-device ARM64 IPA is unchanged.
 
 ## Limits / remaining device gate
 
-No Mac or iPhone is attached to this Windows host. A signed IPA, TestFlight link
-and actual iPhone installation have not been produced. A Windows native-AOT
+No Mac or iPhone is attached to this Windows host; the real Mac build ran in
+GitHub Actions. A personally signed IPA, TestFlight link and physical iPhone
+installation have not been produced. A Windows native-AOT
 link attempt was also blocked by the absent Visual Studio C++ linker; analyzer
 and reflection-disabled checks are not substitutes for iOS compilation.
 
-The manual workflow is a reproducible build path, not evidence of a successful
-cloud run. Its success must include both NativeAOT export and unsigned Xcode build.
+The cloud build is verified; structural audit and simulation are still distinct
+from signing and running on the user's physical phone.
 The user must then sign with their Apple Account using Xcode on Mac or
 AltStore Classic/AltServer on Windows and validate launch,
 Continue, background/resume, paper scrolling, Dynamic Island/home indicator,
@@ -92,5 +118,15 @@ IPA needs personal signing: AltStore Classic/AltServer provide a Windows route,
 documented in the installation guide. It is not an App Store/TestFlight package.
 
 The Windows-host source handoff is named `iOS_SOURCE_HANDOFF`, to distinguish it
-from those future native exports. It contains source and installation/build
+from the native exports. It contains source and installation/build
 instructions; it deliberately contains no executable disguised as an IPA.
+
+Permanent local delivery: `releases/v020.8b/ios-2026-10-10/` in the canonical
+project, with a mirror in the chat's outputs. The IPA is 52,822,821 bytes; the
+complete Xcode ZIP is 181,962,551 bytes and is intentionally Git-ignored because
+it exceeds the hosting regular-file limit. Preserve its local copy and original
+SHA256 manifest. The source handoff is generated from committed Git blobs with
+sorted paths/fixed ZIP metadata by `tools/Package-iOSSource.py`; unrelated local
+files and historical release archives are excluded. The separate installation
+guide is updated after the native build; the immutable cloud Xcode ZIP contains
+the guide at its earlier source checkpoint, so use the delivered standalone guide.

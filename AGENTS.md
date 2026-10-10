@@ -1119,6 +1119,18 @@ See `docs/V0207_FINALIZATION_REPORT.md` for the measured reconciliation and `doc
   cannot reference `runner.temp`; use step-level env instead.
   Select Xcode 26+ explicitly: macos-15 defaults to 16.4, whose iOS 18.5 SDK
   cannot link Godot 4.7.2 template Metal/CoreAnimation symbols.
+  Preserve the whitespace-only `.cs` PCK resource placeholders; Godot script
+  lookup still needs their paths. They are not source-code leaks. NativeAOT
+  shared framework binaries can have mode 0644: dyld opens them read-only, while
+  the app's MH_EXECUTE entry point needs an execute bit. Audit Mach-O platform,
+  architecture and signatures separately instead of chmodding exported assets.
+  The official 4.7.2 .NET Simulator engine archive contains x86_64 objects only,
+  despite its XCFramework metadata listing arm64 too. NativeAOT's own Simulator
+  framework is universal, which does not make the engine universal. Use the
+  Intel `macos-15-intel` runner for the optional Simulator smoke; keep ARM64
+  for the real-device IPA and inspect actual binaries rather than metadata alone.
+  Use handheld orientation 4 (Sensor Landscape); 6 means Sensor in all directions.
+  Audit the exported app plist for both landscape orientations and no portrait.
 
 
 The preserved primary working tree contains intentional v020.8 work. This guide

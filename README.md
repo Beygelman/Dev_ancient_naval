@@ -38,6 +38,8 @@ Xcode ZIP is also retained locally in that release folder (182 MB, over Git's
 regular-file limit); both original native hashes are in `SHA256-iOS.txt`.
 The optional simulator check is being repeated on an Intel runner to match the
 official .NET Godot Simulator engine archive; physical-device launch is not claimed.
+A final landscape-only export is being prepared: Godot orientation 4 allows both
+landscape sides, whereas the initial orientation 6 also allowed portrait.
 
 **Validation limit:** Core compatibility, generated JSON, native synthetic touch,
 iOS compilation, arm64 device/framework structure and PCK cleanliness passed.

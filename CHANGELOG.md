@@ -15,6 +15,9 @@
 - Package an unsigned arm64 device IPA after successful Xcode compilation for
   personal Windows installation through AltStore Classic/AltServer; validate main
   and embedded framework architectures. Keep complete Xcode export separately.
+- NativeAOT/Xcode build and packaging passed in cloud run 38016489220. Original
+  IPA/Xcode hashes and clean PCK/Mach-O audit are retained in the additive iOS
+  delivery folder; the standalone guide now uses the ready local IPA.
 
 ## v020.8b — 7 October 2026
 
