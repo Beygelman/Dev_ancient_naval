@@ -155,6 +155,7 @@ internal partial class ReadyActionJug : Button
     private static readonly Vector2[] MonumentShadow = MakeShadow();
     internal int Count { get; private set; }
     internal Vector2 PrintedCountCenter => new(Size.X * .5f + 4, Size.Y - 47);
+    internal bool CounterPointerInput { get; private set; }
     internal float ActivityProgress => _activity;
     internal bool HumanTurnActive => _humanTurn;
     internal float EffectPhase => _clock;
@@ -168,11 +169,16 @@ internal partial class ReadyActionJug : Button
     public override void _GuiInput(InputEvent input)
     {
         // The upper monument ends the turn; its inset numeral still cycles crews.
-        if (input is InputEventMouseButton { ButtonIndex: MouseButton.Left } mouse
-            && mouse.Position.Y >= PrintedCountCenter.Y - 20)
+        if (input is InputEventMouseButton { ButtonIndex: MouseButton.Left } mouse)
         {
-            if (mouse.Pressed && !Disabled) CounterRequested?.Invoke();
-            AcceptEvent();
+            // The event has the actual local finger/mouse coordinate. A global
+            // mouse query can still point elsewhere during touch or pushed input.
+            CounterPointerInput = mouse.Position.Y >= PrintedCountCenter.Y - 20;
+            if (CounterPointerInput)
+            {
+                if (mouse.Pressed && !Disabled) CounterRequested?.Invoke();
+                AcceptEvent();
+            }
         }
     }
 

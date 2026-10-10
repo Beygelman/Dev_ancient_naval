@@ -7,7 +7,9 @@
   compass and end-turn relic at the top. Landscape keeps world-anchored menus.
 - Use a readable handheld portrait canvas without changing desktop scaling.
 - Adapt setup/language choice rows, menu title/footer, metrics and counsel/relic
-  spacing for narrow screens. Preserve dark ink and world-anchored command paper.
+  spacing for narrow screens. Preserve dark ink and landscape world anchors.
+- Relic activation uses the actual local touch/mouse event, fixing end-turn
+  clicks when the system cursor points elsewhere.
 - Rotation cancels stale fingers and preserves camera/selection/voyage; never
   refits the board. Historical archives remain unchanged.
 - Add native portrait/rotation regressions and explicit package orientation policy.

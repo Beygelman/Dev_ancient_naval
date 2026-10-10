@@ -22,8 +22,10 @@ The updated export is being checked separately; the landscape-only package below
 remains historical. See [portrait validation](docs/IOS-PORTRAIT-v020.8b.md).
 
 Portrait setup is centered; compact object commands unfold at the bottom, with
-counsel above. The Mothership compass and end-turn relic sit at the top. The
-566-check native portrait suite passed in EN/UK/NL at 80–125% scale.
+counsel above. The Mothership compass and end-turn relic sit at the top. Their
+activation uses the actual local pointer event, including touch, rather than a
+possibly stale desktop mouse coordinate. The
+587-check native portrait suite passed in EN/UK/NL at 80–125% scale.
 
 ### iPhone preparation — 10 October 2026
 

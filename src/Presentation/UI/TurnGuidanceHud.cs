@@ -41,7 +41,7 @@ public partial class DebugHud
         _readyJug.CounterRequested += FocusNextReadyObject;
         _readyJug.Pressed += () =>
         {
-            if (_readyJug.GetLocalMousePosition().Y < _readyJug.PrintedCountCenter.Y - 20)
+            if (!_readyJug.CounterPointerInput)
                 EndTurnRequested?.Invoke();
         };
         _turnConfirmation = new Control { Name = "EndTurnConfirmation", MouseFilter = Control.MouseFilterEnum.Stop };

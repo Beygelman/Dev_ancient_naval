@@ -1147,6 +1147,9 @@ See `docs/V0207_FINALIZATION_REPORT.md` for the measured reconciliation and `doc
   board or changes the active voyage/camera. Initial/new-world fits remain separate.
   Curved UI controls must use their actual native hit predicates for touch too;
   a rectangular shortcut makes exposed sea inside the command ring unresponsive.
+  Classify counter versus upper-relic activation from the local GUI event, never
+  GetLocalMousePosition: pushed/touch events may have a stale system mouse.
+  Preserve the native BaseButton press/release lifecycle for upper activation.
   Wrapped native panel minima can shrink without a Resized signal: bounded counsel
   also observes MinimumSizeChanged. Portrait counsel must leave command glyphs and
   the selected hull anchor reachable; viewport containment alone is insufficient.

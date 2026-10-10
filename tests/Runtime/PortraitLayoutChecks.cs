@@ -262,6 +262,15 @@ public partial class PortraitLayoutChecks : Node
             context + " selected hull ground anchor remains visible outside counsel; anchor=" + anchor + ", counsel=" + Bounds(counsel));
         await ActionReachability(paper, context);
         string unchanged = Game.Battle.SaveJson();
+        UiHints.Set(true, false); Game.TutorialHistory.Suspend(); await Frames();
+        Click(relic, new(relic.Size.X * .5f, 70)); await Game.CurrentOrder; await Frames();
+        Check(Game.Hud.TurnConfirmationVisible && Game.Battle.SaveJson() == unchanged,
+            context + " real top relic click opens confirmation without committing the turn");
+        Inside(Named<RollingModalPaper>(Game.Hud, "EndTurnConfirmationPaper"), context + " centered end-turn confirmation");
+        Click(Named<Button>(Game.Hud, "CancelEndTurn")); await Opened();
+        Check(!Game.Hud.TurnConfirmationVisible && Game.Battle.SaveJson() == unchanged,
+            context + " cancelling the top relic action preserves the exact voyage");
+        UiHints.Set(false, false); await Frames();
         var battle = Game.Battle; int? selected = Game.SelectedShipId;
         var camera = Game.MapCamera.Position; var zoom = Game.MapCamera.Zoom;
         Wheel(counsel); await Frames();
