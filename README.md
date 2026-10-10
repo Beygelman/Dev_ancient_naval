@@ -40,6 +40,8 @@ The optional simulator check is being repeated on an Intel runner to match the
 official .NET Godot Simulator engine archive; physical-device launch is not claimed.
 A final landscape-only export is being prepared: Godot orientation 4 allows both
 landscape sides, whereas the initial orientation 6 also allowed portrait.
+Simulator builds select the host's x86_64 architecture explicitly; the exported
+device project's arm64 setting is kept for the real phone.
 
 **Validation limit:** Core compatibility, generated JSON, native synthetic touch,
 iOS compilation, arm64 device/framework structure and PCK cleanliness passed.

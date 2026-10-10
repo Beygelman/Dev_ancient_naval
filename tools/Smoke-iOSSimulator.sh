@@ -60,8 +60,8 @@ printf 'Owned Simulator: %s\nRuntime: %s\n' "$udid" "$runtime" > "$out/simulator
 xcrun simctl boot "$udid"
 xcrun simctl bootstatus "$udid" -b 2>&1 | tee -a "$out/simulator.log"
 xcodebuild -project "$project" -scheme "$scheme" -configuration Debug \
-  -sdk iphonesimulator -destination "id=$udid" -derivedDataPath "$out/derived" \
-  ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM='' build \
+  -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$out/derived" \
+  ARCHS="$(uname -m)" ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM='' build \
   2>&1 | tee "$out/simulator-build.log"
 apps=("$out/derived/Build/Products/Debug-iphonesimulator/"*.app)
 [[ ${#apps[@]} -eq 1 && -d "${apps[0]}" ]] || { echo "Expected one Simulator application." >&2; exit 1; }
