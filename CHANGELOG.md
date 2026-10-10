@@ -13,6 +13,10 @@
 - Rotation cancels stale fingers and preserves camera/selection/voyage; never
   refits the board. Historical archives remain unchanged.
 - Add native portrait/rotation regressions and explicit package orientation policy.
+- Deliver the updated arm64 IPA with package audit and source handoff; native
+  portrait checks, historical Core compatibility and serial desktop frame gates
+  passed. Optional cloud Simulator startup timed out; physical-device validation
+  remains unperformed and is not claimed.
 
 ## iOS preparation — 10 October 2026 (v020.8b retained)
 

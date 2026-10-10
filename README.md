@@ -18,14 +18,24 @@ Ukrainian and Dutch are supported.
 Portrait and landscape sensor viewing are now enabled in the same v020.8b source.
 The handheld portrait canvas keeps controls readable; setup choices adapt to
 width, and rotation cancels old gestures while preserving camera and selection.
-The updated export is being checked separately; the landscape-only package below
-remains historical. See [portrait validation](docs/IOS-PORTRAIT-v020.8b.md).
+The updated [portrait/landscape IPA](releases/v020.8b/ios-portrait-2026-10-10/Ancient_Naval_v020.8b_iPhone_UNSIGNED.ipa)
+is ready for personal signing through AltStore Classic. The previous landscape-only
+package below remains historical. See the [installation guide](docs/INSTALL-iPHONE-RU.md)
+and [portrait validation](docs/IOS-PORTRAIT-v020.8b.md).
 
 Portrait setup is centered; compact object commands unfold at the bottom, with
 counsel above. The Mothership compass and end-turn relic sit at the top. Their
 activation uses the actual local pointer event, including touch, rather than a
-possibly stale desktop mouse coordinate. The
-587-check native portrait suite passed in EN/UK/NL at 80–125% scale.
+possibly stale desktop mouse coordinate. The 587-check native portrait suite passed
+in EN/UK/NL at 80–125% scale, along with Core/save compatibility and both serial
+desktop frame gates. The unsigned arm64 device export passed in
+[run 38064330615](https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38064330615)
+from source `05ff833`; the actual IPA/Xcode archive passed their plist/Mach-O/PCK
+and SHA256 audit. Signing, real iPhone controls and iOS frame pacing remain untested.
+The updated optional Simulator run reached its 30-minute limit without a startup
+result; its incomplete check is recorded separately and is not counted as a pass.
+The additive delivery includes SHA256 evidence and a reproducible
+[source handoff](releases/v020.8b/ios-portrait-2026-10-10/Ancient_Naval_v020.8b_iOS_SOURCE_HANDOFF.zip).
 
 ### iPhone preparation — 10 October 2026
 

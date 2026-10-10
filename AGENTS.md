@@ -1153,6 +1153,10 @@ See `docs/V0207_FINALIZATION_REPORT.md` for the measured reconciliation and `doc
   Wrapped native panel minima can shrink without a Resized signal: bounded counsel
   also observes MinimumSizeChanged. Portrait counsel must leave command glyphs and
   the selected hull anchor reachable; viewport containment alone is insufficient.
+  Run --portrait-layout-test with explicit disposable --save-file and --capture
+  paths for EN/UK/NL 80%/125%, rotation, command dock and native top-relic checks.
+  This desktop graphical harness does not prove physical iPhone rotation or GPU
+  performance; native export and Simulator startup remain separate evidence.
 
 
 The preserved primary working tree contains intentional v020.8 work. This guide
