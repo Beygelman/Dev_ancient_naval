@@ -38,6 +38,24 @@ public partial class MapInput : Node
                 return true;
         return false;
     }
+    internal bool TouchOverInterface(Vector2 point) => TouchOverInterface(GetTree().Root, point);
+    private static bool TouchOverInterface(Node node, Vector2 point)
+    {
+        if (node is Control control)
+        {
+            if (!control.IsVisibleInTree()) return false;
+            bool contains = new Rect2(Vector2.Zero, control.Size).HasPoint(
+                control.GetGlobalTransformWithCanvas().AffineInverse() * point);
+            // Touch has no hovered Control; hit-test its actual position. Respect
+            // clipping so offscreen scroll children do not claim the sea behind it.
+            if (!contains && control.ClipContents) return false;
+            if (contains && (control is ScrollContainer or PanelContainer
+                || control.MouseFilter == Control.MouseFilterEnum.Stop)) return true;
+        }
+        foreach (Node child in node.GetChildren())
+            if (TouchOverInterface(child, point)) return true;
+        return false;
+    }
     public Func<bool>? GameplayShortcutsEnabled { get; set; }
     public Func<InputEventKey, bool>? CommandShortcut { get; set; }
     public event Action? EndTurnRequested;
@@ -57,8 +75,17 @@ public partial class MapInput : Node
             GetViewport().SetInputAsHandled();
             return;
         }
+        if (input is InputEventScreenTouch { Pressed: true } newTouch
+            && !_touches.ContainsKey(newTouch.Index) && TouchOverInterface(newTouch.Position))
+        {
+            // Never steal a new panel finger in _Input, before GUI dispatch.
+            // Cancel the sea gesture without consuming the panel's own event.
+            CancelGesture();
+            return;
+        }
         if ((_mouseDown && input is InputEventMouse) ||
-            (_touches.Count > 0 && input is InputEventScreenTouch or InputEventScreenDrag))
+            (input is InputEventScreenTouch touch && _touches.ContainsKey(touch.Index)) ||
+            (input is InputEventScreenDrag drag && _touches.ContainsKey(drag.Index)))
             Handle(input);
     }
 
@@ -89,7 +116,7 @@ public partial class MapInput : Node
 
     public override void _Notification(int what)
     {
-        if (what == NotificationApplicationFocusOut) CancelGesture();
+        if (what == NotificationApplicationFocusOut || what == NotificationApplicationPaused) CancelGesture();
     }
 
     public void CancelGesture()
@@ -196,6 +223,7 @@ public partial class MapInput : Node
         }
         if (touch.Pressed)
         {
+            if (TouchOverInterface(touch.Position)) return;
             _mouseDown = false;
             if (_touches.Count == 0)
             {
@@ -228,7 +256,8 @@ public partial class MapInput : Node
             b = _touches[pair[1]];
             var newCenter = (a + b) / 2;
             Camera.Pan(newCenter - oldCenter);
-            if (oldDistance > 1) Camera.ZoomAt(newCenter, a.DistanceTo(b) / oldDistance);
+            if (oldDistance > 1 && ZoomEnabled?.Invoke() != false)
+                Camera.ZoomAt(newCenter, a.DistanceTo(b) / oldDistance);
             _dragged = true;
         }
         else

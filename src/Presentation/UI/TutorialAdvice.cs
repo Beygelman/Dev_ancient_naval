@@ -12,7 +12,7 @@ namespace DevAncientNaval.Presentation.UI;
 /// <summary>Small optional presentation-side history, separate from rules and battle serialization.</summary>
 internal sealed class TutorialAdvice
 {
-    private sealed record Progress(int Version, string Voyage, string[] Shown);
+    internal sealed record Progress(int Version, string Voyage, string[] Shown);
     // Existing IDs and the v1 sidecar remain stable on Continue. Append topics,
     // rather than using a UI redesign as a reason to repeat acknowledged advice.
     private static readonly string[] Topics = { "resources", "kolonel", "trade", "repair", "radar", "village", "veterancy", "commands" };
@@ -85,7 +85,7 @@ internal sealed class TutorialAdvice
         try
         {
             if (new FileInfo(_path).Length > 16_384) return;
-            var saved = JsonSerializer.Deserialize<Progress>(File.ReadAllText(_path));
+            var saved = JsonSerializer.Deserialize(File.ReadAllText(_path), PresentationJsonContext.Default.Progress);
             if (saved is not { Version: 1 } || saved.Voyage != _voyage || saved.Shown is null) return;
             foreach (string topic in saved.Shown.Take(Topics.Length).Where(Topics.Contains)) _shown.Add(topic);
         }
@@ -99,7 +99,7 @@ internal sealed class TutorialAdvice
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
             string temporary = _path + ".tmp";
-            File.WriteAllText(temporary, JsonSerializer.Serialize(new Progress(1, _voyage, Topics.Where(_shown.Contains).ToArray())));
+            File.WriteAllText(temporary, JsonSerializer.Serialize(new Progress(1, _voyage, Topics.Where(_shown.Contains).ToArray()), PresentationJsonContext.Default.Progress));
             File.Move(temporary, _path, overwrite: true);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)

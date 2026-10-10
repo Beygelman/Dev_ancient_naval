@@ -1,5 +1,18 @@
 # Ancient Naval change history
 
+## iOS preparation — 10 October 2026 (v020.8b retained)
+
+- Landscape iPhone preset, opaque app icon, isolated Mac export script and manual
+  macOS GitHub Actions export/unsigned-Xcode validation workflow.
+- Touch ownership, pinch permissions and cancel/background handling; safe-area
+  transforms keep paper UI outside device cutouts without detaching world anchors.
+- NativeAOT-safe Core/session/catalog/tutorial serialization; preserve initializer
+  defaults for historical optional rules, explicit zero/null, enums and RNG state.
+- Save only stable commands when suspended; keep runtime diagnostic scripts out of
+  iOS compilation and player resources. Add disposable serialization/touch checks.
+- Separate Russian installation/signing guide; no new gameplay or version number,
+  no signed IPA or actual iPhone test claimed. Windows archives remain untouched.
+
 ## v020.8b — 7 October 2026
 
 - Black world void and animated falling water at explored chart edges, retained

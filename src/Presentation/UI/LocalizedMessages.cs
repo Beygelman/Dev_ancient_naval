@@ -30,7 +30,7 @@ internal static class LocalizedMessages
 
     internal static void LoadCatalog(string locale, string json)
     {
-        var entries = JsonSerializer.Deserialize<Dictionary<string, string>>(json)
+        var entries = JsonSerializer.Deserialize(json, PresentationJsonContext.Default.LocalizationCatalog)
             ?? throw new ArgumentException("A localization catalog must be a JSON object.");
         if (entries.Any(e => string.IsNullOrEmpty(e.Key) || e.Value is null ||
             !Placeholder.Matches(e.Key).Select(m => m.Value).ToHashSet().SetEquals(Placeholder.Matches(e.Value).Select(m => m.Value))))

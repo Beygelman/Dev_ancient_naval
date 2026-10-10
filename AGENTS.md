@@ -1080,6 +1080,38 @@ See `docs/V0207_FINALIZATION_REPORT.md` for the measured reconciliation and `doc
 
 ## Canonical checkout context
 
+### iOS / NativeAOT invariants
+
+- iOS uses Godot 4.7.2 .NET's experimental NativeAOT export, plain `net8.0` and
+  the SDK's `GodotTargetPlatform=ios` configuration. Do not convert the project
+  into MAUI, `net8.0-ios`, GDScript or a browser port to avoid the native export.
+- All production JSON roots use generated metadata. .NET 8 source generation can
+  replace missing init-only property initializer defaults with zero/null. Keep
+  `BattleRulesJsonConverter` registered in both Core and session contexts: it
+  supplies missing historical defaults without changing explicit null/zero or
+  making immutable rules mutable. CoreChecks compares legacy serializer bytes and
+  historical fixtures; `--aot-json-test --save-file=<disposable>` explicitly turns
+  off reflection in the desktop host before initialization.
+- iOS player compilation excludes `tests/Runtime` and corresponding Main hooks.
+  Keep JSON source generation metadata mode and normal Godot dynamic script
+  loading; do not disable all reflection/trim script roots as a shortcut.
+- Native safe areas are physical pixels: transform through viewport screen
+  transform before CanvasLayer offset/scale. `ScreenToUi` must subtract the same
+  safe origin so world-anchored paper stays attached. Desktop uses full viewport.
+- Touch UI ownership uses actual finger coordinates, visible clipped native
+  controls and gesture cancellation. A new UI finger must not become a sea pinch;
+  app suspension/focus loss clears gestures. Background save never finishes or
+  commits a partially presented battle order; retain the previous stable save.
+- `tools/Build-iOS.sh` stages outside the source with public NuGet and pinned
+  .NET SDK 8.0.425 (Windows' bundled-only feed is not portable). Godot runs from
+  that staged directory. No source/export credentials are overwritten. Export
+  preset 9 uses project-only mode and ad-hoc framework identity `-`; Apple account
+  signing occurs later in Xcode. Preserve the entire exported Xcode folder.
+- macOS/Xcode and device validation are mandatory before calling the iOS port
+  playable. Windows build/synthetic touch/Core checks prove neither an iOS build
+  nor device frame pacing. Never claim an unsigned Xcode ZIP is installable IPA.
+
+
 The preserved primary working tree contains intentional v020.8 work. This guide
 was upgraded during the isolated v020.7 audit; do not downgrade those sources.
 The prior local guide is preserved in docs/history/v0207-finalization-primary/AGENTS.md.

@@ -1,0 +1,66 @@
+name: iOS — unsigned Xcode project
+
+on:
+  workflow_dispatch:
+    inputs:
+      bundle_id:
+        description: Unique Bundle Identifier (sign later in Xcode)
+        required: true
+        default: com.beygelman.ancientnaval
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  iphone:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      GODOT_VERSION: 4.7.2
+      IOS_BUNDLE_ID: ${{ inputs.bundle_id }}
+      IOS_OUTPUT: ${{ runner.temp }}/AncientNaval-iOS
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.425
+      - name: Check export script syntax
+        run: bash -n tools/Build-iOS.sh
+      - name: Install matching .NET Godot and templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable"
+          curl --fail --location --retry 3 "$base/Godot_v${GODOT_VERSION}-stable_mono_macos.universal.zip" -o "$RUNNER_TEMP/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          binary=$(find "$RUNNER_TEMP/godot" -path '*/Contents/MacOS/Godot' -type f -print -quit)
+          test -n "$binary"
+          chmod +x "$binary"
+          echo "GODOT_BIN=$binary" >> "$GITHUB_ENV"
+          curl --fail --location --retry 3 "$base/Godot_v${GODOT_VERSION}-stable_mono_export_templates.tpz" -o "$RUNNER_TEMP/templates.tpz"
+          unzip -q "$RUNNER_TEMP/templates.tpz" -d "$RUNNER_TEMP/templates"
+          mkdir -p "$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable.mono"
+          cp -R "$RUNNER_TEMP/templates/templates/." "$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable.mono/"
+      - name: Export NativeAOT and validate unsigned iPhone build
+        run: bash tools/Build-iOS.sh
+      - name: Upload complete Xcode project (not an installable IPA)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ancient-Naval-iOS-Xcode-UNSIGNED
+          path: |
+            ${{ runner.temp }}/AncientNaval-iOS/Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip
+            ${{ runner.temp }}/AncientNaval-iOS/SHA256-iOS.txt
+          if-no-files-found: error
+          retention-days: 7
+      - name: Preserve failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iOS-build-diagnostics
+          path: |
+            ${{ runner.temp }}/AncientNaval-iOS/*.log
+            ${{ runner.temp }}/AncientNaval-iOS/xcode-schemes.json
+          if-no-files-found: ignore
+          retention-days: 7

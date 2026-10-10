@@ -8,7 +8,7 @@ internal static class PersistenceChecks
 {
     public static int Run(BattleRules rules, string? legacyFixtureDirectory = null)
     {
-        int checks = 0;
+        int checks = AotSerializationChecks.Run(rules);
         void Check(bool condition, string name)
         {
             if (!condition)

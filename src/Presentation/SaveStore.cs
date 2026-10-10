@@ -9,7 +9,7 @@ public sealed record SessionSave(int Version, DateTime SavedUtc, JsonElement Bat
 /// <summary>One recoverable slot. Replace only after the complete new file reaches disk.</summary>
 public sealed class SaveStore
 {
-    private sealed record SessionWrite(int Version, DateTime SavedUtc, BattleSave Battle, float CameraX, float CameraY, float Zoom);
+    internal sealed record SessionWrite(int Version, DateTime SavedUtc, BattleSave Battle, float CameraX, float CameraY, float Zoom);
     // Null means this process has not inspected an existing primary yet.
     private bool? _primaryKnownInvalid;
     private readonly object _ioGate = new();
@@ -59,7 +59,7 @@ public sealed class SaveStore
         ValidateCamera(camera.X, camera.Y, zoom);
         Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path)!);
         var save = new SessionWrite(1, DateTime.UtcNow, snapshot, camera.X, camera.Y, zoom);
-        byte[] data = JsonSerializer.SerializeToUtf8Bytes(save, SaveSerializationOptions);
+        byte[] data = JsonSerializer.SerializeToUtf8Bytes(save, PresentationJsonContext.Default.SessionWrite);
         string temporary = Path + ".tmp";
         using (var stream = new FileStream(temporary, FileMode.Create, System.IO.FileAccess.Write, FileShare.None))
         {
@@ -93,11 +93,6 @@ public sealed class SaveStore
         // as a fallback after this successful atomic replacement.
         if (newGame && File.Exists(BackupPath)) File.Delete(BackupPath);
     }
-
-    private static readonly JsonSerializerOptions SaveSerializationOptions = new()
-    {
-        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
-    };
 
     public (BattleState Battle, Vector2 Camera, float Zoom, bool Backup) Read()
     {
@@ -134,7 +129,7 @@ public sealed class SaveStore
     {
         if (new FileInfo(file).Length > 10_000_000)
             throw new InvalidDataException("Save is too large.");
-        var data = JsonSerializer.Deserialize<SessionSave>(File.ReadAllBytes(file)) ?? throw new InvalidDataException("Empty save.");
+        var data = JsonSerializer.Deserialize(File.ReadAllBytes(file), PresentationJsonContext.Default.SessionSave) ?? throw new InvalidDataException("Empty save.");
         if (data.Version != 1 || data.Battle.ValueKind != JsonValueKind.Object)
             throw new InvalidDataException("Unsupported save.");
         ValidateCamera(data.CameraX, data.CameraY, data.Zoom);

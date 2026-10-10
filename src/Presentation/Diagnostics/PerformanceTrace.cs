@@ -6,6 +6,7 @@ using System.Text.Json;
 using Godot;
 
 namespace DevAncientNaval.Presentation.Diagnostics;
+internal sealed record TraceMetric(int Calls, double TotalMs, double MaxMs, long Bytes);
 /// <summary>Opt-in CPU scope diagnostics. Disabled in ordinary play; no logging
 /// or file access occurs in the draw path.</summary>
 internal static class PerformanceTrace
@@ -31,8 +32,10 @@ internal static class PerformanceTrace
     public static string Report()
     {
         lock (Gate)
-            return JsonSerializer.Serialize(Metrics.ToDictionary(p => p.Key, p => new { p.Value.Calls, p.Value.TotalMs, p.Value.MaxMs, p.Value.Bytes }), new JsonSerializerOptions { WriteIndented = true });
+            return JsonSerializer.Serialize(Metrics.ToDictionary(p => p.Key, p => new TraceMetric(p.Value.Calls, p.Value.TotalMs, p.Value.MaxMs, p.Value.Bytes)), ReportJson.TraceMetrics);
     }
+
+    private static readonly PresentationJsonContext ReportJson = new(new JsonSerializerOptions { WriteIndented = true });
 
     internal readonly struct Scope : IDisposable
     {

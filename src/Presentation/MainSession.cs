@@ -197,6 +197,9 @@ public partial class Main
     {
         if (what == NotificationWMCloseRequest)
             ExitSession();
+        else if (what == NotificationApplicationPaused && Battle is not null
+            && Battle.PendingPresentation is null && !Busy && !_sessionLoading)
+            SaveSession(); // Background only stable orders; never finish damage from a lifecycle callback.
     }
 
     private async Task RunOpponents()

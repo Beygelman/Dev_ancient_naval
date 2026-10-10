@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using DevAncientNaval.Core.Grid;
 using DevAncientNaval.Core.Units;
 using DevAncientNaval.Core.World;
@@ -8,14 +7,6 @@ namespace DevAncientNaval.Core.Battle;
 /// <summary>Maps the battle aggregate to the versioned storage contract.</summary>
 public sealed partial class BattleState
 {
-    private static readonly JsonSerializerOptions SaveOptions = new()
-    {
-        WriteIndented = true,
-        Converters =
-        {
-            new JsonStringEnumConverter()
-        }
-    };
     public FleetColor PlayerColor { get; private set; } = FleetColor.Blue;
 
     public void SetPlayerColor(FleetColor color)
@@ -28,7 +19,7 @@ public sealed partial class BattleState
     }
 
     public BattleSave CaptureSnapshot() => PendingPresentation is null ? CreateSnapshot() : throw new InvalidOperationException("A projectile is still in flight.");
-    public static string SerializeSnapshot(BattleSave snapshot) => JsonSerializer.Serialize(snapshot, SaveOptions);
+    public static string SerializeSnapshot(BattleSave snapshot) => JsonSerializer.Serialize(snapshot, BattleSaveJsonContext.Default.BattleSave);
     public string SaveJson() => SerializeSnapshot(CaptureSnapshot());
     private BattleSave CreateSnapshot(SavedBoard? board = null) => new()
     {
@@ -78,7 +69,7 @@ public sealed partial class BattleState
         ArgumentNullException.ThrowIfNull(json);
         if (json.Length > 8_000_000)
             throw new ArgumentException("Save file is too large.");
-        var snapshot = JsonSerializer.Deserialize<BattleSave>(json, SaveOptions) ?? throw new ArgumentException("Empty save file.");
+        var snapshot = JsonSerializer.Deserialize(json, BattleSaveJsonContext.Default.BattleSave) ?? throw new ArgumentException("Empty save file.");
         BattleSaveValidation.ValidateEnvelope(snapshot);
         var rules = snapshot.Rules;
         rules.Validate();

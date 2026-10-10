@@ -46,6 +46,12 @@ public partial class Main : Node2D
     private readonly bool _mapPreview = Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--map-preview");
     public override void _Ready()
     {
+#if !ANCIENT_NAVAL_IOS
+        // Godot's desktop host owns runtimeconfig; force the production iOS
+        // feature switch before any JSON use in this disposable native probe.
+        if (OS.GetCmdlineUserArgs().Contains("--aot-json-test"))
+            AppContext.SetSwitch("System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault", false);
+#endif
         Language.Initialize();
         _rules = BattleRules.FromJson(FileAccess.GetFileAsString("res://data/balance.json"));
         var board = PrototypeBoard.Create();
@@ -158,11 +164,16 @@ public partial class Main : Node2D
         Hud.ShowMessage("Select a ship, then a tile or highlighted target. Glowing fish can be collected directly.");
         InitializeSession();
         InitializeTutorials();
+        UiScale.Changed += Refresh;
+#if !ANCIENT_NAVAL_IOS
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--mobile-touch-test"))
+            AddChild(new Tests.Runtime.MobileTouchChecks { Game = this });
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--aot-json-test"))
+            AddChild(new Tests.Runtime.AotJsonChecks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--world-0208b-test"))
             AddChild(new Tests.Runtime.World0208bChecks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--ui-0208b-test"))
             AddChild(new Tests.Runtime.Ui0208bChecks { Game = this });
-        UiScale.Changed += Refresh;
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--identity0207b-test"))
             AddChild(new Tests.Runtime.Identity0207bChecks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--guidance0207b-test"))
@@ -267,6 +278,7 @@ public partial class Main : Node2D
             AddChild(new Tests.Runtime.IncomeChecks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--optimization-test"))
             AddChild(new Tests.Runtime.OptimizationChecks { Game = this });
+#endif
     }
 
     private void RunSafely(Func<Task> action) => CurrentOrder = Guard(action);

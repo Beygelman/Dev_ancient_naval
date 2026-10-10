@@ -13,6 +13,7 @@ internal static class UiScale
     private static bool _initialized;
     private static string? _preferencePath;
     internal static float Value { get; private set; } = 1;
+    private static Vector2 _safeOrigin;
     internal static event Action? Changed;
     internal static void Initialize()
     {
@@ -46,16 +47,36 @@ internal static class UiScale
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         { GD.PushWarning("Interface preference: " + error.Message); }
     }
-    internal static Vector2 LogicalViewport(Node node) => node.GetViewport().GetVisibleRect().Size / Value;
-    internal static Vector2 ScreenToUi(Vector2 point) => point / Value;
+    internal static Rect2 ViewportSafeArea(Node node)
+    {
+        var viewport = node.GetViewport();
+        var visible = viewport.GetVisibleRect();
+        if (OS.GetName() is not ("iOS" or "Android")) return visible;
+        var area = DisplayServer.GetDisplaySafeArea();
+        if (area.Size.X <= 0 || area.Size.Y <= 0) return visible;
+        return ConvertSafeArea(new Rect2(area.Position, area.Size), viewport.GetScreenTransform(), visible);
+    }
+    internal static Rect2 ConvertSafeArea(Rect2 screenArea, Transform2D viewportToScreen, Rect2 visible)
+    {
+        var inverse = viewportToScreen.AffineInverse();
+        var start = inverse * screenArea.Position;
+        var end = inverse * screenArea.End;
+        var clipped = new Rect2(start, end - start).Abs().Intersection(visible);
+        return clipped.Size.X > 0 && clipped.Size.Y > 0 ? clipped : visible;
+    }
+    internal static Vector2 LogicalViewport(Node node) => ViewportSafeArea(node).Size / Value;
+    internal static Vector2 ScreenToUi(Vector2 point) => (point - _safeOrigin) / Value;
     internal static void Bind(CanvasLayer layer, Control root, Action layout)
     {
         Initialize();
         void Update()
         {
             layer.Scale = Vector2.One * Value;
+            var safe = ViewportSafeArea(layer);
+            _safeOrigin = safe.Position;
+            layer.Offset = safe.Position;
             root.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopLeft);
-            root.Size = LogicalViewport(layer);
+            root.Size = safe.Size / Value;
             layout();
         }
         var viewport = layer.GetViewport();

@@ -1,18 +1,8 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using DevAncientNaval.Core.Units;
 
 namespace DevAncientNaval.Core.Battle;
 public sealed class BattleRules
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        Converters =
-        {
-            new JsonStringEnumConverter()
-        }
-    };
     public int StartingCredits { get; init; }
     public bool ConstructionClearsRuins { get; init; }
     public bool EmptyOuterRim { get; init; }
@@ -78,7 +68,7 @@ public sealed class BattleRules
     });
     public static BattleRules FromJson(string json)
     {
-        var rules = JsonSerializer.Deserialize<BattleRules>(json, JsonOptions) ?? throw new ArgumentException("Missing battle rules.", nameof(json));
+        var rules = BattleRulesJsonConverter.Read(json) ?? throw new ArgumentException("Missing battle rules.", nameof(json));
         rules.Validate();
         return rules;
     }

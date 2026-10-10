@@ -24,6 +24,7 @@ export_credentials.cfg
 
 # Local validation / environment files
 .local/
+**/__pycache__/
 NuGet.local.config
 NuGet.Config
 

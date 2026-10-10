@@ -13,6 +13,26 @@ Ukrainian and Dutch are supported.
 
 ## What changed in v020.8b
 
+### iPhone preparation — 10 October 2026
+
+The same v020.8b source now includes landscape touch controls, iPhone safe-area
+layout, stable-order background saves and generated JSON metadata for NativeAOT.
+Historical save defaults, simulation RNG and gameplay remain unchanged.
+
+Use the separate [Russian iPhone installation guide](docs/INSTALL-iPHONE-RU.md).
+`bash tools/Build-iOS.sh` on a Mac with full Xcode, Godot **4.7.2 .NET** and
+**.NET SDK 8.0.425** prepares a complete unsigned Xcode project in an isolated
+directory. The manual **iOS — unsigned Xcode project** GitHub Actions workflow
+performs the same export/build. Sign the resulting project with your own Apple
+Account and run it on the physical iPhone; the unsigned ZIP is not an installer.
+
+**Validation limit:** Core compatibility, generated JSON and synthetic native
+touch checks can run on Windows. iOS export, device signing, GPU performance and
+real-device behavior require macOS/iPhone validation. See
+[iOS preparation report](docs/IOS-PORT-v020.8b.md) for the recorded result.
+
+### Gameplay checkpoint
+
 - Water falls from explored chart edges into a black void. One retained shader
   mesh animates the waterfall without rebuilding terrain each frame.
 - Smaller navigation ring with light fading outward. Arrows point to ready

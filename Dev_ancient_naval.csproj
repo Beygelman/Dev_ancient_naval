@@ -6,6 +6,13 @@
     <RootNamespace>DevAncientNaval</RootNamespace>
     <AssemblyName>Dev_ancient_naval</AssemblyName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(GodotTargetPlatform)' == 'ios'">
+    <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+    <DefineConstants>$(DefineConstants);ANCIENT_NAVAL_IOS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(GodotTargetPlatform)' == 'ios'">
+    <Compile Remove="tests/Runtime/**/*.cs" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Remove="src/Core/**/*.cs;tests/CoreChecks/**/*.cs;docs/**/*.cs;releases/**/*.cs" />
     <ProjectReference Include="src/Core/DevAncientNaval.Core.csproj" />

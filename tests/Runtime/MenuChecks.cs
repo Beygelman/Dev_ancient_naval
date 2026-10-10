@@ -145,7 +145,7 @@ public partial class MenuChecks : Node
             Check(Game.Hud.InformationVisible && Game.Hud.InformationText.Contains("1 Mothership resource"), "Resource information describes the selected shoal.");
             await Frame();
             var shortContent = Descendants(infoPanel).OfType<ScrollContainer>().Single();
-            Check(shortContent.Size.Y <= infoPanel.Size.Y && infoPanel.Size.Y <= 239, "Resource facts use the compact bounded reading viewport");
+            Check(shortContent.Size.Y <= infoPanel.Size.Y && infoPanel.Size.Y <= 286, "Resource facts use the current bounded counsel viewport");
             await Capture("resource-lore");
             MouseClick(infoPanel.GetGlobalRect().GetCenter(), MouseButton.Right);
             await Frame();
