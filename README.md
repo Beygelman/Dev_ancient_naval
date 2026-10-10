@@ -28,6 +28,8 @@ Account and run it on the physical iPhone; the unsigned ZIP is not an installer.
 The same build also packages the arm64 device app as an **unsigned IPA** for
 personal signing/install through AltStore Classic and AltServer on Windows.
 The separate guide explains both routes; no Apple credentials are stored in CI.
+The optional simulator workflow checks startup separately; a source handoff can
+be reproduced with `tools/Package-iOSSource.py` from reviewed committed Git blobs.
 
 **Validation limit:** Core compatibility, generated JSON and synthetic native
 touch checks can run on Windows. iOS export, device signing, GPU performance and

@@ -44,11 +44,11 @@ executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "${apps[0]}
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundlePackageType' "${apps[0]}/Info.plist")" == APPL ]]
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :DTPlatformName' "${apps[0]}/Info.plist")" == iphoneos ]]
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :UIDeviceFamily:0' "${apps[0]}/Info.plist")" == 1 ]]
-xcrun lipo -verify_arch arm64 "${apps[0]}/$executable"
+xcrun lipo "${apps[0]}/$executable" -verify_arch arm64
 if [[ -d "${apps[0]}/Frameworks" ]]; then
   while IFS= read -r -d '' framework; do
     framework_exe="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$framework/Info.plist")"
-    xcrun lipo -verify_arch arm64 "$framework/$framework_exe"
+    xcrun lipo "$framework/$framework_exe" -verify_arch arm64
   done < <(find "${apps[0]}/Frameworks" -maxdepth 1 -type d -name '*.framework' -print0)
 fi
 # AltStore/AltServer can subsequently sign this device IPA on Windows. No Apple

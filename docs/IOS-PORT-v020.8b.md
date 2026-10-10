@@ -57,6 +57,10 @@ Cloud results will be recorded only after an actual workflow execution.
 The first native link used the runner's default Xcode 16.4 and failed on
 Godot template Metal/CoreAnimation symbols. The workflow now explicitly selects
 Xcode 26.3; the script rejects iOS SDKs older than 26 before export.
+Run `38015959434` passed NativeAOT export and the unsigned Xcode device build,
+then exposed a packaging validation error: `lipo -verify_arch` must receive the
+binary before the architecture-list option. Corrected without removing the
+architecture gate. A repeat is required to produce the IPA/ZIP artifacts.
 
 ## Limits / remaining device gate
 

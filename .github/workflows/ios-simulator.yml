@@ -1,0 +1,50 @@
+name: iOS — optional Simulator startup smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful iOS unsigned build run ID
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  simulator:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools
+      - name: Select the matching Xcode SDK
+        run: sudo xcode-select --switch /Applications/Xcode_26.3.app/Contents/Developer
+      - name: Check smoke script syntax
+        run: bash -n tools/Smoke-iOSSimulator.sh
+      - name: Download complete unsigned Xcode export
+        uses: actions/download-artifact@v4
+        with:
+          name: Ancient-Naval-iOS-Xcode-UNSIGNED
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/AncientNaval-iOS-artifact
+      - name: Build and launch a disposable iPhone 16 Simulator
+        env:
+          IOS_ARTIFACT_DIR: ${{ runner.temp }}/AncientNaval-iOS-artifact
+          IOS_SMOKE_OUTPUT: ${{ runner.temp }}/AncientNaval-iOS-smoke
+        run: bash tools/Smoke-iOSSimulator.sh
+      - name: Preserve startup logs and screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ancient-Naval-iOS-Simulator-Smoke
+          path: |
+            ${{ runner.temp }}/AncientNaval-iOS-smoke/*.log
+            ${{ runner.temp }}/AncientNaval-iOS-smoke/*.json
+            ${{ runner.temp }}/AncientNaval-iOS-smoke/*.png
+            ${{ runner.temp }}/AncientNaval-iOS-smoke/result.txt
+          if-no-files-found: ignore
+          retention-days: 7
