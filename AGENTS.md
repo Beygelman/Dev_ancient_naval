@@ -1127,8 +1127,11 @@ See `docs/V0207_FINALIZATION_REPORT.md` for the measured reconciliation and `doc
   The official 4.7.2 .NET Simulator engine archive contains x86_64 objects only,
   despite its XCFramework metadata listing arm64 too. NativeAOT's own Simulator
   framework is universal, which does not make the engine universal. Use the
-  Intel `macos-15-intel` runner for the optional Simulator smoke; keep ARM64
-  for the real-device IPA and inspect actual binaries rather than metadata alone.
+  Intel `macos-15-intel` runner for the optional Simulator smoke; explicitly
+  override its Xcode build with host `ARCHS` and a generic Simulator destination:
+  the exported project fixes arm64 for real phones, otherwise no Intel Simulator
+  destination matches. Keep ARM64 for the real-device IPA and inspect actual
+  binaries rather than metadata alone.
   Use handheld orientation 4 (Sensor Landscape); 6 means Sensor in all directions.
   Audit the exported app plist for both landscape orientations and no portrait.
 

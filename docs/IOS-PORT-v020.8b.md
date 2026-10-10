@@ -87,6 +87,36 @@ listing both architectures. The game's NativeAOT framework is universal, but
 the engine is not. The optional smoke workflow now uses `macos-15-intel`;
 the validated physical-device ARM64 IPA is unchanged.
 
+The first Intel Simulator attempt `38044575747` found no matching device
+destination because the exported real-device Xcode project fixes `ARCHS=arm64`.
+The smoke script now builds its generic Simulator target with explicit host
+architecture, then installs to its freshly booted iPhone 16. This changes the
+optional test harness only, not the physical-device preset.
+
+Final [run 38045102352](https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38045102352)
+passed from source `c3ddd52b815338b10f9ea3dbe8e79415175e35cd`. Corrected handheld
+orientation from 6 (all sensor directions) to 4 (both landscape sides). The
+exported app plist now excludes portrait and passed the stronger artifact audit.
+Final artifacts live in `ios-2026-10-10/final/`; the earlier successful prototype
+is retained in the parent directory. Final IPA: 52,822,792 bytes, SHA256
+`db62aaa4a7e6394d662d21ae45320d8787f53c2badb745ab866c879318edf208`.
+Final complete Xcode ZIP: 181,962,784 bytes, SHA256
+`4e4484793c52c33a3732873af9dd57791063acc04f29df1f799610670dcaf6c6`.
+Final [Simulator run 38045580424](https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38045580424)
+passed from test-harness source `a05e181fdc27a9edc43f4d2f892500b20f6cbc29`,
+using the final native export above. On the Intel host, Xcode built the x86_64
+Simulator app/framework, installed it on a fresh iPhone 16 Simulator and launched
+it successfully. The actual app process stayed alive for 15 seconds. The
+landscape main-menu capture was visually reviewed: background, title, dark-ink
+buttons and footer render without an error overlay. The screenshot is stored
+in the Simulator display orientation; the landscape application content is
+rotated in that raw capture. No touch sequence or actual voyage was tested in
+this smoke. Console output contains an Apple restoration-marker warning and
+OpenGL ES context initialization, with no detected startup error. Logs and
+capture are retained under `evidence/simulator-final/`.
+Downloaded Simulator evidence ZIP SHA256 matched GitHub artifact 11667714468:
+`afff856166f46ea1f5773262e0722cb058757df00b4b71bb6466eb7f2d9c5928`.
+
 ## Limits / remaining device gate
 
 No Mac or iPhone is attached to this Windows host; the real Mac build ran in
@@ -121,9 +151,9 @@ The Windows-host source handoff is named `iOS_SOURCE_HANDOFF`, to distinguish it
 from the native exports. It contains source and installation/build
 instructions; it deliberately contains no executable disguised as an IPA.
 
-Permanent local delivery: `releases/v020.8b/ios-2026-10-10/` in the canonical
-project, with a mirror in the chat's outputs. The IPA is 52,822,821 bytes; the
-complete Xcode ZIP is 181,962,551 bytes and is intentionally Git-ignored because
+Permanent local delivery: `releases/v020.8b/ios-2026-10-10/final/` in the canonical
+project, with a mirror in the chat's outputs. Final sizes/hashes are recorded
+above. The complete Xcode ZIP is intentionally Git-ignored because
 it exceeds the hosting regular-file limit. Preserve its local copy and original
 SHA256 manifest. The source handoff is generated from committed Git blobs with
 sorted paths/fixed ZIP metadata by `tools/Package-iOSSource.py`; unrelated local

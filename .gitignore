@@ -28,6 +28,8 @@ export_credentials.cfg
 NuGet.local.config
 NuGet.Config
 /releases/v020.8b/ios-2026-10-10/Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip
+/releases/v020.8b/ios-2026-10-10/Ancient_Naval_v020.8b_iPhone_UNSIGNED.ipa
+/releases/v020.8b/ios-2026-10-10/final/Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip
 
 # Editor sidecars for documentation-only screenshots (game assets keep theirs).
 /docs/diagnostics/**/*.import

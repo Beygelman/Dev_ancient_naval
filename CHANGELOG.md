@@ -18,6 +18,13 @@
 - NativeAOT/Xcode build and packaging passed in cloud run 38016489220. Original
   IPA/Xcode hashes and clean PCK/Mach-O audit are retained in the additive iOS
   delivery folder; the standalone guide now uses the ready local IPA.
+- Final landscape-only export passed in run 38045102352 and is under `final/`.
+  Preserve the earlier all-orientation prototype; audit both landscape sides and
+  forbid portrait in the exported plist. Version remains v020.8b.
+- Final iPhone 16 Simulator startup passed in run 38045580424: actual exported
+  NativeAOT app alive for 15 seconds; captured landscape menu visually reviewed.
+  Logs/screenshot are separate evidence, not player contents. Real iPhone signing,
+  touch, thermal behavior and frame pacing remain untested.
 
 ## v020.8b — 7 October 2026
 
