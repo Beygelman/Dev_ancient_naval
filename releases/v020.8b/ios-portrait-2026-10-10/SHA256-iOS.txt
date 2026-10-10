@@ -1,0 +1,2 @@
+dc61723a2549d685d40f6759de319e1ac4960258b45ab2de08e1dc6bc8a0f7ea  Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip
+73cf4447a423e3d8a9e1a3eb197fafdda63f1cdac45f5d0f779651c58ed7ddea  Ancient_Naval_v020.8b_iPhone_UNSIGNED.ipa

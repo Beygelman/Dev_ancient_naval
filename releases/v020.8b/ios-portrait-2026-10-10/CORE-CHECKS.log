@@ -1,0 +1,69 @@
+PASS: 1535 core checks
+PASS: 23 v020.8b investment, flagship safety, pirate restraint and compatibility checks.
+PASS: 25 v020.7b tower, Granado, staged combat and historical policy checks.
+NAVIGATION ships=16 iterations=3 before_bytes=42098928 after_bytes=2117184 before_ms=47,983 after_ms=3,07
+NAVIGATION ships=128 iterations=3 before_bytes=94398960 after_bytes=2040264 before_ms=236,996 after_ms=3,149
+NAVIGATION ships=256 iterations=3 before_bytes=129229224 after_bytes=1967664 before_ms=346,886 after_ms=2,96
+MULTI_AI opponents=2 winner=Enemy2 round=43 commands=783
+MULTI_AI opponents=4 winner=Enemy round=39 commands=1001
+REFINEMENT016: tower radar/veterancy, outpost targeting, AA, retreat and fish density passed
+DIFFICULTY Boatswain round=3 ships=5 elapsed_ms=45,8
+DIFFICULTY Captain round=14 ships=20 elapsed_ms=869,3
+DIFFICULTY Admiral round=7 ships=12 elapsed_ms=458,7
+COMPLETE_AI Boatswain winner=Enemy round=3 orders=44
+COMPLETE_AI Captain winner=Enemy round=20 orders=316
+COMPLETE_AI Admiral winner=Enemy round=11 orders=180
+AI 0: Player, round 10, actions 180
+AI 1: Player, round 16, actions 286
+AI 2: Player, round 14, actions 205
+AI 3: Player, round 32, actions 571
+AI 4: Enemy, round 14, actions 243
+AI 5: Enemy, round 13, actions 230
+AI 6: Player, round 25, actions 910
+AI 7: Enemy, round 15, actions 458
+PASS: 1201675 Thor/progression/combat checks; 8 complete AI matches.
+PASS: 41 save compatibility and validation checks.
+PASS: 368 four-world generation checks.
+PASS: 23 voyage statistics checks.
+PASS: 871 free-coast, anti-air, inland Pangaea and red-save checks.
+PASS: 38 salvo, encounters, level rewards and compatibility checks.
+PASS: 31 v0.20.2 progression, mountain shadows, radar and heavenly aid checks.
+PASS: 545 v0.20.2 world placement and deterministic terrain checks.
+PASS: 133 v0.20.2 themed Latin names and Continue checks.
+PASS: 21 lighthouse and merged trade checks.
+ADMIRAL0203 fixture=0 rounds=23 orders=196 elapsed_ms=242,7
+ADMIRAL0203 fixture=1 rounds=41 orders=279 elapsed_ms=317,0
+PASS: 489 v0.20.3 coordinated Admiral tactics and fog fairness checks.
+PASS: 40 v020.3 swarm assembly, flagship pursuit and observation-memory checks.
+PASS: 75 v020.3 fleet capacity, veterancy, radar, healing and persisted reward checks.
+PASS: 80 v020.4 paid town, level rewards and repair locks.
+SIZED_WORLD seed=205 size=Lake rivals=4 kind=Oceans
+SIZED_WORLD generation_ms=361,1
+SIZED_WORLD seed=205 size=Lake rivals=4 kind=SeaWorld
+SIZED_WORLD generation_ms=67,7
+SIZED_WORLD seed=205 size=Lake rivals=4 kind=Continents
+SIZED_WORLD generation_ms=45,2
+SIZED_WORLD seed=205 size=Lake rivals=4 kind=Pangaea
+SIZED_WORLD generation_ms=1399,5
+SIZED_WORLD seed=1709 size=Lake rivals=4 kind=Oceans
+SIZED_WORLD generation_ms=2824,8
+SIZED_WORLD seed=1709 size=Lake rivals=4 kind=SeaWorld
+SIZED_WORLD generation_ms=74,1
+SIZED_WORLD seed=1709 size=Lake rivals=4 kind=Continents
+SIZED_WORLD generation_ms=52,5
+SIZED_WORLD seed=1709 size=Lake rivals=4 kind=Pangaea
+SIZED_WORLD generation_ms=1439,0
+SIZED_WORLD seed=8071 size=Lake rivals=4 kind=Oceans
+SIZED_WORLD generation_ms=1323,6
+SIZED_WORLD seed=8071 size=Lake rivals=4 kind=SeaWorld
+SIZED_WORLD generation_ms=111,6
+SIZED_WORLD seed=8071 size=Lake rivals=4 kind=Continents
+SIZED_WORLD generation_ms=73,2
+SIZED_WORLD seed=8071 size=Lake rivals=4 kind=Pangaea
+SIZED_WORLD generation_ms=332,8
+v020.5 rules: 89 assertions passed
+PASS: 89 v020.5 support brig, trade, map size and repair checks.
+PASS: 161 connected port economy, receipts and historical save checks.
+PASS: 187 v020.8 pirate generation and saved option checks.
+PASS: 62 v020.7 fleet, diagonal ports, refunds and balloon-crash checks.
+PASS: 107 v020.6 guidance, economy, annulus and generation checks.

@@ -1,0 +1,17 @@
+{
+  "run_id": 38064936848,
+  "job_id": 114250558368,
+  "source_commit": "05ff8339fb1af2dde60013785391618038c8110e",
+  "status": "completed",
+  "conclusion": "cancelled",
+  "startup_passed": false,
+  "screenshot_reviewed": false,
+  "physical_device_tested": false,
+  "runtime_rotation_tested": false,
+  "annotation": "The job has exceeded the maximum execution time of 30m0s",
+  "diagnostic_artifacts": 0,
+  "job_logs": "GitHub API redirected to BlobNotFound through connector and direct retrieval",
+  "precise_blocked_phase": "unknown",
+  "native_device_export_run": 38064330615,
+  "native_device_export_passed": true
+}
