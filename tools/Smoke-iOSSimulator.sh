@@ -76,6 +76,8 @@ xcrun lipo "$app/Frameworks/Dev_ancient_naval.framework/$framework_executable" -
 xcrun simctl install "$udid" "$app"
 installed_app="$(xcrun simctl get_app_container "$udid" "$bundle" app)"
 # --console captures actual engine/C# startup diagnostics, not just build output.
+# Create the log before forking so the first PID read cannot race its redirection.
+: > "$out/console.log"
 xcrun simctl launch --console "$udid" "$bundle" > "$out/console.log" 2>&1 &
 console_pid=$!
 app_pid=""
