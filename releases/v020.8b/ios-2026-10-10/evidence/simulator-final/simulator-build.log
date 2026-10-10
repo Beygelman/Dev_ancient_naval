@@ -1,0 +1,455 @@
+Command line invocation:
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/xcodebuild -project /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj -scheme AncientNaval -configuration Debug -sdk iphonesimulator -destination "generic/platform=iOS Simulator" -derivedDataPath /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= DEVELOPMENT_TEAM= build
+
+Build settings from command line:
+    ARCHS = x86_64
+    CODE_SIGN_IDENTITY = 
+    CODE_SIGNING_ALLOWED = NO
+    CODE_SIGNING_REQUIRED = NO
+    DEVELOPMENT_TEAM = 
+    ONLY_ACTIVE_ARCH = YES
+    SDKROOT = iphonesimulator26.2
+
+note: Using codesigning identity override: 
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'AncientNaval' in project 'AncientNaval' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/ibtool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch x86_64 -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -x c++ -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch x86_64 -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/Images.xcassets
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 1c48081ee279b777359acda6d7e823cd
+Build description path: /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/XCBuildData/1c48081ee279b777359acda6d7e823cd.xcbuilddata
+ClangStatCache /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/SDKStatCaches.noindex/iphonesimulator26.2-23C57-e244bd9a5feaf902f95f61bf06266e52.sdkstatcache
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -o /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/SDKStatCaches.noindex/iphonesimulator26.2-23C57-e244bd9a5feaf902f95f61bf06266e52.sdkstatcache
+
+CreateBuildDirectory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj
+    builtin-create-build-directory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products
+
+CreateBuildDirectory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj
+    builtin-create-build-directory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex
+
+CreateBuildDirectory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj
+    builtin-create-build-directory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator
+
+CreateBuildDirectory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj
+    builtin-create-build-directory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval-7f9bc2c2ef809382a74286b0a82c9bb2-VFS-iphonesimulator/all-product-headers.yaml
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval-7f9bc2c2ef809382a74286b0a82c9bb2-VFS-iphonesimulator/all-product-headers.yaml
+
+CreateBuildDirectory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/ExplicitPrecompiledModules
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj
+    builtin-create-build-directory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj
+    builtin-create-build-directory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+
+ProcessXCFramework /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/MoltenVK.xcframework /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/libMoltenVK.a ios simulator
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj
+    builtin-process-xcframework --xcframework /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/MoltenVK.xcframework --platform ios --environment simulator --target-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator
+
+ProcessXCFramework /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/Dev_ancient_naval.framework ios simulator
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj
+    builtin-process-xcframework --xcframework /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework --platform ios --environment simulator --target-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator
+
+ProcessXCFramework /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcframework /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/libgodot.a ios simulator
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcodeproj
+    builtin-process-xcframework --xcframework /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.xcframework --platform ios --environment simulator --target-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.SwiftConstValuesFileList (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval_const_extract_protocols.json (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.SwiftFileList (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.LinkFileList (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval-OutputFileMap.json (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/82b82416624d2658e5098eb0a28c15c5-common-args.resp (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/82b82416624d2658e5098eb0a28c15c5-common-args.resp
+-target x86_64-apple-ios15.0-simulator '-std=gnu++11' '-stdlib=libc++' -fmodules -fno-cxx-modules -gmodules '-fmodules-cache-path=/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex' '-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_DEBUG' -fpascal-strings -O0 -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -fasm-blocks -g -fvisibility-inlines-hidden -iquote /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-generated-files.hmap -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-own-target-headers.hmap -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-all-target-headers.hmap -iquote /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-project-headers.hmap -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/include -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources-normal/x86_64 -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/x86_64 -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources -F/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator -F. -FAncientNaval -FAncientNaval.xcframework -FMoltenVK.xcframework -Flibgodot.visionos.debug.xcframework -Flibgodot.visionos.release.xcframework -Flibgodot_camera.visionos.debug.xcframework -Flibgodot_camera.visionos.release.xcframework -FAncientNaval/dylibs -FAncientNaval/godot-publish-dotnet -FAncientNaval.xcframework/ios-arm64 -FAncientNaval.xcframework/ios-arm64_x86_64-simulator -FMoltenVK.xcframework/ios-arm64 -FMoltenVK.xcframework/ios-arm64_x86_64-simulator -FMoltenVK.xcframework/xros-arm64 -FMoltenVK.xcframework/xros-arm64_x86_64-simulator -Flibgodot.visionos.debug.xcframework/xros-arm64 -Flibgodot.visionos.debug.xcframework/xros-arm64-simulator -Flibgodot.visionos.release.xcframework/xros-arm64 -Flibgodot.visionos.release.xcframework/xros-arm64-simulator -Flibgodot_camera.visionos.debug.xcframework/xros-arm64 -Flibgodot_camera.visionos.debug.xcframework/xros-arm64-simulator -Flibgodot_camera.visionos.release.xcframework/xros-arm64 -Flibgodot_camera.visionos.release.xcframework/xros-arm64-simulator -FAncientNaval/dylibs/ExportRelease -FAncientNaval/godot-publish-dotnet/ExportRelease-ios-arm64 -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64 -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs/Dev_ancient_naval.framework.dSYM -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs/Dev_ancient_naval.framework.dSYM
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval.hmap (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval.hmap
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval.DependencyStaticMetadataFileList (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval.DependencyMetadataFileList (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-project-headers.hmap (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-project-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-own-target-headers.hmap (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-generated-files.hmap (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-generated-files.hmap
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-all-target-headers.hmap (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-all-non-framework-target-headers.hmap (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    write-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-all-non-framework-target-headers.hmap
+
+MkDir /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Frameworks (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /bin/mkdir -p /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Frameworks
+
+MkDir /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /bin/mkdir -p /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app
+
+MkDir /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_output/unthinned (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /bin/mkdir -p /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_output/unthinned
+
+MkDir /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_output/thinned (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /bin/mkdir -p /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_output/thinned
+
+GenerateAssetSymbols /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/Images.xcassets (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/Images.xcassets --compile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_dependencies --output-partial-info-plist /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_generated_info.plist --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --minimum-deployment-target 15.0 --platform iphonesimulator --bundle-identifier com.beygelman.ancientnaval --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+CpResource /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/icudt.dat /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/godot-publish-dotnet/ExportRelease-ios-arm64/icudt.dat (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/godot-publish-dotnet/ExportRelease-ios-arm64/icudt.dat /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app
+
+CpResource /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/PrivacyInfo.xcprivacy /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/PrivacyInfo.xcprivacy (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/PrivacyInfo.xcprivacy /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app
+
+CpResource /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/AncientNaval.pck /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.pck (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval.pck /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app
+
+CopyStringsFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/en.lproj/InfoPlist.strings /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/en.lproj/InfoPlist.strings (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-copyStrings --validate --outputencoding binary --outfilename InfoPlist.strings --outdir /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/en.lproj -- /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/en.lproj/InfoPlist.strings
+/Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/en.lproj/InfoPlist.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'AncientNaval' from project 'AncientNaval')
+
+CompileStoryboard /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/Launch\ Screen.storyboard (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/ibtool --errors --warnings --notices --module AncientNaval --output-partial-info-plist /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Launch\ Screen-SBPartialInfo.plist --auto-activate-custom-fonts --target-device iphone --minimum-deployment-target 15.0 --output-format human-readable-text /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/Launch\ Screen.storyboard --compilation-directory /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build
+
+CompileAssetCatalogVariant thinned /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/Images.xcassets (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/Images.xcassets --compile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --minimum-deployment-target 15.0 --platform iphonesimulator
+/* com.apple.actool.compilation-results */
+/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_generated_info.plist_thinned
+/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_output/thinned/AppIcon60x60@2x.png
+/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_output/thinned/AppIcon76x76@2x~ipad.png
+/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_output/thinned/Assets.car
+
+
+SwiftDriver AncientNaval normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-SwiftDriver -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AncientNaval -O -enforce-exclusivity\=checked @/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target x86_64-apple-ios15.0-simulator -g -module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex -Xfrontend -serialize-debugging-options -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator -F /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator -F . -F AncientNaval -F AncientNaval.xcframework -F MoltenVK.xcframework -F libgodot.visionos.debug.xcframework -F libgodot.visionos.release.xcframework -F libgodot_camera.visionos.debug.xcframework -F libgodot_camera.visionos.release.xcframework -F AncientNaval/dylibs -F AncientNaval/godot-publish-dotnet -F AncientNaval.xcframework/ios-arm64 -F AncientNaval.xcframework/ios-arm64_x86_64-simulator -F MoltenVK.xcframework/ios-arm64 -F MoltenVK.xcframework/ios-arm64_x86_64-simulator -F MoltenVK.xcframework/xros-arm64 -F MoltenVK.xcframework/xros-arm64_x86_64-simulator -F libgodot.visionos.debug.xcframework/xros-arm64 -F libgodot.visionos.debug.xcframework/xros-arm64-simulator -F libgodot.visionos.release.xcframework/xros-arm64 -F libgodot.visionos.release.xcframework/xros-arm64-simulator -F libgodot_camera.visionos.debug.xcframework/xros-arm64 -F libgodot_camera.visionos.debug.xcframework/xros-arm64-simulator -F libgodot_camera.visionos.release.xcframework/xros-arm64 -F libgodot_camera.visionos.release.xcframework/xros-arm64-simulator -F AncientNaval/dylibs/ExportRelease -F AncientNaval/godot-publish-dotnet/ExportRelease-ios-arm64 -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64 -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs/Dev_ancient_naval.framework.dSYM -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs/Dev_ancient_naval.framework.dSYM -c -j4 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/SDKStatCaches.noindex/iphonesimulator26.2-23C57-e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-generated-files.hmap -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-own-target-headers.hmap -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-project-headers.hmap -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources-normal/x86_64 -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/x86_64 -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval-Swift.h -import-objc-header /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dummy.h -working-directory /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode -experimental-emit-module-separately -disable-cmo
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_AvailabilityInternal-9MLE71JHMFZXQZDJI8OGMVBV1.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/SwiftShims-1KSZ5Z11DBFMWH3TYE5X70YC2.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/DeveloperToolsSupport-1737MVN9OZTKN686H7BWDZAR7.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_Builtin_stdbool-F1Z0J80OY2F3WT1R9UU3SGV7V.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_Builtin_stddef-2EF5PRFJOQ9EIL01K47BUZDOS.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/ptrcheck-E79YFDHPYY0NIG7CBU1GIPC8G.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/ptrauth-DMTA1L3R5FELKIS6GU2KFQS81.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_SwiftConcurrencyShims-EREULD2MUNAAO24Z80OZSCSI4.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_DarwinFoundation1-SSH36MRV62DKQSQGC0T1G92R.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_Builtin_stdarg-AESGL2GESU8E14LAEFR1KXL16.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_Builtin_float-9RSZFJ8COHRK5GB2WBQ56LJ95.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_DarwinFoundation2-D7M5QMIJQP26T07NXTNCZZHIT.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_Builtin_limits-3LX3GX0B8AHYKXXZ2WEIRAXC2.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/sys_types-DUJXN5OLVVMGY20ZUXDV887C.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_Builtin_tgmath-7XIH38Z2EXLXKP2QV74SV0VIF.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_Builtin_stdint-9YZILLBPJYICBATB1138VJCFO.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_DarwinFoundation3-EE1WC5GQ99D9USXESXR7AK85Y.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_Builtin_stdatomic-B2X52VG3Y4D3KMLYR4IR9MOJA.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_Builtin_inttypes-7C5ETO9V8DTRDA8RBNS733HL7.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/_Builtin_intrinsics-867YZCBR7QRMMFWQUTQBX1GBM.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Darwin-580RX9XPR11UDZVG35NWMVH94.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/ObjectiveC-4CU9S7DAM8RFTJA36WS2YXQPC.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/MachO-DWM1ZGVAUKEZ12WMGU6DNA9RI.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/simd-10312NRI9W9VBUMNFWX4ZR7G9.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/os_object-9I88Y85GJI3IW51L7FTG4OM9J.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/os_workgroup-OPC3E70UDLM7C9QLON9EYS02.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Dispatch-9W2K6O2CDFYTDG6165HRAJZVT.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/XPC-96W3IISEI3PH8UL0BWTYA7ZGA.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/CoreFoundation-525EIMIZW0BKV380M8CV2NPWO.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/os-EKLMVR6SXG0F6C8TR4EV8NFNY.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Security-3Q6AC1TAPGYSWG6MG3R3I7J69.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/CFNetwork-19UWKI4NQJ8E206U696CJBQPM.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/CoreGraphics-AN72ZQADUI0CX412RR0P5OEUJ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Foundation-8ETEUMHYE7XLNXKC5NY5LQRCB.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/ImageIO-330KSIMVFO1BFQLTWVGXQHYVP.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Spatial-246T7U8ZJOPDE7WECEPBO61MM.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/CoreText-EPVE05FWZWXI5OABUQFU15R9N.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/CoreTransferable-5MBPVGS4F6HL3PDKQRC5E3RCM.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/UserNotifications-3U0B84TNZWB01KNF0TLMSU0ZH.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Accessibility-64HA0JZN5OZQLDRPV60WV2HJO.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/DataDetection-83PTEDYJ4LZP68XTET446JXU5.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/UniformTypeIdentifiers-D1FPIJHDVBG33Q3JM4IP7MUQJ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/FileProvider-8O0D4WJ4ITDKWDIFGB0RFZDZM.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Symbols-4ZMSL9ON5FBR5SYV0Q1LZAVE2.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/CoreData-DHM3WHYBTIDKETYJXFW8MAF5.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/UIUtilities-456GU7FDGCRQSUU68IOILT35Y.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/OSLog-DY57RE7AK8YZIDVLWZ5B1ZWQL.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/OpenGLES-232O6EJF8EPUQQCYOUJYWW435.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/IOSurface-1AC27NHH6XXVVSWMRWEYDAVK9.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Metal-BOBWTC6YLTD1T3V8WJJRFQTJO.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/CoreVideo-1F22DC2SE6KBKU3C47KHMDCPQ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/QuartzCore-2CANCN391E2C4WVKMYUXJCE1E.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/CoreImage-3FX6IP2M0TW1LY9HVZ8KQZJPC.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/SwiftUICore-5RVNFELOJKHJ2BBKYJA9PV1E7.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/UIKit-5RI8FW5YF3AQPKGMULKR3BP8F.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/SwiftUI-38WM5HB8VKTC3DHFL0YR7G02V.pcm
+
+SwiftGeneratePch normal x86_64 Compiling\ bridging\ header (in target 'AncientNaval' from project 'AncientNaval')
+1 warning generated.
+/Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dummy.h:31:9: warning: #pragma once in main file
+29 | /**************************************************************************/
+30 | 
+31 | #pragma once
+   |         `- warning: #pragma once in main file
+32 | 
+33 | // #import <Foundation/Foundation.h>
+
+SwiftDriverJobDiscovery normal x86_64 Compiling bridging header (in target 'AncientNaval' from project 'AncientNaval')
+
+SwiftEmitModule normal x86_64 Emitting\ module\ for\ AncientNaval (in target 'AncientNaval' from project 'AncientNaval')
+
+EmitSwiftModule normal x86_64 (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    
+
+SwiftCompile normal x86_64 Compiling\ GeneratedAssetSymbols.swift /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'AncientNaval' from project 'AncientNaval')
+
+SwiftCompile normal x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    
+
+SwiftCompile normal x86_64 Compiling\ dummy.swift /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dummy.swift (in target 'AncientNaval' from project 'AncientNaval')
+
+SwiftCompile normal x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dummy.swift (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    
+
+SwiftDriverJobDiscovery normal x86_64 Emitting module for AncientNaval (in target 'AncientNaval' from project 'AncientNaval')
+
+SwiftDriver\ Compilation\ Requirements AncientNaval normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AncientNaval -O -enforce-exclusivity\=checked @/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target x86_64-apple-ios15.0-simulator -g -module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex -Xfrontend -serialize-debugging-options -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator -F /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator -F . -F AncientNaval -F AncientNaval.xcframework -F MoltenVK.xcframework -F libgodot.visionos.debug.xcframework -F libgodot.visionos.release.xcframework -F libgodot_camera.visionos.debug.xcframework -F libgodot_camera.visionos.release.xcframework -F AncientNaval/dylibs -F AncientNaval/godot-publish-dotnet -F AncientNaval.xcframework/ios-arm64 -F AncientNaval.xcframework/ios-arm64_x86_64-simulator -F MoltenVK.xcframework/ios-arm64 -F MoltenVK.xcframework/ios-arm64_x86_64-simulator -F MoltenVK.xcframework/xros-arm64 -F MoltenVK.xcframework/xros-arm64_x86_64-simulator -F libgodot.visionos.debug.xcframework/xros-arm64 -F libgodot.visionos.debug.xcframework/xros-arm64-simulator -F libgodot.visionos.release.xcframework/xros-arm64 -F libgodot.visionos.release.xcframework/xros-arm64-simulator -F libgodot_camera.visionos.debug.xcframework/xros-arm64 -F libgodot_camera.visionos.debug.xcframework/xros-arm64-simulator -F libgodot_camera.visionos.release.xcframework/xros-arm64 -F libgodot_camera.visionos.release.xcframework/xros-arm64-simulator -F AncientNaval/dylibs/ExportRelease -F AncientNaval/godot-publish-dotnet/ExportRelease-ios-arm64 -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64 -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs/Dev_ancient_naval.framework.dSYM -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs/Dev_ancient_naval.framework.dSYM -c -j4 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/SDKStatCaches.noindex/iphonesimulator26.2-23C57-e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-generated-files.hmap -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-own-target-headers.hmap -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-project-headers.hmap -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources-normal/x86_64 -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/x86_64 -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval-Swift.h -import-objc-header /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dummy.h -working-directory /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal x86_64 Compiling dummy.swift (in target 'AncientNaval' from project 'AncientNaval')
+
+SwiftMergeGeneratedHeaders /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/AncientNaval-Swift.h /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval-Swift.h (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-swiftHeaderTool -arch x86_64 /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval-Swift.h -o /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/AncientNaval-Swift.h
+
+Copy /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.swiftmodule/x86_64-apple-ios-simulator.swiftmodule /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.swiftmodule (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.swiftmodule /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.swiftmodule/x86_64-apple-ios-simulator.swiftmodule
+
+Copy /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.swiftmodule/x86_64-apple-ios-simulator.swiftdoc /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.swiftdoc (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.swiftdoc /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.swiftmodule/x86_64-apple-ios-simulator.swiftdoc
+
+Copy /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.swiftmodule/x86_64-apple-ios-simulator.abi.json /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.abi.json (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.abi.json /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.swiftmodule/x86_64-apple-ios-simulator.abi.json
+
+Copy /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.swiftmodule/Project/x86_64-apple-ios-simulator.swiftsourceinfo /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.swiftsourceinfo (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.swiftsourceinfo /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.swiftmodule/Project/x86_64-apple-ios-simulator.swiftsourceinfo
+
+CompileC /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/dummy-05b8768b9659098ec8ee4459061c1b55.o /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dummy.cpp normal x86_64 c++ com.apple.compilers.llvm.clang.1_0.compiler (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    
+    Using response file: /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/82b82416624d2658e5098eb0a28c15c5-common-args.resp
+    
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c++ -ivfsstatcache /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/SDKStatCaches.noindex/iphonesimulator26.2-23C57-e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -fno-color-diagnostics -fmodules-prune-interval\=86400 -fmodules-prune-after\=345600 -fbuild-session-file\=/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Session.modulevalidation -fmodules-validate-once-per-build-session -Wnon-modular-include-in-framework-module -Werror\=non-modular-include-in-framework-module -Wno-trigraphs -Wno-missing-field-initializers -Wno-missing-prototypes -Werror\=return-type -Werror\=deprecated-objc-isa-usage -Werror\=objc-root-class -Wno-non-virtual-dtor -Wno-overloaded-virtual -Wno-exit-time-destructors -Wno-missing-braces -Wparentheses -Wswitch -Wunused-function -Wno-unused-label -Wno-unused-parameter -Wunused-variable -Wunused-value -Wempty-body -Wuninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wconstant-conversion -Wint-conversion -Wbool-conversion -Wenum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wno-newline-eof -Wno-c++11-extensions -Wno-implicit-fallthrough -fstrict-aliasing -Wdeprecated-declarations -Winvalid-offsetof -Wno-sign-conversion -Wno-infinite-recursion -Wno-move -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-range-loop-analysis -Wno-semicolon-before-method-body -index-store-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Index.noindex/DataStore @/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/82b82416624d2658e5098eb0a28c15c5-common-args.resp -MMD -MT dependencies -MF /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/dummy-05b8768b9659098ec8ee4459061c1b55.d --serialize-diagnostics /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/dummy-05b8768b9659098ec8ee4459061c1b55.dia -c /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dummy.cpp -o /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/dummy-05b8768b9659098ec8ee4459061c1b55.o -index-unit-output-path /AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/dummy-05b8768b9659098ec8ee4459061c1b55.o
+
+SwiftDriverJobDiscovery normal x86_64 Compiling GeneratedAssetSymbols.swift (in target 'AncientNaval' from project 'AncientNaval')
+
+SwiftDriver\ Compilation AncientNaval normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-Swift-Compilation -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AncientNaval -O -enforce-exclusivity\=checked @/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target x86_64-apple-ios15.0-simulator -g -module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex -Xfrontend -serialize-debugging-options -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator -F /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator -F . -F AncientNaval -F AncientNaval.xcframework -F MoltenVK.xcframework -F libgodot.visionos.debug.xcframework -F libgodot.visionos.release.xcframework -F libgodot_camera.visionos.debug.xcframework -F libgodot_camera.visionos.release.xcframework -F AncientNaval/dylibs -F AncientNaval/godot-publish-dotnet -F AncientNaval.xcframework/ios-arm64 -F AncientNaval.xcframework/ios-arm64_x86_64-simulator -F MoltenVK.xcframework/ios-arm64 -F MoltenVK.xcframework/ios-arm64_x86_64-simulator -F MoltenVK.xcframework/xros-arm64 -F MoltenVK.xcframework/xros-arm64_x86_64-simulator -F libgodot.visionos.debug.xcframework/xros-arm64 -F libgodot.visionos.debug.xcframework/xros-arm64-simulator -F libgodot.visionos.release.xcframework/xros-arm64 -F libgodot.visionos.release.xcframework/xros-arm64-simulator -F libgodot_camera.visionos.debug.xcframework/xros-arm64 -F libgodot_camera.visionos.debug.xcframework/xros-arm64-simulator -F libgodot_camera.visionos.release.xcframework/xros-arm64 -F libgodot_camera.visionos.release.xcframework/xros-arm64-simulator -F AncientNaval/dylibs/ExportRelease -F AncientNaval/godot-publish-dotnet/ExportRelease-ios-arm64 -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64 -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs/Dev_ancient_naval.framework.dSYM -F AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs/Dev_ancient_naval.framework.dSYM -c -j4 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/SDKStatCaches.noindex/iphonesimulator26.2-23C57-e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-generated-files.hmap -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-own-target-headers.hmap -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval-project-headers.hmap -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources-normal/x86_64 -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources/x86_64 -Xcc -I/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval-Swift.h -import-objc-header /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dummy.h -working-directory /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/AncientNaval normal (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++ -Xlinker -reproducible -target x86_64-apple-ios15.0-simulator -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator -L. -LAncientNaval -LAncientNaval.xcframework -LMoltenVK.xcframework -Llibgodot.visionos.debug.xcframework -Llibgodot.visionos.release.xcframework -Llibgodot_camera.visionos.debug.xcframework -Llibgodot_camera.visionos.release.xcframework -LAncientNaval/dylibs -LAncientNaval/godot-publish-dotnet -LAncientNaval.xcframework/ios-arm64 -LAncientNaval.xcframework/ios-arm64_x86_64-simulator -LMoltenVK.xcframework/ios-arm64 -LMoltenVK.xcframework/ios-arm64_x86_64-simulator -LMoltenVK.xcframework/xros-arm64 -LMoltenVK.xcframework/xros-arm64_x86_64-simulator -Llibgodot.visionos.debug.xcframework/xros-arm64 -Llibgodot.visionos.debug.xcframework/xros-arm64-simulator -Llibgodot.visionos.release.xcframework/xros-arm64 -Llibgodot.visionos.release.xcframework/xros-arm64-simulator -Llibgodot_camera.visionos.debug.xcframework/xros-arm64 -Llibgodot_camera.visionos.debug.xcframework/xros-arm64-simulator -Llibgodot_camera.visionos.release.xcframework/xros-arm64 -Llibgodot_camera.visionos.release.xcframework/xros-arm64-simulator -LAncientNaval/dylibs/ExportRelease -LAncientNaval/godot-publish-dotnet/ExportRelease-ios-arm64 -LAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework -LAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64 -LAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator -LAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs -LAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs -LAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs/Dev_ancient_naval.framework.dSYM -LAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs/Dev_ancient_naval.framework.dSYM -F/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator -F. -FAncientNaval -FAncientNaval.xcframework -FMoltenVK.xcframework -Flibgodot.visionos.debug.xcframework -Flibgodot.visionos.release.xcframework -Flibgodot_camera.visionos.debug.xcframework -Flibgodot_camera.visionos.release.xcframework -FAncientNaval/dylibs -FAncientNaval/godot-publish-dotnet -FAncientNaval.xcframework/ios-arm64 -FAncientNaval.xcframework/ios-arm64_x86_64-simulator -FMoltenVK.xcframework/ios-arm64 -FMoltenVK.xcframework/ios-arm64_x86_64-simulator -FMoltenVK.xcframework/xros-arm64 -FMoltenVK.xcframework/xros-arm64_x86_64-simulator -Flibgodot.visionos.debug.xcframework/xros-arm64 -Flibgodot.visionos.debug.xcframework/xros-arm64-simulator -Flibgodot.visionos.release.xcframework/xros-arm64 -Flibgodot.visionos.release.xcframework/xros-arm64-simulator -Flibgodot_camera.visionos.debug.xcframework/xros-arm64 -Flibgodot_camera.visionos.debug.xcframework/xros-arm64-simulator -Flibgodot_camera.visionos.release.xcframework/xros-arm64 -Flibgodot_camera.visionos.release.xcframework/xros-arm64-simulator -FAncientNaval/dylibs/ExportRelease -FAncientNaval/godot-publish-dotnet/ExportRelease-ios-arm64 -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64 -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64/dSYMs/Dev_ancient_naval.framework.dSYM -FAncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/dSYMs/Dev_ancient_naval.framework.dSYM -filelist /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.LinkFileList -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @executable_path/Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval_lto.o -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval_dependency_info.dat -stdlib\=libc++ -fobjc-link-runtime -L/Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.swiftmodule @/Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval-linker-args.resp -lMoltenVK -lgodot -framework Dev_ancient_naval -o /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/AncientNaval
+
+LinkStoryboards (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/ibtool --errors --warnings --notices --module AncientNaval --target-device iphone --minimum-deployment-target 15.0 --output-format human-readable-text --link /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Launch\ Screen.storyboardc
+
+LinkAssetCatalog /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/Images.xcassets (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-linkAssetCatalog --thinned /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_output/thinned --thinned-dependencies /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_generated_info.plist_unthinned --output /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app --plist-output /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Assets.car (in target 'AncientNaval' from project 'AncientNaval')
+note: Emplaced /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/AppIcon60x60@2x.png (in target 'AncientNaval' from project 'AncientNaval')
+note: Emplaced /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/AppIcon76x76@2x~ipad.png (in target 'AncientNaval' from project 'AncientNaval')
+
+Copy /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Frameworks/Dev_ancient_naval.framework /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/Dev_ancient_naval.framework (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -remove-static-executable /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/dylibs/ExportRelease/Dev_ancient_naval_aot.xcframework/ios-arm64_x86_64-simulator/Dev_ancient_naval.framework /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Frameworks
+
+ProcessInfoPlistFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Info.plist /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/AncientNaval-Info.plist (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-infoPlistUtility /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode/AncientNaval/AncientNaval-Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Launch\ Screen-SBPartialInfo.plist -additionalcontentfile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/assetcatalog_generated_info.plist -scanforprivacyfile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Frameworks/Dev_ancient_naval.framework -o /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Info.plist
+warning: The value for NSMicrophoneUsageDescription must be a non-empty string. (in target 'AncientNaval' from project 'AncientNaval')
+warning: The value for NSCameraUsageDescription must be a non-empty string. (in target 'AncientNaval' from project 'AncientNaval')
+warning: The value for NSPhotoLibraryUsageDescription must be a non-empty string. (in target 'AncientNaval' from project 'AncientNaval')
+
+ExtractAppIntentsMetadata (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name AncientNaval --sdk-root /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk --xcode-version 17C529 --platform-family iOS --deployment-target 15.0 --bundle-identifier com.beygelman.ancientnaval --output /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app --target-triple x86_64-apple-ios15.0-simulator --binary-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/AncientNaval --dependency-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval_dependency_info.dat --stringsdata-file /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.SwiftFileList --metadata-file-list /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/Objects-normal/x86_64/AncientNaval.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-10 10:48:06.539 appintentsmetadataprocessor[14959:47635] Starting appintentsmetadataprocessor export
+2026-10-10 10:48:06.603 appintentsmetadataprocessor[14959:47635] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CopySwiftLibs /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/AncientNaval --scan-folder /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Frameworks --scan-folder /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/PlugIns --scan-folder /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/SystemExtensions --scan-folder /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os --back-deploy-swift-span
+Ignoring --strip-bitcode because --sign was not passed
+
+GenerateDSYMFile /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app.dSYM /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/AncientNaval (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/dsymutil /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/AncientNaval -o /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app.dSYM
+
+AppIntentsSSUTraining (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Info.plist --temp-dir-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/ssu --bundle-id com.beygelman.ancientnaval --product-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app --extracted-metadata-path /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app/Metadata.appintents --metadata-file-list /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Intermediates.noindex/AncientNaval.build/Debug-iphonesimulator/AncientNaval.build/AncientNaval.DependencyMetadataFileList --archive-ssu-assets
+2026-10-10 10:48:06.662 appintentsnltrainingprocessor[15076:47888] Parsing options for appintentsnltrainingprocessor
+2026-10-10 10:48:06.663 appintentsnltrainingprocessor[15076:47888] No AppShortcuts found - Skipping.
+
+RegisterExecutionPolicyException /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-RegisterExecutionPolicyException /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app
+
+Validate /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    builtin-validationUtility /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app -shallow-bundle -infoplist-subpath Info.plist
+
+Touch /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app (in target 'AncientNaval' from project 'AncientNaval')
+    cd /Users/runner/work/_temp/AncientNaval-iOS-smoke/export/xcode
+    /usr/bin/touch -c /Users/runner/work/_temp/AncientNaval-iOS-smoke/derived/Build/Products/Debug-iphonesimulator/AncientNaval.app
+
+** BUILD SUCCEEDED **
+

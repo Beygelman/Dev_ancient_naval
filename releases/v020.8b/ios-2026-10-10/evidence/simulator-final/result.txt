@@ -1,0 +1,2 @@
+PASS: exported NativeAOT Simulator app remained alive for 15 seconds without detected startup errors.
+Review start-menu.png separately. This is not a physical iPhone or frame-pacing test.

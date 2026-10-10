@@ -1,0 +1,21 @@
+{
+  "version": "v020.8b",
+  "delivery_date": "2026-10-10",
+  "native_source_commit": "c3ddd52b815338b10f9ea3dbe8e79415175e35cd",
+  "native_run": 38045102352,
+  "native_artifact": 11667243546,
+  "native_artifact_outer_sha256": "02a1f9c8b765e223030cbe21e83e8e41476fed42e2c07fb8e068507a8b0a7866",
+  "simulator_harness_commit": "a05e181fdc27a9edc43f4d2f892500b20f6cbc29",
+  "simulator_run": 38045580424,
+  "simulator_artifact": 11667714468,
+  "simulator_artifact_sha256": "afff856166f46ea1f5773262e0722cb058757df00b4b71bb6466eb7f2d9c5928",
+  "simulator_result": "PASS: x86_64 iPhone 16 Simulator startup, process alive 15 seconds; main-menu screenshot visually reviewed",
+  "source_archive_commit": "400fe320ae396ed40168d8ae019f5ec11826d206",
+  "source_archive_reproduced_twice_identical": true,
+  "source_archive_sha256": "cbfffd83e332a621ed38c9ffc986484def3d5c2ca1a1772a6e989d100d3483d5",
+  "apple_account_credentials_included": false,
+  "personally_signed_ipa": false,
+  "physical_iphone_tested": false,
+  "ios_frame_pacing_tested": false,
+  "historical_windows_archives_unchanged": true
+}
