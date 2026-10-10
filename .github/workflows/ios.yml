@@ -22,6 +22,23 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+            /assets/
+            /data/
+            /scenes/
+            /tests/
+            /tools/
+            /docs/INSTALL-iPHONE-RU.md
+            /*.csproj
+            /*.sln
+            /project.godot
+            /export_presets.cfg
+            /icon.svg
+            /Directory.Build.*
+            /Directory.Packages.props
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.425
@@ -52,6 +69,7 @@ jobs:
           name: Ancient-Naval-iOS-Xcode-UNSIGNED
           path: |
             ${{ runner.temp }}/AncientNaval-iOS/Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip
+            ${{ runner.temp }}/AncientNaval-iOS/Ancient_Naval_v020.8b_iPhone_UNSIGNED.ipa
             ${{ runner.temp }}/AncientNaval-iOS/SHA256-iOS.txt
           if-no-files-found: error
           retention-days: 7

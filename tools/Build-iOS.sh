@@ -36,10 +36,19 @@ xcodebuild -project "$project" -scheme "$scheme" -configuration Debug \
   -destination 'generic/platform=iOS' -derivedDataPath "$out/derived" \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM='' build \
   2>&1 | tee "$out/xcode-build.log"
+apps=("$out/derived/Build/Products/Debug-iphoneos/"*.app)
+[[ ${#apps[@]} -eq 1 && -d "${apps[0]}" ]] || { echo "Expected one physical-device .app." >&2; exit 1; }
+executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "${apps[0]}/Info.plist")"
+xcrun lipo -archs "${apps[0]}/$executable" | grep -w arm64 >/dev/null
+# AltStore/AltServer can subsequently sign this device IPA on Windows. No Apple
+# identity/profile is embedded here, and opening it in Files cannot install it.
+mkdir -p "$out/ipa/Payload"
+ditto "${apps[0]}" "$out/ipa/Payload/AncientNaval.app"
+(cd "$out/ipa" && /usr/bin/zip -qry "$out/Ancient_Naval_v020.8b_iPhone_UNSIGNED.ipa" Payload)
 cp "$root/docs/INSTALL-iPHONE-RU.md" "$out/xcode/INSTALL-iPHONE-RU.md"
 printf '%s\n' 'UNSIGNED Xcode project: open it on a Mac, choose your own Team and run on iPhone.' \
   'This archive is not a signed IPA and cannot be installed by opening it in Files.' > "$out/xcode/UNSIGNED.txt"
 ditto -c -k --keepParent "$out/xcode" "$out/Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip"
-shasum -a 256 "$out/Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip" > "$out/SHA256-iOS.txt"
+(cd "$out" && shasum -a 256 Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip Ancient_Naval_v020.8b_iPhone_UNSIGNED.ipa) > "$out/SHA256-iOS.txt"
 echo "Export and unsigned Xcode build passed. Open: $project"
 echo "Keep the ENTIRE xcode folder; frameworks/PCK beside the project are required."

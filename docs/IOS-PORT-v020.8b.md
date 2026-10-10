@@ -63,7 +63,8 @@ and reflection-disabled checks are not substitutes for iOS compilation.
 
 The manual workflow is a reproducible build path, not evidence of a successful
 cloud run. Its success must include both NativeAOT export and unsigned Xcode build.
-The user must then sign with their Apple Account on a Mac and validate launch,
+The user must then sign with their Apple Account using Xcode on Mac or
+AltStore Classic/AltServer on Windows and validate launch,
 Continue, background/resume, paper scrolling, Dynamic Island/home indicator,
 long-battle thermal/memory behavior and frame pacing on the physical iPhone 16.
 
@@ -77,6 +78,10 @@ claim or new threshold is made without device measurements.
 `xcode/AncientNaval.xcodeproj`, required sibling PCK/frameworks, and
 `Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip` plus `SHA256-iOS.txt` after success.
 Preserve the entire Xcode folder. An unsigned Xcode ZIP is not an iPhone installer.
+The same successful native build packages `Ancient_Naval_v020.8b_iPhone_UNSIGNED.ipa`
+from the physical-device `.app`, checks its arm64 executable and hashes it. This
+IPA needs personal signing: AltStore Classic/AltServer provide a Windows route,
+documented in the installation guide. It is not an App Store/TestFlight package.
 
 The Windows-host source handoff is named `iOS_SOURCE_HANDOFF`, to distinguish it
 from those future native exports. It contains source and installation/build

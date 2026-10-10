@@ -23,8 +23,9 @@ def stage(source, destination, team_id="AAAAAAAAAA", bundle_id="com.beygelman.an
     ignored = shutil.ignore_patterns(".godot", ".git", "bin", "obj", "__MACOSX", "*.pdb")
     for name in ("src", "assets", "data", "scenes", "tests"):
         shutil.copytree(source / name, destination / name, ignore=ignored)
-    for path in source.glob("*.csproj"):
-        shutil.copy2(path, destination / path.name)
+    for pattern in ("*.csproj", "*.sln"):
+        for path in source.glob(pattern):
+            shutil.copy2(path, destination / path.name)
     for name in ("project.godot", "export_presets.cfg", "icon.svg"):
         shutil.copy2(source / name, destination / name)
     for name in ("Directory.Build.props", "Directory.Build.targets", "Directory.Packages.props"):
