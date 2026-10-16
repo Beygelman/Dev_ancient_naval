@@ -56,7 +56,8 @@ public sealed partial class BattleState
     {
         if (!village.HasPort || village.Health <= 0 || village.Owner is null) return 0;
         if (!Rules.Ports.ConnectedCityIncome) return Rules.Ports.Income;
-        return ConnectedPortCityCount(village);
+        int partners = ConnectedPortCityCount(village);
+        return Rules.Ports.ConnectedCityIncomeCap > 0 ? Math.Min(partners, Rules.Ports.ConnectedCityIncomeCap) : partners;
     }
 
     /// <summary>Number of other active friendly port cities reachable from this
@@ -150,3 +151,4 @@ public sealed partial class BattleState
         return network;
     }
 }
+

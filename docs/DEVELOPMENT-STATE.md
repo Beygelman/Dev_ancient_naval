@@ -14,7 +14,8 @@ Full previous guide preserved verbatim in docs/history/AGENTS-before-v0209x1.md.
 Stage 1 source implemented: immediate own command commit; nonblocking own effects;
 explicit opponent-only focus; shorter sinking; visual settle on next order/world swap.
 Added native Action0209Checks and a CI workflow for Core/build/graphical checks.
-Validation pending CI. This is an unvalidated development checkpoint.
+Stage 1 CI passed: full Core suite, Godot build, 19 graphical action0209 checks.
+Evidence: Actions run 38888534402. Combat/trade source added next; validation pending.
 
 ## Authorized stages
 1. Permanent camera/animation correction: own actions do not auto-focus; next legal

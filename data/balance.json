@@ -1,5 +1,6 @@
 {
   "startingCredits": 8,
+  "counterBetweenSalvoShots": true,
   "freeCoastalNavigation": true,
   "mountainSightShadows": true,
   "smallHullRadarStealth": true,
@@ -319,6 +320,7 @@
   "fishingCannonTowers": true,
   "ports": {
     "connectedCityIncome": true,
+    "connectedCityIncomeCap": 2,
     "income": 0,
     "maximumRouteLength": 6
   },
@@ -335,3 +337,4 @@
   "diagonalVillageBerths": true,
   "scuttleRefundFraction": 0.4
 }
+

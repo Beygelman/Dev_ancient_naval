@@ -77,7 +77,7 @@ internal static class AncientLore
             }
             rows.Add(new("Shots", $"{ship.AttacksRemaining} left this turn"));
             if (battle.Rules.DoubleSalvo && (ship.Definition.Class == ShipClass.Kolonel || ship.IsMothership && ship.SecondAttackUpgrade))
-                rows.Add(new("Double salvo", "Select a cannon target, then choose one or two cannonballs on its parchment; two shots launch together and receive one enemy reply"));
+                rows.Add(new("Double salvo", battle.Rules.CounterBetweenSalvoShots ? "Double salvo: shot → surviving target replies → second shot if attacker survives" : "Select a cannon target, then choose one or two cannonballs on its parchment; two shots launch together and receive one enemy reply"));
             if (ship.Definition.Class is not (ShipClass.Togus or ShipClass.AncientGun))
                 rows.Add(new("Counterfire", $"{ship.CurrentDamage + ship.CounterDamageBonus:0.##} damage · {ship.CannonRange} tiles; if alive"));
             if (battle.HasAntiAir(ship))
@@ -224,7 +224,7 @@ internal static class AncientLore
             improvements.Add(new("Port", privateTrade ? "Trade income is not observed"
                 : $"+{battle.PortIncome(village)} Thors per turn"));
             if (battle.Rules.Ports.ConnectedCityIncome)
-                improvements.Add(new("Trade income", "1 Thor per other connected friendly city; lighthouses relay the route"));
+                improvements.Add(new("Trade income", battle.Rules.Ports.ConnectedCityIncomeCap > 0 ? $"1 Thor per connected partner, up to {battle.Rules.Ports.ConnectedCityIncomeCap}; lighthouses relay the route" : "1 Thor per other connected friendly city; lighthouses relay the route"));
             improvements.Add(new("Local shipyard", $"{battle.Rules.Ports.Discount:P0} cheaper ships"));
             improvements.Add(new("Trade lanes", $"At least +{battle.Rules.Ports.MinimumBonus} tiles or +{battle.Rules.Ports.MovementBonus:P0}; stay on the lane"));
         }
@@ -293,3 +293,4 @@ internal static class AncientLore
         return null;
     }
 }
+

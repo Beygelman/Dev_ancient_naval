@@ -20,8 +20,11 @@ public partial class DebugHud
         _salvoChoice.Hide();
     }
 
-    internal void ShowSalvoChoice(bool canDouble)
+    internal void ShowSalvoChoice(bool canDouble, bool earlyReply = false)
     {
+        _doubleShot.TooltipText = earlyReply
+            ? "Double salvo: shot → surviving target replies → second shot if attacker survives"
+            : "Double salvo";
         _singleShot.Disabled = false;
         _doubleShot.Disabled = !canDouble;
         _singleShot.Cost = _doubleShot.Cost = null;
@@ -40,3 +43,4 @@ public partial class DebugHud
         _salvoChoice.Position = target - _salvoChoice.RingCenter;
     }
 }
+

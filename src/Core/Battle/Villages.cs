@@ -263,7 +263,10 @@ public sealed partial class BattleState
         bool mortar = UsesMortar(ship, village.Position);
         double counterDamage = 0;
         double oneShot = VillageShotDamage(ship, village);
-        double damage = Math.Min(village.Health, oneShot * (doubleSalvo ? 2 : 1));
+        bool interleaved = doubleSalvo && Rules.CounterBetweenSalvoShots;
+        double damage = Math.Min(village.Health, oneShot * (doubleSalvo && !interleaved ? 2 : 1));
+        double firstDamage = damage, secondDamage = 0;
+        ShipSnapshot? secondAttacker = null;
         village.Health = Math.Max(0, village.Health - damage);
         ship.AttacksUsed += doubleSalvo ? 2 : 1;
         var splash = mortar ? MortarSplash(ship, village.Position) : Array.Empty<CombatShot>();
@@ -292,7 +295,17 @@ public sealed partial class BattleState
         }
 
         RecordImpact("village-counter");
+        if (interleaved && !IsOver && Find(ship.Id) is not null && village.Health > 0)
+        {
+            secondAttacker = ShipSnapshot.From(ship);
+            secondDamage = Math.Min(village.Health, Rules.EqualDoubleSalvoDamage ? oneShot : VillageShotDamage(ship, village));
+            village.Health = Math.Max(0, village.Health - secondDamage);
+            damage += secondDamage;
+            if (village.Health <= 0) RegisterVillageIncome(village);
+            RecordImpact("village2");
+        }
         UpdateVision();
-        return new(true, $"Town hit for {damage:0.##} damage." + (village.Health <= 0 ? " Defenses defeated: hold alongside until next turn to capture." : ""), CommandKind.Attack, shipId, villageId, damage, Path: new[] { ship.Position, village.Position }, StructureHit: new(attackerBefore, village.Position, counterDamage, mortar, attackerVisible, townVisible, doubleSalvo ? 2 : 1), Splash: splash, AreaHits: area);
+        return new(true, $"Town hit for {damage:0.##} damage." + (village.Health <= 0 ? " Defenses defeated: hold alongside until next turn to capture." : ""), CommandKind.Attack, shipId, villageId, damage, Path: new[] { ship.Position, village.Position }, StructureHit: new(attackerBefore, village.Position, counterDamage, mortar, attackerVisible, townVisible, doubleSalvo ? 2 : 1, interleaved, firstDamage, secondDamage, secondAttacker), Splash: splash, AreaHits: area);
     }
 }
+

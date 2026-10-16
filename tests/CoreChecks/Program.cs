@@ -3,6 +3,12 @@ using DevAncientNaval.Core.World;
 
 try
 {
+    if (args.Contains("--v0209-only"))
+    {
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        Console.WriteLine($"PASS: {Rules0209Checks.Run(rules)} v020.9 experiments and historical compatibility checks.");
+        return;
+    }
     if (args.Contains("--v0208b-only"))
     {
         var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
@@ -125,6 +131,7 @@ try
 
     Console.WriteLine($"PASS: {Lighthouse0202Checks.Run(persistenceRules)} lighthouse and merged trade checks.");
     var currentRules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+    Console.WriteLine($"PASS: {Rules0209Checks.Run(currentRules)} v020.9 experiments and compatibility checks.");
     Console.WriteLine($"PASS: {Admiral0203Checks.Run(currentRules)} v0.20.3 coordinated Admiral tactics and fog fairness checks.");
     Console.WriteLine($"PASS: {Admiral0203SwarmChecks.Run(currentRules)} v020.3 swarm assembly, flagship pursuit and observation-memory checks.");
     Console.WriteLine($"PASS: {Rules0203Checks.Run(currentRules)} v020.3 fleet capacity, veterancy, radar, healing and persisted reward checks.");
@@ -141,3 +148,4 @@ catch (Exception error)
     Console.Error.WriteLine(error);
     Environment.ExitCode = 1;
 }
+

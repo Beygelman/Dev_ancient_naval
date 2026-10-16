@@ -853,5 +853,8 @@
   "Choose the charge\nSelect your Kolonel, then a target. The target's parchment offers one shot or a double salvo. Two charges spend both attacks and fly together.\n\nWatch the reply\nA surviving enemy in range answers only once. Choose before firing; the picture shows this choice.": "Виберіть залп\nВиберіть колонель, а потім ціль. На сувої біля цілі доступні один постріл або подвійний залп. Два заряди витрачають обидві атаки й летять разом.\n\nЗважайте на відповідь\nУцілілий ворог у межах дальності відповідає лише один раз. Виберіть залп до пострілу: саме цей вибір показано на зображенні.",
   "Choose an order\nThe visible commands are numbered 1–9 from left to right. Press a number or touch its symbol. Grey commands keep their number but cannot act.\n\nOpen a new page\nOpening the shipyard assigns fresh numbers to its own commands. Right-click closes the parchment and clears selection.\n\nFind the next crew\nTouch your nation's shining monument to visit the next object with a useful action, cycling through the fleet.": "Виберіть наказ\nВидимі накази пронумеровані від 1 до 9 зліва направо. Натисніть цифру або торкніться символу. Сірі накази зберігають номер, але недоступні.\n\nВідкрийте нову сторінку\nУ верфі власні накази отримують нові номери. Права кнопка миші закриває сувій і скасовує вибір.\n\nЗнайдіть наступну команду\nТоркніться сяючої пам’ятки своєї нації, щоб перейти до наступного об’єкта з корисною дією, по колу через увесь флот.",
   "Find your Mothership": "Знайти свій материнський корабель",
-  "Under attack": "Під обстрілом"
+  "Under attack": "Під обстрілом",
+  "Double salvo: shot → surviving target replies → second shot if attacker survives": "Подвійний залп: постріл → відповідь уцілілої цілі → другий постріл, якщо атакувальник вижив",
+  "1 Thor per connected partner, up to {0}; lighthouses relay the route": "1 тор за пов’язане місто, максимум {0}; маяки з’єднують маршрут",
+  "Trade cap +{0}": "Ліміт торгівлі +{0}"
 }

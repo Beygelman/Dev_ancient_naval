@@ -41,4 +41,5 @@ public sealed record ShipSnapshot(int Id, Side Owner, ShipClass Class, GridPosit
 public sealed record OutpostShot(int VillageId, GridPosition Origin, ShipSnapshot Target, double Damage, bool TargetSunk, bool OriginVisibleToPlayer, bool TargetVisibleToPlayer);
 public sealed record CombatShot(ShipSnapshot Attacker, ShipSnapshot Target, double Damage, bool IsCounterattack, bool TargetSunk, bool Promoted, bool IsMortar = false, bool AttackerVisibleToPlayer = true, bool TargetVisibleToPlayer = true);
 public sealed record MovementFrame(GridPosition Position, bool VisibleToPlayer, bool ContactToPlayer);
-public sealed record StructureHit(ShipSnapshot Attacker, GridPosition Position, double CounterDamage, bool IsMortar, bool AttackerVisibleToPlayer, bool TargetVisibleToPlayer, int Salvos = 1);
+public sealed record StructureHit(ShipSnapshot Attacker, GridPosition Position, double CounterDamage, bool IsMortar, bool AttackerVisibleToPlayer, bool TargetVisibleToPlayer, int Salvos = 1, bool ReplyBetweenShots = false, double FirstDamage = 0, double SecondDamage = 0, ShipSnapshot? SecondAttacker = null);
+

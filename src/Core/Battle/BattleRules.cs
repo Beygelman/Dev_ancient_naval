@@ -14,6 +14,7 @@ public sealed class BattleRules
     public bool CannonTowersIgnoreWalls { get; init; } // Absent in old rule snapshots: retain fortified damage reduction.
     public bool FreeCoastalNavigation { get; init; } // Missing in old saves: retain their coastal rules.
     public bool DoubleSalvo { get; init; }
+    public bool CounterBetweenSalvoShots { get; init; } // Missing: preserve historical ordering.
     public bool MountainSightShadows { get; init; }
     public bool SmallHullRadarStealth { get; init; }
     public bool HeavenlyAssistance { get; init; }
@@ -122,3 +123,4 @@ public sealed class BattleRules
         }
     }
 }
+
