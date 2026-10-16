@@ -72,7 +72,11 @@ def retain(repo: Path, artifact: Path) -> None:
     entries = inventory['files']
     # Fetch selected immutable source blobs in one request, rather than making
     # one lazy network fetch for every file in a partial CI checkout.
-    subprocess.run(['git', '-C', str(repo), 'fetch', '--no-tags', '--no-write-fetch-head',
+    subprocess.run(['git', '-C', str(repo), 'fetch', '--depth=1', '--no-tags',
+                    '--no-write-fetch-head', '--filter=blob:none', 'origin',
+                    inventory['source_commit']], check=True)
+    subprocess.run(['git', '-C', str(repo), '-c', 'fetch.negotiationAlgorithm=noop',
+                    'fetch', '--no-tags', '--no-write-fetch-head', '--recurse-submodules=no',
                     '--filter=blob:none', 'origin', '--stdin'], check=True,
                    input=('\n'.join(sorted({e['git_blob'] for e in entries})) + '\n').encode())
     spec = importlib.util.spec_from_file_location('source_pack', repo / 'tools/Package-iOSSource.py')
