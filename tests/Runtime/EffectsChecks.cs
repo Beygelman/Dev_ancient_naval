@@ -127,11 +127,12 @@ public partial class EffectsChecks : Node
             }
             float deckBefore = Game.Fleet.DeckAngle(ship.Id);
             var order = Game.CurrentOrder;
-            Check(!Game.Fleet.TurningForShot && Game.Fleet.ActiveProjectileCount == 0, "The camera leads the shot before the battery aims");
+            var cameraBefore = Game.MapCamera.Position;
             for (int frame = 0; frame < 180 && !Game.Fleet.TurningForShot && !order.IsCompleted; frame++)
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            Check(Game.Fleet.TurningForShot && Game.Fleet.ActiveProjectileCount == 0, "The battery aims after the camera arrives and before any cannonball launches");
-            Check(Game.Battle.Find(2)!.Health == hp, "Actual Core health remains unchanged until the last cannonball lands");
+            Check(Game.Fleet.TurningForShot && Game.Fleet.ActiveProjectileCount == 0, "The battery aims before cannonballs launch");
+            Check(Game.MapCamera.Position == cameraBefore, "Own firing never moves the camera");
+            Check(Game.Battle.Find(2)!.Health == hp - damage, "Own damage commits before its cosmetic flight");
             await Capture("salvo-" + kind);
             await order;
             Check(Game.Battle.Find(2)!.Health == hp - damage, "Salvo damage is applied once after impact regardless of pellet count");
@@ -262,3 +263,4 @@ public partial class EffectsChecks : Node
         await Capture("fleet-at-rest");
     }
 }
+

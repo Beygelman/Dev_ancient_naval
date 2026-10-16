@@ -11,6 +11,7 @@ namespace DevAncientNaval.Presentation;
 public partial class Main
 {
     private readonly HashSet<Side> _shownEncounters = new();
+    private bool _showingOpponentActions;
     private void ResetEncounterPresentation()
     {
         _rewards?.Close();
@@ -18,7 +19,7 @@ public partial class Main
         _shownEncounters.Clear();
         foreach (var encounter in Battle.Encounters) _shownEncounters.Add(encounter.Side);
     }
-    private Task FocusVisibleTarget(GridPosition cell) => FastChecks || !Battle.Vision.IsVisible(Side.Player, cell)
+    private Task FocusVisibleTarget(GridPosition cell) => !_showingOpponentActions || FastChecks || !Battle.Vision.IsVisible(Side.Player, cell)
         ? Task.CompletedTask : MapCamera.FocusAsync(BoardView.ToGlobal(Battle.VillageAt(cell) is { } town
             ? BoardView.VillageWorldAnchor(town) : BoardView.Projection.GridToWorld(cell)), Camera.MapCamera.ActionSeconds);
 
@@ -27,7 +28,7 @@ public partial class Main
         foreach (var encounter in Battle.Encounters.OrderBy(e => e.Side))
         {
             if (!_shownEncounters.Add(encounter.Side)) continue;
-            if (!FastChecks)
+            if (!FastChecks && _showingOpponentActions)
                 await MapCamera.FocusAsync(BoardView.ToGlobal(BoardView.Projection.GridToWorld(encounter.Position)), Camera.MapCamera.EncounterSeconds);
             if (Battle.ActiveSide == Side.Player && !Battle.Rules.DeferredRewards)
                 Hud.ShowMessage($"Met {Battle.FactionName(encounter.Side)} · +{Battle.Rules.EncounterCurrencyReward} Thors");
@@ -36,3 +37,4 @@ public partial class Main
     }
 
 }
+

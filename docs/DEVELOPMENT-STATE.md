@@ -11,7 +11,10 @@ use prepared CI for build checks.
 ## Completed
 Documentation checkpoint: concise root guide, Core/Presentation guides, code map.
 Full previous guide preserved verbatim in docs/history/AGENTS-before-v0209x1.md.
-No gameplay implementation or runtime-validation claim in this checkpoint.
+Stage 1 source implemented: immediate own command commit; nonblocking own effects;
+explicit opponent-only focus; shorter sinking; visual settle on next order/world swap.
+Added native Action0209Checks and a CI workflow for Core/build/graphical checks.
+Validation pending CI. This is an unvalidated development checkpoint.
 
 ## Authorized stages
 1. Permanent camera/animation correction: own actions do not auto-focus; next legal
@@ -30,4 +33,5 @@ No gameplay implementation or runtime-validation claim in this checkpoint.
 Deferred: Galleon move-fire-move, Kolonel movement nerf, flagship Restoration changes,
 production queues, caravans, supplies and national mechanics.
 
-Next: implement stage 1, verify/checkpoint/push before starting combat/economy.
+Next: inspect CI for stage 1; fix failures before integrating combat/economy.
+

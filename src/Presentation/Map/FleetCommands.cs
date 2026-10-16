@@ -12,19 +12,13 @@ namespace DevAncientNaval.Presentation.Map;
 /// <summary>Plays visibility-safe commands and commits staged Core impacts after each flight.</summary>
 public partial class FleetView
 {
-    private async Task TweenValue(double duration, Action<float> update)
+    public async Task Animate(CommandResult result, Vector2? targetBefore = null, PresentedCommand? presentation = null, bool opponentReplay = false)
     {
-        var tween = CreateTween();
-        tween.TweenMethod(Callable.From<float>(t =>
-        {
-            update(t);
-            QueueRedraw();
-        }), 0f, 1f, duration);
-        await ToSignal(tween, Tween.SignalName.Finished);
-    }
-
-    public async Task Animate(CommandResult result, Vector2? targetBefore = null, PresentedCommand? presentation = null)
-    {
+        FinishAnimation();
+        _skipAnimation = false;
+        _opponentReplay = opponentReplay;
+        _animationRate = result.Kind == CommandKind.Move ? 1 : opponentReplay ? 1.2 : 1.5;
+        _animationPresentation = presentation;
         EnsureVisualBattle();
         ShowIncome(result);
         CompletedSalvos.Clear();
@@ -119,7 +113,7 @@ public partial class FleetView
                 _feedback = hit.TargetVisibleToPlayer ? $"−{result.Amount:0.##}" : "";
                 if (hit.CounterDamage > 0 && (hit.AttackerVisibleToPlayer || hit.TargetVisibleToPlayer))
                 {
-                    if (hit.AttackerVisibleToPlayer && FocusTarget is not null) await FocusTarget(hit.Attacker.Position);
+                    if (hit.AttackerVisibleToPlayer && FocusTarget is not null) await FocusAction(hit.Attacker.Position);
                     var to = Projection.GridToWorld(hit.Attacker.Position) + new Vector2(0, -5);
                     if (hit.TargetVisibleToPlayer)
                         EmitSmoke(town, (to - town).Normalized(), .8f, false);
@@ -192,6 +186,7 @@ public partial class FleetView
             _feedback = "";
             _blastCenter = null;
             _blastDamage.Clear();
+            _animationPresentation = null;
             QueueRedraw();
         }
     }
@@ -213,7 +208,7 @@ public partial class FleetView
             bool visible = result.Kind == CommandKind.EndTurn || Battle.FindObserved(Side.Player, result.ActorId)is not null || Battle.Vision.IsVisible(Side.Player, cell) || group.Any(s => s.TargetVisibleToPlayer);
             if (!visible)
                 continue;
-            if (FocusTarget is not null && group.Any(s => s.TargetVisibleToPlayer)) await FocusTarget(group.First(s => s.TargetVisibleToPlayer).Target.Position);
+            if (FocusTarget is not null && group.Any(s => s.TargetVisibleToPlayer)) await FocusAction(group.First(s => s.TargetVisibleToPlayer).Target.Position);
             var center = Projection.GridToWorld(cell);
             if (result.Kind == CommandKind.Bomb)
                 await TweenValue(.34, t => ProjectilePosition = center + new Vector2(0, -56 * (1 - t * t)));
@@ -243,7 +238,7 @@ public partial class FleetView
         // fog. Show their damage without revealing the hidden balloon's location.
         foreach (var shot in shots.Where(s => !centers.Contains(s.Attacker.Position) && s.TargetVisibleToPlayer))
         {
-            if (FocusTarget is not null) await FocusTarget(shot.Target.Position);
+            if (FocusTarget is not null) await FocusAction(shot.Target.Position);
             ApplyBombDamage(new[] { shot });
             _impact = Projection.GridToWorld(shot.Target.Position);
             await TweenValue(.24, t => _impactSize = 5 + 24 * t);
@@ -268,3 +263,4 @@ public partial class FleetView
         }
     }
 }
+

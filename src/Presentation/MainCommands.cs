@@ -70,6 +70,10 @@ public partial class Main
     {
         if (!CanCommand)
             return;
+        Fleet.FinishAnimation();
+        if (!CanCommand)
+            return;
+        var battle = Battle;
         CommandResult result;
         PresentedCommand? presentation = null;
         using (DevAncientNaval.Presentation.Diagnostics.PerformanceTrace.Measure("Command.Model"))
@@ -80,6 +84,10 @@ public partial class Main
             Refresh();
             return;
         }
+
+        // Player simulation commits now; visual impacts become idempotent no-ops.
+        // Opponent orders retain their staged impact boundaries in RunOpponents.
+        presentation?.Finish();
 
         InvalidateGameplayPresentation();
         ClearMode();
@@ -96,29 +104,42 @@ public partial class Main
         Hud.ShowMessage(result.Kind is CommandKind.Attack or CommandKind.Bomb ? "Ordnance in flight…" : result.Message);
         try
         {
+            await SaveSessionAsync();
+            if (!ReferenceEquals(battle, Battle))
+                return;
             if (!FastChecks)
             {
                 Task animation;
                 using (Diagnostics.PerformanceTrace.Measure("Animation.Start"))
                     animation = Fleet.Animate(result, presentation: presentation);
+                Busy = false;
+                Refresh();
                 await animation;
             }
             else
                 presentation?.Finish();
-            Hud.ShowMessage(result.Message);
-            await PresentEncounters();
+            if (ReferenceEquals(battle, Battle))
+            {
+                Hud.ShowMessage(result.Message);
+                await PresentEncounters();
+            }
         }
         finally
         {
             presentation?.Finish();
-            await SaveSessionAsync();
-            Busy = false;
-            Refresh();
+            if (ReferenceEquals(battle, Battle))
+            {
+                Busy = false;
+                Refresh();
+            }
         }
     }
 
     public async Task EndPlayerTurn()
     {
+        if (!CanCommand)
+            return;
+        Fleet.FinishAnimation();
         if (!CanCommand)
             return;
         _endingStamp = true;
@@ -159,3 +180,4 @@ public partial class Main
         }
     }
 }
+

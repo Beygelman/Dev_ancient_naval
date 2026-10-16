@@ -167,6 +167,8 @@ public partial class Main : Node2D
         InitializeTutorials();
         UiScale.Changed += Refresh;
 #if !ANCIENT_NAVAL_IOS
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--action0209-test"))
+            AddChild(new Tests.Runtime.Action0209Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--mobile-touch-test"))
             AddChild(new Tests.Runtime.MobileTouchChecks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--portrait-layout-test"))
@@ -317,6 +319,9 @@ public partial class Main : Node2D
 
     internal void LoadScenario(BattleState battle)
     {
+        // Drain the old world's continuations before swapping any model/view reference.
+        MapCamera.CancelFlight();
+        Fleet.FinishAnimation();
         _scuttleConfirmation?.CancelImmediately();
         SuspendTutorials();
         Hud.CloseTurnConfirmation();
@@ -353,3 +358,4 @@ public partial class Main : Node2D
         UiScale.Changed -= Refresh;
     }
 }
+

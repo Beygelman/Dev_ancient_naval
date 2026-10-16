@@ -70,6 +70,7 @@ public partial class Main
     {
         if (_sessionLoading || Busy)
             return;
+        Fleet.FinishAnimation();
         SaveSession();
         SuspendTutorials();
         Hud.CloseTurnConfirmation();
@@ -205,6 +206,7 @@ public partial class Main
     private async Task RunOpponents()
     {
         Busy = true;
+        _showingOpponentActions = true;
         Refresh();
         try
         {
@@ -226,7 +228,7 @@ public partial class Main
                     Hud.ShowOpponentTurn(Battle.ActiveSide);
                 if (!FastChecks)
                 {
-                    await Fleet.Animate(result, presentation: presentation);
+                    await Fleet.Animate(result, presentation: presentation, opponentReplay: true);
                     await ToSignal(GetTree().CreateTimer(.05), SceneTreeTimer.SignalName.Timeout);
                 }
 
@@ -244,6 +246,7 @@ public partial class Main
         }
         finally
         {
+            _showingOpponentActions = false;
             await SaveSessionAsync();
             Busy = false;
             Hud.HideOpponentTurn();
@@ -253,3 +256,4 @@ public partial class Main
         }
     }
 }
+
