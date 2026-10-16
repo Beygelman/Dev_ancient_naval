@@ -69,3 +69,57 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+
+  windows:
+    needs: [core, native]
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            src
+            tests
+            data
+            assets
+            scenes
+            tools
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.425
+      - name: Install pinned Windows engine and export templates
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable'
+          Invoke-WebRequest "$base/Godot_v4.7.2-stable_mono_win64.zip" -OutFile "$env:RUNNER_TEMP/godot.zip"
+          Expand-Archive "$env:RUNNER_TEMP/godot.zip" "$env:RUNNER_TEMP/godot"
+          $binary = Get-ChildItem "$env:RUNNER_TEMP/godot" -Filter '*console.exe' -Recurse | Select-Object -First 1
+          if (!$binary) { throw 'Godot console executable missing.' }
+          "GODOT_BIN=$($binary.FullName)" >> $env:GITHUB_ENV
+          $packages = Get-ChildItem "$env:RUNNER_TEMP/godot" -Directory -Filter nupkgs -Recurse | Select-Object -First 1
+          dotnet nuget add source $packages.FullName --name GodotBundled
+          if ($LASTEXITCODE -ne 0) { throw 'Bundled Godot feed setup failed.' }
+          Invoke-WebRequest "$base/Godot_v4.7.2-stable_mono_export_templates.tpz" -OutFile "$env:RUNNER_TEMP/templates.zip"
+          Expand-Archive "$env:RUNNER_TEMP/templates.zip" "$env:RUNNER_TEMP/templates"
+          $destination = "$env:APPDATA/Godot/export_templates/4.7.2.stable.mono"
+          New-Item -ItemType Directory -Force $destination | Out-Null
+          Copy-Item "$env:RUNNER_TEMP/templates/templates/*" $destination -Recurse
+          '{ "sdk": { "version": "8.0.425", "rollForward": "disable" } }' | Set-Content global.json
+      - name: Export and start the actual Windows player
+        shell: pwsh
+        run: ./tools/Build-ExperimentalWindows.ps1 -Godot $env:GODOT_BIN -Output "$env:RUNNER_TEMP/Windows-v0209x1"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Ancient-Naval-v020.9x1-Windows
+          path: |
+            ${{ runner.temp }}/Windows-v0209x1/Ancient_Naval_*_Windows.zip
+            ${{ runner.temp }}/Windows-v0209x1/SHA256.txt
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: windows-export-diagnostics
+          path: ${{ runner.temp }}/Windows-v0209x1/*.log
+          if-no-files-found: ignore

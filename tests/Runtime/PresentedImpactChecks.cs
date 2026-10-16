@@ -22,9 +22,11 @@ public partial class EffectsChecks
         Game.MapCamera.Zoom = Vector2.One * 2;
         Game.MapCamera.ForceUpdateScroll();
         Game.FastChecks = false;
-        Game.SelectCell(new(8, 8));
-        Game.SelectCell(new(9, 8));
-        var order = Game.CurrentOrder;
+        // Explicitly test the staged renderer used for replay. Own UI commands
+        // now commit immediately and are covered by Action0209Checks.
+        var staged = Game.Battle.Prepare(b => b.Attack(Side.Player, 1, 2));
+        Check(staged.Result.Success, "Staged flagship sinking fixture");
+        var order = Game.Fleet.Animate(staged.Result, presentation: staged);
         Check(Game.Battle.Find(2)!.Health == 1 && Game.Battle.Find(3)is not null, "Doomed flagship and escort still exist during gun aiming");
         for (int frame = 0; frame < 240 && Game.Fleet.SinkingCount == 0; frame++)
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -39,3 +41,4 @@ public partial class EffectsChecks
         Check(Game.Fleet.SinkingCount == 0 && Game.Battle.Winner == Side.Player && Game.Battle.PendingPresentation is null, "Completed sinking leaves one resolved winning aggregate");
     }
 }
+

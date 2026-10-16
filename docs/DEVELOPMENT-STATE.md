@@ -9,15 +9,16 @@ connector and publish only reviewed changed paths. Local .NET/Godot unavailable;
 use prepared CI for build checks.
 
 ## Completed
-Documentation checkpoint: concise root guide, Core/Presentation guides, code map.
-Full previous guide preserved verbatim in docs/history/AGENTS-before-v0209x1.md.
-Stage 1 source implemented: immediate own command commit; nonblocking own effects;
-explicit opponent-only focus; shorter sinking; visual settle on next order/world swap.
-Added native Action0209Checks and a CI workflow for Core/build/graphical checks.
-Stage 1 CI passed: full Core suite, Godot build, 19 graphical action0209 checks.
-Evidence: Actions run 38888534402. Combat/trade source added; native build/action checks passed (run 38889060929).
-Core regression found actual credited trade bypassing the cap; fixed shared calculation.
-City facility Core/save/validation/UI/AI prototype added; validation pending.
+Concise root/subsystem guides and code map; original guide archived byte-for-byte
+(blob 4d6f510f34e770443a845735b0e8e1c8e6deaafb; root reduced from 51 KB to 5 KB).
+Permanent animation/camera changes plus saved combat/trade/city experiments, AI,
+validation, EN/UK/NL controls and v020.9x1 metadata implemented.
+Full Core suite passed, including 59 new checks (Actions run 38891934413).
+All 43 new graphical action/city tests passed on that run; screenshots inspected.
+The old sinking fixture still used own delayed impacts: updated it to explicitly
+exercise staged presentation, retaining the original phase assertions.
+Added a gated Windows export, real exported-player startup and SHA256 package job.
+Latest integration validation and Windows package are pending; PR #7 is a draft.
 
 ## Authorized stages
 1. Permanent camera/animation correction: own actions do not auto-focus; next legal
@@ -36,5 +37,5 @@ City facility Core/save/validation/UI/AI prototype added; validation pending.
 Deferred: Galleon move-fire-move, Kolonel movement nerf, flagship Restoration changes,
 production queues, caravans, supplies and national mechanics.
 
-Next: inspect CI for integrated combat/trade/cities; repair failures, then version and delivery.
+Next: inspect final Core/native/Windows CI; fix failures, record evidence and finalize PR #7.
 

@@ -18,3 +18,8 @@ Read the root guide and relevant docs/CODEMAP.md row.
 - Preserve iOS net8.0 NativeAOT/generated JSON/compile exclusions and script paths.
 - Build/headless does not prove pixels or input. Use existing tests/Runtime with
   disposable save/capture paths; inspect captures and report unavailable checks.
+
+
+Native input fixtures must release every synthetic mouse/wheel button. An unreleased
+wheel keeps GUI mouse focus captured and invalidates later clicks. Wait for radial
+paper reveal/processing to finish; exercise native hit regions instead of signals.

@@ -50,6 +50,7 @@ public partial class CityInfrastructureHud : CanvasLayer
     };
     internal void ShowCity(BattleState battle, Village town)
     {
+        _close.Text = T("Close");
         foreach (var child in _body.GetChildren()) { _body.RemoveChild(child); child.QueueFree(); }
         _body.AddChild(Text(T("City infrastructure"), 21));
         _body.AddChild(Text(town.Name));
