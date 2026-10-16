@@ -197,10 +197,14 @@ public partial class Action0209Checks : Node
                     "City panel capture " + locale);
             }
             var install = Find<Button>(panel, "Facility_0_TradeYard");
+            int presses = 0;
+            install.Pressed += () => presses++;
             Click(install);
+            await Frame(); await Frame();
             await Game.CurrentOrder;
+            Check(presses == 1, "Native facility button receives exactly one press: " + locale);
             Check(!panel.IsOpen && Game.Battle.Villages[0].Facility1 == CityFacility.TradeYard,
-                "Native touch-sized choice installs the selected facility: " + locale);
+                $"Native facility install: {locale}, open={panel.IsOpen}, facility={Game.Battle.Villages[0].Facility1}, selected={Game.SelectedVillageId}, busy={Game.Busy}");
         }
         Language.Set("en", persist: false);
     }
