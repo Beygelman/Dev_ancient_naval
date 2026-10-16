@@ -194,6 +194,8 @@ public partial class Action0209Checks : Node
             var point = close.GetGlobalRect().GetCenter();
             GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.WheelDown,
                 Position = point, GlobalPosition = point, Pressed = true }, true);
+            GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.WheelDown,
+                Position = point, GlobalPosition = point, Pressed = false }, true);
             Check(Game.MapCamera.Position == camera && Game.MapCamera.Zoom == Vector2.One,
                 "Modal wheel cannot move or zoom the world: " + locale);
             string? capture = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--capture="));
@@ -204,12 +206,15 @@ public partial class Action0209Checks : Node
                     "City panel capture " + locale);
             }
             var install = Find<Button>(panel, "Facility_0_TradeYard");
-            int presses = 0;
+            int presses = 0, downs = 0, ups = 0;
             install.Pressed += () => presses++;
+            install.ButtonDown += () => downs++;
+            install.ButtonUp += () => ups++;
+            install.GuiInput += input => { if (input is InputEventMouseButton mouse) GD.Print($"FACILITY_INPUT {mouse.ButtonIndex} pressed={mouse.Pressed}"); };
             await Click(install);
             await Frame(); await Frame();
             await Game.CurrentOrder;
-            Check(presses == 1, $"Native facility press: {locale}, count={presses}, open={panel.IsOpen}, facility={Game.Battle.Villages[0].Facility1}");
+            Check(presses == 1, $"Native facility press: {locale}, count={presses}, down={downs}, up={ups}, open={panel.IsOpen}, facility={Game.Battle.Villages[0].Facility1}");
             Check(!panel.IsOpen && Game.Battle.Villages[0].Facility1 == CityFacility.TradeYard,
                 $"Native facility install: {locale}, open={panel.IsOpen}, facility={Game.Battle.Villages[0].Facility1}, selected={Game.SelectedVillageId}, busy={Game.Busy}");
         }
