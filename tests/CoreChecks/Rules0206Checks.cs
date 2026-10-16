@@ -11,6 +11,9 @@ internal static class Rules0206Checks
         // v020.6 assertions describe its released one-slot balance and map-size pirates.
         var released = JsonNode.Parse(System.Text.Json.JsonSerializer.Serialize(rules))!.AsObject();
         released["WeightedFleetCapacity"] = false;
+        released["CounterBetweenSalvoShots"] = false;
+        released["Ports"]!["ConnectedCityIncomeCap"] = 0;
+        released["Infrastructure"]!["Enabled"] = false;
         released["PirateDifficultyScaling"] = false;
         foreach (var definition in released["Ships"]!.AsArray())
             if (definition!["Class"]!.GetValue<int>() == (int)ShipClass.Togus) definition["Movement"] = 3;
@@ -265,3 +268,4 @@ internal static class Rules0206Checks
         return checks;
     }
 }
+

@@ -173,6 +173,9 @@ public partial class Action0209Checks : Node
             await Frame(); await Frame();
             var open = Find<SectorButton>(Game.Hud, "ActionInfrastructure");
             Check(open.IsVisibleInTree() && !open.Disabled, "City infrastructure has a native command: " + locale);
+            var ring = (RadialPapyrus)open.GetParent();
+            for (int frame = 0; frame < 180 && (ring.Reveal < 1 || ring.IsProcessing()); frame++) await Frame();
+            Check(ring.Reveal == 1 && !ring.IsProcessing(), "Command parchment fully unfolds before native input: " + locale);
             Click(open);
             await Frame(); await Frame();
             var panel = Game.GetNode<CityInfrastructureHud>("CityInfrastructureHud");

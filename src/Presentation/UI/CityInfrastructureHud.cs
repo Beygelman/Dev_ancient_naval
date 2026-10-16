@@ -55,9 +55,8 @@ public partial class CityInfrastructureHud : CanvasLayer
         _body.AddChild(Text(town.Name));
         _body.AddChild(Text(T("One facility per slot. Replacing a facility costs extra. At level 5, improve one installed facility.")));
         _body.AddChild(Text(T("Trade needs a connected port. Dock service consumes the ship's actions and one city work turn.")));
-        _body.AddChild(Text(string.Format(T("Trade yard: +{0} income at a connected port."), battle.Rules.Infrastructure.TradeIncome)));
-        _body.AddChild(Text(string.Format(T("Repair dock: +{0} repair HP for one stationary neighboring ship."), battle.Rules.Infrastructure.DockRepair)));
-        _body.AddChild(Text(string.Format(T("Naval arsenal: +{0} fleet capacity. Improvement doubles the facility bonus."), battle.Rules.Infrastructure.ArsenalCapacity)));
+        _body.AddChild(Text(string.Format(T("Trade +{0} income · Dock +{1} HP · Arsenal +{2} capacity; improvement doubles one bonus."),
+            battle.Rules.Infrastructure.TradeIncome, battle.Rules.Infrastructure.DockRepair, battle.Rules.Infrastructure.ArsenalCapacity)));
         for (int slot = 0; slot < 2; slot++)
         {
             int index = slot;

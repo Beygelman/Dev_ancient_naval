@@ -879,5 +879,6 @@
   "This infrastructure slot is locked.": "Це місце для інфраструктури ще недоступне.",
   "Facility improvement requires a level-5 city.": "Для покращення об’єкта потрібне місто 5-го рівня.",
   "Only one facility can be improved.": "Можна покращити лише один об’єкт.",
-  "The city already has this facility.": "У місті вже є такий об’єкт."
+  "The city already has this facility.": "У місті вже є такий об’єкт.",
+  "Trade +{0} income · Dock +{1} HP · Arsenal +{2} capacity; improvement doubles one bonus.": "Торгівля +{0} доходу · Док +{1} ОЗ · Арсенал +{2} місткості; покращення подвоює один бонус."
 }

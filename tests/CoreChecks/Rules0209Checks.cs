@@ -44,6 +44,16 @@ internal static class Rules0209Checks
         var oldAttack = historical.Attack(Side.Player, 3, 4, true);
         Check(oldAttack.Shots!.Count == 2 && oldAttack.Shots.All(s => !s.IsCounterattack) && historical.Find(3)!.Health == 15,
             "historical double salvo still sinks before reply");
+        var safety = Combat(true, 1).CaptureSnapshot();
+        safety.Ships.Single(s => s.Id == 4).Health = 4;
+        safety.Ships.Single(s => s.Id == 3).MovementLocked = true;
+        var unsafeReply = BattleState.LoadJson(BattleState.SerializeSnapshot(safety));
+        Check(!unsafeReply.ReadyActions(Side.Player).Any(r => r.Id == 3 && (r.Actions & ReadyActionKind.Attack) != 0),
+            "readiness rejects double-shot kills prevented by a lethal middle reply");
+        safety.Rules = Policy(false, 0);
+        var legacySafe = BattleState.LoadJson(BattleState.SerializeSnapshot(safety));
+        Check(legacySafe.ReadyActions(Side.Player).Any(r => r.Id == 3 && (r.Actions & ReadyActionKind.Attack) != 0),
+            "historical readiness retains its decisive double-shot kill");
         var fragile = Combat(true, 3);
         var interrupted = fragile.Attack(Side.Player, 3, 4, true);
         Check(interrupted.Shots!.Count == 2 && interrupted.Shots[1].IsCounterattack && fragile.Find(3) is null,
@@ -90,6 +100,13 @@ internal static class Rules0209Checks
             string saved = ports.SaveJson();
             Check(BattleState.LoadJson(saved).SaveJson() == saved, "trade policy/state resumes exactly");
         }
+        var credited = Ports(4, 2);
+        int balance = credited.Credits(Side.Player);
+        credited.EndTurn(Side.Player);
+        var nextTurn = credited.EndTurn(Side.Enemy);
+        Check(nextTurn.IncomeReceipts!.Where(r => r.SourceId.StartsWith("village:")).All(r => r.Amount == 5)
+            && credited.Credits(Side.Player) == balance + credited.Income(Side.Player),
+            "turn receipts and actual wallet credit apply the cap");
         var four = Ports(4, 0);
         Check(four.Villages.All(v => four.PortIncome(v) == 3), "zero cap preserves old uncapped network");
         var missing = JsonNode.Parse(JsonSerializer.Serialize(current))!.AsObject();

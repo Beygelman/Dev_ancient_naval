@@ -879,5 +879,6 @@
   "This infrastructure slot is locked.": "Deze infrastructuurplek is nog vergrendeld.",
   "Facility improvement requires a level-5 city.": "Verbetering vereist een stad van niveau 5.",
   "Only one facility can be improved.": "Slechts één voorziening kan worden verbeterd.",
-  "The city already has this facility.": "De stad heeft deze voorziening al."
+  "The city already has this facility.": "De stad heeft deze voorziening al.",
+  "Trade +{0} income · Dock +{1} HP · Arsenal +{2} capacity; improvement doubles one bonus.": "Handel +{0} inkomen · Dok +{1} HP · Arsenaal +{2} capaciteit; verbetering verdubbelt één bonus."
 }

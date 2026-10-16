@@ -59,6 +59,8 @@ jobs:
           "$GODOT_BIN" --headless --editor --path . --import --quit
           timeout 180 xvfb-run -a "$GODOT_BIN" --path . --rendering-method gl_compatibility --audio-driver Dummy -- --action0209-test --save-file="$RUNNER_TEMP/action-checks/save.json" --capture="$RUNNER_TEMP/action-checks/action.png" 2>&1 | tee "$RUNNER_TEMP/action-checks/native.log"
           grep -q 'PASS: .*action0209' "$RUNNER_TEMP/action-checks/native.log"
+          timeout 240 xvfb-run -a "$GODOT_BIN" --path . --rendering-method gl_compatibility --audio-driver Dummy -- --effects-test --save-file="$RUNNER_TEMP/action-checks/effects-save.json" 2>&1 | tee "$RUNNER_TEMP/action-checks/effects.log"
+          grep -q 'PASS: .*effects checks' "$RUNNER_TEMP/action-checks/effects.log"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
