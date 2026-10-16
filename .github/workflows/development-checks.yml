@@ -3,6 +3,9 @@ on:
   push:
     branches: [codex/ancient-naval-v020.9x1]
   workflow_dispatch:
+concurrency:
+  group: development-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -94,8 +97,8 @@ jobs:
           $base = 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable'
           Invoke-WebRequest "$base/Godot_v4.7.2-stable_mono_win64.zip" -OutFile "$env:RUNNER_TEMP/godot.zip"
           Expand-Archive "$env:RUNNER_TEMP/godot.zip" "$env:RUNNER_TEMP/godot"
-          $binary = Get-ChildItem "$env:RUNNER_TEMP/godot" -Filter '*console.exe' -Recurse | Select-Object -First 1
-          if (!$binary) { throw 'Godot console executable missing.' }
+          $binary = Get-ChildItem "$env:RUNNER_TEMP/godot" -Filter 'Godot_v*-stable_mono_win64.exe' -Recurse | Select-Object -First 1
+          if (!$binary) { throw 'Godot executable missing.' }
           "GODOT_BIN=$($binary.FullName)" >> $env:GITHUB_ENV
           $packages = Get-ChildItem "$env:RUNNER_TEMP/godot" -Directory -Filter nupkgs -Recurse | Select-Object -First 1
           dotnet nuget add source $packages.FullName --name GodotBundled
