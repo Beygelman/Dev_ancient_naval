@@ -6,7 +6,21 @@ addition to the external `outputs` directory. Sources are edited directly in
 the repository's `src`, `assets`, `data`, `scenes` and `tests` folders; the root
 `README.md` describes the current version.
 
-## Current version: v020.8b — 7 October 2026
+## Current version: v020.9x1 — 16 October 2026 (experimental)
+
+- [Windows ZIP](v020.9x1/Ancient_Naval_v020.9x1_Windows.zip)
+- [Matching source ZIP](v020.9x1/Ancient_Naval_v020.9x1_Source.zip)
+- [Prepare and launch on Windows](v020.9x1/Install_Ancient_Naval_v0209x1.cmd)
+- [Russian notes](v020.9x1/Ancient_Naval_v020.9x1_Notes_RU.md), [checksums](SHA256-v020.9x1.txt)
+- Local launch: `v020.9x1/playable/Ancient Naval.exe`.
+
+The launcher downloads the hash-verified player and puts it in the canonical
+Windows project folder. Plain Git checkout does not create the ignored unpacked
+player. The original CI ZIP is preserved byte-for-byte; source/evidence are separate.
+This publication does not itself write to a remote Windows C: drive. Graphical
+Windows playthrough, final frame pacing and physical phone checks remain pending.
+
+## Previous version: v020.8b — 7 October 2026
 
 - [Windows ZIP](v020.8b/Ancient_Naval_v020.8b_Windows.zip)
 - [Source ZIP](v020.8b/Ancient_Naval_v020.8b_Source.zip)

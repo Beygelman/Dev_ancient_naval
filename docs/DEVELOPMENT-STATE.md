@@ -3,7 +3,8 @@
 ## Current delivery
 Version: v020.9x1 (user-facing v20.9x1), experimental.
 Validated functional source: c7bbd6963b0d6d7aa8bb7f2ebed92451584aa23f.
-Delivery: PR #7, branch codex/ancient-naval-v020.9x1; final handoff changes are docs only.
+Delivery: PR #7, branch codex/ancient-naval-v020.9x1. Gameplay source is unchanged;
+subsequent release delivery adds packaging, installation and verification.
 Original base: main 0c78297469d6d278334ea1c59d43fc4912677548 (v020.8b).
 Historical archives and fixtures were preserved.
 
@@ -52,3 +53,24 @@ SDK/engine migration was made; prepared CI supplied the pinned tools. In a new
 environment, inspect the current checkout and installed tools first. Do not repeat
 the recovery or load the archived guide/chat history without a specific need.
 
+
+## Permanent Windows delivery — 16 October 2026
+
+The original verified player ZIP is now retained under releases/v020.9x1, with
+matching source, inventories, Russian notes and SHA256. releases/latest.json
+points to this experimental delivery. Historical version folders remain unchanged.
+The source ZIP records 0b6cc56 (only docs follow the tested c7bbd69 gameplay).
+
+Run releases/v020.9x1/Install_Ancient_Naval_v0209x1.cmd on the user's Windows PC:
+it hash-verifies the installer and player, verifies all extracted runtime files,
+and prepares releases/v020.9x1/playable/Ancient Naval.exe at the canonical project.
+The helper tools/Install-PlayableRelease.ps1 accepts a different -ProjectRoot and
+an optional local -ArchivePath; -Launch starts the prepared player. Existing
+mismatched files are refused, old releases and saves are preserved. Temporary
+extraction is published only after validation. Nothing was written to the user's
+C: drive from the cloud host; local preparation needs the Windows launcher.
+
+This session rechecked archive CRC/SHA256, all 190 extracted files, 206 PCK
+resources and the 760-file matching source snapshot. The Windows delivery workflow
+checks PowerShell 5.1 extraction, idempotence and preservation/refusal cases.
+See its actual run status before claiming those new installation checks passed.

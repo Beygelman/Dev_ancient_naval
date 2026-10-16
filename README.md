@@ -2,10 +2,15 @@
 
 **16 October 2026.** Godot 4.7.2 .NET, C# / .NET 8.
 
-[Download the portable Windows playtest package](https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38893737716/artifacts/12042986760).
-The Actions artifact contains the versioned player ZIP and SHA256; extract the
-player ZIP completely and run Ancient Naval.exe. The exported executable passed
-startup verification. See [validation and handoff](docs/DEVELOPMENT-STATE.md).
+[Download the portable Windows playtest package](releases/v020.9x1/Ancient_Naval_v020.9x1_Windows.zip).
+The release now has a permanent repository copy, matching source and SHA256.
+On the user's Windows PC, run
+[Install_Ancient_Naval_v0209x1.cmd](releases/v020.9x1/Install_Ancient_Naval_v0209x1.cmd)
+to verify, prepare and launch the game at
+`C:/__Beygelman/! -11/dev-ancient-naval/releases/v020.9x1/playable/Ancient Naval.exe`.
+The installer preserves old releases and refuses differing existing files.
+The exported executable passed startup verification; graphical Windows playthrough
+and final frame pacing remain unverified. See [validation and handoff](docs/DEVELOPMENT-STATE.md).
 
 Own orders keep the camera stationary and apply gameplay immediately. Attack and
 sinking effects no longer hold up the next legal order; remaining cosmetics settle

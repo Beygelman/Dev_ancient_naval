@@ -1,0 +1,5 @@
+*.zip -text
+*.cmd -text whitespace=cr-at-eol
+*.json text eol=lf
+*.txt text eol=lf
+*.md text eol=lf

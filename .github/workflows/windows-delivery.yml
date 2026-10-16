@@ -1,0 +1,90 @@
+name: Windows delivery layout
+on:
+  push:
+    branches: [codex/ancient-naval-v020.9x1]
+    paths:
+      - 'tools/Install-PlayableRelease.ps1'
+      - 'tools/Retain-WindowsDelivery.py'
+      - 'releases/v020.9x1/**'
+      - '.github/workflows/windows-delivery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  retain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    outputs:
+      commit: ${{ steps.publish.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          filter: blob:none
+          sparse-checkout: |
+            tools
+            releases/v020.9x1
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 38893737716
+          name: Ancient-Naval-v020.9x1-Windows
+          path: ${{ runner.temp }}/verified-player
+      - name: Retain existing player and matching source
+        env:
+          ARTIFACT_DIRECTORY: ${{ runner.temp }}/verified-player
+        run: python3 tools/Retain-WindowsDelivery.py --artifact-dir "$ARTIFACT_DIRECTORY"
+      - name: Publish versioned archives without rewriting history
+        id: publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add releases/v020.9x1/Ancient_Naval_v020.9x1_Windows.zip releases/v020.9x1/Ancient_Naval_v020.9x1_Source.zip releases/v020.9x1/SHA256-v020.9x1.txt releases/SHA256-v020.9x1.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'release: retain verified v020.9x1 Windows and source archives [skip ci]'
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  install:
+    needs: retain
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.retain.outputs.commit }}
+          sparse-checkout: |
+            tools
+            releases/v020.9x1
+      - name: Verify Windows PowerShell install and preservation
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Join-Path $PWD 'tools/Install-PlayableRelease.ps1'
+          $archive = Join-Path $PWD 'releases/v020.9x1/Ancient_Naval_v020.9x1_Windows.zip'
+          $root = Join-Path $env:RUNNER_TEMP 'Ancient Naval install fixture'
+          New-Item -ItemType Directory -Path "$root/releases/previous-version" -Force | Out-Null
+          Set-Content -LiteralPath "$root/releases/previous-version/keep.txt" -Value 'preserve previous release'
+          & $installer -ProjectRoot $root -ArchivePath $archive
+          $exe = Join-Path $root 'releases/v020.9x1/playable/Ancient Naval.exe'
+          if (!(Test-Path -LiteralPath $exe)) { throw 'Executable not placed at the conventional path.' }
+          $before = (Get-Item -LiteralPath $exe).LastWriteTimeUtc
+          & $installer -ProjectRoot $root -ArchivePath $archive
+          if ((Get-Item -LiteralPath $exe).LastWriteTimeUtc -ne $before) { throw 'Identical installed player was overwritten.' }
+          if ((Get-Content -LiteralPath "$root/releases/previous-version/keep.txt") -ne 'preserve previous release') { throw 'Previous release changed.' }
+          $readme = Join-Path $root 'releases/v020.9x1/playable/READ_ME_RU.txt'
+          Set-Content -LiteralPath $readme -Value 'preserve mismatched existing file'
+          $rejected = $false
+          try { & $installer -ProjectRoot $root -ArchivePath $archive } catch { $rejected = $true }
+          if (!$rejected -or (Get-Content -LiteralPath $readme) -ne 'preserve mismatched existing file') { throw 'Mismatched existing player was not preserved.' }
+          $bad = Join-Path $env:RUNNER_TEMP 'bad-player.zip'
+          Set-Content -LiteralPath $bad -Value 'invalid archive fixture'
+          $rejected = $false
+          try { & $installer -ProjectRoot "$root/bad-install" -ArchivePath $bad } catch { $rejected = $true }
+          if (!$rejected -or (Test-Path -LiteralPath "$root/bad-install")) { throw 'Checksum failure created an install.' }
+          Write-Output 'PASS: Windows PowerShell 5.1 installation, idempotence, old release preservation and corruption refusal.'

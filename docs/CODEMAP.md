@@ -20,6 +20,7 @@ Paths below are relative to the named directory.
 | City UI/localization | src/Presentation: MainVillageUpgrades.cs, UI/VillageHud.cs, UI/Language.cs, UI/LocalizedMessages.cs |
 | AI investment | src/Core/AI: FleetInvestment.cs, VillageDevelopment.cs |
 | Regression suites | tests/CoreChecks/Program.cs and focused files; tests/Runtime |
+| Local Windows install | tools/Install-PlayableRelease.ps1; releases/v020.9x1/Install_Ancient_Naval_v0209x1.cmd |
 | Version/release | project.godot, export_presets.cfg, README.md, CHANGELOG.md, tools, .github/workflows |
 
 This is an index, not a requirement to read every file.

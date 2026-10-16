@@ -13,6 +13,9 @@
   coverage for Core, native actions and EN/UK/NL facility controls.
 - Keep Godot/.NET versions, hull movement/HP/prices and flagship restoration rules.
 
+- Publish a permanent v020.9x1 Windows/source delivery under releases, SHA256 and
+  a verified-install launcher for the canonical local playable folder.
+
 ## iPhone portrait addition — 10 October 2026 (v020.8b retained)
 
 - Enable portrait alongside landscape sensor viewing; iOS build metadata 2083.
