@@ -2,6 +2,7 @@ using System;
 using DevAncientNaval.Core.Battle;
 using DevAncientNaval.Core.Units;
 using Godot;
+using Side = DevAncientNaval.Core.Units.Side;
 
 namespace DevAncientNaval.Presentation.UI;
 

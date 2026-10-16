@@ -47,7 +47,9 @@ internal static class Admiral0203Checks
         battle.Find(4)!.Health=8;
         var salvo=SimpleOpponent.Step(battle);
         Check(salvo.Success && salvo.Kind==CommandKind.Attack && salvo.Shots!.Count(s=>!s.IsCounterattack)==2
-            && salvo.Shots!.All(s=>!s.IsCounterattack) && battle.Find(4) is null,"Admiral uses a decisive double salvo and avoids a return shot");
+            && (rules.CounterBetweenSalvoShots ? salvo.Shots!.Select(s=>s.IsCounterattack).SequenceEqual(new[] {false,true,false})
+                : salvo.Shots!.All(s=>!s.IsCounterattack)) && battle.Find(4) is null,
+            "Admiral uses a decisive double salvo with the saved reply policy");
         battle=Create((Side.Player,ShipClass.Kolonel,new(8,8)),(Side.Enemy,ShipClass.Invader,new(10,8)),
             (Side.Player,ShipClass.Fishing,new(9,8)));
         battle.Find(4)!.Health=3;
@@ -103,3 +105,4 @@ internal static class Admiral0203Checks
     private static string Signature(CommandResult command)=>$"{command.Kind}/{command.ActorId}/{command.TargetId}/"+
         string.Join(';',command.Path?.Select(p=>$"{p.X},{p.Y}")??Array.Empty<string>());
 }
+

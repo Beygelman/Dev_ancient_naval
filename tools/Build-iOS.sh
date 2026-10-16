@@ -6,6 +6,8 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   exit 2
 fi
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+version="$(sed -n 's/^config\/version="\([^"]*\)"/\1/p' "$root/project.godot")"
+[[ "$version" =~ ^v[0-9][A-Za-z0-9.]*$ ]] || { echo "Invalid project version." >&2; exit 2; }
 godot="${GODOT_BIN:-/Applications/Godot_mono.app/Contents/MacOS/Godot}"
 out="${IOS_OUTPUT:-${TMPDIR:-/tmp}/AncientNaval-iOS-$(date +%Y%m%d-%H%M%S)}"
 bundle="${IOS_BUNDLE_ID:-com.beygelman.ancientnaval}"
@@ -65,11 +67,12 @@ fi
 # identity/profile is embedded here, and opening it in Files cannot install it.
 mkdir -p "$out/ipa/Payload"
 ditto "${apps[0]}" "$out/ipa/Payload/AncientNaval.app"
-(cd "$out/ipa" && /usr/bin/zip -qry "$out/Ancient_Naval_v020.8b_iPhone_UNSIGNED.ipa" Payload)
+(cd "$out/ipa" && /usr/bin/zip -qry "$out/Ancient_Naval_${version}_iPhone_UNSIGNED.ipa" Payload)
 cp "$root/docs/INSTALL-iPHONE-RU.md" "$out/xcode/INSTALL-iPHONE-RU.md"
 printf '%s\n' 'UNSIGNED Xcode project: open it on a Mac, choose your own Team and run on iPhone.' \
   'This archive is not a signed IPA and cannot be installed by opening it in Files.' > "$out/xcode/UNSIGNED.txt"
-ditto -c -k --keepParent "$out/xcode" "$out/Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip"
-(cd "$out" && shasum -a 256 Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip Ancient_Naval_v020.8b_iPhone_UNSIGNED.ipa) > "$out/SHA256-iOS.txt"
+ditto -c -k --keepParent "$out/xcode" "$out/Ancient_Naval_${version}_iOS_Xcode_UNSIGNED.zip"
+(cd "$out" && shasum -a 256 Ancient_Naval_${version}_iOS_Xcode_UNSIGNED.zip Ancient_Naval_${version}_iPhone_UNSIGNED.ipa) > "$out/SHA256-iOS.txt"
 echo "Export and unsigned Xcode build passed. Open: $project"
 echo "Keep the ENTIRE xcode folder; frameworks/PCK beside the project are required."
+
