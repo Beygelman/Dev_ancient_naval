@@ -6,6 +6,7 @@ using DevAncientNaval.Core.Grid;
 using DevAncientNaval.Core.Units;
 using DevAncientNaval.Core.World;
 using DevAncientNaval.Presentation;
+using DevAncientNaval.Presentation.UI;
 using Godot;
 using Side = DevAncientNaval.Core.Units.Side;
 
@@ -115,6 +116,7 @@ public partial class Action0209Checks : Node
                 "World replacement settles the old order before changing references");
             Check(Game.Battle.Find(4) is not null && Game.Battle.Find(4)!.Health == 5,
                 "Old visual continuations cannot damage the replacement world");
+            await CityPanelChecks();
             string? capture = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--capture="));
             if (capture is not null && DisplayServer.GetName() != "headless")
             {
@@ -130,5 +132,75 @@ public partial class Action0209Checks : Node
             GetTree().Quit(1);
         }
     }
+    private T Find<T>(Node root, string name) where T : Node
+    {
+        if (root is T result && root.Name.ToString() == name) return result;
+        foreach (var child in root.GetChildren())
+        {
+            var found = Find<T>(child, name);
+            if (found is not null) return found;
+        }
+        return null!;
+    }
+    private void Click(Button button)
+    {
+        var point = button is SectorButton sector ? sector.GlobalPosition + sector.IconCenter
+            : button.GetGlobalRect().GetCenter();
+        foreach (bool pressed in new[] { true, false })
+            GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.Left,
+                Position = point, GlobalPosition = point, Pressed = pressed }, true);
+    }
+    private async Task CityPanelChecks()
+    {
+        foreach (var locale in new[] { "en", "uk", "nl" })
+        {
+            Language.Set(locale, persist: false);
+            var cell = new GridPosition(8, 8);
+            var battle = new BattleState(new GameBoard(20, 20, p => p == cell ? TerrainType.Land : TerrainType.Water),
+                Game.Battle.Rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(2, 2)),
+                    (Side.Enemy, ShipClass.Mothership, new GridPosition(17, 17)) },
+                Array.Empty<GridPosition>(), villageSpots: new[] { cell });
+            var saved = battle.CaptureSnapshot();
+            saved.Villages[0] = saved.Villages[0] with { Owner = Side.Player, Level = 5, Health = 25 };
+            saved.Credits[0] = 100;
+            Game.LoadScenario(BattleState.LoadJson(BattleState.SerializeSnapshot(saved)));
+            Game.FastChecks = true;
+            Game.MapCamera.Position = Game.BoardView.Projection.GridToWorld(cell);
+            Game.MapCamera.Zoom = Vector2.One;
+            Game.MapCamera.ForceUpdateScroll();
+            Game.Refresh();
+            Game.SelectCell(cell);
+            await Frame(); await Frame();
+            var open = Find<SectorButton>(Game.Hud, "ActionInfrastructure");
+            Check(open.IsVisibleInTree() && !open.Disabled, "City infrastructure has a native command: " + locale);
+            Click(open);
+            await Frame(); await Frame();
+            var panel = Game.GetNode<CityInfrastructureHud>("CityInfrastructureHud");
+            Check(panel.IsOpen, "Native pointer opens infrastructure sheet: " + locale);
+            var close = Find<Button>(panel, "InfrastructureClose");
+            Check(close.IsVisibleInTree() && close.GetGlobalRect().End.Y <= GetViewport().GetVisibleRect().End.Y,
+                "Modal footer remains reachable: " + locale);
+            var camera = Game.MapCamera.Position;
+            var point = close.GetGlobalRect().GetCenter();
+            GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.WheelDown,
+                Position = point, GlobalPosition = point, Pressed = true }, true);
+            Check(Game.MapCamera.Position == camera && Game.MapCamera.Zoom == Vector2.One,
+                "Modal wheel cannot move or zoom the world: " + locale);
+            string? capture = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--capture="));
+            if (capture is not null && DisplayServer.GetName() != "headless")
+            {
+                await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+                Check(GetViewport().GetTexture().GetImage().SavePng(capture[10..].Replace(".png", "-city-" + locale + ".png")) == Error.Ok,
+                    "City panel capture " + locale);
+            }
+            var install = Find<Button>(panel, "Facility_0_TradeYard");
+            Click(install);
+            await Game.CurrentOrder;
+            Check(!panel.IsOpen && Game.Battle.Villages[0].Facility1 == CityFacility.TradeYard,
+                "Native touch-sized choice installs the selected facility: " + locale);
+        }
+        Language.Set("en", persist: false);
+    }
+
 }
 

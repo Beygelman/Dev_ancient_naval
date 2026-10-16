@@ -117,6 +117,7 @@ internal static class Rules0209Checks
             Check(hp == 3 ? result.StructureHit!.SecondAttacker is null && townBattle.Find(3) is null
                 : result.StructureHit!.SecondAttacker is not null, "town reply can prevent second shot");
         }
+        checks += CityInfrastructureChecks.Run(current);
         return checks;
     }
 }

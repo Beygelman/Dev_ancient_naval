@@ -14,8 +14,10 @@ public sealed partial class BattleState
             return CommandResult.Rejected(error);
         if (!ship!.CanRepair)
             return CommandResult.Rejected("A damaged ship can repair before taking other actions.");
-        double amount = Math.Min(Rules.RepairAmount, ship.MaxHealth - ship.Health);
+        var dock = AvailableRepairDock(ship);
+        double amount = Math.Min(ShipRepairAmount(ship), ship.MaxHealth - ship.Health);
         ship.Health = Ship.Whole(ship.Health + amount);
+        if (dock is not null) { dock.HasRepaired = true; dock.HasProduced = true; }
         ship.IsExhausted = true;
         ship.HasRepaired = true;
         ship.MovementLocked = true;
@@ -68,7 +70,7 @@ public sealed partial class BattleState
 
     public int GrossIncome(Side side)
     {
-        var portIncome = Rules.Ports.ConnectedCityIncome ? ConnectedPortIncomes(side) : null;
+        var portIncome = Rules.Ports.ConnectedCityIncome || Rules.Infrastructure.Enabled ? ConnectedPortIncomes(side) : null;
         return _incomeSources.Where(s => s.Owner == side && (s.BoundShipId is null || Find(s.BoundShipId.Value)is not null))
             .Sum(source => CurrentIncomeAmount(source, portIncome));
     }
@@ -80,7 +82,7 @@ public sealed partial class BattleState
         var town = _villages.FirstOrDefault(village => village.Id == id);
         if (town is null) return source.Amount; // Generic externally registered stationary source.
         if (town.Owner != source.Owner || town.Health <= 0) return 0;
-        return VillageIncome(town) + portIncome.GetValueOrDefault(id);
+        return VillageIncome(town) + PortIncomeFromPartners(town, portIncome.GetValueOrDefault(id));
     }
     public int Upkeep(Side side)
     {
@@ -96,7 +98,7 @@ public sealed partial class BattleState
     private IReadOnlyList<IncomeReceipt> CreditTurnIncome(Side side)
     {
         var receipts = new List<IncomeReceipt>();
-        var portIncome = Rules.Ports.ConnectedCityIncome ? ConnectedPortIncomes(side) : null;
+        var portIncome = Rules.Ports.ConnectedCityIncome || Rules.Infrastructure.Enabled ? ConnectedPortIncomes(side) : null;
         foreach (var source in _incomeSources.Where(source => source.Owner == side))
         {
             GridPosition? position = source.BoundShipId is { } id ? Find(id)?.Position : null;
@@ -126,3 +128,4 @@ public sealed partial class BattleState
 
     public bool RemoveIncomeSource(string id) => _incomeSources.RemoveAll(s => s.Id == id) > 0;
 }
+

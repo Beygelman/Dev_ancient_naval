@@ -15,7 +15,9 @@ Stage 1 source implemented: immediate own command commit; nonblocking own effect
 explicit opponent-only focus; shorter sinking; visual settle on next order/world swap.
 Added native Action0209Checks and a CI workflow for Core/build/graphical checks.
 Stage 1 CI passed: full Core suite, Godot build, 19 graphical action0209 checks.
-Evidence: Actions run 38888534402. Combat/trade source added next; validation pending.
+Evidence: Actions run 38888534402. Combat/trade source added; native build/action checks passed (run 38889060929).
+Core regression found actual credited trade bypassing the cap; fixed shared calculation.
+City facility Core/save/validation/UI/AI prototype added; validation pending.
 
 ## Authorized stages
 1. Permanent camera/animation correction: own actions do not auto-focus; next legal
@@ -34,5 +36,5 @@ Evidence: Actions run 38888534402. Combat/trade source added next; validation pe
 Deferred: Galleon move-fire-move, Kolonel movement nerf, flagship Restoration changes,
 production queues, caravans, supplies and national mechanics.
 
-Next: inspect CI for stage 1; fix failures before integrating combat/economy.
+Next: inspect CI for integrated combat/trade/cities; repair failures, then version and delivery.
 

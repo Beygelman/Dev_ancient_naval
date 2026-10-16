@@ -48,6 +48,18 @@ internal static class BattleSaveValidation
             throw new ArgumentException("Invalid saved ship construction price.");
         if (saved.Villages.Any(v => v is null || v.Id <= 0 || !board.Contains(v.Position) || v.Owner is { } owner && !Enum.IsDefined(owner) || v.Level is < 1 or > 5 || !double.IsFinite(v.Health) || v.Health < 0 || v.Health > v.Level * 5 || v.TurnsOwned < 0 || v.Port && v.Level < 3) || saved.Treasuries.Any(t => t is null || t.Id <= 0 || !board.Contains(t.Position)))
             throw new ArgumentException("Invalid saved settlements or treasuries.");
+        foreach (var town in saved.Villages)
+        {
+            bool any = town.Facility1 != CityFacility.None || town.Facility2 != CityFacility.None || town.ImprovedFacility != CityFacility.None;
+            if (!Enum.IsDefined(town.Facility1) || !Enum.IsDefined(town.Facility2) || !Enum.IsDefined(town.ImprovedFacility)
+                || any && !rules.Infrastructure.Enabled
+                || town.Facility1 != CityFacility.None && town.Level < 2
+                || town.Facility2 != CityFacility.None && town.Level < 4
+                || town.Facility1 != CityFacility.None && town.Facility1 == town.Facility2
+                || town.ImprovedFacility != CityFacility.None && (town.Level < 5
+                    || town.ImprovedFacility != town.Facility1 && town.ImprovedFacility != town.Facility2))
+                throw new ArgumentException("Invalid saved city infrastructure.");
+        }
         if (!saved.PiratesEnabled && (saved.ActiveSide == Side.Pirates || saved.Winner == Side.Pirates
             || saved.Ships.Any(ship => ship.Owner == Side.Pirates)
             || saved.Villages.Any(village => village.Owner == Side.Pirates)
@@ -108,3 +120,4 @@ internal static class BattleSaveValidation
             throw new ArgumentException("A pirate-free voyage contains pirate progress.");
     }
 }
+

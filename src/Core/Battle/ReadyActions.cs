@@ -103,8 +103,9 @@ public sealed partial class BattleState
                 continue;
             }
             int charges = CanDoubleSalvo(attacker.Id, target.Position) ? 2 : 1;
-            double remaining = target.Health - Damage(attacker, target) * charges;
-            if (remaining <= 0 && target.IsAirborne && Rules.Balloon.CrashDamage >= attacker.Health
+            double totalRemaining = target.Health - Damage(attacker, target) * charges;
+            double remaining = target.Health - Damage(attacker, target) * (Rules.CounterBetweenSalvoShots ? 1 : charges);
+            if (totalRemaining <= 0 && target.IsAirborne && Rules.Balloon.CrashDamage >= attacker.Health
                 && Board.BlastCells(target.Position).Contains(attacker.Position)) continue;
             if (remaining <= 0 || !CanCounterattack(target, attacker)) return true;
             double reply = Math.Max(1, Ship.Whole(target.FullDamage * (.5 + .5 * remaining / target.MaxHealth))
@@ -115,7 +116,7 @@ public sealed partial class BattleState
         {
             int charges = CanDoubleSalvo(attacker.Id, village.Position) ? 2 : 1;
             double damage = VillageShotDamage(attacker, village);
-            bool replies = village.Health > damage * charges && village.IsFortified
+            bool replies = village.Health > damage * (Rules.CounterBetweenSalvoShots ? 1 : charges) && village.IsFortified
                 && (!Rules.VillageCombat.AutomaticAttack || village.Level >= 2)
                 && Board.InRadius(village.Position, attacker.Position, Rules.VillageCombat.CounterRange);
             if (!replies || attacker.Health > Math.Max(1, VillageCounterDamage(village) - attacker.Definition.Armor)) return true;
@@ -123,3 +124,4 @@ public sealed partial class BattleState
         return false;
     }
 }
+

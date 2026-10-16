@@ -1,6 +1,15 @@
 {
   "startingCredits": 8,
   "counterBetweenSalvoShots": true,
+  "infrastructure": {
+    "enabled": true,
+    "buildPrice": 6,
+    "replacementSurcharge": 3,
+    "upgradePrice": 6,
+    "tradeIncome": 2,
+    "arsenalCapacity": 2,
+    "dockRepair": 2
+  },
   "freeCoastalNavigation": true,
   "mountainSightShadows": true,
   "smallHullRadarStealth": true,

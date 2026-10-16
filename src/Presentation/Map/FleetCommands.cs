@@ -139,7 +139,7 @@ public partial class FleetView
 
                 if (hit.SecondAttacker is { } second)
                 {
-                    _snapshots[second.Id] = second;
+                    if (hit.AttackerVisibleToPlayer) _snapshots[second.Id] = second;
                     await AnimateSalvo(second, hit.Position, null, hit.IsMortar,
                         hit.AttackerVisibleToPlayer, hit.TargetVisibleToPlayer);
                     presentation?.Impact("village2");

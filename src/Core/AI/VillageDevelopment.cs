@@ -11,6 +11,7 @@ internal static class VillageDevelopment
     {
         if (!battle.Rules.PaidVillageUpgrades)
             return null;
+        if (CityInfrastructureInvestment.Step(battle, observedEnemies) is { } infrastructure) return infrastructure;
         var side = battle.ActiveSide;
         int escorts = battle.OwnShips(side).Count(s => s.CountsTowardFleet && !s.IsMothership);
         bool full = battle.FleetUsed(side) >= battle.FleetCapacity(side);
@@ -32,3 +33,4 @@ internal static class VillageDevelopment
         return null;
     }
 }
+

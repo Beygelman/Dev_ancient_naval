@@ -16,7 +16,7 @@ public enum FleetColor
 }
 
 public sealed record SavedBoard(int Width, int Height, int Seed, GridPosition[] Land, SavedMesh? Mesh, WorldKind Kind = WorldKind.Oceans, MapSize? MapSize = null);
-public sealed record SavedVillage(int Id, GridPosition Position, Side? Owner, int Level, double Health, int TurnsOwned, bool Fortified, bool Produced, bool Repaired, bool Attacked, string Name = "", bool Port = false, GridPosition? PortCell = null);
+public sealed record SavedVillage(int Id, GridPosition Position, Side? Owner, int Level, double Health, int TurnsOwned, bool Fortified, bool Produced, bool Repaired, bool Attacked, string Name = "", bool Port = false, GridPosition? PortCell = null, CityFacility Facility1 = CityFacility.None, CityFacility Facility2 = CityFacility.None, CityFacility ImprovedFacility = CityFacility.None);
 public sealed record SavedWait(int Target, Side Side, int Ship, GridPosition Position, int Since);
 public sealed record SavedHome(int Ship, GridPosition Position);
 public sealed record SavedOutcome(int Treasury, TreasuryReward Reward);
@@ -65,3 +65,4 @@ public sealed class BattleSave
     public int EventDraws { get; set; }
     public TreasuryReward? LastReward { get; set; }
 }
+

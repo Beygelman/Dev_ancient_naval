@@ -55,9 +55,15 @@ public sealed partial class BattleState
     public int PortIncome(Village village)
     {
         if (!village.HasPort || village.Health <= 0 || village.Owner is null) return 0;
-        if (!Rules.Ports.ConnectedCityIncome) return Rules.Ports.Income;
-        int partners = ConnectedPortCityCount(village);
-        return Rules.Ports.ConnectedCityIncomeCap > 0 ? Math.Min(partners, Rules.Ports.ConnectedCityIncomeCap) : partners;
+        return PortIncomeFromPartners(village, ConnectedPortCityCount(village));
+    }
+
+    private int PortIncomeFromPartners(Village village, int partners)
+    {
+        if (!village.HasPort || village.Health <= 0 || village.Owner is null) return 0;
+        int income = !Rules.Ports.ConnectedCityIncome ? Rules.Ports.Income
+            : Rules.Ports.ConnectedCityIncomeCap > 0 ? Math.Min(partners, Rules.Ports.ConnectedCityIncomeCap) : partners;
+        return income + (partners > 0 ? Rules.Infrastructure.TradeIncome * CityFacilityStrength(village, CityFacility.TradeYard) : 0);
     }
 
     /// <summary>Number of other active friendly port cities reachable from this

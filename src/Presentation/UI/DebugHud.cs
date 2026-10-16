@@ -25,6 +25,8 @@ public partial class DebugHud : CanvasLayer
     private readonly List<SectorButton> _shortcutSectors = new(9);
     private bool _commandsCanAct;
     private SectorButton _villageUpgrade = null!;
+    private SectorButton _infrastructureButton = null!;
+    public event Action? InfrastructureRequested;
     public event Action? VillageUpgradeRequested;
     private readonly List<Vector2> _worldTargetHitPoints = new(16);
     private int _lastSectorCount;
@@ -266,6 +268,7 @@ public partial class DebugHud : CanvasLayer
 
         BuildGameMenu();
         _villageUpgrade = IconButton("ActionVillageUpgrade", ActionSymbol.Upgrade, "Upgrade town", () => VillageUpgradeRequested?.Invoke());
+        _infrastructureButton = IconButton("ActionInfrastructure", ActionSymbol.Build, "City infrastructure", () => InfrastructureRequested?.Invoke());
         BuildActionStories();
         BuildSalvoChoice();
         BuildHeavenlyAssistance();
@@ -390,6 +393,11 @@ public partial class DebugHud : CanvasLayer
         _loot.TooltipText = $"Remain here until next turn. Discoveries: tower {battle.Rules.Treasury.AncientGunWeight}%, {battle.Rules.Treasury.CurrencyReward} Thors {battle.Rules.Treasury.CurrencyWeight}%, ancient Balloon {battle.Rules.Treasury.AncientBalloonWeight}%, {battle.Rules.Treasury.ResourceReward} resources {battle.Rules.Treasury.ResourcesWeight}%, deadly whirlpool {battle.Rules.Treasury.WhirlpoolWeight}%.";
         _radar.Cost = selected?.HasRadar == true ? null : selected?.Definition.RadarPrice;
         _mortar.Cost = selected?.HasMortar == true ? null : battle.MortarPrice;
+        _infrastructureButton.SetMeta("applicable", battle.Rules.Infrastructure.Enabled && village?.Owner == Side.Player);
+        _infrastructureButton.Disabled = !canAct || village is null || village.Level < 2;
+        int repairAmount = selected?.Owner == Side.Player ? battle.ShipRepairAmount(selected) : battle.Rules.RepairAmount;
+        _repair.TooltipText = $"Repair: up to +{repairAmount} HP · R";
+        _badges[_repair].Text = $"+{repairAmount}";
         UpdateVillage(battle, village, canAct);
         UpdateInformation(battle, selected, village);
         _hasRadial |= _loreText.Length > 0;
@@ -468,7 +476,8 @@ public partial class DebugHud : CanvasLayer
             _fortify,
             _port,
             _loot,
-            _villageUpgrade
+            _villageUpgrade,
+            _infrastructureButton
         }
 
         )
@@ -847,3 +856,4 @@ public partial class DebugHud : CanvasLayer
         return l;
     }
 }
+
