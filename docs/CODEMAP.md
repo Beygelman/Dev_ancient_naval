@@ -13,7 +13,7 @@ Paths below are relative to the named directory.
 | Exact-once staging | src/Core/Battle: PresentedCommand.cs, BattleSnapshot.cs |
 | Combat/forecast/replies | src/Core/Battle: BattleCombat.cs, VillageCombat.cs, MortarSplash.cs |
 | Ports/income/topology | src/Core/Battle: Ports.cs, PortRules.cs; src/Core/Navigation/TradeNetwork.cs |
-| City facilities / service / AI | src/Core/Battle/CityInfrastructure.cs; src/Core/AI/CityInfrastructureInvestment.cs; src/Presentation/MainCityInfrastructure.cs; UI/CityInfrastructureHud.cs |
+| City facilities / service / AI | src/Core/Battle/CityInfrastructure.cs; src/Core/AI/CityInfrastructureInvestment.cs; src/Presentation/MainCityInfrastructure.cs; src/Presentation/UI/CityInfrastructureHud.cs |
 | City/capacity | src/Core/Battle: Village.cs, VillageProgression.cs, FleetCapacity.cs |
 | Rules/defaults/AOT | src/Core/Battle: BattleRules.cs, BattleRulesJsonConverter.cs, BattleJsonContext.cs; data/balance.json |
 | Save DTO/validation | src/Core/Battle: BattleSave.cs, BattleSaveValidation.cs |

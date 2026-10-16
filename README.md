@@ -2,6 +2,11 @@
 
 **16 October 2026.** Godot 4.7.2 .NET, C# / .NET 8.
 
+[Download the portable Windows playtest package](https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38893737716/artifacts/12042986760).
+The Actions artifact contains the versioned player ZIP and SHA256; extract the
+player ZIP completely and run Ancient Naval.exe. The exported executable passed
+startup verification. See [validation and handoff](docs/DEVELOPMENT-STATE.md).
+
 Own orders keep the camera stationary and apply gameplay immediately. Attack and
 sinking effects no longer hold up the next legal order; remaining cosmetics settle
 when that order starts. Automatic action focus is reserved for opponent replay.

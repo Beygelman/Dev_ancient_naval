@@ -1,41 +1,54 @@
 # Development state — 16 October 2026
-## Verified source
-Base: main at 0c78297469d6d278334ea1c59d43fc4912677548 (v020.8b).
-Target: v020.9x1 (user-facing v20.9x1), experimental.
-Branch: codex/ancient-naval-v020.9x1.
-No previous v020.9x1 source was found remotely; reimplement from verified base.
-Direct GitHub clone/archive access times out. Read bounded source through the
-connector and publish only reviewed changed paths. Local .NET/Godot unavailable;
-use prepared CI for build checks.
+
+## Current delivery
+Version: v020.9x1 (user-facing v20.9x1), experimental.
+Validated functional source: c7bbd6963b0d6d7aa8bb7f2ebed92451584aa23f.
+Delivery: PR #7, branch codex/ancient-naval-v020.9x1; final handoff changes are docs only.
+Original base: main 0c78297469d6d278334ea1c59d43fc4912677548 (v020.8b).
+Historical archives and fixtures were preserved.
 
 ## Completed
-Concise root/subsystem guides and code map; original guide archived byte-for-byte
-(blob 4d6f510f34e770443a845735b0e8e1c8e6deaafb; root reduced from 51 KB to 5 KB).
-Permanent animation/camera changes plus saved combat/trade/city experiments, AI,
-validation, EN/UK/NL controls and v020.9x1 metadata implemented.
-Full Core suite passed, including 59 new checks (Actions run 38891934413).
-All 43 new graphical action/city tests passed on that run; screenshots inspected.
-The old sinking fixture still used own delayed impacts: updated it to explicitly
-exercise staged presentation, retaining the original phase assertions.
-Added a gated Windows export, real exported-player startup and SHA256 package job.
-Latest integration validation and Windows package are pending; PR #7 is a draft.
+- Root AGENTS.md reduced from 51 KB to 5 KB; Core/Presentation guides and CODEMAP.
+  Original guide preserved byte-for-byte (blob 4d6f510f34e770443a845735b0e8e1c8e6deaafb).
+- Permanent own-order commit/animation separation, safe visual settling on next
+  order/world replacement, shorter sinking and opponent-only automatic action focus.
+- Saved experiments: interleaved double salvo for ships/towns, +2 ordinary connected
+  port income ceiling, city facilities at levels 2/4 and one level-5 improvement.
+- Typed save/default/validation support; actual income and receipts share the cap;
+  dock service consumes ship actions and city work; arsenal loss preserves hulls.
+- Legal AI facility investment and Admiral forecasts for the middle reply.
+- EN/UK/NL native city sheet; version/date and live Windows/iOS metadata updated.
+- Gated CI and portable Windows package, preserving historical packages.
 
-## Authorized stages
-1. Permanent camera/animation correction: own actions do not auto-focus; next legal
-   order need not wait for effects; exact-once Core; ordered opponent replay.
-2. Saved combat experiment: first shot, surviving target replies, second shot if
-   attacker lives. One reply; retain existing second-shot damage. No simultaneous
-   movement/HP/price/Galleon rebalance.
-3. Saved trade experiment: one coin per other connected friendly port, capped +2.
-4. Cities: facility slots at levels 2/4; level 5 improves one chosen facility.
-   Trade yard, repair dock, arsenal; unique types; paid replacement; dock repair
-   consumes serviced ship action; lost capacity blocks new builds, never kills hulls.
-   Preserve normal hull unlocks and historical saved economy.
-5. Integration checks, version metadata, changelog. Report native checks and player
-   packaging separately from source/build success.
+## Verified evidence
+[Actions run 38893737716](https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38893737716):
+- Full Core suite passed, including historical fixtures and 59 new checks.
+- Godot 4.7.2 .NET build passed.
+- 43 graphical action/city checks passed, including actual native EN/UK/NL clicks.
+- 100 existing effects checks passed; screenshots inspected.
+- Windows export and actual exported executable headless startup passed.
+- ZIP inventory/checksum verified: 190 members, no PDB/docs/tests/tools in outer package.
 
-Deferred: Galleon move-fire-move, Kolonel movement nerf, flagship Restoration changes,
+Windows: Ancient_Naval_v020.9x1_Windows.zip (87,373,825 bytes).
+SHA256: 762d2f697cfcd9a6695ffa34ef04a3c9af41b60731883f6571063a6c7fecc82f
+[Build artifact](https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38893737716/artifacts/12042986760).
+The reproducible build script is tools/Build-ExperimentalWindows.ps1.
+
+## Compatibility and remaining playtests
+New voyages enable experiments; Continue preserves embedded historical rules.
+Permanent camera/animation corrections also apply to old saves.
+Prototype tuning is documented in V0209X1.md. Compare combat and trade switches
+separately before drawing balance conclusions; test open sea, choke points and
+split fronts. Physical Android/iPhone validation and a final native performance
+gate were not performed. Headless Windows startup is not a graphical playthrough.
+
+Deferred: Galleon move-fire-move, movement-based Kolonel nerf, Restoration changes,
 production queues, caravans, supplies and national mechanics.
 
-Next: inspect final Core/native/Windows CI; fix failures, record evidence and finalize PR #7.
+## Session handoff
+Direct clone/archive access timed out on this host. Only needed source was read
+via the connector; reviewed changed paths were checkpointed remotely. No local
+SDK/engine migration was made; prepared CI supplied the pinned tools. In a new
+environment, inspect the current checkout and installed tools first. Do not repeat
+the recovery or load the archived guide/chat history without a specific need.
 
