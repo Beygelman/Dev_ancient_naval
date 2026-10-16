@@ -142,15 +142,20 @@ public partial class Action0209Checks : Node
         }
         return null!;
     }
-    private void Click(Button button)
+    private async Task Click(Button button)
     {
         var point = button is SectorButton sector ? sector.GlobalPosition + sector.IconCenter
             : button.GetGlobalRect().GetCenter();
         GetViewport().PushInput(new InputEventMouseMotion { Position = point, GlobalPosition = point }, true);
         GD.Print($"NATIVE_CLICK {button.Name} at {point}; hovered={GetViewport().GuiGetHoveredControl()?.Name}; disabled={button.Disabled}");
+        await Frame();
         foreach (bool pressed in new[] { true, false })
+        {
             GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.Left,
+                ButtonMask = pressed ? MouseButtonMask.Left : 0,
                 Position = point, GlobalPosition = point, Pressed = pressed }, true);
+            await Frame();
+        }
     }
     private async Task CityPanelChecks()
     {
@@ -178,7 +183,7 @@ public partial class Action0209Checks : Node
             var ring = (RadialPapyrus)open.GetParent();
             for (int frame = 0; frame < 180 && (ring.Reveal < 1 || ring.IsProcessing()); frame++) await Frame();
             Check(ring.Reveal == 1 && !ring.IsProcessing(), "Command parchment fully unfolds before native input: " + locale);
-            Click(open);
+            await Click(open);
             await Frame(); await Frame();
             var panel = Game.GetNode<CityInfrastructureHud>("CityInfrastructureHud");
             Check(panel.IsOpen, "Native pointer opens infrastructure sheet: " + locale);
@@ -201,10 +206,10 @@ public partial class Action0209Checks : Node
             var install = Find<Button>(panel, "Facility_0_TradeYard");
             int presses = 0;
             install.Pressed += () => presses++;
-            Click(install);
+            await Click(install);
             await Frame(); await Frame();
             await Game.CurrentOrder;
-            Check(presses == 1, "Native facility button receives exactly one press: " + locale);
+            Check(presses == 1, $"Native facility press: {locale}, count={presses}, open={panel.IsOpen}, facility={Game.Battle.Villages[0].Facility1}");
             Check(!panel.IsOpen && Game.Battle.Villages[0].Facility1 == CityFacility.TradeYard,
                 $"Native facility install: {locale}, open={panel.IsOpen}, facility={Game.Battle.Villages[0].Facility1}, selected={Game.SelectedVillageId}, busy={Game.Busy}");
         }
