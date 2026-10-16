@@ -146,6 +146,8 @@ public partial class Action0209Checks : Node
     {
         var point = button is SectorButton sector ? sector.GlobalPosition + sector.IconCenter
             : button.GetGlobalRect().GetCenter();
+        GetViewport().PushInput(new InputEventMouseMotion { Position = point, GlobalPosition = point }, true);
+        GD.Print($"NATIVE_CLICK {button.Name} at {point}; hovered={GetViewport().GuiGetHoveredControl()?.Name}; disabled={button.Disabled}");
         foreach (bool pressed in new[] { true, false })
             GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.Left,
                 Position = point, GlobalPosition = point, Pressed = pressed }, true);
