@@ -28,12 +28,14 @@ public sealed partial class BattleState
     {
         if (PendingPresentation is not null || IsOver || requester != ActiveSide || PendingUpgrade(requester)is not null)
             return CommandResult.Rejected("Cannot end this turn. Resolve any pending upgrade first.");
+        EndVillageWork(requester);
         var outpostShots = FireOutposts(requester);
         if (IsOver)
             return new(true, "The last flagship has fallen.", CommandKind.EndTurn, OutpostShots: outpostShots);
         var healing = AutomaticRepairs(requester);
         EndSeaEventTurn(requester);
         EndVillageTurn(requester);
+        AdvanceTradeInterceptions(requester);
         ActiveSide = NextFactionTurn(requester);
         int previousIndex = requester == Side.Pirates ? _factions.Count : _factions.IndexOf(requester);
         int nextIndex = ActiveSide == Side.Pirates ? _factions.Count : _factions.IndexOf(ActiveSide);
@@ -70,7 +72,7 @@ public sealed partial class BattleState
 
     public int GrossIncome(Side side)
     {
-        var portIncome = Rules.Ports.ConnectedCityIncome || Rules.Infrastructure.Enabled ? ConnectedPortIncomes(side) : null;
+        var portIncome = Rules.ExperimentalEconomy || Rules.Ports.ConnectedCityIncome || Rules.Infrastructure.Enabled ? ConnectedPortIncomes(side) : null;
         return _incomeSources.Where(s => s.Owner == side && (s.BoundShipId is null || Find(s.BoundShipId.Value)is not null))
             .Sum(source => CurrentIncomeAmount(source, portIncome));
     }
@@ -94,11 +96,11 @@ public sealed partial class BattleState
     }
 
     public int Income(Side side) => Math.Max(0, GrossIncome(side) - Upkeep(side));
-    public int VillageIncome(Village village) => Rules.Economy.VillageIncomeBonus + (village.Level + Rules.Economy.VillageLevelsPerIncome - 1) / Rules.Economy.VillageLevelsPerIncome;
+    public int VillageIncome(Village village) => Rules.ExperimentalEconomy ? 2 : Rules.Economy.VillageIncomeBonus + (village.Level + Rules.Economy.VillageLevelsPerIncome - 1) / Rules.Economy.VillageLevelsPerIncome;
     private IReadOnlyList<IncomeReceipt> CreditTurnIncome(Side side)
     {
         var receipts = new List<IncomeReceipt>();
-        var portIncome = Rules.Ports.ConnectedCityIncome || Rules.Infrastructure.Enabled ? ConnectedPortIncomes(side) : null;
+        var portIncome = Rules.ExperimentalEconomy || Rules.Ports.ConnectedCityIncome || Rules.Infrastructure.Enabled ? ConnectedPortIncomes(side) : null;
         foreach (var source in _incomeSources.Where(source => source.Owner == side))
         {
             GridPosition? position = source.BoundShipId is { } id ? Find(id)?.Position : null;

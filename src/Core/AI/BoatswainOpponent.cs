@@ -10,7 +10,7 @@ internal static class BoatswainOpponent
         var side = battle.ActiveSide;
         var allies = battle.OwnShips(side).ToArray();
         var enemies = battle.ObservedShips(side).Where(s => s.Owner != side).ToArray();
-        foreach (var ship in allies)
+        foreach (var ship in allies.Where(s => !CaptureOrders.Holding(battle, s)))
         {
             if (battle.CanLootTreasury(side, ship.Id))
                 return battle.LootTreasury(side, ship.Id);
@@ -23,12 +23,12 @@ internal static class BoatswainOpponent
         {
             if (battle.CanCaptureVillage(side, town.Id))
                 return battle.CaptureVillage(side, town.Id);
-            var gun = allies.FirstOrDefault(s => battle.CanAttackVillage(s.Id, town.Id));
+            var gun = allies.FirstOrDefault(s => !CaptureOrders.Holding(battle, s) && battle.CanAttackVillage(s.Id, town.Id));
             if (gun is not null)
                 return battle.AttackVillage(side, gun.Id, town.Id);
         }
 
-        foreach (var ship in allies)
+        foreach (var ship in allies.Where(s => !CaptureOrders.Holding(battle, s)))
         {
             var fish = battle.CollectionCells(ship.Id);
             if (fish.Count > 0 && battle.Credits(side) >= battle.CollectionCost(side))
@@ -40,9 +40,17 @@ internal static class BoatswainOpponent
         var mother = battle.Mothership(side)!;
         if (VillageDevelopment.Step(battle, enemies) is { } development)
             return development;
-        if (allies.Count(s => s.CountsTowardFleet) < 5 && battle.Round % 2 == 0 && battle.BuildBlockReason(side, mother.Id, ShipClass.Garrison)is null)
-            return battle.Build(side, mother.Id, ShipClass.Garrison, battle.SpawnCells(mother.Id).First());
-        foreach (var ship in allies.Where(s => s.CanMove && !s.HasMoved))
+        var preferred = StrategicPlanning.Enabled(battle) ? StrategicPlanning.PreferredHull(battle, allies, enemies) : ShipClass.Garrison;
+        if (StrategicPlanning.Enabled(battle))
+            foreach (var town in battle.ObservedVillages(side).Where(v => v.Owner == side))
+                foreach (var kind in new[] { preferred, ShipClass.Garrison }.Distinct())
+                    if (battle.VillageBuildBlockReason(side, town.Id, kind) is null)
+                        return battle.BuildFromVillage(side, town.Id, kind, battle.VillageSpawnCells(town.Id).First());
+        if (!CaptureOrders.Holding(battle, mother) && allies.Count(s => s.CountsTowardFleet) < 5 && battle.Round % 2 == 0 && battle.BuildBlockReason(side, mother.Id, preferred)is null)
+            return battle.Build(side, mother.Id, preferred, battle.SpawnCells(mother.Id).First());
+        var threats = new AdmiralThreats(battle, enemies);
+        if (StrategicPlanning.Move(battle, allies, enemies, threats.At) is { } objective) return objective;
+        foreach (var ship in allies.Where(s => s.CanMove && !s.HasMoved && !CaptureOrders.Holding(battle, s) && !StrategicPlanning.HoldingPosition(battle, s)))
         {
             var enemy = enemies.FirstOrDefault(e => !e.IsAirborne);
             if (enemy is not null && ship.IsArmed)

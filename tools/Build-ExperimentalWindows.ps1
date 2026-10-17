@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $match = Select-String -Path (Join-Path $projectRoot 'project.godot') -Pattern '^config/version="([^"]+)"'
 $version = $match.Matches[0].Groups[1].Value
-if ($version -notmatch '^v[0-9][A-Za-z0-9.]*$') { throw 'Invalid project version.' }
+if ($version -notmatch '^v[0-9][A-Za-z0-9.]*(-r[1-9][0-9]*)?$') { throw 'Invalid project version.' }
 if (Test-Path -LiteralPath $Output) { throw 'Use a fresh output directory.' }
 New-Item -ItemType Directory -Path $Output | Out-Null
 $player = Join-Path $Output 'player'
@@ -46,7 +46,8 @@ try {
     @"
 Ancient Naval $version — экспериментальная версия
 Запустите Ancient Naval.exe. Держите все файлы из архива вместе.
-Новая партия включает эксперименты боя, торговли и инфраструктуры.
+Новая партия включает экспериментальную экономику, рейды, развитие городов и роли кораблей.
+Боты получают сохраняемые стратегические характеры. Материнский корабль не изменён.
 Продолжение сохраняет прежние правила партии.
 Камера и быстрые действия исправлены для всех сохранений.
 "@ | Set-Content -LiteralPath (Join-Path $player 'READ_ME_RU.txt') -Encoding utf8

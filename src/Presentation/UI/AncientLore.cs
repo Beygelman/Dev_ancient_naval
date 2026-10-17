@@ -44,6 +44,13 @@ internal static class AncientLore
         {
             stats.Add(new("Veterancy", $"{ship.Kills}/3 ships sunk"));
         }
+        if (battle.Rules.ExperimentalCombat && EconomyUiFacts.ShipRole(ship) is { Length: > 0 } role)
+            stats.Add(new("Role", role));
+        if (!ship.IsMothership && !ship.IsStructure && !ship.IsAirborne)
+            stats.Add(new("Fleet capacity", battle.FleetSlotCost(ship.Definition.Class).ToString()));
+        if (ship.Owner != Side.Player && battle.Vision.IsVisible(Side.Player, ship.Position)
+            && battle.AiPlan(ship.Owner) is { } plan)
+            stats.Add(new("Admiral doctrine", plan.Style.ToString()));
         sections.Add(new("At a glance", stats));
         AddWeapons(sections, battle, ship);
         AddCrew(sections, battle, ship);
@@ -94,12 +101,14 @@ internal static class AncientLore
     {
         var rows = new List<LoreRow>();
         if (ship.HasMortar && !ship.IsStructure)
-            rows.Add(new("Order", "Fire before moving"));
+            rows.Add(new("Order", battle.Rules.ExperimentalCombat && ship.Definition.Class == ShipClass.Togus
+                ? "Fire or sail; no movement after firing" : "Fire before moving"));
         else if (ship.IsArmed && !ship.IsStructure)
             rows.Add(new("Order", ship.Definition.ActionProfile switch
             {
                 ActionProfile.Heavy => "Move, then fire; no sailing after firing",
-                ActionProfile.Scout => "Fire and keep sailing",
+                ActionProfile.Scout => battle.Rules.ExperimentalCombat && ship.Definition.Class == ShipClass.Garrison
+                    ? "After firing, at most 1 of the remaining movement" : "Fire and keep sailing",
                 _ => "No further sailing after moving and firing"
             }));
         rows.Add(new("Sight", $"{ship.VisualRange} tiles"));
@@ -139,6 +148,12 @@ internal static class AncientLore
             rows.Add(new("Heavenly blessing", "+2 Thors every fifth personal turn"));
         if (ship.Definition.Class == ShipClass.PirateSchooner)
             rows.Add(new("Bounty", $"{battle.Rules.PirateCurrencyReward} Thors · {battle.Rules.PirateResourceReward} resource"));
+        if (battle.Rules.ExperimentalEconomy && ship.Owner == Side.Player && ship.IsArmed
+            && !ship.IsMothership && !ship.IsAirborne && !ship.IsStructure)
+        {
+            rows.Add(new("Trade interception", "Hold the same sea tile through two turn endings. Moving ends interception; real alternative routes stay open."));
+            rows.Add(new("Interception stance", $"{battle.TradeRaidHoldEnds(Side.Player, ship.Id)}/2 turn endings held"));
+        }
         if (rows.Count > 0)
             sections.Add(new("Crew & economy", rows));
     }
@@ -176,7 +191,7 @@ internal static class AncientLore
 
     public static LorePage Village(BattleState battle, Village village)
     {
-        bool privateTrade = battle.Rules.Ports.ConnectedCityIncome && village.HasPort
+        bool privateTrade = (battle.Rules.Ports.ConnectedCityIncome || battle.Rules.ExperimentalEconomy) && village.HasPort
             && village.Owner is { } owner && owner != Side.Player && village.Health > 0;
         int settlementIncome = village.Owner is null || village.Health <= 0 ? 0 : battle.VillageIncome(village);
         int visibleIncome = settlementIncome + (privateTrade ? 0 : battle.PortIncome(village));
@@ -192,26 +207,48 @@ internal static class AncientLore
             {
                 new("Sight", $"{village.VisualRange} tiles"),
                 new("Shipyard", CurrentShipyard(battle, village.Level, true)),
-                new("Progress cells", battle.Rules.PaidVillageUpgrades
+                new("Progress cells", battle.Rules.ExperimentalEconomy
+                    ? "Pay once for two idle city works. Other orders pause development; completed work is kept. Level increases do not heal or increase fleet capacity."
+                    : battle.Rules.PaidVillageUpgrades
                     ? "Town level grows through paid upgrades; each upgrade uses the town's construction for this turn."
                     : "A living owned town fills one cell each turn and grows after two turns, up to level 5."),
-                new("Repair", $"+{battle.Rules.RepairAmount} HP; replaces production and fire"),
-                new("Passive repair", $"+{battle.Rules.VillageAutoRepairAmount ?? battle.Rules.RepairAmount} HP after a turn without an active attack")
+                new("Repair", $"+{battle.VillageRepairAmount} HP; replaces production and fire"),
+                new("Passive repair", battle.Rules.ExperimentalEconomy ? "+1 HP only after idle work; no development, production or firing"
+                    : $"+{battle.Rules.VillageAutoRepairAmount ?? battle.Rules.RepairAmount} HP after a turn without an active attack")
             }),
             new("Capture", new LoreRow[]
             {
                 new("1 · Defeat", "Reduce defenses to 0 HP"),
                 new("2 · Hold", "Keep a warship alongside until its next turn"),
-                new("3 · Claim", "Use the flag; the crew spends all actions")
+                new("3 · Claim", battle.Rules.ExperimentalEconomy ? "Use the flag; crew actions spent, half health, city work resumes next turn"
+                    : "Use the flag; the crew spends all actions")
             })
         };
+        if (battle.Rules.ExperimentalEconomy)
+        {
+            var work = new List<LoreRow>
+            {
+                new("Shared city work", "Building, repair, fortification, development and an automatic salvo share one work. Counterfire stays available."),
+                new("Fleet capacity", $"{battle.VillageFleetCapacity(village)} from this city; independent of economic level")
+            };
+            if (village.Owner == Side.Player)
+            {
+                work.Add(new("Readiness", EconomyUiFacts.CityWork(village)));
+                work.Add(new("Development", village.UpgradeWorkRemaining > 0
+                    ? (village.DevelopmentPaused ? "Paused" : "Active") + $" · {village.UpgradeWorkRemaining}/2 works remaining · already paid {village.UpgradeProjectPrice} Thors"
+                    : village.Level == 5 ? "Maximum level" : $"Next level · {battle.VillageUpgradePrice(Side.Player, village.Id)} Thors"));
+                work.Add(new("Priority", "Idle development takes priority over the automatic salvo. Use the development command to pause or resume it without spending city work."));
+                if (village.HasPort) work.Add(new("Trade status", EconomyUiFacts.TradeStatus(battle, village)));
+            }
+            sections.Insert(1, new("City decisions", work));
+        }
         if (battle.Rules.HeavenlyAssistance && village.Owner == Side.Player && village.Health > 0)
             sections.Add(new("Faith", new LoreRow[] { new("Heavenly blessing", "+2 Thors every fifth personal turn") }));
         var improvements = new List<LoreRow>();
         if (village.IsFortified)
         {
             improvements.Add(new("Outpost", "25% damage resistance · +2 sight"));
-            bool gunsActive = !battle.Rules.VillageCombat.AutomaticAttack || village.Level >= 2;
+            bool gunsActive = battle.Rules.ExperimentalEconomy || !battle.Rules.VillageCombat.AutomaticAttack || village.Level >= 2;
             if (gunsActive)
             {
                 if (battle.Rules.VillageCombat.AutomaticAttack)
@@ -223,9 +260,12 @@ internal static class AncientLore
         {
             improvements.Add(new("Port", privateTrade ? "Trade income is not observed"
                 : $"+{battle.PortIncome(village)} Thors per turn"));
-            if (battle.Rules.Ports.ConnectedCityIncome)
+            if (battle.Rules.ExperimentalEconomy)
+                improvements.Add(new("Trade income", "+2/+3/+4 at levels 3/4/5 when another friendly city is reachable. Extra partners provide alternative routes, not extra income."));
+            else if (battle.Rules.Ports.ConnectedCityIncome)
                 improvements.Add(new("Trade income", battle.Rules.Ports.ConnectedCityIncomeCap > 0 ? $"1 Thor per connected partner, up to {battle.Rules.Ports.ConnectedCityIncomeCap}; lighthouses relay the route" : "1 Thor per other connected friendly city; lighthouses relay the route"));
-            improvements.Add(new("Local shipyard", $"{battle.Rules.Ports.Discount:P0} cheaper ships"));
+            improvements.Add(new("Local shipyard", battle.Rules.ExperimentalEconomy ? "Port gives no shipyard discount"
+                : $"{battle.Rules.Ports.Discount:P0} cheaper ships"));
             improvements.Add(new("Trade lanes", $"At least +{battle.Rules.Ports.MinimumBonus} tiles or +{battle.Rules.Ports.MovementBonus:P0}; stay on the lane"));
         }
         if (battle.Rules.Infrastructure.Enabled && village.Owner == Side.Player)

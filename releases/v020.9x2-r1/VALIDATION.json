@@ -1,0 +1,34 @@
+{
+  "version": "v020.9x2-r1",
+  "source_commit": "f1718b08b2db5698a76ba5c66d813d7a810c7a41",
+  "workflow_run": "39062849400",
+  "windows_sha256": "24ccfda1afcc8337319ac42459d6faae9f217175f56ee179bc79348f7a428e4c",
+  "player_members": 190,
+  "screenshots": [
+    "screenshots/action-city-en.png",
+    "screenshots/action-city-nl.png",
+    "screenshots/action-city-uk.png",
+    "screenshots/action.png",
+    "screenshots/balance-city-connected-en.png",
+    "screenshots/balance-city-connected-nl.png",
+    "screenshots/balance-city-connected-uk.png",
+    "screenshots/balance-city-development-paused.png",
+    "screenshots/balance-city-development.png",
+    "screenshots/balance-role-fishing.png",
+    "screenshots/balance-role-garrison.png",
+    "screenshots/balance-role-invader.png",
+    "screenshots/balance-role-kolonel.png",
+    "screenshots/balance-role-togus.png",
+    "screenshots/balance-trade-interrupted.png"
+  ],
+  "gates": [
+    "core_and_historical_saves",
+    "native_graphical_regressions",
+    "windows_export_startup"
+  ],
+  "limits": [
+    "experimental_balance_not_validated_by_human_playthrough",
+    "no_user_PC_install",
+    "no_physical_mobile_test"
+  ]
+}

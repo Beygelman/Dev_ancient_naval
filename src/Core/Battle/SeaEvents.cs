@@ -214,10 +214,11 @@ public sealed partial class BattleState
                 ship.HasRepaired = true;
             }
 
-        foreach (var village in _villages.Where(v => v.Owner == side && v.Health > 0 && !v.HasRepaired && !v.HasAttacked))
+        foreach (var village in _villages.Where(v => v.Owner == side && v.Health > 0 && !v.HasRepaired && !v.HasAttacked
+                     && (!Rules.ExperimentalEconomy || !v.HasProduced)))
         {
             double before = village.Health;
-            village.Health = Math.Min(village.MaxHealth, village.Health + (Rules.VillageAutoRepairAmount ?? Rules.RepairAmount));
+            village.Health = Math.Min(village.MaxHealth, village.Health + (Rules.ExperimentalEconomy ? 1 : Rules.VillageAutoRepairAmount ?? Rules.RepairAmount));
             if (village.Health > before)
                 healed.Add(new(village.Position, village.Health - before, village.Owner == Side.Player || Vision.IsVisible(Side.Player, village.Position), true));
             village.HasRepaired = true;

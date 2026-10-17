@@ -21,6 +21,8 @@ public sealed partial class BattleState
             return "Village upgrades are automatic in this voyage.";
         if (village!.Level >= 5)
             return "This village is already at maximum level.";
+        if (Rules.ExperimentalEconomy && village.UpgradeWorkRemaining > 0)
+            return "This city already has a development project.";
         if (village.HasProduced)
             return "This village has already worked this turn.";
         return Credits(side) < VillageUpgradePrice(side, villageId) ? "Not enough Thors." : null;
@@ -34,7 +36,15 @@ public sealed partial class BattleState
         if (error is not null)
             return CommandResult.Rejected(error);
         var village = _villages.First(v => v.Id == villageId);
-        _credits[(int)side] -= VillageUpgradePrice(side, villageId);
+        int price = VillageUpgradePrice(side, villageId);
+        _credits[(int)side] -= price;
+        if (Rules.ExperimentalEconomy)
+        {
+            village.UpgradeWorkRemaining = 2;
+            village.UpgradeProjectPrice = price;
+            return new(true, "Development funded. Two idle city works are required.", CommandKind.Upgrade,
+                ActorId: villageId, TargetId: villageId, Amount: village.Level + 1);
+        }
         village.Level++;
         village.Health += 5;
         village.HasProduced = true;

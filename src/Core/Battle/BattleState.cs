@@ -59,6 +59,7 @@ public sealed partial class BattleState
             InitializeSettlementLevels();
         InitializeSeaEvents(seaEvents, resourceSeed);
         AssignWorldNames();
+        InitializeAiPlans();
         UpdateVision();
     }
 

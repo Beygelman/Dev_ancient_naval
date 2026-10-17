@@ -19,20 +19,28 @@ internal static class FleetInvestment
         var towns = battle.Villages.Where(v => v.Owner == side && v.Health > 0).OrderBy(v => v.Id).ToArray();
         int escorts = allies.Count(s => s.CountsTowardFleet && !s.IsMothership);
         bool pressure = enemies.Any(e => e.IsArmed && battle.Board.Distance(e.Position, mother.Position) <= 6);
-        int reserve = pressure && escorts < 2 ? battle.BuildPrice(side, ShipClass.Garrison) : 0;
+        int reserve = Math.Max(pressure && escorts < 2 ? battle.BuildPrice(side, ShipClass.Garrison) : 0,
+            StrategicPlanning.Reserve(battle, allies, enemies));
         bool Budget(int price) => battle.Credits(side) >= (long)price + reserve;
 
         // Ports have no fixed income in current voyages. Invest in paired towns
         // rather than decorating an isolated settlement with an idle harbour.
-        foreach (var town in towns.OrderByDescending(v => towns.Any(other => other.Id != v.Id && other.HasPort)))
+        CommandResult? Port()
         {
-            bool partner = towns.Any(other => other.Id != town.Id && other.Level >= 2);
-            if ((partner || !battle.Rules.Ports.ConnectedCityIncome) && Budget(battle.PortPrice(side))
-                && battle.PortBlockReason(side, town.Id) is null)
-                return battle.BuildPort(side, town.Id);
+            foreach (var town in towns.OrderByDescending(v => towns.Any(other => other.Id != v.Id && other.HasPort)))
+            {
+                bool partner = towns.Any(other => other.Id != town.Id && (battle.Rules.ExperimentalEconomy || other.Level >= 2));
+                if ((partner || !battle.Rules.Ports.ConnectedCityIncome) && Budget(battle.PortPrice(side))
+                    && battle.PortBlockReason(side, town.Id) is null)
+                    return battle.BuildPort(side, town.Id);
+            }
+            return null;
         }
+        bool defenseFirst = StrategicPlanning.Enabled(battle)
+            && (StrategicPlanning.Style(battle) == AiStrategicStyle.Defender || battle.AiPlan(side)?.Goal == AiGoalKind.Defend);
+        if (!defenseFirst && Port() is { } earlyPort) return earlyPort;
 
-        var builders = allies.Where(s => s.IsMothership || s.Definition.Class == ShipClass.Fishing)
+        var builders = allies.Where(s => (s.IsMothership || s.Definition.Class == ShipClass.Fishing) && !CaptureOrders.Holding(battle, s))
             .OrderBy(s => s.IsMothership).ThenBy(s => s.Id).ToArray();
         // A battery protects a known frontier or threatened flagship. Space
         // batteries apart instead of spending all spare currency on one cell.
@@ -58,14 +66,15 @@ internal static class FleetInvestment
         // toward a distant city that requires several beacons. Lighthouse nodes
         // are ordinary sea-lane steps, not income cities.
         var ports = towns.Where(t => t.HasPort).ToArray();
-        if (ports.Length >= 2 && battle.Rules.LighthousesEnabled)
+        var markets = battle.Rules.ExperimentalEconomy ? towns : ports;
+        if (ports.Length >= (battle.Rules.ExperimentalEconomy ? 1 : 2) && markets.Length >= 2 && battle.Rules.LighthousesEnabled)
         {
             foreach (var builder in builders)
             {
                 if (FlagshipSafety.IsCautious(battle, mother, enemies) && builder.IsMothership) continue;
                 if (!Budget(battle.BuildPrice(side, ShipClass.Lighthouse))
                     || battle.BuildBlockReason(side, builder.Id, ShipClass.Lighthouse) is not null) continue;
-                var nodes = ports.Select(battle.PortBerth).ToArray();
+                var nodes = markets.Select(battle.PortBerth).ToArray();
                 var candidate = battle.SpawnCells(builder.Id).Where(p => danger(builder, p) == 0)
                     .Select(p =>
                     {
@@ -75,7 +84,7 @@ internal static class FleetInvestment
                     })
                     .OrderByDescending(p => p.Links).ThenByDescending(p => p.Progress)
                     .ThenBy(p => p.Cell.Y).ThenBy(p => p.Cell.X).ToArray();
-                int existing = ports.Sum(battle.ConnectedPortCityCount) / 2;
+                int existing = ConnectedPairs(battle.TradeRoutes(side), nodes);
                 var relay = candidate.FirstOrDefault(p => p.Links > existing || p.Progress > 0);
                 if (relay is not null)
                     return battle.Build(side, builder.Id, ShipClass.Lighthouse, relay.Cell);
@@ -86,6 +95,7 @@ internal static class FleetInvestment
             if (enemies.Any(e => e.IsArmed && battle.Board.InRadius(town.Position, e.Position, 4))
                 && Budget(battle.FortificationPrice(side)) && battle.FortifyBlockReason(side, town.Id) is null)
                 return battle.FortifyVillage(side, town.Id);
+        if (defenseFirst && Port() is { } latePort) return latePort;
         return null;
     }
 
@@ -96,7 +106,8 @@ internal static class FleetInvestment
         var mother = allies.First(s => s.IsMothership);
         int escorts = allies.Count(s => s.CountsTowardFleet && !s.IsMothership);
         bool pressure = enemies.Any(e => e.IsArmed && battle.Board.Distance(e.Position, mother.Position) <= 6);
-        int reserve = pressure && escorts < 2 ? battle.BuildPrice(side, ShipClass.Garrison) : 0;
+        int reserve = Math.Max(pressure && escorts < 2 ? battle.BuildPrice(side, ShipClass.Garrison) : 0,
+            StrategicPlanning.Reserve(battle, allies, enemies));
         bool Budget(int price) => battle.Credits(side) >= (long)price + reserve;
 
         // The flagship's shared scanner precedes redundant escort scanners.
@@ -117,15 +128,16 @@ internal static class FleetInvestment
         var side = battle.ActiveSide;
         var ports = battle.Villages.Where(v => v.Owner == side && v.HasPort && v.Health > 0)
             .OrderBy(v => v.Id).ToArray();
-        if (!battle.Rules.FishingLighthouses || ports.Length < 2 || battle.Rules.Ports.MaximumRouteLength == 0
+        var markets = battle.Rules.ExperimentalEconomy ? battle.Villages.Where(v => v.Owner == side && v.Health > 0).ToArray() : ports;
+        if (!battle.Rules.FishingLighthouses || ports.Length < (battle.Rules.ExperimentalEconomy ? 1 : 2) || markets.Length < 2 || battle.Rules.Ports.MaximumRouteLength == 0
             || battle.Credits(side) < battle.BuildPrice(side, ShipClass.Lighthouse)) return null;
-        var nodes = ports.Select(battle.PortBerth).Concat(allies.Where(s => s.Definition.Class == ShipClass.Lighthouse)
+        var nodes = markets.Select(battle.PortBerth).Concat(allies.Where(s => s.Definition.Class == ShipClass.Lighthouse)
             .Select(s => s.Position)).Distinct().ToArray();
         // Existing OWN economic components are already reflected in port income.
         // Do not spend the bounded search slots on nearby links within one of
         // those components while a distant unconnected city waits for a relay.
         var existing = battle.TradeRoutes(side);
-        var candidates = ports.Where(p => battle.ConnectedPortCityCount(p) < ports.Length - 1)
+        var candidates = markets.Where(p => !p.HasPort || battle.ConnectedPortCityCount(p) < markets.Length - 1)
             .SelectMany(port => nodes.Where(node => node != battle.PortBerth(port)
                     && !existing.AreConnected(node, battle.PortBerth(port)))
                 .Select(node => (From: node, To: battle.PortBerth(port))))
@@ -162,6 +174,8 @@ internal static class FleetInvestment
         if (allies.Count(s => s.CountsTowardFleet && !s.IsMothership) < 2
             || enemies.Any(e => e.IsArmed && allies.Any(a => a.IsMothership
                 && battle.Board.InRadius(a.Position, e.Position, 6)))) return false;
+        if (StrategicPlanning.Enabled(battle) && battle.AiPlan(side)?.Goal is AiGoalKind.Defend or AiGoalKind.Hunt or AiGoalKind.Raid)
+            return false;
         int cash = battle.Credits(side);
         int nextTown = battle.Villages.Where(t => t.Owner == side && t.Health > 0 && t.Level < 3)
             .Select(t => battle.VillageUpgradePrice(side, t.Id) + battle.BuildPrice(side, ShipClass.Garrison))

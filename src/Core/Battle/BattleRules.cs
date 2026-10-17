@@ -4,6 +4,9 @@ namespace DevAncientNaval.Core.Battle;
 public sealed class BattleRules
 {
     public int StartingCredits { get; init; }
+    public bool ExperimentalEconomy { get; init; } // v020.9x2: absent preserves historical city and trade rules.
+    public bool ExperimentalCombat { get; init; } // v020.9x2 hull actions; embedded rules govern Continue.
+    public bool StrategicAi { get; init; } // Saved strategic personalities; no advantage in information or stats.
     public bool ConstructionClearsRuins { get; init; }
     public bool EmptyOuterRim { get; init; }
     public bool SeparatedStartingEscorts { get; init; }
@@ -62,12 +65,12 @@ public sealed class BattleRules
     public static ShipDefinition DefaultCannonTower { get; } = new(ShipClass.CannonTower, "Cannon Tower", 10, 0, 3, 0, 3, 0, 2, 8, ActionProfile.Scout);
     public static ShipDefinition DefaultLighthouse { get; } = new(ShipClass.Lighthouse, "Lighthouse", 10, 0, 0, 0, 4, 5, 0, 6, ActionProfile.Scout, RadarPrice: 2);
 
-    public ShipDefinition Get(ShipClass shipClass) => Ships.FirstOrDefault(s => s.Class == shipClass) ?? (shipClass switch
+    public ShipDefinition Get(ShipClass shipClass) => (Ships.FirstOrDefault(s => s.Class == shipClass) ?? (shipClass switch
     {
         ShipClass.CannonTower => DefaultCannonTower,
         ShipClass.Lighthouse => DefaultLighthouse,
         _ => throw new ArgumentException("Unknown ship class.")
-    });
+    })) with { ExperimentalCombat = ExperimentalCombat };
     public static BattleRules FromJson(string json)
     {
         var rules = BattleRulesJsonConverter.Read(json) ?? throw new ArgumentException("Missing battle rules.", nameof(json));

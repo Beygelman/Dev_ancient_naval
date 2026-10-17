@@ -8,6 +8,7 @@ public sealed class TradeNetwork
     private readonly HashSet<(GridPosition, GridPosition)> _edges = new();
     private readonly List<IReadOnlyList<GridPosition>> _routes = new();
     private readonly Dictionary<GridPosition, int> _components = new();
+    private Dictionary<GridPosition, HashSet<GridPosition>>? _endpointReachability;
     public IReadOnlyList<IReadOnlyList<GridPosition>> Routes => _routes;
     /// <summary>Each undirected water edge appears once, even when several shortest port routes share it.</summary>
     public IReadOnlyList<(GridPosition From, GridPosition To)> Edges { get; private set; } = Array.Empty<(GridPosition, GridPosition)>();
@@ -19,7 +20,8 @@ public sealed class TradeNetwork
     /// <summary>Connected across any number of lane segments or beacon relays.
     /// Built once with this immutable topology, independent of ship occupancy.</summary>
     public bool AreConnected(GridPosition from, GridPosition to) =>
-        _components.TryGetValue(from, out int first) && _components.TryGetValue(to, out int second)
+        _endpointReachability is not null ? _endpointReachability.TryGetValue(from, out var reachable) && reachable.Contains(to)
+        : _components.TryGetValue(from, out int first) && _components.TryGetValue(to, out int second)
         && first == second;
 
     internal static int? SeaStepCost(GameBoard board, GridPosition from, GridPosition to,
@@ -37,12 +39,16 @@ public sealed class TradeNetwork
         return 1;
     }
 
-    internal static TradeNetwork Create(GameBoard board, GridPosition[] ports, IReadOnlySet<GridPosition> forbidden, int maximumRouteLength = 0, Func<GridPosition, bool>? navigable = null)
+    internal static TradeNetwork Create(GameBoard board, GridPosition[] ports, IReadOnlySet<GridPosition> forbidden, int maximumRouteLength = 0, Func<GridPosition, bool>? navigable = null, IReadOnlySet<GridPosition>? terminalEndpoints = null)
     {
         var result = new TradeNetwork();
         bool Sea(GridPosition p) => (navigable?.Invoke(p) ?? board.GetTile(p).Terrain != TerrainType.Land) && !forbidden.Contains(p);
         int? Cost(GridPosition from, GridPosition to) => SeaStepCost(board, from, to, Sea);
 
+        // Ordinary markets receive a lane but may not bridge two independent relay networks.
+        // Keep this optional: released saves retain the old geometry-component contract.
+        var links = terminalEndpoints is null ? null : ports.Where(Sea).Distinct()
+            .ToDictionary(cell => cell, _ => new HashSet<GridPosition>());
         for (int i = 0; i < ports.Length; i++)
         {
             if (!Sea(ports[i]))
@@ -50,8 +56,14 @@ public sealed class TradeNetwork
             var search = PathSearch.Find(ports[i], maximumRouteLength > 0 ? maximumRouteLength : board.Tiles.Count, board.GetSurrounding, Cost);
             for (int j = i + 1; j < ports.Length; j++)
             {
-                if (!search.Costs.ContainsKey(ports[j]))
+                if (!search.Costs.ContainsKey(ports[j]) || terminalEndpoints is not null
+                    && terminalEndpoints.Contains(ports[i]) && terminalEndpoints.Contains(ports[j]))
                     continue;
+                if (links is not null)
+                {
+                    links[ports[i]].Add(ports[j]);
+                    links[ports[j]].Add(ports[i]);
+                }
                 var route = PathSearch.Reconstruct(ports[i], ports[j], search.Previous);
                 result._routes.Add(route);
                 for (int step = 1; step < route.Count; step++)
@@ -63,6 +75,23 @@ public sealed class TradeNetwork
         }
 
         result.BuildRenderRoutes(ports.Where(Sea));
+        if (links is not null)
+        {
+            result._endpointReachability = new();
+            foreach (var origin in links.Keys)
+            {
+                var reached = new HashSet<GridPosition>();
+                var pending = new Stack<GridPosition>();
+                pending.Push(origin);
+                while (pending.TryPop(out var cell))
+                {
+                    if (!reached.Add(cell)) continue;
+                    if (cell != origin && terminalEndpoints!.Contains(cell)) continue;
+                    foreach (var next in links[cell]) pending.Push(next);
+                }
+                result._endpointReachability[origin] = reached;
+            }
+        }
         return result;
     }
 

@@ -1,78 +1,34 @@
-# Development state — 16 October 2026
+# Development state — 17 October 2026
 
-## Current delivery
-Version: v020.9x1 (user-facing v20.9x1), experimental.
-Validated functional source: c7bbd6963b0d6d7aa8bb7f2ebed92451584aa23f.
-Delivery: PR #7, branch codex/ancient-naval-v020.9x1. Gameplay source is unchanged;
-subsequent release delivery adds packaging, installation and verification.
-Original base: main 0c78297469d6d278334ea1c59d43fc4912677548 (v020.8b).
-Historical archives and fixtures were preserved.
+Version: v020.9x2-r1, experimental. Branch: codex/ancient-naval-v020.9x2.
+Implementation is based on v020.9x1 permanent release c76314e and the reviewed
+specialist design in docs/design/BALANCE-REDESIGN-2026-10-17.md.
 
-## Completed
-- Root AGENTS.md reduced from 51 KB to 5 KB; Core/Presentation guides and CODEMAP.
-  Original guide preserved byte-for-byte (blob 4d6f510f34e770443a845735b0e8e1c8e6deaafb).
-- Permanent own-order commit/animation separation, safe visual settling on next
-  order/world replacement, shorter sinking and opponent-only automatic action focus.
-- Saved experiments: interleaved double salvo for ships/towns, +2 ordinary connected
-  port income ceiling, city facilities at levels 2/4 and one level-5 improvement.
-- Typed save/default/validation support; actual income and receipts share the cap;
-  dock service consumes ship actions and city work; arsenal loss preserves hulls.
-- Legal AI facility investment and Admiral forecasts for the middle reply.
-- EN/UK/NL native city sheet; version/date and live Windows/iOS metadata updated.
-- Gated CI and portable Windows package, preserving historical packages.
+## Current changes
+- New-voyage flags ExperimentalEconomy, ExperimentalCombat, StrategicAi default
+  false when absent in embedded historical rules.
+- Defendable port export income, stationary naval interception and real rerouting.
+- Separate hull roles and movement/fire constraints, unchanged Mothership.
+- Two-work city projects, competing city actions, separate economic/military gains.
+- Persistent strategic AI styles/goals and capture-priority/captor-retention fixes.
+- Localized UI, real native screenshots and focused new regressions.
 
-## Verified evidence
-[Actions run 38893737716](https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38893737716):
-- Full Core suite passed, including historical fixtures and 59 new checks.
-- Godot 4.7.2 .NET build passed.
-- 43 graphical action/city checks passed, including actual native EN/UK/NL clicks.
-- 100 existing effects checks passed; screenshots inspected.
-- Windows export and actual exported executable headless startup passed.
-- ZIP inventory/checksum verified: 190 members, no PDB/docs/tests/tools in outer package.
+## Validation and delivery
+The CI release pipeline gates retention on the full Core/historical suite, native
+graphical checks and exported Windows EXE startup. The retained release records
+its exact tested source in releases/v020.9x2-r1/VALIDATION.json. Do not infer success
+from this development note: inspect that evidence and the actual workflow result.
+Old regressions use immutable balance-v0209x1.json; new checks use balance.json.
+Old release archives and checksums are preserved; main is not overwritten.
 
-Windows: Ancient_Naval_v020.9x1_Windows.zip (87,373,825 bytes).
-SHA256: 762d2f697cfcd9a6695ffa34ef04a3c9af41b60731883f6571063a6c7fecc82f
-[Build artifact](https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38893737716/artifacts/12042986760).
-The reproducible build script is tools/Build-ExperimentalWindows.ps1.
+The Windows launcher prepares the player at
+C:/__Beygelman/! -11/dev-ancient-naval/releases/v020.9x2-r1/playable/Ancient Naval.exe
+when executed on the user's PC. This cloud checkout cannot install to their C:.
 
-## Compatibility and remaining playtests
-New voyages enable experiments; Continue preserves embedded historical rules.
-Permanent camera/animation corrections also apply to old saves.
-Prototype tuning is documented in V0209X1.md. Compare combat and trade switches
-separately before drawing balance conclusions; test open sea, choke points and
-split fronts. Physical Android/iPhone validation and a final native performance
-gate were not performed. Headless Windows startup is not a graphical playthrough.
+## Practical limits
+Automated matches and scenario screenshots establish execution/invariants, not
+competitive balance or a human Windows playthrough. Physical Android/iPhone and
+final native frame-pacing gates remain separate. Preserve fog, save/AOT contracts,
+nonblocking own effects and opponent-only camera focus in future changes.
 
-Deferred: Galleon move-fire-move, movement-based Kolonel nerf, Restoration changes,
-production queues, caravans, supplies and national mechanics.
-
-## Session handoff
-Direct clone/archive access timed out on this host. Only needed source was read
-via the connector; reviewed changed paths were checkpointed remotely. No local
-SDK/engine migration was made; prepared CI supplied the pinned tools. In a new
-environment, inspect the current checkout and installed tools first. Do not repeat
-the recovery or load the archived guide/chat history without a specific need.
-
-
-## Permanent Windows delivery — 16 October 2026
-
-The original verified player ZIP is now retained under releases/v020.9x1, with
-matching source, inventories, Russian notes and SHA256. releases/latest.json
-points to this experimental delivery. Historical version folders remain unchanged.
-The source ZIP records 0b6cc56 (only docs follow the tested c7bbd69 gameplay).
-
-Run releases/v020.9x1/Install_Ancient_Naval_v0209x1.cmd on the user's Windows PC:
-it hash-verifies the installer and player, verifies all extracted runtime files,
-and prepares releases/v020.9x1/playable/Ancient Naval.exe at the canonical project.
-The helper tools/Install-PlayableRelease.ps1 accepts a different -ProjectRoot and
-an optional local -ArchivePath; -Launch starts the prepared player. Existing
-mismatched files are refused, old releases and saves are preserved. Temporary
-extraction is published only after validation. Nothing was written to the user's
-C: drive from the cloud host; local preparation needs the Windows launcher.
-
-This session rechecked archive CRC/SHA256, all 190 extracted files, 206 PCK
-resources and the 760-file matching source snapshot. The Windows delivery workflow passed PowerShell 5.1 extraction, idempotence,
-old release preservation and differing-file/bad-checksum refusal cases:
-https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38967282275
-Retained binary/source delivery commit: 547b10e6cd70932679f1bfb4d6f0e514c83495e2.
-Remote Git blob hashes match the locally verified archives.
+Revision r1 fixes simultaneous trade cuts: every confirmed hostile interception zone participates in the operational path search, including a second ship on a bypass absent from structural route ink. The initial v020.9x2 tag and archives are retained.

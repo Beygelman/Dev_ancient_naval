@@ -15,6 +15,7 @@ namespace DevAncientNaval.Tests.Runtime;
 public partial class Action0209Checks : Node
 {
     public Main Game { get; set; } = null!;
+    private BattleRules HistoricalRules => BattleRules.FromJson(Godot.FileAccess.GetFileAsString("res://data/balance-v0209x1.json"));
     private int _checks;
     private void Check(bool ok, string message)
     {
@@ -25,7 +26,7 @@ public partial class Action0209Checks : Node
     private void Fixture()
     {
         var battle = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water),
-            Game.Battle.Rules, new[] {
+            HistoricalRules, new[] {
                 (Side.Player, ShipClass.Mothership, new GridPosition(2, 2)),
                 (Side.Enemy, ShipClass.Mothership, new GridPosition(17, 17)),
                 (Side.Player, ShipClass.Invader, new GridPosition(8, 8)),
@@ -81,7 +82,7 @@ public partial class Action0209Checks : Node
             foreach (bool replay in new[] { false, true })
             {
                 var battle = new BattleState(new GameBoard(20, 20, _ => TerrainType.Water),
-                    Game.Battle.Rules, new[] {
+                    HistoricalRules, new[] {
                         (Side.Player, ShipClass.Mothership, new GridPosition(2, 2)),
                         (Side.Enemy, ShipClass.Mothership, new GridPosition(10, 8)),
                         (Side.Player, ShipClass.Invader, new GridPosition(8, 8))
@@ -164,7 +165,7 @@ public partial class Action0209Checks : Node
             Language.Set(locale, persist: false);
             var cell = new GridPosition(8, 8);
             var battle = new BattleState(new GameBoard(20, 20, p => p == cell ? TerrainType.Land : TerrainType.Water),
-                Game.Battle.Rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(2, 2)),
+                HistoricalRules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(2, 2)),
                     (Side.Enemy, ShipClass.Mothership, new GridPosition(17, 17)) },
                 Array.Empty<GridPosition>(), villageSpots: new[] { cell });
             var saved = battle.CaptureSnapshot();

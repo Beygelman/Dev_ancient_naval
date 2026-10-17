@@ -1,11 +1,11 @@
 {
-  "version": "v020.9x1",
-  "windows": "v020.9x1/Ancient_Naval_v020.9x1_Windows.zip",
-  "source": "v020.9x1/Ancient_Naval_v020.9x1_Source.zip",
-  "playable": "v020.9x1/playable/Ancient Naval.exe",
-  "notes": "v020.9x1/Ancient_Naval_v020.9x1_Notes_RU.md",
-  "prepare": "../tools/Install-PlayableRelease.ps1",
-  "launcher": "v020.9x1/Install_Ancient_Naval_v0209x1.cmd",
-  "copied_files": 190,
-  "channel": "experimental"
+  "version": "v020.9x2-r1",
+  "channel": "experimental",
+  "windows": "v020.9x2-r1/Ancient_Naval_v020.9x2-r1_Windows.zip",
+  "source": "v020.9x2-r1/Ancient_Naval_v020.9x2-r1_Source.zip",
+  "playable": "v020.9x2-r1/playable/Ancient Naval.exe",
+  "launcher": "v020.9x2-r1/Install_Ancient_Naval_v0209x2_r1.cmd",
+  "prepare": "v020.9x2-r1/Install-PlayableRelease.ps1",
+  "notes": "v020.9x2-r1/Ancient_Naval_v020.9x2-r1_Notes_RU.md",
+  "copied_files": 190
 }

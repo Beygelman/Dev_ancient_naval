@@ -8,12 +8,13 @@ public sealed partial class BattleState
 {
     private readonly Dictionary<Side, (string Key, TradeNetwork Network)> _tradeNetworks = new();
     private readonly Dictionary<Side, (TradeNetwork Network, IReadOnlyDictionary<int, int> Income)> _portIncomes = new();
+    private static readonly TradeNetwork NoTradeRoutes = new();
     private static readonly IReadOnlyDictionary<int, int> NoConnectedPorts = new Dictionary<int, int>();
     public int PortPrice(Side side) => Creative && side == Side.Player ? 0 : Rules.Ports.Price;
     public int VillageBuildPrice(int villageId, ShipClass kind)
     {
         var town = _villages.First(v => v.Id == villageId);
-        return Math.Max(Creative && town.Owner == Side.Player ? 0 : 1, (int)Math.Floor(BuildPrice(town.Owner ?? ActiveSide, kind) * (town.HasPort ? 1 - Rules.Ports.Discount : 1)));
+        return Math.Max(Creative && town.Owner == Side.Player ? 0 : 1, (int)Math.Floor(BuildPrice(town.Owner ?? ActiveSide, kind) * (town.HasPort && !Rules.ExperimentalEconomy ? 1 - Rules.Ports.Discount : 1)));
     }
 
     public string? PortBlockReason(Side side, int villageId)
@@ -46,7 +47,7 @@ public sealed partial class BattleState
         town.HasProduced = true;
         RegisterVillageIncome(town);
         UpdateVision();
-        return new(true, $"Port opened: +{PortIncome(town)} income and {Rules.Ports.Discount:P0} shipyard discount.", CommandKind.Port, villageId);
+        return new(true, Rules.ExperimentalEconomy ? "Port opened: sea trade requires a friendly market." : $"Port opened: +{PortIncome(town)} income and {Rules.Ports.Discount:P0} shipyard discount.", CommandKind.Port, villageId);
     }
 
     /// <summary>Live port contribution, excluding the town's ordinary income.
@@ -61,6 +62,7 @@ public sealed partial class BattleState
     private int PortIncomeFromPartners(Village village, int partners)
     {
         if (!village.HasPort || village.Health <= 0 || village.Owner is null) return 0;
+        if (Rules.ExperimentalEconomy) return partners > 0 ? Math.Max(0, village.Level - 1) : 0;
         int income = !Rules.Ports.ConnectedCityIncome ? Rules.Ports.Income
             : Rules.Ports.ConnectedCityIncomeCap > 0 ? Math.Min(partners, Rules.Ports.ConnectedCityIncomeCap) : partners;
         return income + (partners > 0 ? Rules.Infrastructure.TradeIncome * CityFacilityStrength(village, CityFacility.TradeYard) : 0);
@@ -74,9 +76,9 @@ public sealed partial class BattleState
 
     private IReadOnlyDictionary<int, int> ConnectedPortIncomes(Side side)
     {
-        var towns = _villages.Where(town => town.Owner == side && town.HasPort && town.Health > 0).ToArray();
+        var towns = TradeCities(side);
         if (towns.Length < 2) return NoConnectedPorts;
-        var network = TradeRoutes(side);
+        var network = Rules.ExperimentalEconomy ? OperationalTradeRoutes(side) : TradeRoutes(side);
         if (_portIncomes.TryGetValue(side, out var cached) && ReferenceEquals(cached.Network, network))
             return cached.Income;
         var income = new Dictionary<int, int>();
@@ -110,7 +112,7 @@ public sealed partial class BattleState
         if (candidates.Count == 0) return null;
         if (!Rules.DiagonalVillageBerths) return candidates[0];
         var destinations = _villages.Where(v => v.Id != town.Id && v.Owner == town.Owner
-            && v.HasPort && v.Health > 0).Select(PortBerth)
+            && (Rules.ExperimentalEconomy ? v.Health > 0 : v.HasPort) && v.Health > 0).Select(PortBerth)
             .Concat(_ships.Where(s => s.Owner == town.Owner && s.Definition.Class == ShipClass.Lighthouse)
                 .Select(s => s.Position)).Distinct().ToArray();
         bool Sea(GridPosition p) => Board.TryGetTile(p, out var tile)
@@ -133,26 +135,43 @@ public sealed partial class BattleState
     {
         if (!Board.Contains(proposed) || !Vision.IsVisible(side, proposed) || !IsFreeWater(proposed))
             return new TradeNetwork();
-        var ports = _villages.Where(v => v.Owner == side && v.HasPort && v.Health > 0).OrderBy(v => v.Id)
+        if (Rules.ExperimentalEconomy && !TradeCities(side).Any(town => town.HasPort)) return NoTradeRoutes;
+        var ports = TradeCities(side).OrderBy(v => v.Id)
             .Select(PortBerth).Concat(_ships.Where(s => s.Owner == side && s.Definition.Class == ShipClass.Lighthouse
                 && s.Health > 0).OrderBy(s => s.Id).Select(s => s.Position)).Append(proposed).Distinct().ToArray();
         var knownHazards = _forbidden.Where(p => Vision.IsVisible(side, p)).ToHashSet();
         return TradeNetwork.Create(Board, ports, knownHazards, Rules.Ports.MaximumRouteLength,
-            p => Vision.KnownTerrain(side, p) is { } terrain && terrain != TerrainType.Land);
+            p => Vision.KnownTerrain(side, p) is { } terrain && terrain != TerrainType.Land,
+            TradeTerminalBerths(side)?.Where(cell => cell != proposed).ToHashSet());
+    }
+
+    private Village[] TradeCities(Side side) => _villages.Where(v => v.Owner == side && v.Health > 0
+        && (Rules.ExperimentalEconomy || v.HasPort)).ToArray();
+
+    private IReadOnlySet<GridPosition>? TradeTerminalBerths(Side side)
+    {
+        if (!Rules.ExperimentalEconomy) return null;
+        var towns = TradeCities(side);
+        var terminals = towns.Where(town => !town.HasPort).Select(PortBerth).ToHashSet();
+        terminals.ExceptWith(towns.Where(town => town.HasPort).Select(PortBerth));
+        terminals.ExceptWith(OwnShips(side).Where(ship => ship.Definition.Class == ShipClass.Lighthouse && ship.Health > 0)
+            .Select(ship => ship.Position));
+        return terminals;
     }
 
     public TradeNetwork TradeRoutes(Side side)
     {
-        var towns = _villages.Where(v => v.Owner == side && v.HasPort && v.Health > 0).OrderBy(v => v.Id).ToArray();
+        var towns = TradeCities(side).OrderBy(v => v.Id).ToArray();
+        if (Rules.ExperimentalEconomy && !towns.Any(town => town.HasPort)) return NoTradeRoutes;
         var lighthouses = _ships.Where(s => s.Owner == side && s.Definition.Class == ShipClass.Lighthouse && s.Health > 0)
             .OrderBy(s => s.Id).ToArray();
         // Topology depends on ports and permanent hazards, never cursor/camera position.
-        string key = string.Join(',', towns.Select(v => v.Id)) + ":" + string.Join(',', lighthouses.Select(s => s.Id)) + ":" +
+        string key = string.Join(',', towns.Select(v => $"{v.Id}:{v.HasPort}@{PortBerth(v).X},{PortBerth(v).Y}")) + ":" + string.Join(',', lighthouses.Select(s => s.Id)) + ":" +
             string.Join(';', _forbidden.OrderBy(p => p.Y).ThenBy(p => p.X).Select(p => $"{p.X},{p.Y}"));
         if (_tradeNetworks.TryGetValue(side, out var cached) && cached.Key == key)
             return cached.Network;
         var network = TradeNetwork.Create(Board, towns.Select(PortBerth).Concat(lighthouses.Select(s => s.Position))
-            .Distinct().ToArray(), _forbidden, Rules.Ports.MaximumRouteLength);
+            .Distinct().ToArray(), _forbidden, Rules.Ports.MaximumRouteLength, terminalEndpoints: TradeTerminalBerths(side));
         _tradeNetworks[side] = (key, network);
         return network;
     }

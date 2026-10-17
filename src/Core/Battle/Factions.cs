@@ -77,6 +77,9 @@ public sealed partial class BattleState
         foreach (var village in _villages.Where(village => village.Owner == side))
         {
             village.Owner = null;
+            village.UpgradeWorkRemaining = 0;
+            village.UpgradeProjectPrice = 0;
+            village.DevelopmentPaused = false;
             RegisterVillageIncome(village);
         }
 

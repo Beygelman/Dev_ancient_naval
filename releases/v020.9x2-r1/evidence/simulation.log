@@ -1,0 +1,5 @@
+AI0209X2 seed=1700 player=Economist enemy=Economist rounds=25 orders=352 winner=Enemy captures=3 builds=21 attacks=62 elapsed_ms=1692
+AI0209X2 seed=1701 player=Defender enemy=Aggressor rounds=20 orders=294 winner=Player captures=5 builds=16 attacks=52 elapsed_ms=757
+AI0209X2 seed=1702 player=Balanced enemy=Hunter rounds=22 orders=271 winner=Enemy captures=2 builds=15 attacks=44 elapsed_ms=479
+AI0209X2 seed=1703 player=Aggressor enemy=Defender rounds=27 orders=395 winner=Player captures=5 builds=20 attacks=59 elapsed_ms=1358
+AI0209X2 seed=1704 player=Hunter enemy=Defender rounds=17 orders=248 winner=Player captures=3 builds=16 attacks=45 elapsed_ms=350

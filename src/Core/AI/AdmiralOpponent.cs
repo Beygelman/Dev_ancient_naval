@@ -41,7 +41,7 @@ internal static class AdmiralOpponent
 
         foreach (var town in towns.Where(v => v.Owner != side && v.Health > 0).OrderBy(v => v.Health))
         {
-            var guns = allies.Where(s => battle.CanAttackVillage(s.Id, town.Id)).OrderByDescending(s => s.HasMortar).ToArray();
+            var guns = allies.Where(s => !CaptureOrders.Holding(battle, s) && battle.CanAttackVillage(s.Id, town.Id)).OrderByDescending(s => s.HasMortar).ToArray();
             if (guns.Length == 0 || crisis && enemies.Length > 0)
                 continue;
             var shooter = guns.FirstOrDefault(s => !town.IsFortified || s.Health > battle.VillageCounterDamage(town) || s.HasMortar);
@@ -50,7 +50,7 @@ internal static class AdmiralOpponent
                     battle.CanDoubleSalvo(shooter.Id, town.Position) && town.Health > battle.VillageShotDamage(shooter, town));
         }
 
-        foreach (var ship in allies.Where(s => s.CanRepair && s.HealthRatio < .6))
+        foreach (var ship in allies.Where(s => s.CanRepair && s.HealthRatio < .6 && !CaptureOrders.Holding(battle, s)))
             if (ship.IsStructure || Danger(ship, ship.Position) < ship.Health)
                 return battle.Repair(side, ship.Id);
         // Fishing supports recovery, but do not build a dock that will be lost at once.
@@ -81,6 +81,7 @@ internal static class AdmiralOpponent
         int docks = allies.Count(s => s.Definition.Class == ShipClass.FishingDock);
         bool economy = fishers + docks < 2;
         var preferred = economy ? ShipClass.Fishing : crisis ? ShipClass.Garrison : towns.Any(v => v.Owner != side && v.Health > 0) && !fleet.Any(s => s.HasMortar) ? ShipClass.Togus : fleet.Length % 3 == 0 ? ShipClass.Kolonel : ShipClass.Invader;
+        if (StrategicPlanning.Enabled(battle)) preferred = StrategicPlanning.PreferredHull(battle, allies, enemies);
         var classes = new[]
         {
             preferred,
@@ -92,7 +93,7 @@ internal static class AdmiralOpponent
             foreach (var kind in classes)
                 if (battle.VillageBuildBlockReason(side, town.Id, kind)is null)
                     return battle.BuildFromVillage(side, town.Id, kind, battle.VillageSpawnCells(town.Id).OrderBy(p => Danger(mother, p)).First());
-        if (!saving && !FlagshipSafety.IsCautious(battle, mother, enemies) && (!mother.CanMove || battle.Round % 3 != 0 || crisis || economy))
+        if (!saving && !CaptureOrders.Holding(battle, mother) && !FlagshipSafety.IsCautious(battle, mother, enemies) && (!mother.CanMove || battle.Round % 3 != 0 || crisis || economy))
             foreach (var kind in classes)
                 if (battle.BuildBlockReason(side, mother.Id, kind)is null)
                     return battle.Build(side, mother.Id, kind, battle.SpawnCells(mother.Id).OrderBy(p => Danger(mother, p)).First());
@@ -101,6 +102,8 @@ internal static class AdmiralOpponent
                 return battle.BuyRadar(side, ship.Id);
         if (mother.HasRadar && fleet.Length >= 2 && battle.Credits(side) >= battle.Rules.Mortar.PurchasePrice + 5 && battle.MortarBlockReason(side, mother.Id)is null)
             return battle.BuyMortar(side, mother.Id);
+        if (StrategicPlanning.Move(battle, allies, enemies, Danger) is { } objective)
+            return objective;
         if (FleetInvestment.AdvanceRelay(battle, allies, Danger) is { } relay)
             return relay;
         if (AdmiralExploration.Step(battle, allies, enemies, Danger) is { } search)
@@ -110,6 +113,7 @@ internal static class AdmiralOpponent
         int? scout = fleet.Where(s => !s.HasMortar).OrderBy(s => s.Definition.Price).ThenBy(s => s.Id).FirstOrDefault()?.Id;
         foreach (var ship in allies.Where(s => s.CanMove && !s.HasMoved).OrderBy(s => s.Id == scout ? 0 : 1))
         {
+            if (CaptureOrders.Holding(battle, ship) || StrategicPlanning.HoldingPosition(battle, ship)) continue;
             var reachable = battle.Reachable(ship.Id);
             if (reachable.Count < 2)
                 continue;

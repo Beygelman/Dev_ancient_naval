@@ -38,6 +38,7 @@ internal static class BattleSaveValidation
 
     internal static void ValidateContents(BattleSave saved, GameBoard board, BattleRules rules)
     {
+        BattleState.ValidateAiPlans(saved, board);
         if (saved.Encounters is null || saved.Encounters.Any(e => e is null || e.Side is Side.Player or Side.Pirates || !Enum.IsDefined(e.Side) || !board.Contains(e.Position))
             || saved.Encounters.Select(e => e.Side).Distinct().Count() != saved.Encounters.Length)
             throw new ArgumentException("Invalid saved nation encounters.");
@@ -46,10 +47,18 @@ internal static class BattleSaveValidation
             throw new ArgumentException("Invalid saved fleet.");
         if (saved.Ships.Any(s => s.ConstructionPrice is < 0))
             throw new ArgumentException("Invalid saved ship construction price.");
-        if (saved.Villages.Any(v => v is null || v.Id <= 0 || !board.Contains(v.Position) || v.Owner is { } owner && !Enum.IsDefined(owner) || v.Level is < 1 or > 5 || !double.IsFinite(v.Health) || v.Health < 0 || v.Health > v.Level * 5 || v.TurnsOwned < 0 || v.Port && v.Level < 3) || saved.Treasuries.Any(t => t is null || t.Id <= 0 || !board.Contains(t.Position)))
+        if (saved.Villages.Any(v => v is null || v.Id <= 0 || !board.Contains(v.Position) || v.Owner is { } owner && !Enum.IsDefined(owner) || v.Level is < 1 or > 5 || !double.IsFinite(v.Health) || v.Health < 0 || v.Health > (rules.ExperimentalEconomy ? 15 : v.Level * 5) || v.TurnsOwned < 0 || v.Port && v.Level < 3) || saved.Treasuries.Any(t => t is null || t.Id <= 0 || !board.Contains(t.Position)))
             throw new ArgumentException("Invalid saved settlements or treasuries.");
         foreach (var town in saved.Villages)
         {
+            if (town.UpgradeWorkRemaining is < 0 or > 2 || town.UpgradeProjectPrice < 0
+                || town.UpgradeWorkRemaining == 0 && town.UpgradeProjectPrice != 0
+                || town.DevelopmentPaused && town.UpgradeWorkRemaining == 0
+                || town.UpgradeWorkRemaining > 0 && (!rules.ExperimentalEconomy || town.Owner is null
+                    || town.Level >= 5 || !rules.PaidVillageUpgrades
+                    || town.UpgradeProjectPrice != (saved.Creative && town.Owner == Side.Player
+                        ? 0 : rules.VillageLevelPrices[town.Level - 1])))
+                throw new ArgumentException("Invalid saved city development project.");
             bool any = town.Facility1 != CityFacility.None || town.Facility2 != CityFacility.None || town.ImprovedFacility != CityFacility.None;
             if (!Enum.IsDefined(town.Facility1) || !Enum.IsDefined(town.Facility2) || !Enum.IsDefined(town.ImprovedFacility)
                 || any && !rules.Infrastructure.Enabled
@@ -104,6 +113,7 @@ internal static class BattleSaveValidation
         if (saved.Fish.Any(p => !board.Contains(p)) || saved.Shoals.Any(p => !board.Contains(p)) || saved.Whirlpools.Any(w => w is null || !board.Contains(w.Position) || w.Cells is null || w.Cells.Any(p => !board.Contains(p))))
             throw new ArgumentException("Invalid saved sea features.");
         var ships = saved.Ships.ToDictionary(s => s.Id);
+        TradeRaidValidation.Validate(saved, board, rules);
         var villages = saved.Villages.Select(v => v.Id).ToHashSet();
         var treasuries = saved.Treasuries.Where(t => !t.IsCollected).Select(t => t.Id).ToHashSet();
         foreach (var wait in saved.CaptureWaits.Concat(saved.TreasuryWaits))

@@ -217,10 +217,12 @@ public partial class DebugHud
         "Cannons" or "Shots" or "Counterfire" or "Automatic guns" or "Double salvo" or "Heavy shot" or "Wall-piercing guns" => ActionSymbol.Attack,
         "Bomb" or "Anti-air" => ActionSymbol.Bomb,
         "Repair" or "Passive repair" or "Reinforced hull" => ActionSymbol.Repair,
+        "Trade status" or "Trade interception" or "Interception stance" => ActionSymbol.Dock,
         "Port" or "Local shipyard" => ActionSymbol.Dock,
         "Shipyard" or "Shipwright" or "Fishing Dock" => ActionSymbol.Build,
         "Resources" or "Collection" or "Reach" => ActionSymbol.Fishing,
         "Progress cells" or "Veterancy" or "Veteran" or "Veteran reach" or "Recharge" or "Readiness" => ActionSymbol.Progress,
+        "Shared city work" or "Development" or "Priority" => ActionSymbol.Progress,
         "Outpost" => ActionSymbol.Fortify,
         _ => ActionSymbol.Flag
     };
@@ -229,7 +231,7 @@ public partial class DebugHud
     {
         "Health" => 0, "Movement" => 1, "Cannons" or "Mortar" or "Bomb" => 2,
         "Shots" or "Automatic guns" or "Income" or "Settlement income" => 3,
-        "Resources" => 4, "Sight" => 5, "Radar" => 6,
+        "Resources" or "Role" or "Development" => 4, "Sight" => 5, "Radar" => 6,
         "Progress cells" or "Radar targets" or "Vulnerability" => 30,
         _ => 15
     };

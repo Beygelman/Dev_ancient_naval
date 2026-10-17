@@ -66,9 +66,9 @@ public sealed partial class BattleState
             return CommandResult.Rejected("A double salvo needs two cannon shots remaining.");
         ClearBalloonCrashes();
         // A gunshot is not optical reconnaissance. Radar never reveals a ship's identity.
-        ship!.AttacksUsed += doubleSalvo ? 2 : 1;
-        if (ship.Definition.ActionProfile == ActionProfile.Standard && ship.HasMoved)
-            ship.MovementLocked = true;
+        int movementBeforeAttack = ship!.MovementRemainingUnits;
+        ship.AttacksUsed += doubleSalvo ? 2 : 1;
+        ship.ConsumeAttackMovement();
         double salvoDamage = Damage(ship, target);
         var shots = new List<CombatShot>
         {
@@ -99,6 +99,9 @@ public sealed partial class BattleState
             ResolveBalloonCrashes();
         }
 
+        // Promotion may restore a badly damaged hull's lost movement point.
+        // It must not grant this attack a new retreat budget.
+        ship.ConsumeAttackMovement(movementBeforeAttack);
         UpdateVision();
         var first = shots[0];
         string message = first.TargetVisibleToPlayer ? $"{(first.AttackerVisibleToPlayer ? ship.Definition.Name : "Unknown ship")}: {first.Damage:0} damage" : "Fired at a radar contact · outcome not visible";

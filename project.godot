@@ -11,11 +11,11 @@ config_version=5
 [application]
 
 config/name="Ancient Naval"
-config/version="v020.9x1"
+config/version="v020.9x2-r1"
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.7", "C#", "GL Compatibility")
 config/icon="res://icon.svg"
-config/release_date="16.10.2026"
+config/release_date="17.10.2026"
 
 [display]
 

@@ -25,9 +25,9 @@ public sealed class InfrastructureRules
 
 public sealed partial class BattleState
 {
-    public int CityFacilitySlots(Village town) => !Rules.Infrastructure.Enabled ? 0 : town.Level >= 4 ? 2 : town.Level >= 2 ? 1 : 0;
+    public int CityFacilitySlots(Village town) => Rules.ExperimentalEconomy || !Rules.Infrastructure.Enabled ? 0 : town.Level >= 4 ? 2 : town.Level >= 2 ? 1 : 0;
     public static CityFacility CityFacilityAt(Village town, int slot) => slot == 0 ? town.Facility1 : slot == 1 ? town.Facility2 : CityFacility.None;
-    public int CityFacilityStrength(Village town, CityFacility kind) => !Rules.Infrastructure.Enabled
+    public int CityFacilityStrength(Village town, CityFacility kind) => Rules.ExperimentalEconomy || !Rules.Infrastructure.Enabled
         || town.Health <= 0 || kind == CityFacility.None || town.Facility1 != kind && town.Facility2 != kind
             ? 0 : town.ImprovedFacility == kind ? 2 : 1;
     public int CityFacilityPrice(Side side, int villageId, int slot, CityFacility kind)
@@ -43,7 +43,7 @@ public sealed partial class BattleState
     {
         var error = ValidateVillage(side, villageId, out var town);
         if (error is not null) return error;
-        if (!Rules.Infrastructure.Enabled) return "City infrastructure is unavailable in this voyage.";
+        if (Rules.ExperimentalEconomy || !Rules.Infrastructure.Enabled) return "City infrastructure is unavailable in this voyage.";
         if (!Enum.IsDefined(kind) || kind == CityFacility.None || slot < 0 || slot >= CityFacilitySlots(town!))
             return "This infrastructure slot is locked.";
         if (town!.HasProduced || town.HasRepaired) return "The city has already worked this turn.";

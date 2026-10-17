@@ -16,7 +16,8 @@ internal static class AdmiralExploration
     {
         var side = battle.ActiveSide;
         var mobile = allies.Where(s => !s.IsMothership && !s.IsStructure
-            && s.CanMove && !s.HasMoved && (s.IsArmed || s.IsAirborne))
+            && s.CanMove && !s.HasMoved && !CaptureOrders.Holding(battle, s)
+            && !StrategicPlanning.HoldingPosition(battle, s) && (s.IsArmed || s.IsAirborne))
             .OrderBy(s => s.HasMortar).ThenBy(s => s.Definition.Price).ThenBy(s => s.Id).ToArray();
         if (mobile.Length == 0 || enemies.Any(e => e.IsMothership)) return null;
         var sightings = battle.KnownFlagships(side).OrderByDescending(s => s.Turn)
