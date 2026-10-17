@@ -1,13 +1,13 @@
-# Ancient Naval — v020.9x2 (experimental)
+# Ancient Naval — v020.9x2-r1 (experimental)
 
 **17 October 2026.** Godot 4.7.2 .NET, C# / .NET 8.
 
-[Portable Windows player](releases/v020.9x2/Ancient_Naval_v020.9x2_Windows.zip) ·
-[Windows installer and launcher](releases/v020.9x2/Install_Ancient_Naval_v0209x2.cmd) ·
-[Release evidence](releases/v020.9x2/VALIDATION.json).
+[Portable Windows player](releases/v020.9x2-r1/Ancient_Naval_v020.9x2-r1_Windows.zip) ·
+[Windows installer and launcher](releases/v020.9x2-r1/Install_Ancient_Naval_v0209x2_r1.cmd) ·
+[Release evidence](releases/v020.9x2-r1/VALIDATION.json).
 
 On the user's Windows PC the launcher prepares the hash-verified player at
-`C:/__Beygelman/! -11/dev-ancient-naval/releases/v020.9x2/playable/Ancient Naval.exe`.
+`C:/__Beygelman/! -11/dev-ancient-naval/releases/v020.9x2-r1/playable/Ancient Naval.exe`.
 Existing releases and saves are preserved. A cloud build does not install files on that PC.
 
 New voyages use an experimental economy and combat system: city income has a safe
@@ -24,7 +24,7 @@ Own actions keep the camera stationary and apply gameplay immediately; effects a
 the next legal order. Automatic action focus is reserved for opponent replay.
 
 This is a playable experimental candidate, not a claim of proven competitive balance.
-See [Russian notes](releases/v020.9x2/Ancient_Naval_v020.9x2_Notes_RU.md),
+See [Russian notes](releases/v020.9x2-r1/Ancient_Naval_v020.9x2-r1_Notes_RU.md),
 [working agreement](AGENTS.md), [code map](docs/CODEMAP.md) and
 [development state](docs/DEVELOPMENT-STATE.md).
 

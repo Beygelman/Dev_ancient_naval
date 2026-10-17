@@ -54,21 +54,19 @@ public sealed partial class BattleState
         foreach (var state in saved) _tradeRaids.Add(state.Ship, state);
     }
 
-    private bool OnTradeCorridor(Ship raider, Side victim, TradeNetwork network) =>
-        network.Edges.Any(edge => edge.From == raider.Position || edge.To == raider.Position)
-        || OwnShips(victim).Any(ship => ship.Definition.Class == ShipClass.Lighthouse && ship.Health > 0
-            && (ship.Position == raider.Position || Board.GetSurrounding(ship.Position).Contains(raider.Position)));
-
     /// <summary>Actual economic resolution only. Never hand this network to a renderer or AI planner:
     /// its missing geometry could disclose a raider behind fog.</summary>
     private TradeNetwork OperationalTradeRoutes(Side side)
     {
         var baseline = TradeRoutes(side);
         if (!Rules.ExperimentalEconomy) return baseline;
+        // Apply every committed hostile zone before searching. A raider outside the original
+        // shortest ink line may cover a real detour created by another interception.
+        // Distant zones have no economic effect unless they actually remove a valid sea path.
         var raiders = _tradeRaids.Values.Where(state => state.HeldEnds >= 2)
             .Select(state => (State: state, Ship: Find(state.Ship)))
             .Where(item => item.Ship is { } ship && ship.Owner != side && CanRaidTrade(ship)
-                && ship.Position == item.State.Position && OnTradeCorridor(ship, side, baseline))
+                && ship.Position == item.State.Position)
             .Select(item => item.Ship!).OrderBy(ship => ship.Id).ToArray();
         if (raiders.Length == 0) return baseline;
         string key = string.Join(';', raiders.Select(ship => $"{ship.Id}@{ship.Position.X},{ship.Position.Y}"));

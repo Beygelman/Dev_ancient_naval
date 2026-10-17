@@ -1,5 +1,9 @@
 # Ancient Naval change history
 
+## v020.9x2-r1 — 17 October 2026
+
+- Correct simultaneous trade interceptions: a second confirmed raider on an alternate route now blocks its real zone. A distant stationary ship does not reduce income. Retain the first v020.9x2 tag and archives.
+
 ## v020.9x2 — 17 October 2026 (experimental)
 
 - Protectable port export income and sustained naval interception with real rerouting; safe local city income remains 2.

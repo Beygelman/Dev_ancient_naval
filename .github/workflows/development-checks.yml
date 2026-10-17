@@ -165,7 +165,7 @@ jobs:
             tools
             docs
             .github
-            releases/v020.9x2
+            releases/v020.9x2-r1
       - uses: actions/download-artifact@v4
         with:
           name: Ancient-Naval-Windows
@@ -185,8 +185,8 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add releases/v020.9x2 releases/latest.json
-          git commit -m 'release: retain validated v020.9x2 Windows player, source and screenshots [skip ci]'
+          git add releases/v020.9x2-r1 releases/latest.json
+          git commit -m 'release: retain validated v020.9x2-r1 Windows player, source and screenshots [skip ci]'
           git push origin "HEAD:${GITHUB_REF_NAME}"
   install-v0209x2:
     if: github.ref_name == 'codex/ancient-naval-v020.9x2'
@@ -199,24 +199,24 @@ jobs:
           ref: ${{ github.ref_name }}
           sparse-checkout: |
             tools
-            releases/v020.9x2
+            releases/v020.9x2-r1
       - name: Verify Windows PowerShell install and preservation
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $installer = Join-Path $PWD 'releases/v020.9x2/Install-PlayableRelease.ps1'
-          $archive = Join-Path $PWD 'releases/v020.9x2/Ancient_Naval_v020.9x2_Windows.zip'
+          $installer = Join-Path $PWD 'releases/v020.9x2-r1/Install-PlayableRelease.ps1'
+          $archive = Join-Path $PWD 'releases/v020.9x2-r1/Ancient_Naval_v020.9x2-r1_Windows.zip'
           $root = Join-Path $env:RUNNER_TEMP 'Ancient Naval install fixture'
           New-Item -ItemType Directory -Path "$root/releases/previous-version" -Force | Out-Null
           Set-Content -LiteralPath "$root/releases/previous-version/keep.txt" -Value 'preserve previous release'
           & $installer -ProjectRoot $root -ArchivePath $archive
-          $exe = Join-Path $root 'releases/v020.9x2/playable/Ancient Naval.exe'
+          $exe = Join-Path $root 'releases/v020.9x2-r1/playable/Ancient Naval.exe'
           if (!(Test-Path -LiteralPath $exe)) { throw 'Executable not placed at the conventional path.' }
           $before = (Get-Item -LiteralPath $exe).LastWriteTimeUtc
           & $installer -ProjectRoot $root -ArchivePath $archive
           if ((Get-Item -LiteralPath $exe).LastWriteTimeUtc -ne $before) { throw 'Identical installed player was overwritten.' }
           if ((Get-Content -LiteralPath "$root/releases/previous-version/keep.txt") -ne 'preserve previous release') { throw 'Previous release changed.' }
-          $readme = Join-Path $root 'releases/v020.9x2/playable/READ_ME_RU.txt'
+          $readme = Join-Path $root 'releases/v020.9x2-r1/playable/READ_ME_RU.txt'
           Set-Content -LiteralPath $readme -Value 'preserve mismatched existing file'
           $rejected = $false
           try { & $installer -ProjectRoot $root -ArchivePath $archive } catch { $rejected = $true }
@@ -239,23 +239,33 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
           sparse-checkout: |
-            releases/v020.9x2
+            releases/v020.9x2-r1
       - name: Publish experimental GitHub release after every gate
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if gh release view v020.9x2 >/dev/null 2>&1; then
+          if gh release view v020.9x2-r1 >/dev/null 2>&1; then
             echo 'Existing release requires inspection; refusing to overwrite it.' >&2
             exit 1
           fi
           published=$(git rev-parse HEAD)
-          gh release create v020.9x2 \
-            releases/v020.9x2/Ancient_Naval_v020.9x2_Windows.zip \
-            releases/v020.9x2/Ancient_Naval_v020.9x2_Source.zip \
-            releases/v020.9x2/SHA256-v020.9x2.txt \
-            releases/v020.9x2/Install-PlayableRelease.ps1 \
-            releases/v020.9x2/Install_Ancient_Naval_v0209x2.cmd \
+          gh release create v020.9x2-r1 \
+            releases/v020.9x2-r1/Ancient_Naval_v020.9x2-r1_Windows.zip \
+            releases/v020.9x2-r1/Ancient_Naval_v020.9x2-r1_Source.zip \
+            releases/v020.9x2-r1/SHA256-v020.9x2-r1.txt \
+            releases/v020.9x2-r1/Install-PlayableRelease.ps1 \
+            releases/v020.9x2-r1/Install_Ancient_Naval_v0209x2_r1.cmd \
             --target "$published" --prerelease \
-            --title 'Ancient Naval v020.9x2 — experimental economy and combat' \
-            --notes-file releases/v020.9x2/Ancient_Naval_v020.9x2_Notes_RU.md
+            --title 'Ancient Naval v020.9x2-r1 — experimental economy and combat' \
+            --notes-file releases/v020.9x2-r1/Ancient_Naval_v020.9x2-r1_Notes_RU.md
+          gh release view v020.9x2 --json body > "$RUNNER_TEMP/previous-release.json"
+          python3 - <<'PYBODY'
+          import json, os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP'])
+          body = json.loads((root / 'previous-release.json').read_text())['body']
+          notice = 'Superseded by [v020.9x2-r1](https://github.com/Beygelman/Dev_ancient_naval/releases/tag/v020.9x2-r1): fixes simultaneous trade interceptions on alternate routes. Original artifacts and tag are preserved.\n\n'
+          (root / 'superseded-release.md').write_text(notice + body)
+          PYBODY
+          gh release edit v020.9x2 --notes-file "$RUNNER_TEMP/superseded-release.md"

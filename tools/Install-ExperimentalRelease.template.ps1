@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$version = 'v020.9x2'
+$version = 'v020.9x2-r1'
 $archiveName = "Ancient_Naval_${version}_Windows.zip"
 $expectedHash = '__WINDOWS_SHA256__'
 $release = Join-Path ([IO.Path]::GetFullPath($ProjectRoot)) "releases\$version"

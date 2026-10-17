@@ -136,6 +136,28 @@ internal static class V0209x2EconomyChecks
         Cycle(withBypass); Cycle(withBypass);
         Check(withBypass.PortIncome(withBypass.Villages[0]) == 2,
             "a real alternative via six-transition beacon links preserves income");
+        var twoCutsSave = Fixture(bypass: true).CaptureSnapshot();
+        twoCutsSave.Ships = twoCutsSave.Ships.Append(new SavedShip { Id = 101, Owner = Side.Enemy,
+            Kind = ShipClass.Garrison, Position = new GridPosition(4, 1),
+            Health = rules.Get(ShipClass.Garrison).MaxHealth, Level = 1 }).ToArray();
+        twoCutsSave.NextId = 102;
+        var twoCuts = Restore(twoCutsSave);
+        var originalInk = twoCuts.TradeRoutes(Side.Player);
+        Check(originalInk.Edges.Any(edge => edge.From == new GridPosition(4, 1) || edge.To == new GridPosition(4, 1))
+            && !originalInk.Edges.Any(edge => edge.From == new GridPosition(5, 3) || edge.To == new GridPosition(5, 3)),
+            "two-cut fixture places one raider on original ink and another exclusively on the real bypass");
+        Cycle(twoCuts); Cycle(twoCuts);
+        Check(twoCuts.PortIncome(twoCuts.Villages[0]) == 0
+            && twoCuts.TradeStatusFor(Side.Player, twoCuts.Villages[0].Id) == PortTradeStatus.Interrupted,
+            "simultaneous committed zones close both original route and off-ink bypass");
+        var firstCutOnly = twoCuts.CaptureSnapshot();
+        int bypassRaider = firstCutOnly.Ships.Single(ship => ship.Kind == ShipClass.Garrison
+            && ship.Position == new GridPosition(5, 3)).Id;
+        firstCutOnly.Ships = firstCutOnly.Ships.Where(ship => ship.Id != bypassRaider).ToArray();
+        firstCutOnly.TradeRaids = firstCutOnly.TradeRaids.Where(raid => raid.Ship != bypassRaider).ToArray();
+        var reopened = Restore(firstCutOnly);
+        Check(reopened.PortIncome(reopened.Villages[0]) == 2,
+            "removing the off-ink interceptor reopens a genuine bypass while the first cut stays held");
         var noRaider = blocked.CaptureSnapshot();
         noRaider.Ships = noRaider.Ships.Where(ship => ship.Id != raiderId).ToArray();
         noRaider.TradeRaids = Array.Empty<SavedTradeRaid>();

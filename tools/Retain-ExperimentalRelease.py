@@ -17,7 +17,7 @@ def sha(path: Path) -> str:
 
 def retain(player: Path, evidence: Path, run_id: str) -> None:
     repo = Path(__file__).resolve().parent.parent
-    version = "v020.9x2"
+    version = "v020.9x2-r1"
     release = repo / "releases" / version
     release.mkdir(parents=True, exist_ok=True)
     source_commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
@@ -91,7 +91,7 @@ def retain(player: Path, evidence: Path, run_id: str) -> None:
         "finally { if (Test-Path -LiteralPath $installer) { Remove-Item -LiteralPath $installer -Force } }"
         '"\r\nif errorlevel 1 (\r\n  pause\r\n  exit /b 1\r\n)\r\nendlocal\r\n'
     )
-    (release / "Install_Ancient_Naval_v0209x2.cmd").write_bytes(command.encode("ascii"))
+    (release / "Install_Ancient_Naval_v0209x2_r1.cmd").write_bytes(command.encode("ascii"))
     copied = []
     for path in sorted(evidence.rglob("*.png")):
         target = release / "screenshots" / path.name
@@ -105,7 +105,7 @@ def retain(player: Path, evidence: Path, run_id: str) -> None:
     if not any("balance" in name for name in copied):
         raise ValueError("New economy/combat screenshots missing")
     manifest = "\n".join(f"{sha(path)}  {path.name}" for path in (destination, source, installer)) + "\n"
-    (release / "SHA256-v020.9x2.txt").write_text(manifest)
+    (release / f"SHA256-{version}.txt").write_text(manifest)
     validation = {"version": version, "source_commit": source_commit, "workflow_run": run_id,
                   "windows_sha256": digest, "player_members": len(names), "screenshots": copied,
                   "gates": ["core_and_historical_saves", "native_graphical_regressions", "windows_export_startup"],
@@ -113,9 +113,9 @@ def retain(player: Path, evidence: Path, run_id: str) -> None:
     (release / "VALIDATION.json").write_text(json.dumps(validation, indent=2) + "\n")
     latest = {"version": version, "channel": "experimental", "windows": f"{version}/{archive_name}",
               "source": f"{version}/{source.name}", "playable": f"{version}/playable/Ancient Naval.exe",
-              "launcher": f"{version}/Install_Ancient_Naval_v0209x2.cmd",
+              "launcher": f"{version}/Install_Ancient_Naval_v0209x2_r1.cmd",
               "prepare": f"{version}/Install-PlayableRelease.ps1",
-              "notes": f"{version}/Ancient_Naval_v020.9x2_Notes_RU.md", "copied_files": len(names)}
+              "notes": f"{version}/Ancient_Naval_{version}_Notes_RU.md", "copied_files": len(names)}
     (repo / "releases/latest.json").write_text(json.dumps(latest, indent=2) + "\n")
     print(f"PASS: retained {version}, {len(names)} Windows files, source {source_commit}, {len(copied)} captures")
 
