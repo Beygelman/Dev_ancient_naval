@@ -71,6 +71,8 @@ extraction is published only after validation. Nothing was written to the user's
 C: drive from the cloud host; local preparation needs the Windows launcher.
 
 This session rechecked archive CRC/SHA256, all 190 extracted files, 206 PCK
-resources and the 760-file matching source snapshot. The Windows delivery workflow
-checks PowerShell 5.1 extraction, idempotence and preservation/refusal cases.
-See its actual run status before claiming those new installation checks passed.
+resources and the 760-file matching source snapshot. The Windows delivery workflow passed PowerShell 5.1 extraction, idempotence,
+old release preservation and differing-file/bad-checksum refusal cases:
+https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38967282275
+Retained binary/source delivery commit: 547b10e6cd70932679f1bfb4d6f0e514c83495e2.
+Remote Git blob hashes match the locally verified archives.

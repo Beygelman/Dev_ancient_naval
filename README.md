@@ -9,6 +9,7 @@ On the user's Windows PC, run
 to verify, prepare and launch the game at
 `C:/__Beygelman/! -11/dev-ancient-naval/releases/v020.9x1/playable/Ancient Naval.exe`.
 The installer preserves old releases and refuses differing existing files.
+Its extraction, repeated preparation and preservation checks passed in Windows PowerShell 5.1.
 The exported executable passed startup verification; graphical Windows playthrough
 and final frame pacing remain unverified. See [validation and handoff](docs/DEVELOPMENT-STATE.md).
 

@@ -29,5 +29,14 @@
     "Final native frame pacing",
     "Physical Android/iPhone validation",
     "Writing to the user Windows C: drive"
+  ],
+  "retained_delivery_commit": "547b10e6cd70932679f1bfb4d6f0e514c83495e2",
+  "windows_installer_ci_run": "https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38967282275",
+  "windows_installer_checks": [
+    "PowerShell 5.1 complete extraction to releases/v020.9x1/playable",
+    "Idempotent repeated preparation without rewriting the player",
+    "Previous release preservation",
+    "Refusal and preservation of differing existing files",
+    "Bad archive checksum refusal without creating an installation"
   ]
 }
