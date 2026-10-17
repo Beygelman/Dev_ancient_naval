@@ -123,7 +123,7 @@ public partial class Balance0209x2Checks : Node
             await Frames();
             Check(Game.Hud.InformationText.Contains("Income: +4 Thors per turn"), "city card uses actual total income");
             Check(Nodes(Game.Hud).OfType<Label>().Any(label => label.Name == "InformationSectionHeading"
-                && label.Text == Language.Translate("City decisions").ToUpperInvariant()),
+                && label.Tr(label.Text).ToString() == Language.Translate("City decisions").ToUpperInvariant()),
                 "rendered uppercase city heading is localized in " + locale);
             var port = Nodes(Game.Hud).OfType<SectorButton>().Single(button => button.Name == "ActionPort");
             Check(port.TooltipText.Contains("no shipyard discount") && !port.TooltipText.Contains("Trade cap"),
