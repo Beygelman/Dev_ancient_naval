@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DevAncientNaval.Core.Battle;
 using DevAncientNaval.Core.Grid;
+using DevAncientNaval.Core.Economy;
 using DevAncientNaval.Core.Units;
 using DevAncientNaval.Core.World;
 using DevAncientNaval.Presentation;
@@ -74,6 +75,11 @@ public partial class Balance0209x2Checks : Node
             Port = index == 0, PortCell = index == 0 ? new GridPosition(5, 6) : null,
             Name = index == 0 ? "Aster Harbour" : "Pelagos Market"
         }).ToArray();
+        // Snapshot ownership changes must include the same registered sources a real capture creates.
+        // Core derives the live port contribution from each city source rather than its stored amount.
+        snapshot.Income = snapshot.Income.Where(source => !source.Id.StartsWith("village:", StringComparison.Ordinal))
+            .Concat(snapshot.Villages.Where(town => town.Owner is not null && town.Health > 0)
+                .Select(town => new IncomeSource($"village:{town.Id}", town.Owner!.Value, 2))).ToArray();
         battle = BattleState.LoadJson(BattleState.SerializeSnapshot(snapshot));
         foreach (var award in battle.PendingAwards.ToArray()) battle.ClaimAward(award.Owner, award.Id);
         return battle;
@@ -107,6 +113,8 @@ public partial class Balance0209x2Checks : Node
         Check(battle.TradeStatusFor(Side.Player, town.Id) == PortTradeStatus.Connected
             && battle.PortIncome(town) == 2 && battle.VillageIncome(town) == 2,
             "level-3 port trades with a level-1 market without a second port");
+        Check(battle.GrossIncome(Side.Player) == 8 && battle.Income(Side.Player) == 8,
+            "treasury income includes the flagship, both local city sources and connected trade exactly once");
         foreach (string locale in new[] { "en", "uk", "nl" })
         {
             Language.Set(locale, persist: false);
@@ -156,6 +164,8 @@ public partial class Balance0209x2Checks : Node
         Check(battle.TradeStatusFor(Side.Player, town.Id) == PortTradeStatus.Interrupted
             && battle.PortIncome(town) == 0 && battle.VillageIncome(town) == 2,
             "confirmed interception removes trade while preserving local income");
+        Check(battle.GrossIncome(Side.Player) == 6 && battle.Income(Side.Player) == 6,
+            "interrupted treasury income retains the flagship and both local city sources");
         await Load(battle, new(7, 6));
         Game.SelectCell(town.Position); Game.Refresh(); await Frames();
         Check(Game.Hud.InformationText.Contains("Trade interrupted") && !Game.Hud.InformationText.Contains("8,6"),
