@@ -78,14 +78,21 @@ public sealed partial class BattleState
         var area = shots[0].IsMortar ? MortarVillageSplash(ship, target.Position) : Array.Empty<AreaHit>();
         RecordImpact("attack");
         ResolveBalloonCrashes();
-        if (doubleSalvo && !IsOver && target.Health > 0)
+        bool earlyReply = doubleSalvo && Rules.CounterBetweenSalvoShots;
+        if (earlyReply && !IsOver && Find(ship.Id) is not null && Find(target.Id) is not null && CanCounterattack(target, ship))
+        {
+            shots.Add(Fire(target, ship, true));
+            RecordImpact("counter");
+            ResolveBalloonCrashes();
+        }
+        if (doubleSalvo && !IsOver && target.Health > 0 && (!earlyReply || Find(ship.Id) is not null && Find(target.Id) is not null))
         {
             shots.Add(Fire(ship, target, false, Rules.EqualDoubleSalvoDamage ? salvoDamage : null));
             RecordImpact("attack2");
             ResolveBalloonCrashes();
         }
         // One reply to each incoming attack; replies never recursively trigger replies.
-        if (!IsOver && CanCounterattack(target, ship))
+        if (!earlyReply && !IsOver && CanCounterattack(target, ship))
         {
             shots.Add(Fire(target, ship, true));
             RecordImpact("counter");
@@ -97,7 +104,7 @@ public sealed partial class BattleState
         string message = first.TargetVisibleToPlayer ? $"{(first.AttackerVisibleToPlayer ? ship.Definition.Name : "Unknown ship")}: {first.Damage:0} damage" : "Fired at a radar contact · outcome not visible";
         if (doubleSalvo && first.TargetVisibleToPlayer)
             message = $"Double salvo: {shots.Where(s => !s.IsCounterattack).Sum(s => s.Damage):0} damage";
-        if (shots.LastOrDefault() is { IsCounterattack: true, TargetVisibleToPlayer: true } reply)
+        if (shots.LastOrDefault(s => s.IsCounterattack && s.TargetVisibleToPlayer) is { } reply)
             message += $" · −{reply.Damage:0}";
         if (shots.Any(s => s.Promoted && s.AttackerVisibleToPlayer))
             message += " · VETERAN!";
@@ -133,3 +140,4 @@ public sealed partial class BattleState
         return new(from, to, damage, counter, sunk, promoted, !counter && UsesMortar(attacker, target.Position), attacker.Owner == Side.Player || Vision.IsVisible(Side.Player, attacker.Position), target.Owner == Side.Player || Vision.IsVisible(Side.Player, target.Position));
     }
 }
+

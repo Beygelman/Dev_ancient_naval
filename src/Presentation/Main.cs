@@ -99,8 +99,8 @@ public partial class Main : Node2D
         MapInput.Held += SelectAtScreen;
         MapInput.Hovered += PreviewAtScreen;
         MapInput.Canceled += CancelOrder;
-        MapInput.KeyboardEnabled = () => !_endingStamp && !Hud.TurnConfirmationVisible && !Hud.ReadyActionsMenuVisible && _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && Battle.PendingUpgrade(Side.Player) is null;
-        MapInput.PointerEnabled = () => !ScuttleConfirmationVisible && !_endingStamp && !Hud.TurnConfirmationVisible && _voyageWelcome?.IsOpen != true
+        MapInput.KeyboardEnabled = () => _infrastructure?.IsOpen != true && !_endingStamp && !Hud.TurnConfirmationVisible && !Hud.ReadyActionsMenuVisible && _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && Battle.PendingUpgrade(Side.Player) is null;
+        MapInput.PointerEnabled = () => _infrastructure?.IsOpen != true && !ScuttleConfirmationVisible && !_endingStamp && !Hud.TurnConfirmationVisible && _voyageWelcome?.IsOpen != true
             && _victory?.IsOpen != true && _rewards?.IsOpen != true && !_sessionLoading && _home?.IsOpen != true
             && !Hud.MenuVisible && Battle.PendingUpgrade(Side.Player) is null;
         MapInput.ZoomEnabled = () => !Hud.ReadyActionsMenuVisible && MapInput.PointerEnabled?.Invoke() != false;
@@ -158,6 +158,7 @@ public partial class Main : Node2D
         InitializeOffscreenNavigation();
         InitializeRewards();
         Fleet.FocusTarget = FocusVisibleTarget;
+        InitializeCityInfrastructure();
         MapCamera.ViewChanged += PositionActions;
         InitializeOutcome();
         GetViewport().SizeChanged += OnViewportResized;
@@ -167,6 +168,8 @@ public partial class Main : Node2D
         InitializeTutorials();
         UiScale.Changed += Refresh;
 #if !ANCIENT_NAVAL_IOS
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--action0209-test"))
+            AddChild(new Tests.Runtime.Action0209Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--mobile-touch-test"))
             AddChild(new Tests.Runtime.MobileTouchChecks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--portrait-layout-test"))
@@ -300,7 +303,7 @@ public partial class Main : Node2D
         }
     }
 
-    private bool CanCommand => !ScuttleConfirmationVisible && !_endingStamp && !Hud.TurnConfirmationVisible && _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && !Battle.IsOver && !Battle.PlayerDefeated && Battle.ActiveSide == Side.Player;
+    private bool CanCommand => _infrastructure?.IsOpen != true && !ScuttleConfirmationVisible && !_endingStamp && !Hud.TurnConfirmationVisible && _voyageWelcome?.IsOpen != true && _victory?.IsOpen != true && _rewards?.IsOpen != true && !Busy && !_sessionLoading && _home?.IsOpen != true && !Hud.MenuVisible && !Battle.IsOver && !Battle.PlayerDefeated && Battle.ActiveSide == Side.Player;
     private Ship? Selected => SelectedShipId is { } id ? Battle.FindObserved(Side.Player, id) : null;
     private Village? SelectedVillage => SelectedVillageId is { } id ? Battle.ObservedVillages(Side.Player).FirstOrDefault(v => v.Id == id) : null;
 
@@ -317,6 +320,10 @@ public partial class Main : Node2D
 
     internal void LoadScenario(BattleState battle)
     {
+        // Drain the old world's continuations before swapping any model/view reference.
+        MapCamera.CancelFlight();
+        Fleet.FinishAnimation();
+        _infrastructure?.Close();
         _scuttleConfirmation?.CancelImmediately();
         SuspendTutorials();
         Hud.CloseTurnConfirmation();
@@ -353,3 +360,4 @@ public partial class Main : Node2D
         UiScale.Changed -= Refresh;
     }
 }
+

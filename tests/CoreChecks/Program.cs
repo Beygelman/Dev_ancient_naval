@@ -3,6 +3,17 @@ using DevAncientNaval.Core.World;
 
 try
 {
+    if (args.Length == 0)
+    {
+        var latest = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        Console.WriteLine($"PASS: {Rules0209Checks.Run(latest)} v020.9 experiments and compatibility checks.");
+    }
+    if (args.Contains("--v0209-only"))
+    {
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        Console.WriteLine($"PASS: {Rules0209Checks.Run(rules)} v020.9 experiments and historical compatibility checks.");
+        return;
+    }
     if (args.Contains("--v0208b-only"))
     {
         var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
@@ -141,3 +152,4 @@ catch (Exception error)
     Console.Error.WriteLine(error);
     Environment.ExitCode = 1;
 }
+

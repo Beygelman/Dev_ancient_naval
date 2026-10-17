@@ -9,6 +9,7 @@ internal static class VillageDevelopment
 {
     internal static CommandResult? Step(BattleState battle, IReadOnlyList<Ship> observedEnemies)
     {
+        if (CityInfrastructureInvestment.Step(battle, observedEnemies) is { } infrastructure) return infrastructure;
         if (!battle.Rules.PaidVillageUpgrades)
             return null;
         var side = battle.ActiveSide;
@@ -32,3 +33,4 @@ internal static class VillageDevelopment
         return null;
     }
 }
+

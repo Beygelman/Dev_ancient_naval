@@ -1,0 +1,42 @@
+{
+  "version": "v020.9x1",
+  "status": "experimental playable Windows delivery",
+  "source_commit": "0b6cc56ad20c878b24ce1839ae9d7115d7e23243",
+  "functional_source_commit": "c7bbd6963b0d6d7aa8bb7f2ebed92451584aa23f",
+  "ci_run": "https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38893737716",
+  "original_artifact_id": 12042986760,
+  "original_player_sha256": "762d2f697cfcd9a6695ffa34ef04a3c9af41b60731883f6571063a6c7fecc82f",
+  "player_archive_bytes": 87373825,
+  "player_files": 190,
+  "pck_engine": "4.7.2",
+  "pck_resources": 206,
+  "checks_this_session": [
+    "CI artifact and embedded manifest SHA256",
+    "ZIP CRC, safe paths and runtime inventory",
+    "PCK resource inventory, engine and development-content exclusions",
+    "extracted runtime byte verification",
+    "source archive inventory and SHA256"
+  ],
+  "prior_ci_checks": [
+    "Full Core including historical fixtures and 59 new checks",
+    "Godot .NET build",
+    "43 graphical action/city checks",
+    "100 effects checks",
+    "Windows export and exported executable headless startup"
+  ],
+  "not_performed": [
+    "Graphical Windows playthrough",
+    "Final native frame pacing",
+    "Physical Android/iPhone validation",
+    "Writing to the user Windows C: drive"
+  ],
+  "retained_delivery_commit": "547b10e6cd70932679f1bfb4d6f0e514c83495e2",
+  "windows_installer_ci_run": "https://github.com/Beygelman/Dev_ancient_naval/actions/runs/38967282275",
+  "windows_installer_checks": [
+    "PowerShell 5.1 complete extraction to releases/v020.9x1/playable",
+    "Idempotent repeated preparation without rewriting the player",
+    "Previous release preservation",
+    "Refusal and preservation of differing existing files",
+    "Bad archive checksum refusal without creating an installation"
+  ]
+}

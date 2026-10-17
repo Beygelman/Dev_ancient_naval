@@ -8,13 +8,15 @@ public sealed class PortRules
     /// <summary>Replace the historical fixed income with one Thor per other
     /// connected friendly port city. Missing in old rules: retain fixed Income.</summary>
     public bool ConnectedCityIncome { get; init; }
+    public int ConnectedCityIncomeCap { get; init; } // Zero: historical uncapped income.
     public double Discount { get; init; } = .20;
     public int MinimumBonus { get; init; } = 2;
     public double MovementBonus { get; init; } = .20;
 
     public void Validate()
     {
-        if (MaximumRouteLength < 0 || Price < 0 || Income < 0 || !double.IsFinite(Discount) || Discount is < 0 or >= 1 || MinimumBonus < 1 || !double.IsFinite(MovementBonus) || MovementBonus is < 0 or > 1)
+        if (ConnectedCityIncomeCap < 0 || MaximumRouteLength < 0 || Price < 0 || Income < 0 || !double.IsFinite(Discount) || Discount is < 0 or >= 1 || MinimumBonus < 1 || !double.IsFinite(MovementBonus) || MovementBonus is < 0 or > 1)
             throw new ArgumentException("Invalid port rules.");
     }
 }
+

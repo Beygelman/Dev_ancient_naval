@@ -59,7 +59,7 @@ public partial class Main
         Hud.InstantPaperAnimations = FastChecks;
         Hud.UpdateBattle(Battle, selected, Busy, Mode, village);
         if (CanCommand && _salvoCell is { } target && SelectedShipId == _salvoActorId)
-            Hud.ShowSalvoChoice(Battle.CanDoubleSalvo(_salvoActorId, target));
+            Hud.ShowSalvoChoice(Battle.CanDoubleSalvo(_salvoActorId, target), Battle.Rules.CounterBetweenSalvoShots);
         else Hud.HideSalvoChoice();
         RefreshOffscreenNavigation();
         PositionActions();
@@ -116,3 +116,4 @@ public partial class Main
         // World-space overlay commands are retained; the renderer clips them after a pan.
     }
 }
+

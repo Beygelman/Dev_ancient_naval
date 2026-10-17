@@ -102,7 +102,7 @@ public partial class FleetView
     {
         if (!attackerVisible && !targetVisible)
             return;
-        if (targetVisible && FocusTarget is not null) await FocusTarget(targetCell);
+        if (targetVisible && FocusTarget is not null) await FocusAction(targetCell);
         var profile = ShipVisualProfile.For(attacker.Class);
         int guns = mortar ? 1 : Math.Max(1, profile.Cannonballs);
         int count = guns * charges;
@@ -178,3 +178,4 @@ public partial class FleetView
         CompletedLaunchSpreads.Add((count - 1) * interval);
     }
 }
+

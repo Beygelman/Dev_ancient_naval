@@ -26,6 +26,7 @@ public partial class DebugHud
         _port.TooltipText = (battle.Rules.Ports.ConnectedCityIncome
             ? $"Port · {battle.PortPrice(Side.Player)} Thors · Level 3 · +1 income per other connected city · {battle.Rules.Ports.Discount:P0} shipyard discount · linked sea lanes"
             : $"Port · {battle.PortPrice(Side.Player)} Thors · Level 3 · +{battle.Rules.Ports.Income} income · {battle.Rules.Ports.Discount:P0} shipyard discount · linked sea lanes")
+            + (battle.Rules.Ports.ConnectedCityIncomeCap > 0 ? $" · Trade cap +{battle.Rules.Ports.ConnectedCityIncomeCap}" : "")
             + (portReason is null ? "" : $" · {portReason}");
         _fortify.SetMeta("applicable", owned);
         string? fortifyReason = village is null ? "Select a village" : battle.FortifyBlockReason(Side.Player, village.Id);
@@ -50,3 +51,4 @@ public partial class DebugHud
                 + (privateTrade ? "\nTrade income is not observed" : "");
     }
 }
+

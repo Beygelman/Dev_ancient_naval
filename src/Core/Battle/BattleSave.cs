@@ -27,7 +27,7 @@ public sealed partial class BattleState
         Statistics = Statistics,
         Rules = Rules,
         Ships = _ships.Select(SavedShip.From).ToArray(),
-        Villages = _villages.Select(v => new SavedVillage(v.Id, v.Position, v.Owner, v.Level, v.Health, v.TurnsOwned, v.IsFortified, v.HasProduced, v.HasRepaired, v.HasAttacked, v.Name, v.HasPort, v.PortCell)).ToArray(),
+        Villages = _villages.Select(v => new SavedVillage(v.Id, v.Position, v.Owner, v.Level, v.Health, v.TurnsOwned, v.IsFortified, v.HasProduced, v.HasRepaired, v.HasAttacked, v.Name, v.HasPort, v.PortCell, v.Facility1, v.Facility2, v.ImprovedFacility)).ToArray(),
         Fish = _fish.ToArray(),
         Shoals = _shoals.ToArray(),
         Treasuries = _treasuries.ToArray(),
@@ -127,6 +127,9 @@ public sealed partial class BattleState
             village.IsFortified = state.Fortified;
             village.HasPort = state.Port;
             village.PortCell = state.PortCell;
+            village.Facility1 = state.Facility1;
+            village.Facility2 = state.Facility2;
+            village.ImprovedFacility = state.ImprovedFacility;
             village.HasProduced = state.Produced;
             village.HasRepaired = state.Repaired;
             village.HasAttacked = state.Attacked;
@@ -199,3 +202,4 @@ public sealed partial class BattleState
         LastTreasuryReward = saved.LastReward;
     }
 }
+

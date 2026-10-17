@@ -90,11 +90,18 @@ internal static class AdmiralTactics
                 {
                     double damage = battle.Damage(g.Forecast, target);
                     bool twice = target.Health > damage && CanDouble(battle, g.Forecast, target);
-                    double hit = Math.Min(target.Health, damage * (twice ? 2 : 1));
+                    bool early = twice && battle.Rules.CounterBetweenSalvoShots;
+                    double hit = Math.Min(target.Health, damage * (twice && !early ? 2 : 1));
                     var after = Clone(target, battle);
                     after.Health -= hit;
                     double counter = after.Health > 0 && battle.CanCounterattack(after, g.Forecast)
                         ? Math.Min(g.Forecast.Health, battle.Damage(after, g.Forecast, true)) : 0;
+                    if (early && counter < g.Forecast.Health && after.Health > 0)
+                    {
+                        var secondGun = Clone(g.Forecast, battle);
+                        secondGun.Health -= counter;
+                        hit += Math.Min(after.Health, battle.Rules.EqualDoubleSalvoDamage ? damage : battle.Damage(secondGun, after));
+                    }
                     return new { Gun = g, Damage = hit, Counter = counter, Double = twice, Kills = hit >= target.Health };
                 })
                 // A predictable suicidal shot is not readiness. A decisive
@@ -128,3 +135,4 @@ internal static class AdmiralTactics
         return copy;
     }
 }
+

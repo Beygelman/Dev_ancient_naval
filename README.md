@@ -1,4 +1,39 @@
-# Ancient Naval — v020.8b
+# Ancient Naval — v020.9x1 (experimental)
+
+**16 October 2026.** Godot 4.7.2 .NET, C# / .NET 8.
+
+[Download the portable Windows playtest package](releases/v020.9x1/Ancient_Naval_v020.9x1_Windows.zip).
+The release now has a permanent repository copy, matching source and SHA256.
+On the user's Windows PC, run
+[Install_Ancient_Naval_v0209x1.cmd](releases/v020.9x1/Install_Ancient_Naval_v0209x1.cmd)
+to verify, prepare and launch the game at
+`C:/__Beygelman/! -11/dev-ancient-naval/releases/v020.9x1/playable/Ancient Naval.exe`.
+The installer preserves old releases and refuses differing existing files.
+Its extraction, repeated preparation and preservation checks passed in Windows PowerShell 5.1.
+The exported executable passed startup verification; graphical Windows playthrough
+and final frame pacing remain unverified. See [validation and handoff](docs/DEVELOPMENT-STATE.md).
+
+Own orders keep the camera stationary and apply gameplay immediately. Attack and
+sinking effects no longer hold up the next legal order; remaining cosmetics settle
+when that order starts. Automatic action focus is reserved for opponent replay.
+This interaction change is permanent and also applies to historical saves.
+
+New voyages test three independently saved rule changes:
+
+- A surviving target replies between double-salvo shots. The second shot requires
+  the attacker to survive; only one reply and the existing second-shot damage rule.
+- Connected port income is capped at +2 per port, plus any working trade yard.
+- Cities unlock facility slots at levels 2 and 4: trade yard, repair dock or naval
+  arsenal. At level 5, improve one facility. Replacement is paid; no duplicate types.
+
+Continue preserves historical economy/combat rules. See
+[experimental rules and checks](docs/V0209X1.md), [agent workflow](AGENTS.md),
+[code map](docs/CODEMAP.md) and [current development state](docs/DEVELOPMENT-STATE.md).
+The v020.9x1 development branch is separate from the historical packages below.
+
+---
+
+## Historical delivery — v020.8b
 
 **v020.8b · 7 October 2026.** Godot 4.7.2 .NET, C# and .NET 8.
 The canonical source contains the new world, interface and opponent changes.
@@ -591,3 +626,4 @@ codex/v0207-finalization, based on b03c5bd. Local tag v020.7-finalized records t
 later artifact-delivery checkpoint. All historical archives/latest metadata and
 the primary HEAD/index remain unchanged. The full Windows runtime is retained;
 51 internal diagnostics/preview/PDB items from the original player are excluded.
+

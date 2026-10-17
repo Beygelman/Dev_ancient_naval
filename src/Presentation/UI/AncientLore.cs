@@ -77,7 +77,7 @@ internal static class AncientLore
             }
             rows.Add(new("Shots", $"{ship.AttacksRemaining} left this turn"));
             if (battle.Rules.DoubleSalvo && (ship.Definition.Class == ShipClass.Kolonel || ship.IsMothership && ship.SecondAttackUpgrade))
-                rows.Add(new("Double salvo", "Select a cannon target, then choose one or two cannonballs on its parchment; two shots launch together and receive one enemy reply"));
+                rows.Add(new("Double salvo", battle.Rules.CounterBetweenSalvoShots ? "Double salvo: shot → surviving target replies → second shot if attacker survives" : "Select a cannon target, then choose one or two cannonballs on its parchment; two shots launch together and receive one enemy reply"));
             if (ship.Definition.Class is not (ShipClass.Togus or ShipClass.AncientGun))
                 rows.Add(new("Counterfire", $"{ship.CurrentDamage + ship.CounterDamageBonus:0.##} damage · {ship.CannonRange} tiles; if alive"));
             if (battle.HasAntiAir(ship))
@@ -119,7 +119,7 @@ internal static class AncientLore
                 ? "Same or adjacent tile" : $"Within {ship.Definition.CollectionRange} tiles"));
         if (!ship.IsAirborne && ship.Definition.Class != ShipClass.AncientGun)
         {
-            rows.Add(new("Repair", $"+{battle.Rules.RepairAmount} HP; spends actions"));
+            rows.Add(new("Repair", $"+{(ship.Owner == Side.Player ? battle.ShipRepairAmount(ship) : battle.Rules.RepairAmount)} HP; spends actions"));
             rows.Add(new("Passive repair", $"+{battle.Rules.AutoRepairAmount} HP after a turn without an active attack"));
         }
         else if (ship.Definition.Class == ShipClass.AncientGun && battle.Rules.AncientAutoRepairAmount > 0)
@@ -224,9 +224,16 @@ internal static class AncientLore
             improvements.Add(new("Port", privateTrade ? "Trade income is not observed"
                 : $"+{battle.PortIncome(village)} Thors per turn"));
             if (battle.Rules.Ports.ConnectedCityIncome)
-                improvements.Add(new("Trade income", "1 Thor per other connected friendly city; lighthouses relay the route"));
+                improvements.Add(new("Trade income", battle.Rules.Ports.ConnectedCityIncomeCap > 0 ? $"1 Thor per connected partner, up to {battle.Rules.Ports.ConnectedCityIncomeCap}; lighthouses relay the route" : "1 Thor per other connected friendly city; lighthouses relay the route"));
             improvements.Add(new("Local shipyard", $"{battle.Rules.Ports.Discount:P0} cheaper ships"));
             improvements.Add(new("Trade lanes", $"At least +{battle.Rules.Ports.MinimumBonus} tiles or +{battle.Rules.Ports.MovementBonus:P0}; stay on the lane"));
+        }
+        if (battle.Rules.Infrastructure.Enabled && village.Owner == Side.Player)
+        {
+            improvements.Add(new("City infrastructure", $"{battle.CityFacilitySlots(village)} / 2"));
+            foreach (var kind in new[] { village.Facility1, village.Facility2 })
+                if (kind != CityFacility.None)
+                    improvements.Add(new(CityInfrastructureHud.FacilityName(kind), village.ImprovedFacility == kind ? "Improved" : "Installed"));
         }
         if (improvements.Count > 0)
             sections.Add(new("Installed improvements", improvements));
@@ -293,3 +300,4 @@ internal static class AncientLore
         return null;
     }
 }
+

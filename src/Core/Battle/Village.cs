@@ -14,6 +14,9 @@ public sealed class Village
     public double Health { get; internal set; } = 5;
     public bool HasPort { get; internal set; }
     public GridPosition? PortCell { get; internal set; }
+    public CityFacility Facility1 { get; internal set; }
+    public CityFacility Facility2 { get; internal set; }
+    public CityFacility ImprovedFacility { get; internal set; }
     public bool IsFortified { get; internal set; }
     public int TurnsOwned { get; internal set; }
     public bool HasProduced { get; internal set; }
@@ -28,3 +31,4 @@ public sealed class Village
         Position = position;
     }
 }
+

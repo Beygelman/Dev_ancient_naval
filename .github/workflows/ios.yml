@@ -70,8 +70,8 @@ jobs:
         with:
           name: Ancient-Naval-iOS-Xcode-UNSIGNED
           path: |
-            ${{ runner.temp }}/AncientNaval-iOS/Ancient_Naval_v020.8b_iOS_Xcode_UNSIGNED.zip
-            ${{ runner.temp }}/AncientNaval-iOS/Ancient_Naval_v020.8b_iPhone_UNSIGNED.ipa
+            ${{ runner.temp }}/AncientNaval-iOS/Ancient_Naval_*_iOS_Xcode_UNSIGNED.zip
+            ${{ runner.temp }}/AncientNaval-iOS/Ancient_Naval_*_iPhone_UNSIGNED.ipa
             ${{ runner.temp }}/AncientNaval-iOS/SHA256-iOS.txt
           if-no-files-found: error
           retention-days: 7
@@ -85,3 +85,4 @@ jobs:
             ${{ runner.temp }}/AncientNaval-iOS/xcode-schemes.json
           if-no-files-found: ignore
           retention-days: 7
+

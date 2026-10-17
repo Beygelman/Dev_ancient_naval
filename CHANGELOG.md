@@ -1,5 +1,21 @@
 # Ancient Naval change history
 
+## v020.9x1 — 16 October 2026 (experimental)
+
+- Permanently separate own command results from visual waiting. Own actions never
+  auto-focus; ordered opponent replay retains camera focus. Shorten sinking and
+  safely settle effects on the next order or world replacement.
+- New saved experiments: reply between double-salvo shots (ships and towns), capped
+  connected port income, two city facility slots and one level-5 improvement.
+- Add paid facility replacement, one-ship dock service, arsenal capacity and legal
+  AI facility investment. Historical rules default to prior behavior.
+- Add concise agent/subsystem instructions, file map, remote checkpoints and CI
+  coverage for Core, native actions and EN/UK/NL facility controls.
+- Keep Godot/.NET versions, hull movement/HP/prices and flagship restoration rules.
+
+- Publish a permanent v020.9x1 Windows/source delivery under releases, SHA256 and
+  a verified-install launcher for the canonical local playable folder.
+
 ## iPhone portrait addition — 10 October 2026 (v020.8b retained)
 
 - Enable portrait alongside landscape sensor viewing; iOS build metadata 2083.
@@ -423,3 +439,4 @@ Earlier playable checkpoints are documented in `docs/MILESTONE-0.11.md`,
 - Add final archive SHA256, per-file inventories and raw Git evidence preservation; keep earlier candidate archives and original releases unchanged.
 - Preserve all primary v020.8 gameplay sources, primary Git HEAD/index and historical saves; no new mechanics or balance changes.
 - Record complete results in docs/V0207_FINALIZATION_REPORT.md and the finalized release validation sidecar. Remote main/PR #6 remain unchanged.
+

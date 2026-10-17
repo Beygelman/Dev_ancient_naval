@@ -14,6 +14,7 @@ public sealed class BattleRules
     public bool CannonTowersIgnoreWalls { get; init; } // Absent in old rule snapshots: retain fortified damage reduction.
     public bool FreeCoastalNavigation { get; init; } // Missing in old saves: retain their coastal rules.
     public bool DoubleSalvo { get; init; }
+    public bool CounterBetweenSalvoShots { get; init; } // Missing: preserve historical ordering.
     public bool MountainSightShadows { get; init; }
     public bool SmallHullRadarStealth { get; init; }
     public bool HeavenlyAssistance { get; init; }
@@ -48,6 +49,7 @@ public sealed class BattleRules
     public TreasuryRules Treasury { get; init; } = new();
     public EconomyRules Economy { get; init; } = new();
     public PortRules Ports { get; init; } = new();
+    public InfrastructureRules Infrastructure { get; init; } = new();
     public VillageCombatRules VillageCombat { get; init; } = new();
     public IReadOnlyList<LevelUpgrades> Upgrades { get; init; } = new[]
     {
@@ -85,7 +87,7 @@ public sealed class BattleRules
             throw new ArgumentException("Invalid voyage reward rules.");
         if (VillageLevelPrices is null || VillageLevelPrices.Count != 4 || VillageLevelPrices.Any(price => price < 0))
             throw new ArgumentException("Village upgrades need four nonnegative level prices.");
-        if (Mortar is null || Balloon is null || Treasury is null || Economy is null || VillageCombat is null || Ports is null)
+        if (Mortar is null || Balloon is null || Treasury is null || Economy is null || VillageCombat is null || Ports is null || Infrastructure is null)
             throw new ArgumentException("Special weapon and treasury rules cannot be null.");
         Mortar.Validate();
         Balloon.Validate();
@@ -93,6 +95,7 @@ public sealed class BattleRules
         Economy.Validate();
         VillageCombat.Validate();
         Ports.Validate();
+        Infrastructure.Validate();
         ValidateUpgrades();
         ValidateShips();
     }
@@ -122,3 +125,4 @@ public sealed class BattleRules
         }
     }
 }
+

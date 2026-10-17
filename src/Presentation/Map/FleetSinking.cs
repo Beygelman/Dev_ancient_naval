@@ -58,7 +58,7 @@ public partial class FleetView
             EmitRipple(center, ShipVisualProfile.For(ship.Class).Size * 1.4f);
             float previous = 0;
             bool balloon = ship.Class == ShipClass.Balloon;
-            float duration = ship.Class == ShipClass.Mothership ? 3.05f : balloon ? 2.7f : 2.2f;
+            float duration = ship.Class == ShipClass.Mothership ? 1.3f : balloon ? 1.15f : .9f;
             if (balloon) EmitSmoke(center + new Vector2(0, -42), new Vector2(1, -.5f), 1.2f, true);
             await TweenValue(duration, t =>
             {
@@ -88,12 +88,18 @@ public partial class FleetView
 
         if (ship.Class != ShipClass.Mothership)
             return;
-        var followers = Battle.OwnShips(ship.Owner).Select(s => (Ship: ShipSnapshot.From(s), Visible: s.Owner == Side.Player || Battle.Vision.IsVisible(Side.Player, s.Position))).ToArray();
+        var followers = Battle.OwnShips(ship.Owner).Select(ShipSnapshot.From)
+            .Concat(_animationPresentation?.DestroyedShips ?? Array.Empty<ShipSnapshot>())
+            .Where(s => s.Owner == ship.Owner && s.Id != ship.Id && !_playedWrecks.Contains(s.Id))
+            .DistinctBy(s => s.Id)
+            .Select(s => (Ship: s, Visible: s.Owner == Side.Player || Battle.Vision.IsVisible(Side.Player, s.Position))).ToArray();
         // The flagship wreck finishes first. Its fleet then sinks together.
         foreach (var follower in followers)
             _suppressed.Add(follower.Ship.Id);
-        Battle.CompleteFleetCollapse(ship.Owner);
+        if (_animationPresentation is { Complete: false })
+            Battle.CompleteFleetCollapse(ship.Owner);
         await Task.WhenAll(followers.Select(follower => Sink(follower.Ship, follower.Visible)));
     }
 
 }
+

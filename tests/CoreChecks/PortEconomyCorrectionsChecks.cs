@@ -10,6 +10,9 @@ internal static class PortEconomyCorrectionsChecks
 {
     internal static int Run(BattleRules rules)
     {
+        var historical = JsonNode.Parse(JsonSerializer.Serialize(rules))!.AsObject();
+        historical["Ports"]!["ConnectedCityIncomeCap"] = 0;
+        rules = BattleRules.FromJson(historical.ToJsonString());
         int checks = 0;
         void Check(bool condition, string message)
         {
@@ -232,3 +235,4 @@ internal static class PortEconomyCorrectionsChecks
         return checks;
     }
 }
+
