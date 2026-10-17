@@ -77,7 +77,7 @@ jobs:
           grep -q 'PASS: .*action0209' "$RUNNER_TEMP/action-checks/native.log"
           if [ "${GITHUB_REF_NAME}" = "codex/ancient-naval-v020.9x2" ]; then
             timeout 240 xvfb-run -a "$GODOT_BIN" --path . --rendering-method gl_compatibility --audio-driver Dummy -- --balance0209x2-test --save-file="$RUNNER_TEMP/action-checks/balance-save.json" --capture="$RUNNER_TEMP/action-checks/balance.png" 2>&1 | tee "$RUNNER_TEMP/action-checks/balance.log"
-            grep -q 'PASS: .*balance0209x2' "$RUNNER_TEMP/action-checks/balance.log"
+            grep -q 'PASS: .*v020.9x2 native' "$RUNNER_TEMP/action-checks/balance.log"
           fi
           timeout 240 xvfb-run -a "$GODOT_BIN" --path . --rendering-method gl_compatibility --audio-driver Dummy -- --effects-test --save-file="$RUNNER_TEMP/action-checks/effects-save.json" 2>&1 | tee "$RUNNER_TEMP/action-checks/effects.log"
           grep -q 'PASS: .*effects checks' "$RUNNER_TEMP/action-checks/effects.log"
@@ -227,3 +227,35 @@ jobs:
           try { & $installer -ProjectRoot "$root/bad-install" -ArchivePath $bad } catch { $rejected = $true }
           if (!$rejected -or (Test-Path -LiteralPath "$root/bad-install")) { throw 'Checksum failure created an install.' }
           Write-Output 'PASS: Windows PowerShell 5.1 installation, idempotence, old release preservation and corruption refusal.'
+
+  publish-v0209x2:
+    if: github.ref_name == 'codex/ancient-naval-v020.9x2'
+    needs: install-v0209x2
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          sparse-checkout: |
+            releases/v020.9x2
+      - name: Publish experimental GitHub release after every gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view v020.9x2 >/dev/null 2>&1; then
+            echo 'Existing release requires inspection; refusing to overwrite it.' >&2
+            exit 1
+          fi
+          published=$(git rev-parse HEAD)
+          gh release create v020.9x2 \
+            releases/v020.9x2/Ancient_Naval_v020.9x2_Windows.zip \
+            releases/v020.9x2/Ancient_Naval_v020.9x2_Source.zip \
+            releases/v020.9x2/SHA256-v020.9x2.txt \
+            releases/v020.9x2/Install-PlayableRelease.ps1 \
+            releases/v020.9x2/Install_Ancient_Naval_v0209x2.cmd \
+            --target "$published" --prerelease \
+            --title 'Ancient Naval v020.9x2 — experimental economy and combat' \
+            --notes-file releases/v020.9x2/Ancient_Naval_v020.9x2_Notes_RU.md
