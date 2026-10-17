@@ -3,56 +3,71 @@ using DevAncientNaval.Core.World;
 
 try
 {
+    if (args.Contains("--v0209x2-simulation"))
+    {
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        V0209x2AiChecks.Simulate(rules);
+        return;
+    }
+    if (args.Length == 0 || args.Contains("--v0209x2-only"))
+    {
+        var experimental = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        Console.WriteLine($"PASS: {V0209x2EconomyChecks.Run(experimental)} v020.9x2 trade and raid checks.");
+        Console.WriteLine($"PASS: {V0209x2CityChecks.Run(experimental)} v020.9x2 city work checks.");
+        Console.WriteLine($"PASS: {V0209x2CombatChecks.Run(experimental)} v020.9x2 ship role checks.");
+        Console.WriteLine($"PASS: {V0209x2AiChecks.Run(experimental)} v020.9x2 strategic AI checks.");
+        if (args.Contains("--v0209x2-only")) return;
+    }
     if (args.Length == 0)
     {
-        var latest = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var latest = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
         Console.WriteLine($"PASS: {Rules0209Checks.Run(latest)} v020.9 experiments and compatibility checks.");
     }
     if (args.Contains("--v0209-only"))
     {
-        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
         Console.WriteLine($"PASS: {Rules0209Checks.Run(rules)} v020.9 experiments and historical compatibility checks.");
         return;
     }
     if (args.Contains("--v0208b-only"))
     {
-        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
         Console.WriteLine($"PASS: {Rules0208bChecks.Run(rules)} v020.8b investment, flagship safety, pirate restraint and compatibility checks.");
         return;
     }
     if (args.Contains("--v0207b-only"))
     {
-        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
         Console.WriteLine($"PASS: {Rules0207bChecks.Run(rules)} v020.7b tower, Granado, staged combat and historical policy checks.");
         return;
     }
     if (args.Contains("--port-economy-only"))
     {
-        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
         Console.WriteLine($"PASS: {PortEconomyCorrectionsChecks.Run(rules)} connected port economy, receipts and historical save checks.");
         return;
     }
     if (args.Contains("--v0208-only"))
     {
-        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
         Console.WriteLine($"PASS: {Rules0208PiratesChecks.Run(rules)} v020.8 pirate generation and saved option checks.");
         return;
     }
     if (args.Contains("--v0207-only"))
     {
-        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
         Console.WriteLine($"PASS: {Rules0207Checks.Run(rules)} v020.7 fleet, diagonal ports, refunds and balloon-crash checks.");
         return;
     }
     if (args.Contains("--v0206-only"))
     {
-        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
         Console.WriteLine($"PASS: {Rules0206Checks.Run(rules)} v020.6 guidance, economy and generation checks.");
         return;
     }
     if (args.Contains("--v0203-only"))
     {
-        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
         Console.WriteLine($"PASS: {Rules0203Checks.Run(rules)} v020.3 rules checks.");
         Console.WriteLine($"PASS: {Admiral0203Checks.Run(rules)} Admiral checks.");
         Console.WriteLine($"PASS: {Admiral0203SwarmChecks.Run(rules)} swarm and memory checks.");
@@ -60,7 +75,7 @@ try
     }
     if (args.Contains("--v0204-only"))
     {
-        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
         Console.WriteLine($"PASS: {Rules0204Checks.Run(rules)} v020.4 paid town, reward and repair checks.");
         Console.WriteLine($"PASS: {Rules0203Checks.Run(rules)} retained v020.3 rules checks.");
         Console.WriteLine($"PASS: {Admiral0203Checks.Run(rules)} Admiral checks.");
@@ -69,7 +84,7 @@ try
     }
     if (args.Contains("--v0205-only"))
     {
-        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+        var rules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
         Console.WriteLine($"PASS: {Rules0205Checks.Run(rules)} v020.5 support brig, trade, map size and repair checks.");
         return;
     }
@@ -116,7 +131,7 @@ try
     Check(typeof(GameBoard).Assembly.GetReferencedAssemblies().All(a => !a.Name!.StartsWith("Godot")),
         "Core must not reference Godot");
     Console.WriteLine($"PASS: {checks} core checks");
-    var currentRules0207b = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+    var currentRules0207b = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
     Console.WriteLine($"PASS: {Rules0208bChecks.Run(currentRules0207b)} v020.8b investment, flagship safety, pirate restraint and compatibility checks.");
     Console.WriteLine($"PASS: {Rules0207bChecks.Run(currentRules0207b)} v020.7b tower, Granado, staged combat and historical policy checks.");
     BattleScenarios.Run();
@@ -135,7 +150,7 @@ try
     Console.WriteLine($"PASS: {Culture0202Checks.Run(persistenceRules)} v0.20.2 themed Latin names and Continue checks.");
 
     Console.WriteLine($"PASS: {Lighthouse0202Checks.Run(persistenceRules)} lighthouse and merged trade checks.");
-    var currentRules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "balance.json")));
+    var currentRules = DevAncientNaval.Core.Battle.BattleRules.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "balance-v0209x1.json")));
     Console.WriteLine($"PASS: {Admiral0203Checks.Run(currentRules)} v0.20.3 coordinated Admiral tactics and fog fairness checks.");
     Console.WriteLine($"PASS: {Admiral0203SwarmChecks.Run(currentRules)} v020.3 swarm assembly, flagship pursuit and observation-memory checks.");
     Console.WriteLine($"PASS: {Rules0203Checks.Run(currentRules)} v020.3 fleet capacity, veterancy, radar, healing and persisted reward checks.");

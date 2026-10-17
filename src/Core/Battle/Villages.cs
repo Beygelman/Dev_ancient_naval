@@ -60,7 +60,8 @@ public sealed partial class BattleState
             || !(Rules.DiagonalVillageBerths ? Board.GetSurrounding(cell) : Board.GetNeighbors(cell))
                 .Any(p => Board.GetTile(p).Terrain != TerrainType.Land))
             throw new ArgumentException("A village must occupy a coastal land tile.");
-        _villages.Add(new Village(_nextId++, cell));
+        _villages.Add(new Village(_nextId++, cell) { FixedHealth = Rules.ExperimentalEconomy,
+            Health = Rules.ExperimentalEconomy ? 15 : 5 });
     }
 
     private static bool IsCapturingShip(Ship ship) => !ship.IsAirborne && !ship.IsStructure && ship.Definition.Class != ShipClass.Fishing;
@@ -84,8 +85,11 @@ public sealed partial class BattleState
             _captureWaits.Remove(key);
         village.Owner = requester;
         village.TurnsOwned = 0;
-        village.HasProduced = false;
-        village.Health = village.MaxHealth;
+        village.HasProduced = Rules.ExperimentalEconomy;
+        village.Health = Rules.ExperimentalEconomy ? Math.Ceiling(village.MaxHealth / 2) : village.MaxHealth;
+        village.UpgradeWorkRemaining = 0;
+        village.UpgradeProjectPrice = 0;
+        village.DevelopmentPaused = false;
         RegisterVillageIncome(village);
         UpdateVision();
         return new(true, "Village captured.", CommandKind.Capture, TargetId: villageId);
@@ -108,7 +112,7 @@ public sealed partial class BattleState
                 if (!Rules.PaidVillageUpgrades && village.TurnsOwned % 2 == 0 && village.Level < 5)
                 {
                     village.Level++;
-                    village.Health += 5;
+                    if (!Rules.ExperimentalEconomy) village.Health += 5;
                     RegisterVillageIncome(village);
                 }
 
@@ -144,7 +148,7 @@ public sealed partial class BattleState
     public IReadOnlyList<GridPosition> VillageSpawnCells(int villageId) => _villages.FirstOrDefault(v => v.Id == villageId)is { } village
         ? VillageBerths(village).Where(p => IsFreeWater(p) && (!Rules.EmptyOuterRim || !Board.IsOuterCell(p))).ToArray()
         : Array.Empty<GridPosition>();
-    private string? ValidateVillage(Side side, int villageId, out Village? village)
+    private string? ValidateVillage(Side side, int villageId, out Village? village, bool requireWork = true)
     {
         village = _villages.FirstOrDefault(v => v.Id == villageId);
         if (PendingPresentation is not null)
@@ -157,7 +161,9 @@ public sealed partial class BattleState
             return "Select one of your villages.";
         if (village.Health <= 0)
             return "This town is defeated and its shipyard is inactive.";
-        if (village.HasRepaired)
+        if (requireWork && Rules.ExperimentalEconomy && (village.HasProduced || village.HasRepaired || village.HasAttacked))
+            return "This city has already worked this turn.";
+        if (requireWork && village.HasRepaired)
             return "This town has already repaired this turn.";
         return PendingUpgrade(side)is null ? null : "Choose the Mothership upgrade first.";
     }
@@ -226,9 +232,12 @@ public sealed partial class BattleState
         if (error is not null)
             return CommandResult.Rejected(error);
         _credits[(int)requester] -= FortificationPrice(requester);
-        _villages.First(v => v.Id == villageId).IsFortified = true;
+        var village = _villages.First(v => v.Id == villageId);
+        village.IsFortified = true;
+        if (Rules.ExperimentalEconomy) village.HasProduced = true;
         UpdateVision();
-        return new(true, Rules.VillageCombat.AutomaticAttack ? "Outpost raised: 25% resistance, sight +2, automatic level-scaled guns from level 2." : "Village fortified: 25% damage resistance and a 3-damage counterattack within 3 tiles.", CommandKind.Fortify, TargetId: villageId);
+        return new(true, Rules.ExperimentalEconomy ? "Outpost raised: 25% resistance, sight +2, guns 3, reply 4; active fire uses one city work."
+            : Rules.VillageCombat.AutomaticAttack ? "Outpost raised: 25% resistance, sight +2, automatic level-scaled guns from level 2." : "Village fortified: 25% damage resistance and a 3-damage counterattack within 3 tiles.", CommandKind.Fortify, TargetId: villageId);
     }
 
     public bool CanAttackVillage(int shipId, int villageId)
@@ -257,7 +266,8 @@ public sealed partial class BattleState
         var village = _villages.First(v => v.Id == villageId);
         if (doubleSalvo && !CanDoubleSalvo(shipId, village.Position))
             return CommandResult.Rejected("A double salvo needs two cannon shots remaining.");
-        var attackerBefore = ShipSnapshot.From(ship!);
+        int remainingBeforeAttack = ship!.MovementRemainingUnits;
+        var attackerBefore = ShipSnapshot.From(ship);
         bool attackerVisible = ship!.Owner == Side.Player || Vision.IsVisible(Side.Player, ship.Position);
         bool townVisible = Vision.IsVisible(Side.Player, village.Position);
         bool mortar = UsesMortar(ship, village.Position);
@@ -271,15 +281,14 @@ public sealed partial class BattleState
         ship.AttacksUsed += doubleSalvo ? 2 : 1;
         var splash = mortar ? MortarSplash(ship, village.Position) : Array.Empty<CombatShot>();
         var area = mortar ? MortarVillageSplash(ship, village.Position, village.Id) : Array.Empty<AreaHit>();
-        if (ship.Definition.ActionProfile == ActionProfile.Standard && ship.HasMoved)
-            ship.MovementLocked = true;
+        ship.ConsumeAttackMovement(remainingBeforeAttack);
         if (village.Health <= 0)
         {
             RegisterVillageIncome(village);
         }
 
         RecordImpact("village");
-        if (village.Health > 0 && village.IsFortified && (!Rules.VillageCombat.AutomaticAttack || village.Level >= 2) && Board.InRadius(village.Position, ship.Position, Rules.VillageCombat.CounterRange))
+        if (village.Health > 0 && village.IsFortified && (!Rules.VillageCombat.AutomaticAttack || Rules.ExperimentalEconomy || village.Level >= 2) && Board.InRadius(village.Position, ship.Position, Rules.VillageCombat.CounterRange))
         {
             counterDamage = Math.Min(ship.Health, Math.Max(1, VillageCounterDamage(village) - ship.Definition.Armor));
             ship.Health -= counterDamage;
@@ -304,6 +313,7 @@ public sealed partial class BattleState
             if (village.Health <= 0) RegisterVillageIncome(village);
             RecordImpact("village2");
         }
+        ship.ConsumeAttackMovement(remainingBeforeAttack);
         UpdateVision();
         return new(true, $"Town hit for {damage:0.##} damage." + (village.Health <= 0 ? " Defenses defeated: hold alongside until next turn to capture." : ""), CommandKind.Attack, shipId, villageId, damage, Path: new[] { ship.Position, village.Position }, StructureHit: new(attackerBefore, village.Position, counterDamage, mortar, attackerVisible, townVisible, doubleSalvo ? 2 : 1, interleaved, firstDamage, secondDamage, secondAttacker), Splash: splash, AreaHits: area);
     }

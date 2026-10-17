@@ -1,35 +1,32 @@
-# Ancient Naval — v020.9x1 (experimental)
+# Ancient Naval — v020.9x2 (experimental)
 
-**16 October 2026.** Godot 4.7.2 .NET, C# / .NET 8.
+**17 October 2026.** Godot 4.7.2 .NET, C# / .NET 8.
 
-[Download the portable Windows playtest package](releases/v020.9x1/Ancient_Naval_v020.9x1_Windows.zip).
-The release now has a permanent repository copy, matching source and SHA256.
-On the user's Windows PC, run
-[Install_Ancient_Naval_v0209x1.cmd](releases/v020.9x1/Install_Ancient_Naval_v0209x1.cmd)
-to verify, prepare and launch the game at
-`C:/__Beygelman/! -11/dev-ancient-naval/releases/v020.9x1/playable/Ancient Naval.exe`.
-The installer preserves old releases and refuses differing existing files.
-Its extraction, repeated preparation and preservation checks passed in Windows PowerShell 5.1.
-The exported executable passed startup verification; graphical Windows playthrough
-and final frame pacing remain unverified. See [validation and handoff](docs/DEVELOPMENT-STATE.md).
+[Portable Windows player](releases/v020.9x2/Ancient_Naval_v020.9x2_Windows.zip) ·
+[Windows installer and launcher](releases/v020.9x2/Install_Ancient_Naval_v0209x2.cmd) ·
+[Release evidence](releases/v020.9x2/VALIDATION.json).
 
-Own orders keep the camera stationary and apply gameplay immediately. Attack and
-sinking effects no longer hold up the next legal order; remaining cosmetics settle
-when that order starts. Automatic action focus is reserved for opponent replay.
-This interaction change is permanent and also applies to historical saves.
+On the user's Windows PC the launcher prepares the hash-verified player at
+`C:/__Beygelman/! -11/dev-ancient-naval/releases/v020.9x2/playable/Ancient Naval.exe`.
+Existing releases and saves are preserved. A cloud build does not install files on that PC.
 
-New voyages test three independently saved rule changes:
+New voyages use an experimental economy and combat system: city income has a safe
+local part and vulnerable port trade; sustained naval raids can cut real sea routes.
+City development takes work that competes with mobilization and defence. Each hull
+has a role: Brig raids, Galleon escorts, Kolonel holds a front, Granado needs a screen,
+and Support Brig develops the forward network. The Mothership is unchanged.
 
-- A surviving target replies between double-salvo shots. The second shot requires
-  the attacker to survive; only one reply and the existing second-shot damage rule.
-- Connected port income is capped at +2 per port, plus any working trade yard.
-- Cities unlock facility slots at levels 2 and 4: trade yard, repair dock or naval
-  arsenal. At level 5, improve one facility. Replacement is paid; no duplicate types.
+Opponents receive persistent strategic personalities and goals, with shared capture
+and flagship-safety priorities. Continue preserves the rules embedded in its save.
+The v020.9x1 facility prototype remains available only under its historical rules.
 
-Continue preserves historical economy/combat rules. See
-[experimental rules and checks](docs/V0209X1.md), [agent workflow](AGENTS.md),
-[code map](docs/CODEMAP.md) and [current development state](docs/DEVELOPMENT-STATE.md).
-The v020.9x1 development branch is separate from the historical packages below.
+Own actions keep the camera stationary and apply gameplay immediately; effects allow
+the next legal order. Automatic action focus is reserved for opponent replay.
+
+This is a playable experimental candidate, not a claim of proven competitive balance.
+See [Russian notes](releases/v020.9x2/Ancient_Naval_v020.9x2_Notes_RU.md),
+[working agreement](AGENTS.md), [code map](docs/CODEMAP.md) and
+[development state](docs/DEVELOPMENT-STATE.md).
 
 ---
 

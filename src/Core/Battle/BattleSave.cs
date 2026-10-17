@@ -27,7 +27,7 @@ public sealed partial class BattleState
         Statistics = Statistics,
         Rules = Rules,
         Ships = _ships.Select(SavedShip.From).ToArray(),
-        Villages = _villages.Select(v => new SavedVillage(v.Id, v.Position, v.Owner, v.Level, v.Health, v.TurnsOwned, v.IsFortified, v.HasProduced, v.HasRepaired, v.HasAttacked, v.Name, v.HasPort, v.PortCell, v.Facility1, v.Facility2, v.ImprovedFacility)).ToArray(),
+        Villages = _villages.Select(v => new SavedVillage(v.Id, v.Position, v.Owner, v.Level, v.Health, v.TurnsOwned, v.IsFortified, v.HasProduced, v.HasRepaired, v.HasAttacked, v.Name, v.HasPort, v.PortCell, v.Facility1, v.Facility2, v.ImprovedFacility, v.UpgradeWorkRemaining, v.UpgradeProjectPrice, v.DevelopmentPaused)).ToArray(),
         Fish = _fish.ToArray(),
         Shoals = _shoals.ToArray(),
         Treasuries = _treasuries.ToArray(),
@@ -36,6 +36,7 @@ public sealed partial class BattleState
         TreasuryWaits = _treasuryWaits.Select(e => new SavedWait(e.Key, Find(e.Value.ShipId)!.Owner, e.Value.ShipId, e.Value.Position, e.Value.Since)).ToArray(),
         PirateHomes = _pirateHomes.Select(e => new SavedHome(e.Key, e.Value)).ToArray(),
         Outcomes = _treasuryOutcomes.Select(e => new SavedOutcome(e.Key, e.Value)).ToArray(),
+        TradeRaids = SaveTradeRaids(),
         Income = _incomeSources.ToArray(),
         Vision = Vision.Save(),
         Credits = _credits.ToArray(),
@@ -49,6 +50,7 @@ public sealed partial class BattleState
         Creative = Creative,
         GodEye = GodEye,
         Difficulty = Difficulty,
+        AiPlans = CaptureAiPlans(),
         PiratesEnabled = PiratesEnabled,
         Color = PlayerColor,
         Factions = _factions.ToArray(),
@@ -101,6 +103,7 @@ public sealed partial class BattleState
     private void RestoreEntities(BattleSave saved)
     {
         _tradeNetworks.Clear();
+        RestoreTradeRaids(saved.TradeRaids);
         var previousShips = _ships.ToDictionary(s => s.Id);
         var previousVillages = _villages.ToDictionary(v => v.Id);
         _ships.Clear();
@@ -122,6 +125,7 @@ public sealed partial class BattleState
             var village = previousVillages.TryGetValue(state.Id, out var current) ? current : new Village(state.Id, state.Position);
             village.Owner = state.Owner;
             village.Level = state.Level;
+            village.FixedHealth = Rules.ExperimentalEconomy;
             village.Health = state.Health;
             village.TurnsOwned = state.TurnsOwned;
             village.IsFortified = state.Fortified;
@@ -133,6 +137,9 @@ public sealed partial class BattleState
             village.HasProduced = state.Produced;
             village.HasRepaired = state.Repaired;
             village.HasAttacked = state.Attacked;
+            village.UpgradeWorkRemaining = state.UpgradeWorkRemaining;
+            village.UpgradeProjectPrice = state.UpgradeProjectPrice;
+            village.DevelopmentPaused = state.DevelopmentPaused;
             village.Name = state.Name;
             _villages.Add(village);
         }
@@ -179,6 +186,7 @@ public sealed partial class BattleState
         Creative = saved.Creative;
         GodEye = saved.GodEye;
         Difficulty = saved.Difficulty;
+        RestoreAiPlans(saved.AiPlans);
         PiratesEnabled = saved.PiratesEnabled;
         Statistics = saved.Statistics;
         PlayerColor = saved.Color;

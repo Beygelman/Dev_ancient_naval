@@ -8,7 +8,9 @@ public sealed partial class BattleState
         .Sum(v => Rules.Infrastructure.ArsenalCapacity * CityFacilityStrength(v, CityFacility.NavalArsenal));
     private int BaseFleetCapacity(Side side) => !Rules.DynamicFleetCapacity ? Rules.FleetLimit :
         OwnShips(side).Where(s => s.IsMothership).Sum(s => 4 + 2 * (s.Level - 1)) +
-        _villages.Where(v => v.Owner == side && v.Health > 0).Sum(v => 2 + v.Level - 1);
+        _villages.Where(v => v.Owner == side && v.Health > 0).Sum(VillageFleetCapacity);
+    public int VillageFleetCapacity(Village village) => village.Health <= 0 || village.Owner is null ? 0
+        : Rules.ExperimentalEconomy ? 3 : 2 + village.Level - 1;
     public int FleetSlotCost(ShipClass kind) => Rules.WeightedFleetCapacity ? kind switch
     {
         ShipClass.Garrison or ShipClass.Fishing or ShipClass.PirateSchooner => 1,

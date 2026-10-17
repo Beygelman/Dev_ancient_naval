@@ -39,8 +39,12 @@ public sealed class Ship
     public int VisualRange => Definition.VisualRange + (VisionUpgrade ? 2 : 0);
     public int CannonRange => Definition.AttackRange + (IsVeteran ? Definition.VeteranRangeBonus : 0);
     public int AttackRange => IsArmed ? Math.Max(CannonRange, HasMortar ? MortarRange : 0) : 0;
-    public int MortarRange => HasMortar ? 5 : 0;
-    public double CurrentMortarDamage => Definition.Class == ShipClass.AncientGun ? Whole(Definition.Damage * (IsVeteran ? 1.25 : 1)) : Whole((8 * (IsVeteran ? 1.25 : 1)) * (0.5 + 0.5 * HealthRatio));
+    private bool UsesExperimentalArtillery => Definition.ExperimentalCombat && Definition.Class == ShipClass.Togus;
+    public int MortarRange => HasMortar ? (UsesExperimentalArtillery ? Definition.AttackRange : 5) : 0;
+    public double CurrentMortarDamage => Definition.Class == ShipClass.AncientGun
+        ? Whole(Definition.Damage * (IsVeteran ? 1.25 : 1))
+        : Whole((UsesExperimentalArtillery ? Definition.Damage : 8)
+            * (IsVeteran ? 1.25 : 1) * (0.5 + 0.5 * HealthRatio));
 
     public static int Whole(double value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);
     public double MaxHealth => Whole((Definition.MaxHealth + (Level - 1) * Definition.HealthPerLevel + (RestorationUpgrade ? 5 : 0)) * (IsVeteran ? 1.25 : 1));
@@ -61,7 +65,7 @@ public sealed class Ship
     public bool IsExhausted { get; internal set; }
     public bool HasProduced { get; internal set; }
     public bool MovementLocked { get; internal set; }
-    public bool CanMove => IsAirborne ? !IsExhausted && !HasRepaired && MovementRemainingUnits >= 10 : !IsStructure && !IsExhausted && !HasRepaired && !MovementLocked && MovementRemainingUnits >= 1 && (Definition.ActionProfile switch
+    public bool CanMove => IsAirborne ? !IsExhausted && !HasRepaired && MovementRemainingUnits >= 10 : !IsStructure && !IsExhausted && !HasRepaired && !MovementLocked && !(UsesExperimentalArtillery && AttacksUsed > 0) && MovementRemainingUnits >= 1 && (Definition.ActionProfile switch
     {
         ActionProfile.Scout => true,
         ActionProfile.Standard => !MovementLocked,
@@ -70,6 +74,21 @@ public sealed class Ship
     });
     public int AttacksRemaining => IsExhausted || HasRepaired || !IsArmed || HasMortar && HasMoved ? 0 : Math.Max(0, (Definition.ActionProfile == ActionProfile.Heavy ? 2 : 1) + (SecondAttackUpgrade ? 1 : 0) - AttacksUsed);
     public bool CanRepair => !IsAirborne && Definition.Class != ShipClass.AncientGun && !IsExhausted && !HasRepaired && AttacksUsed == 0 && Health < MaxHealth;
+
+    /// <summary>Apply movement consequences of an issued attack, never a reply.
+    /// Charging the unused budget persists a Brig's one-point retreat across
+    /// multiple movement orders and save/restore without a second turn counter.</summary>
+    internal void ConsumeAttackMovement(int? remainingBeforeAttack = null)
+    {
+        if (Definition.ActionProfile == ActionProfile.Standard && HasMoved)
+            MovementLocked = true;
+        if (!Definition.ExperimentalCombat) return;
+        if (Definition.Class == ShipClass.Garrison)
+            MovementSpentUnits = Math.Max(MovementSpentUnits, MovementAllowance * 10
+                - Math.Min(10, remainingBeforeAttack ?? MovementRemainingUnits));
+        if (Definition.Class == ShipClass.Togus)
+            MovementLocked = true;
+    }
 
     internal Ship(int id, Side owner, ShipDefinition definition, GridPosition position)
     {

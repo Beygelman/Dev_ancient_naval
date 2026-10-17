@@ -16,7 +16,7 @@ public enum FleetColor
 }
 
 public sealed record SavedBoard(int Width, int Height, int Seed, GridPosition[] Land, SavedMesh? Mesh, WorldKind Kind = WorldKind.Oceans, MapSize? MapSize = null);
-public sealed record SavedVillage(int Id, GridPosition Position, Side? Owner, int Level, double Health, int TurnsOwned, bool Fortified, bool Produced, bool Repaired, bool Attacked, string Name = "", bool Port = false, GridPosition? PortCell = null, CityFacility Facility1 = CityFacility.None, CityFacility Facility2 = CityFacility.None, CityFacility ImprovedFacility = CityFacility.None);
+public sealed record SavedVillage(int Id, GridPosition Position, Side? Owner, int Level, double Health, int TurnsOwned, bool Fortified, bool Produced, bool Repaired, bool Attacked, string Name = "", bool Port = false, GridPosition? PortCell = null, CityFacility Facility1 = CityFacility.None, CityFacility Facility2 = CityFacility.None, CityFacility ImprovedFacility = CityFacility.None, int UpgradeWorkRemaining = 0, int UpgradeProjectPrice = 0, bool DevelopmentPaused = false);
 public sealed record SavedWait(int Target, Side Side, int Ship, GridPosition Position, int Since);
 public sealed record SavedHome(int Ship, GridPosition Position);
 public sealed record SavedOutcome(int Treasury, TreasuryReward Reward);
@@ -35,6 +35,7 @@ public sealed class BattleSave
     public Whirlpool[] Whirlpools { get; set; } = Array.Empty<Whirlpool>();
     public SavedWait[] CaptureWaits { get; set; } = Array.Empty<SavedWait>();
     public SavedWait[] TreasuryWaits { get; set; } = Array.Empty<SavedWait>();
+    public SavedTradeRaid[] TradeRaids { get; set; } = Array.Empty<SavedTradeRaid>();
     public SavedHome[] PirateHomes { get; set; } = Array.Empty<SavedHome>();
     public SavedOutcome[] Outcomes { get; set; } = Array.Empty<SavedOutcome>();
     public IncomeSource[] Income { get; set; } = Array.Empty<IncomeSource>();
@@ -49,6 +50,7 @@ public sealed class BattleSave
     public bool IsDraw { get; set; }
     public bool GodEye { get; set; }
     public AiDifficulty Difficulty { get; set; } = AiDifficulty.Captain;
+    public SavedAiPlan[] AiPlans { get; set; } = Array.Empty<SavedAiPlan>();
     public bool PiratesEnabled { get; set; } = true;
     public bool Creative { get; set; }
     public FleetColor Color { get; set; }

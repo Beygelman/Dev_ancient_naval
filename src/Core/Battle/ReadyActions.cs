@@ -117,7 +117,7 @@ public sealed partial class BattleState
             int charges = CanDoubleSalvo(attacker.Id, village.Position) ? 2 : 1;
             double damage = VillageShotDamage(attacker, village);
             bool replies = village.Health > damage * (Rules.CounterBetweenSalvoShots ? 1 : charges) && village.IsFortified
-                && (!Rules.VillageCombat.AutomaticAttack || village.Level >= 2)
+                && (!Rules.VillageCombat.AutomaticAttack || Rules.ExperimentalEconomy || village.Level >= 2)
                 && Board.InRadius(village.Position, attacker.Position, Rules.VillageCombat.CounterRange);
             if (!replies || attacker.Health > Math.Max(1, VillageCounterDamage(village) - attacker.Definition.Armor)) return true;
         }

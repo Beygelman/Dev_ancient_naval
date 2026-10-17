@@ -168,6 +168,8 @@ public partial class Main : Node2D
         InitializeTutorials();
         UiScale.Changed += Refresh;
 #if !ANCIENT_NAVAL_IOS
+        if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--balance0209x2-test"))
+            AddChild(new Tests.Runtime.Balance0209x2Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--action0209-test"))
             AddChild(new Tests.Runtime.Action0209Checks { Game = this });
         if (OS.HasFeature("debug") && Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--mobile-touch-test"))

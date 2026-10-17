@@ -24,7 +24,7 @@ internal static class AdmiralTactics
         {
             var reserved = new HashSet<GridPosition>();
             var guns = new List<Gun>();
-            foreach (var ship in allies.Where(s => s.IsArmed && s.AttacksRemaining > 0).OrderBy(s => s.Id))
+            foreach (var ship in allies.Where(s => s.IsArmed && s.AttacksRemaining > 0 && !CaptureOrders.Holding(battle, s)).OrderBy(s => s.Id))
             {
                 if (battle.CanAttack(ship.Id, target.Id))
                 {
@@ -33,7 +33,7 @@ internal static class AdmiralTactics
                 }
                 // Mortars cannot fire after moving; already-moved ships receive
                 // no second movement order, preventing within-turn oscillation.
-                if (!ship.CanMove || ship.HasMoved || ship.HasMortar)
+                if (!ship.CanMove || ship.HasMoved || ship.HasMortar || StrategicPlanning.HoldingPosition(battle, ship))
                     continue;
                 if (!previews.TryGetValue(ship.Id, out var reachable))
                     previews[ship.Id] = reachable = battle.Reachable(ship.Id);
@@ -62,9 +62,10 @@ internal static class AdmiralTactics
                 plans.Add(plan);
         }
         var best = plans.Where(p => p.Lethal || (!p.Target.IsMothership || p.Target.HealthRatio <= .5)
-                && p.Loss < allies.First(s=>s.Id==p.First.ShipId).Health * .6
-                && danger(allies.First(s=>s.Id==p.First.ShipId),p.First.Position) < allies.First(s=>s.Id==p.First.ShipId).Health)
+                && p.Loss < allies.First(s=>s.Id==p.First.ShipId).Health * .6 * StrategicPlanning.Risk(battle)
+                && danger(allies.First(s=>s.Id==p.First.ShipId),p.First.Position) < allies.First(s=>s.Id==p.First.ShipId).Health * StrategicPlanning.Risk(battle))
             .OrderByDescending(p => p.Lethal)
+            .ThenByDescending(p => StrategicPlanning.Enabled(battle) && p.Target.Id == battle.AiPlan(battle.ActiveSide)?.TargetId)
             .ThenBy(p => p.Target.IsMothership ? 0 : p.Target.IsArmed ? 1 : 2)
             .ThenBy(p => p.Lethal ? p.Target.Health : 1000)
             .ThenBy(p => p.Loss).ThenBy(p => p.Orders)
@@ -117,6 +118,7 @@ internal static class AdmiralTactics
             target.Health -= shot.Damage;
             shot.Gun.Forecast.Health -= shot.Counter;
             shot.Gun.Forecast.AttacksUsed += shot.Double ? 2 : 1;
+            shot.Gun.Forecast.ConsumeAttackMovement();
             loss += shot.Counter;
             orders += 1 + (shot.Gun.Cost > 0 && moved.Add(shot.Gun.Actual.Id) ? 1 : 0);
         }

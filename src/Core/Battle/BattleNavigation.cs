@@ -190,6 +190,7 @@ public sealed partial class BattleState
             if (step is null || step > ship.MovementRemainingUnits + 4)
                 break;
             InvalidateWaiting(ship.Id);
+            ClearTradeInterception(ship.Id);
             ship.Position = next;
             ship.MovementSpentUnits += step.Value;
             ship.TradeStreak = discounted!.Value.Item2;

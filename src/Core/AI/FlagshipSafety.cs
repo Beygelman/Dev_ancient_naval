@@ -13,9 +13,9 @@ internal static class FlagshipSafety
         ? enemy.BombCooldown <= 1 && battle.Board.InRadius(enemy.Position, cell, enemy.MovementAllowance + 1)
         : enemy.IsArmed && (battle.WeaponCovers(enemy, cell) || !enemy.IsStructure && !enemy.HasMortar
             && battle.Board.InRadius(enemy.Position, cell, enemy.MovementAllowance + enemy.AttackRange));
-    internal static CommandResult? Retreat(BattleState battle, Ship mother, IReadOnlyList<Ship> enemies)
+    internal static CommandResult? Retreat(BattleState battle, Ship mother, IReadOnlyList<Ship> enemies, bool emergency = false)
     {
-        if (!IsCautious(battle, mother, enemies))
+        if (!emergency && !IsCautious(battle, mother, enemies))
             return null;
         if (mother.CanMove && !mother.HasMoved)
         {

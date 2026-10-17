@@ -45,6 +45,8 @@ public static class SimpleOpponent
             return result.Success ? result : battle.ChooseUpgrade(side, upgrading.Id, choices.First(c => c != preferred));
         }
 
+        if (CaptureOrders.Ready(battle) is { } capture) return capture;
+        StrategicPlanning.Update(battle);
         if (battle.Difficulty == AiDifficulty.Admiral) return AdmiralOpponent.Step(battle);
         if (battle.Difficulty == AiDifficulty.Boatswain) return BoatswainOpponent.Step(battle);
         var allies = battle.OwnShips(side).ToArray();
@@ -65,7 +67,7 @@ public static class SimpleOpponent
         foreach (var balloon in allies.Where(s => s.IsAirborne))
             if (battle.CanDropBomb(balloon.Id) && enemies.Any(e => e.Position == balloon.Position))
                 return battle.DropBomb(side, balloon.Id);
-        foreach (var ship in allies)
+        foreach (var ship in allies.Where(s => !CaptureOrders.Holding(battle, s)))
         {
             var target = enemies.Where(t => battle.CanAttack(ship.Id, t.Id)).OrderBy(t => t.Health <= battle.Damage(ship, t) ? 0 : 1).ThenBy(t => t.Definition.Class == ShipClass.Mothership ? 0 : 1).ThenBy(t => t.Health).FirstOrDefault();
             if (target is not null)
@@ -73,15 +75,15 @@ public static class SimpleOpponent
                     && target.Health > battle.Damage(ship, target));
         }
 
-        foreach (var ship in allies.Where(s => s.IsArmed))
+        foreach (var ship in allies.Where(s => s.IsArmed && !CaptureOrders.Holding(battle, s)))
             foreach (var contact in battle.Vision.Contacts(side))
                 if (battle.TargetCells(ship.Id).Contains(contact))
                     return battle.AttackAt(side, ship.Id, contact);
-        foreach (var ship in allies.Where(s => s.IsArmed))
+        foreach (var ship in allies.Where(s => s.IsArmed && !CaptureOrders.Holding(battle, s)))
             foreach (var village in villages.Where(v => v.Owner != side && v.Health > 0))
                 if (battle.CanAttackVillage(ship.Id, village.Id))
                     return battle.AttackVillage(side, ship.Id, village.Id);
-        foreach (var ship in allies)
+        foreach (var ship in allies.Where(s => !CaptureOrders.Holding(battle, s)))
             if (ship.CanRepair && ship.HealthRatio <= 0.5)
                 return battle.Repair(side, ship.Id);
         foreach (var mother in allies.Where(s => s.IsMothership && s.HasRadar))
@@ -116,27 +118,29 @@ public static class SimpleOpponent
         {
             if (battle.Credits(side) >= battle.FortificationPrice(side) + 4 && battle.FortifyBlockReason(side, village.Id)is null)
                 return battle.FortifyVillage(side, village.Id);
-            foreach (var kind in new[]
+            foreach (var kind in StrategicPlanning.Enabled(battle) ? new[]
+            {
+                StrategicPlanning.PreferredHull(battle, allies, enemies), ShipClass.Invader, ShipClass.Garrison
+            }.Distinct() : new[]
             {
                 ShipClass.Kolonel,
                 ShipClass.Invader,
                 ShipClass.Garrison
-            }
-
-            )
+            })
                 if (!saving && battle.VillageBuildBlockReason(side, village.Id, kind)is null)
                     return battle.BuildFromVillage(side, village.Id, kind, battle.VillageSpawnCells(village.Id).OrderBy(p => enemies.Length > 0 ? enemies.Min(e => battle.Board.Distance(p, e.Position)) : 0).First());
         }
 
         foreach (var mother in allies.Where(s => s.Definition.Class == ShipClass.Mothership))
         {
-            if (saving || FlagshipSafety.IsCautious(battle, mother, enemies))
+            if (saving || CaptureOrders.Holding(battle, mother) || FlagshipSafety.IsCautious(battle, mother, enemies))
                 continue;
             // Building locks movement. Reserve regular turns for advancing the flagship,
             // otherwise low-cost replacements can keep both fleets anchored indefinitely.
             if (battle.Round % 3 == 0 && mother.CanMove)
                 continue;
             var preferred = allies.Count(s => s.Definition.Class == ShipClass.Fishing) < 2 && enemies.Length == 0 ? ShipClass.Fishing : battle.Round % 4 == 0 ? ShipClass.Togus : allies.Length % 3 == 0 ? ShipClass.Kolonel : ShipClass.Invader;
+            if (StrategicPlanning.Enabled(battle)) preferred = StrategicPlanning.PreferredHull(battle, allies, enemies);
             foreach (var type in new[]
             {
                 preferred,
@@ -150,12 +154,14 @@ public static class SimpleOpponent
             }
         }
 
+        if (StrategicPlanning.Move(battle, allies, enemies, investmentThreats.At) is { } objective)
+            return objective;
         if (FleetInvestment.AdvanceRelay(battle, allies, investmentThreats.At) is { } relay)
             return relay;
         foreach (var ship in allies)
         {
             // One movement order per ship per turn prevents oscillation when a route is blocked.
-            if (!ship.CanMove || ship.HasMoved)
+            if (!ship.CanMove || ship.HasMoved || CaptureOrders.Holding(battle, ship) || StrategicPlanning.HoldingPosition(battle, ship))
                 continue;
             if (ship.IsMothership && FlagshipSafety.IsCautious(battle, ship, enemies))
                 continue;

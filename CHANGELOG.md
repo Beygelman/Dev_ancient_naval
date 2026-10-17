@@ -1,5 +1,13 @@
 # Ancient Naval change history
 
+## v020.9x2 — 17 October 2026 (experimental)
+
+- Protectable port export income and sustained naval interception with real rerouting; safe local city income remains 2.
+- Distinct Brig, Galleon, Kolonel, Granado and Support Brig roles; Mothership and upgrades unchanged.
+- Two-work city projects compete with mobilization, healing and defence. Economic levels no longer grant health, capacity and stronger guns together.
+- Five saved strategic AI styles and practical goals; capture priority and landing-crew retention.
+- Historical voyage compatibility, localized UI and real native scenario screenshots. Exact source and release gates in releases/v020.9x2/VALIDATION.json.
+
 ## v020.9x1 — 16 October 2026 (experimental)
 
 - Permanently separate own command results from visual waiting. Own actions never

@@ -395,7 +395,7 @@ public partial class DebugHud : CanvasLayer
         _mortar.Cost = selected?.HasMortar == true ? null : battle.MortarPrice;
         _infrastructureButton.SetMeta("applicable", battle.Rules.Infrastructure.Enabled && village?.Owner == Side.Player);
         _infrastructureButton.Disabled = !canAct || village is null || village.Level < 2;
-        int repairAmount = selected?.Owner == Side.Player ? battle.ShipRepairAmount(selected) : battle.Rules.RepairAmount;
+        int repairAmount = selected?.Owner == Side.Player ? battle.ShipRepairAmount(selected) : village is not null ? battle.VillageRepairAmount : battle.Rules.RepairAmount;
         _repair.TooltipText = $"Repair: up to +{repairAmount} HP · R";
         _badges[_repair].Text = $"+{repairAmount}";
         UpdateVillage(battle, village, canAct);

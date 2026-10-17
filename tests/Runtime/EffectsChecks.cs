@@ -18,6 +18,7 @@ public partial class EffectsChecks : Node
 {
     public Main Game { get; set; } = null !;
 
+    private BattleRules HistoricalRules => BattleRules.FromJson(Godot.FileAccess.GetFileAsString("res://data/balance-v0209x1.json"));
     private int _checks;
     private void Check(bool ok, string name)
     {
@@ -69,7 +70,7 @@ public partial class EffectsChecks : Node
 
     private async Task Salvos()
     {
-        var rules = Game.Battle.Rules;
+        var rules = HistoricalRules;
         foreach (var(kind, count)in new[]
         {
             (ShipClass.Garrison, 1),
@@ -171,7 +172,7 @@ public partial class EffectsChecks : Node
     private async Task OutpostAndReef()
     {
         var townCell = new GridPosition(6, 5);
-        Game.LoadScenario(new BattleState(new GameBoard(20, 20, p => p == townCell ? TerrainType.Land : TerrainType.Water), Game.Battle.Rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(5, 5)), (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)), (Side.Enemy, ShipClass.Fishing, new GridPosition(8, 5)), (Side.Player, ShipClass.FishingDock, new GridPosition(5, 7)) }, new[] { new GridPosition(4, 7) }, villageSpots: new[] { townCell }));
+        Game.LoadScenario(new BattleState(new GameBoard(20, 20, p => p == townCell ? TerrainType.Land : TerrainType.Water), HistoricalRules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(5, 5)), (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)), (Side.Enemy, ShipClass.Fishing, new GridPosition(8, 5)), (Side.Player, ShipClass.FishingDock, new GridPosition(5, 7)) }, new[] { new GridPosition(4, 7) }, villageSpots: new[] { townCell }));
         var town = Game.Battle.Villages.Single();
         for (int hit = 0; hit < 2; hit++)
         {
@@ -214,7 +215,7 @@ public partial class EffectsChecks : Node
     private async Task FleetGallery()
     {
         var town = new GridPosition(10, 10);
-        var rules = Game.Battle.Rules;
+        var rules = HistoricalRules;
         Game.LoadScenario(new BattleState(new GameBoard(20, 20, p => p.X >= 10 && p.X <= 12 && p.Y >= 10 && p.Y <= 12 ? TerrainType.Land : TerrainType.Water), rules, new[] { (Side.Player, ShipClass.Mothership, new GridPosition(5, 7)), (Side.Enemy, ShipClass.Mothership, new GridPosition(18, 18)), (Side.Player, ShipClass.Kolonel, new GridPosition(8, 7)), (Side.Player, ShipClass.Invader, new GridPosition(11, 7)), (Side.Player, ShipClass.Togus, new GridPosition(14, 7)), (Side.Player, ShipClass.Garrison, new GridPosition(9, 10)), (Side.Player, ShipClass.Fishing, new GridPosition(15, 10)), (Side.Enemy, ShipClass.Fishing, new GridPosition(8, 6)), (Side.Enemy, ShipClass.Fishing, new GridPosition(9, 6)), (Side.Enemy, ShipClass.Fishing, new GridPosition(10, 6)) }, new[] { new GridPosition(8, 10), new GridPosition(14, 10) }, villageSpots: new[] { town }));
         // Earn the veteran hull through real combat rather than mutating visual state.
         for (int enemy = 8; enemy <= 10; enemy++)

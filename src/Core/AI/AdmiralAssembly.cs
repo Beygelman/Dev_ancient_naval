@@ -16,7 +16,7 @@ internal static class AdmiralAssembly
     internal static CommandResult? Step(BattleState battle, IReadOnlyList<Ship> allies,
         IReadOnlyList<Ship> enemies, Func<Ship, GridPosition, double> danger)
     {
-        var armed = allies.Where(s => s.IsArmed && !s.IsAirborne && s.HealthRatio >= .5)
+        var armed = allies.Where(s => s.IsArmed && !s.IsAirborne && s.HealthRatio >= .5 && !CaptureOrders.Holding(battle, s))
             .OrderBy(s => s.IsMothership).ThenBy(s => s.Id).Take(24).ToArray();
         if (armed.Count(s => !s.IsMothership) < 2) return null;
         var reachable = new Dictionary<int, IReadOnlyDictionary<GridPosition, int>>();
@@ -36,7 +36,7 @@ internal static class AdmiralAssembly
                     stations.Add(new(ship, current, 0, danger(ship, ship.Position)));
                     continue;
                 }
-                if (ship.IsMothership || !ship.CanMove || ship.HasMoved) continue;
+                if (ship.IsMothership || !ship.CanMove || ship.HasMoved || StrategicPlanning.HoldingPosition(battle, ship)) continue;
                 if (!reachable.TryGetValue(ship.Id, out var cells))
                     reachable[ship.Id] = cells = battle.Reachable(ship.Id);
                 // Preview costs contain no occupied landing cells. Current own
@@ -63,7 +63,7 @@ internal static class AdmiralAssembly
             // hull's share, then replay reduced-health guns with return fire.
             double incoming = stations.Max(s => s.Exposure);
             double escortsHealth = stations.Where(s => !s.Actual.IsMothership).Sum(s => s.Ready.Health);
-            if (incoming >= escortsHealth * .7) continue;
+            if (incoming >= escortsHealth * .7 * StrategicPlanning.Risk(battle)) continue;
             int exposed = Math.Max(1, stations.Count(s => s.Exposure > 0));
             foreach (var station in stations)
                 if (!station.Actual.IsMothership)
@@ -71,7 +71,7 @@ internal static class AdmiralAssembly
             var forecast = Volley(battle, target, stations);
             // The target may move on its turn. This is readiness for a nearby
             // engagement, not certainty: every next command re-observes/replans.
-            if (!forecast.Lethal || forecast.Loss + incoming >= escortsHealth * .8) continue;
+            if (!forecast.Lethal || forecast.Loss + incoming >= escortsHealth * .8 * StrategicPlanning.Risk(battle)) continue;
             var first = movers.OrderBy(s => s.Exposure).ThenBy(s => s.Cost)
                 .ThenBy(s => s.Actual.Id).First();
             formations.Add(new(target, first, forecast.Loss + incoming,
@@ -97,11 +97,18 @@ internal static class AdmiralAssembly
                     bool twice = target.Health > damage && battle.Rules.DoubleSalvo
                         && s.Ready.AttacksRemaining >= 2 && !battle.UsesMortar(s.Ready, target.Position)
                         && (s.Ready.Definition.Class == ShipClass.Kolonel || s.Ready.IsMothership && s.Ready.SecondAttackUpgrade);
-                    double hit = Math.Min(target.Health, damage * (twice ? 2 : 1));
+                    bool early = twice && battle.Rules.CounterBetweenSalvoShots;
+                    double hit = Math.Min(target.Health, damage * (twice && !early ? 2 : 1));
                     var after = Ready(target, battle, target.Position);
                     after.Health -= hit;
-                    double counter = battle.CanCounterattack(after, s.Ready)
-                        ? battle.Damage(after, s.Ready, true) : 0;
+                    double counter = after.Health > 0 && battle.CanCounterattack(after, s.Ready)
+                        ? Math.Min(s.Ready.Health, battle.Damage(after, s.Ready, true)) : 0;
+                    if (early && counter < s.Ready.Health && after.Health > 0)
+                    {
+                        var second = Ready(s.Ready, battle, s.Ready.Position);
+                        second.Health -= counter;
+                        hit += Math.Min(after.Health, battle.Rules.EqualDoubleSalvoDamage ? damage : battle.Damage(second, after));
+                    }
                     return new { Station = s, Hit = hit, Counter = counter, Charges = twice ? 2 : 1 };
                 })
                 .Where(s => s.Counter < s.Station.Ready.Health)
@@ -111,6 +118,7 @@ internal static class AdmiralAssembly
             target.Health -= next.Hit;
             next.Station.Ready.Health -= next.Counter;
             next.Station.Ready.AttacksUsed += next.Charges;
+            next.Station.Ready.ConsumeAttackMovement();
             loss += next.Counter;
         }
         return (target.Health <= 0, original.Health - target.Health, loss);

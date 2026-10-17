@@ -10,7 +10,8 @@ public sealed class Village
     public GridPosition Position { get; }
     public Side? Owner { get; internal set; }
     public int Level { get; internal set; } = 1;
-    public double MaxHealth => Level * 5;
+    internal bool FixedHealth { get; set; }
+    public double MaxHealth => FixedHealth ? 15 : Level * 5;
     public double Health { get; internal set; } = 5;
     public bool HasPort { get; internal set; }
     public GridPosition? PortCell { get; internal set; }
@@ -22,6 +23,9 @@ public sealed class Village
     public bool HasProduced { get; internal set; }
     public bool HasRepaired { get; internal set; }
     public bool HasAttacked { get; internal set; }
+    public int UpgradeWorkRemaining { get; internal set; }
+    public int UpgradeProjectPrice { get; internal set; }
+    public bool DevelopmentPaused { get; internal set; }
     public int VisualRange => IsFortified ? 5 : 3;
     public int IncomePerTurn => Owner is null || Health <= 0 ? 0 : Level;
 

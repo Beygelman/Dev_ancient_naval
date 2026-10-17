@@ -1,7 +1,7 @@
 name: Development checks
 on:
   push:
-    branches: [codex/ancient-naval-v020.9x1]
+    branches: [codex/ancient-naval-v020.9x1, codex/ancient-naval-v020.9x2]
   workflow_dispatch:
 concurrency:
   group: development-${{ github.ref }}
@@ -25,6 +25,19 @@ jobs:
       - run: dotnet run --project tests/CoreChecks/CoreChecks.csproj -c Release
         env:
           ANCIENT_NAVAL_LEGACY_FIXTURES: tests/CoreChecks/Fixtures/Historical
+      - name: Run bounded seeded strategic matches
+        if: github.ref_name == 'codex/ancient-naval-v020.9x2'
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 600 dotnet run --project tests/CoreChecks/CoreChecks.csproj -c Release --no-build -- --v0209x2-simulation 2>&1 | tee "${{ runner.temp }}/simulation.log"
+      - uses: actions/upload-artifact@v4
+        if: always() && github.ref_name == 'codex/ancient-naval-v020.9x2'
+        with:
+          name: v0209x2-simulation
+          path: ${{ runner.temp }}/simulation.log
+          if-no-files-found: ignore
+          retention-days: 30
   native:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -62,6 +75,10 @@ jobs:
           "$GODOT_BIN" --headless --editor --path . --import --quit
           timeout 180 xvfb-run -a "$GODOT_BIN" --path . --rendering-method gl_compatibility --audio-driver Dummy -- --action0209-test --save-file="$RUNNER_TEMP/action-checks/save.json" --capture="$RUNNER_TEMP/action-checks/action.png" 2>&1 | tee "$RUNNER_TEMP/action-checks/native.log"
           grep -q 'PASS: .*action0209' "$RUNNER_TEMP/action-checks/native.log"
+          if [ "${GITHUB_REF_NAME}" = "codex/ancient-naval-v020.9x2" ]; then
+            timeout 240 xvfb-run -a "$GODOT_BIN" --path . --rendering-method gl_compatibility --audio-driver Dummy -- --balance0209x2-test --save-file="$RUNNER_TEMP/action-checks/balance-save.json" --capture="$RUNNER_TEMP/action-checks/balance.png" 2>&1 | tee "$RUNNER_TEMP/action-checks/balance.log"
+            grep -q 'PASS: .*balance0209x2' "$RUNNER_TEMP/action-checks/balance.log"
+          fi
           timeout 240 xvfb-run -a "$GODOT_BIN" --path . --rendering-method gl_compatibility --audio-driver Dummy -- --effects-test --save-file="$RUNNER_TEMP/action-checks/effects-save.json" 2>&1 | tee "$RUNNER_TEMP/action-checks/effects.log"
           grep -q 'PASS: .*effects checks' "$RUNNER_TEMP/action-checks/effects.log"
       - uses: actions/upload-artifact@v4
@@ -70,7 +87,7 @@ jobs:
           name: action0209-evidence
           path: ${{ runner.temp }}/action-checks/
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 30
 
 
   windows:
@@ -111,18 +128,102 @@ jobs:
           '{ "sdk": { "version": "8.0.425", "rollForward": "disable" } }' | Set-Content global.json
       - name: Export and start the actual Windows player
         shell: pwsh
-        run: ./tools/Build-ExperimentalWindows.ps1 -Godot $env:GODOT_BIN -Output "$env:RUNNER_TEMP/Windows-v0209x1"
+        run: ./tools/Build-ExperimentalWindows.ps1 -Godot $env:GODOT_BIN -Output "$env:RUNNER_TEMP/Windows-experimental"
       - uses: actions/upload-artifact@v4
         with:
-          name: Ancient-Naval-v020.9x1-Windows
+          name: Ancient-Naval-Windows
           path: |
-            ${{ runner.temp }}/Windows-v0209x1/Ancient_Naval_*_Windows.zip
-            ${{ runner.temp }}/Windows-v0209x1/SHA256.txt
+            ${{ runner.temp }}/Windows-experimental/Ancient_Naval_*_Windows.zip
+            ${{ runner.temp }}/Windows-experimental/SHA256.txt
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 30
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: windows-export-diagnostics
-          path: ${{ runner.temp }}/Windows-v0209x1/*.log
+          path: ${{ runner.temp }}/Windows-experimental/*.log
           if-no-files-found: ignore
+
+  retain-v0209x2:
+    if: github.ref_name == 'codex/ancient-naval-v020.9x2'
+    needs: [core, native, windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          filter: blob:none
+          sparse-checkout: |
+            src
+            tests
+            data
+            assets
+            scenes
+            tools
+            docs
+            .github
+            releases/v020.9x2
+      - uses: actions/download-artifact@v4
+        with:
+          name: Ancient-Naval-Windows
+          path: ${{ runner.temp }}/validated-player
+      - uses: actions/download-artifact@v4
+        with:
+          name: action0209-evidence
+          path: ${{ runner.temp }}/validated-evidence
+      - uses: actions/download-artifact@v4
+        with:
+          name: v0209x2-simulation
+          path: ${{ runner.temp }}/validated-evidence
+      - name: Retain validated player, matching source and screenshots
+        run: python3 tools/Retain-ExperimentalRelease.py --player "${{ runner.temp }}/validated-player" --evidence "${{ runner.temp }}/validated-evidence" --run-id "${{ github.run_id }}"
+      - name: Publish additive release and Windows launcher
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add releases/v020.9x2 releases/latest.json
+          git commit -m 'release: retain validated v020.9x2 Windows player, source and screenshots [skip ci]'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+  install-v0209x2:
+    if: github.ref_name == 'codex/ancient-naval-v020.9x2'
+    needs: retain-v0209x2
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          sparse-checkout: |
+            tools
+            releases/v020.9x2
+      - name: Verify Windows PowerShell install and preservation
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Join-Path $PWD 'releases/v020.9x2/Install-PlayableRelease.ps1'
+          $archive = Join-Path $PWD 'releases/v020.9x2/Ancient_Naval_v020.9x2_Windows.zip'
+          $root = Join-Path $env:RUNNER_TEMP 'Ancient Naval install fixture'
+          New-Item -ItemType Directory -Path "$root/releases/previous-version" -Force | Out-Null
+          Set-Content -LiteralPath "$root/releases/previous-version/keep.txt" -Value 'preserve previous release'
+          & $installer -ProjectRoot $root -ArchivePath $archive
+          $exe = Join-Path $root 'releases/v020.9x2/playable/Ancient Naval.exe'
+          if (!(Test-Path -LiteralPath $exe)) { throw 'Executable not placed at the conventional path.' }
+          $before = (Get-Item -LiteralPath $exe).LastWriteTimeUtc
+          & $installer -ProjectRoot $root -ArchivePath $archive
+          if ((Get-Item -LiteralPath $exe).LastWriteTimeUtc -ne $before) { throw 'Identical installed player was overwritten.' }
+          if ((Get-Content -LiteralPath "$root/releases/previous-version/keep.txt") -ne 'preserve previous release') { throw 'Previous release changed.' }
+          $readme = Join-Path $root 'releases/v020.9x2/playable/READ_ME_RU.txt'
+          Set-Content -LiteralPath $readme -Value 'preserve mismatched existing file'
+          $rejected = $false
+          try { & $installer -ProjectRoot $root -ArchivePath $archive } catch { $rejected = $true }
+          if (!$rejected -or (Get-Content -LiteralPath $readme) -ne 'preserve mismatched existing file') { throw 'Mismatched existing player was not preserved.' }
+          $bad = Join-Path $env:RUNNER_TEMP 'bad-player.zip'
+          Set-Content -LiteralPath $bad -Value 'invalid archive fixture'
+          $rejected = $false
+          try { & $installer -ProjectRoot "$root/bad-install" -ArchivePath $bad } catch { $rejected = $true }
+          if (!$rejected -or (Test-Path -LiteralPath "$root/bad-install")) { throw 'Checksum failure created an install.' }
+          Write-Output 'PASS: Windows PowerShell 5.1 installation, idempotence, old release preservation and corruption refusal.'

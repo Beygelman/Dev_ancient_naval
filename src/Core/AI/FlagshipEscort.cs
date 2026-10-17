@@ -12,21 +12,22 @@ internal static class FlagshipEscort
     internal static CommandResult? Step(BattleState battle, Ship mother, IReadOnlyList<Ship> allies,
         IReadOnlyList<Ship> enemies, Func<Ship, GridPosition, double> danger)
     {
-        if (!FlagshipSafety.IsCautious(battle, mother, enemies)) return null;
+        if (!FlagshipSafety.IsCautious(battle, mother, enemies) && danger(mother, mother.Position) < mother.Health) return null;
         var threats = enemies.Where(e => e.IsArmed && !e.IsAirborne
             && battle.Board.InRadius(e.Position, mother.Position, e.MovementAllowance + e.AttackRange))
             .OrderBy(e => e.Health).ThenBy(e => battle.Board.Distance(e.Position, mother.Position))
             .ThenByDescending(e => e.CurrentDamage).ThenBy(e => e.Id).ToArray();
         foreach (var enemy in threats)
         {
-            var killer = allies.Where(s => !s.IsMothership && battle.CanAttack(s.Id, enemy.Id))
+            bool lethal = danger(mother, mother.Position) >= mother.Health;
+            var killer = allies.Where(s => !s.IsMothership && (!CaptureOrders.Holding(battle, s) || lethal) && battle.CanAttack(s.Id, enemy.Id))
                 .FirstOrDefault(s => battle.Damage(s, enemy) * (battle.CanDoubleSalvo(s.Id, enemy.Position) ? 2 : 1) >= enemy.Health);
             if (killer is not null)
                 return battle.Attack(battle.ActiveSide, killer.Id, enemy.Id,
                     enemy.Health > battle.Damage(killer, enemy) && battle.CanDoubleSalvo(killer.Id, enemy.Position));
         }
         foreach (var escort in allies.Where(s => !s.IsMothership && !s.IsAirborne && !s.IsStructure
-            && s.CanMove && !s.HasMoved).OrderByDescending(s => s.Health).ThenBy(s => s.Id))
+            && s.CanMove && !s.HasMoved && (!CaptureOrders.Holding(battle, s) || danger(mother, mother.Position) >= mother.Health)).OrderByDescending(s => s.Health).ThenBy(s => s.Id))
         {
             var position = battle.Reachable(escort.Id).Keys.Where(p => p != escort.Position
                 && battle.Board.Distance(p, mother.Position) <= 2
